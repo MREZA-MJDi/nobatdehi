@@ -96,21 +96,6 @@ Route::middleware('guest')->group(function () {
         [LoginController::class, 'store']
     )->name('login.store');
 
-    Route::get(
-        '/login/verify',
-        [LoginController::class, 'showVerify']
-    )->name('login.verify');
-
-    Route::post(
-        '/login/verify',
-        [LoginController::class, 'verify']
-    )->name('login.verify.store');
-
-    Route::post(
-        '/login/verify/resend',
-        [LoginController::class, 'resend']
-    )->name('login.verify.resend');
-
 
     /*
     |--------------------------------------------------------------------------
@@ -128,6 +113,13 @@ Route::middleware('guest')->group(function () {
         [RegisterController::class, 'store']
     )->name('register.store');
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Register OTP
+    |--------------------------------------------------------------------------
+    */
+
     Route::get(
         '/register/verify',
         [RegisterController::class, 'showVerify']
@@ -143,7 +135,6 @@ Route::middleware('guest')->group(function () {
         [RegisterController::class, 'resend']
     )->name('register.verify.resend');
 });
-
 
 /*
 |--------------------------------------------------------------------------

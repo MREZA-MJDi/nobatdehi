@@ -4,60 +4,61 @@
 
 @section('content')
 
+
     <div
         x-data="{
-            step: 1,
+        step: 1,
 
-            logoPreview: null,
-            coverPreview: null,
+        logoPreview: null,
+        coverPreview: null,
 
-            primaryColor: '{{ old('primary_color', '#6757E8') }}',
-            secondaryColor: '{{ old('secondary_color', '#37B8C8') }}',
+        primaryColor: '{{ old('primary_color', '#6757E8') }}',
+        secondaryColor: '{{ old('secondary_color', '#37B8C8') }}',
 
-            previewFile(event, type) {
-                const file = event.target.files?.[0];
+        previewFile(event, type) {
+            const file = event.target.files?.[0];
 
-                if (!file) {
-                    return;
-                }
-
-                const reader = new FileReader();
-
-                reader.onload = (e) => {
-                    if (type === 'logo') {
-                        this.logoPreview = e.target.result;
-                    }
-
-                    if (type === 'cover') {
-                        this.coverPreview = e.target.result;
-                    }
-                };
-
-                reader.readAsDataURL(file);
-            },
-
-            next() {
-                if (this.step < 4) {
-                    this.step++;
-
-                    window.scrollTo({
-                        top: 0,
-                        behavior: 'smooth'
-                    });
-                }
-            },
-
-            previous() {
-                if (this.step > 1) {
-                    this.step--;
-
-                    window.scrollTo({
-                        top: 0,
-                        behavior: 'smooth'
-                    });
-                }
+            if (!file) {
+                return;
             }
-        }"
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                if (type === 'logo') {
+                    this.logoPreview = e.target.result;
+                }
+
+                if (type === 'cover') {
+                    this.coverPreview = e.target.result;
+                }
+            };
+
+            reader.readAsDataURL(file);
+        },
+
+        next() {
+            if (this.step < 4) {
+                this.step++;
+
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+        },
+
+        previous() {
+            if (this.step > 1) {
+                this.step--;
+
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }"
         class="mx-auto max-w-[1400px] px-4 py-5 pb-24 md:px-6 md:py-7"
     >
 
@@ -135,7 +136,7 @@
             <div class="flex min-w-[520px] items-center">
 
                 @foreach([
-                    1 => ['title' => 'اطلاعات', 'desc' => 'مشخصات پایه'],
+                    1 => ['title' => 'اطلاعات', 'desc' => 'مشخصات پایه و حساب'],
                     2 => ['title' => 'برندینگ', 'desc' => 'لوگو و رنگ'],
                     3 => ['title' => 'موقعیت', 'desc' => 'آدرس و نقشه'],
                     4 => ['title' => 'بررسی', 'desc' => 'ساخت سالن'],
@@ -149,35 +150,35 @@
                             class="flex items-center gap-2"
                         >
 
-                            <span
-                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-black transition"
-                                :class="
-                                    step >= {{ $number }}
-                                    ? 'bg-accent-600 text-white shadow-iris'
-                                    : 'border border-border bg-white text-content-muted'
-"
-                            >
-                                {{ $number }}
-                            </span>
+                        <span
+                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-black transition"
+                            :class="
+                                step >= {{ $number }}
+                                ? 'bg-accent-600 text-white shadow-iris'
+                                : 'border border-border bg-white text-content-muted'
+                            "
+                        >
+                            {{ $number }}
+                        </span>
 
                             <span class="hidden text-right sm:block">
 
-                                <span
-                                    class="block text-xs font-black"
-                                    :class="
-                                        step >= {{ $number }}
-                                        ? 'text-content'
-                                        : 'text-content-muted'
-"
-                                >
-                                    {{ $item['title'] }}
-                                </span>
-
-                                <span class="mt-0.5 block text-[9px] text-content-faint">
-                                    {{ $item['desc'] }}
-                                </span>
-
+                            <span
+                                class="block text-xs font-black"
+                                :class="
+                                    step >= {{ $number }}
+                                    ? 'text-content'
+                                    : 'text-content-muted'
+                                "
+                            >
+                                {{ $item['title'] }}
                             </span>
+
+                            <span class="mt-0.5 block text-[9px] text-content-faint">
+                                {{ $item['desc'] }}
+                            </span>
+
+                        </span>
 
                         </button>
 
@@ -233,13 +234,14 @@
                         </h2>
 
                         <p class="page-subtitle">
-                            مشخصات سالن و مسئول کنترل آن را وارد کنید.
+                            مشخصات سالن و حساب مسئول کنترل آن را وارد کنید.
                         </p>
 
                     </div>
 
 
                     <div class="grid gap-5 sm:grid-cols-2">
+
 
                         {{-- Salon Name --}}
 
@@ -265,9 +267,11 @@
                             >
 
                             @error('name')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -302,9 +306,11 @@
                             </div>
 
                             @error('manager_name')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -337,13 +343,93 @@
                             >
 
                             <div class="form-help">
-                                همین شماره برای ورود به پنل سالن با OTP استفاده می‌شود.
+                                همین شماره شناسه ورود مسئول سالن خواهد بود.
                             </div>
 
                             @error('manager_phone')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
+                            @enderror
+
+                        </div>
+
+
+                        {{-- Manager Password --}}
+
+                        <div class="form-group">
+
+                            <label
+                                for="manager_password"
+                                class="form-label"
+                            >
+                                رمز عبور مسئول سالن
+                                <span class="text-danger-600">*</span>
+                            </label>
+
+                            <input
+                                id="manager_password"
+                                type="password"
+                                name="manager_password"
+                                class="form-control text-left"
+                                placeholder="حداقل ۸ کاراکتر"
+                                minlength="8"
+                                autocomplete="new-password"
+                                dir="ltr"
+                                required
+                            >
+
+                            <div class="form-help">
+                                مسئول سالن با شماره موبایل و این رمز وارد پنل می‌شود.
+                            </div>
+
+                            @error('manager_password')
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
+                            @enderror
+
+                        </div>
+
+
+                        {{-- Manager Password Confirmation --}}
+
+                        <div class="form-group">
+
+                            <label
+                                for="manager_password_confirmation"
+                                class="form-label"
+                            >
+                                تکرار رمز عبور
+                                <span class="text-danger-600">*</span>
+                            </label>
+
+                            <input
+                                id="manager_password_confirmation"
+                                type="password"
+                                name="manager_password_confirmation"
+                                class="form-control text-left"
+                                placeholder="تکرار رمز عبور"
+                                minlength="8"
+                                autocomplete="new-password"
+                                dir="ltr"
+                                required
+                            >
+
+                            <div class="form-help">
+                                برای اطمینان، رمز عبور را دوباره وارد کنید.
+                            </div>
+
+                            @error('manager_password_confirmation')
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
                             @enderror
 
                         </div>
@@ -373,9 +459,11 @@
                             >
 
                             @error('email')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -401,9 +489,11 @@
                             >{{ old('description') }}</textarea>
 
                             @error('description')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -438,15 +528,19 @@
                     </h3>
 
                     <p class="mt-2 text-xs leading-7 text-primary-300">
-                        شماره موبایل مسئول سالن، حساب ورود او خواهد بود و ورود فقط با
+                        مسئول سالن با
                         <span class="font-bold text-accent-300">
-                            OTP
-                        </span>
-                        انجام می‌شود.
+                        شماره موبایل
+                    </span>
+                        و
+                        <span class="font-bold text-accent-300">
+                        رمز عبور
+                    </span>
+                        وارد پنل اختصاصی خودش می‌شود.
                     </p>
 
                     <div class="mt-5 rounded-xl border border-white/10 bg-white/5 p-3 text-[10px] leading-6 text-primary-300">
-                        آرایشگرهای داخل سالن بعداً توسط خود مسئول سالن ساخته و مدیریت می‌شوند و حساب Login جداگانه ندارند.
+                        آرایشگرها حساب ورود مستقل ندارند و بعداً توسط مسئول همین سالن مدیریت می‌شوند.
                     </div>
 
                 </aside>
@@ -522,9 +616,22 @@
                                                 stroke="currentColor"
                                                 stroke-width="1.7"
                                             >
-                                                <rect x="3" y="3" width="18" height="18" rx="3" />
-                                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                                <rect
+                                                    x="3"
+                                                    y="3"
+                                                    width="18"
+                                                    height="18"
+                                                    rx="3"
+                                                />
+
+                                                <circle
+                                                    cx="8.5"
+                                                    cy="8.5"
+                                                    r="1.5"
+                                                />
+
                                                 <path d="m21 15-5-5L5 21" />
+
                                             </svg>
 
                                         </div>
@@ -553,9 +660,11 @@
                             </label>
 
                             @error('logo')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -572,8 +681,8 @@
                                 </label>
 
                                 <span class="text-[10px] text-content-muted">
-                                    تصویر افقی و باکیفیت
-                                </span>
+                                تصویر افقی و باکیفیت
+                            </span>
 
                             </div>
 
@@ -614,6 +723,7 @@
                                                 />
 
                                                 <path d="m3 16 5-5 4 4 3-3 6 6" />
+
                                             </svg>
 
                                         </div>
@@ -642,9 +752,11 @@
                             </label>
 
                             @error('cover')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -679,9 +791,11 @@
                             </div>
 
                             @error('primary_color')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -716,9 +830,11 @@
                             </div>
 
                             @error('secondary_color')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -765,10 +881,10 @@
                                 <div
                                     class="h-full w-full"
                                     :style="
-                                        `background:
-                                        radial-gradient(circle at 80% 20%, ${primaryColor}66, transparent 45%),
-                                        linear-gradient(135deg, #171a24, #2d323e);`
-                                    "
+                                    `background:
+                                    radial-gradient(circle at 80% 20%, ${primaryColor}66, transparent 45%),
+                                    linear-gradient(135deg, #171a24, #2d323e);`
+                                "
                                 ></div>
 
                             </template>
@@ -793,9 +909,9 @@
 
                                 <template x-if="!logoPreview">
 
-                                    <span>
-                                        ن
-                                    </span>
+                                <span>
+                                    ن
+                                </span>
 
                                 </template>
 
@@ -804,9 +920,9 @@
 
                             <h3 class="mt-3 truncate text-base font-black text-content">
 
-                                <span
-                                    x-text="document.querySelector('[name=name]')?.value || 'نام سالن'"
-                                ></span>
+                            <span
+                                x-text="document.querySelector('[name=name]')?.value || 'نام سالن'"
+                            ></span>
 
                             </h3>
 
@@ -818,19 +934,19 @@
 
                             <div class="mt-4 flex gap-2">
 
-                                <span
-                                    class="flex-1 rounded-xl px-3 py-2 text-center text-[9px] font-bold text-white"
-                                    :style="`background:${primaryColor}`"
-                                >
-                                    رزرو نوبت
-                                </span>
+                            <span
+                                class="flex-1 rounded-xl px-3 py-2 text-center text-[9px] font-bold text-white"
+                                :style="`background:${primaryColor}`"
+                            >
+                                رزرو نوبت
+                            </span>
 
                                 <span
                                     class="flex-1 rounded-xl px-3 py-2 text-center text-[9px] font-bold text-white"
                                     :style="`background:${secondaryColor}`"
                                 >
-                                    خدمات
-                                </span>
+                                خدمات
+                            </span>
 
                             </div>
 
@@ -875,6 +991,7 @@
 
                     <div class="space-y-5">
 
+
                         {{-- Province --}}
 
                         <div class="form-group">
@@ -897,9 +1014,11 @@
                             >
 
                             @error('province')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -927,9 +1046,11 @@
                             >
 
                             @error('city')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -957,9 +1078,11 @@
                             >
 
                             @error('district')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -985,9 +1108,11 @@
                             >{{ old('address') }}</textarea>
 
                             @error('address')
+
                             <div class="form-error">
                                 {{ $message }}
                             </div>
+
                             @enderror
 
                         </div>
@@ -1018,9 +1143,11 @@
                                 >
 
                                 @error('latitude')
+
                                 <div class="form-error">
                                     {{ $message }}
                                 </div>
+
                                 @enderror
 
                             </div>
@@ -1047,9 +1174,11 @@
                                 >
 
                                 @error('longitude')
+
                                 <div class="form-error">
                                     {{ $message }}
                                 </div>
+
                                 @enderror
 
                             </div>
@@ -1061,7 +1190,7 @@
                 </section>
 
 
-                {{-- Map --}}
+                {{-- Map Preview --}}
 
                 <section class="card overflow-hidden">
 
@@ -1070,18 +1199,18 @@
                         <div>
 
                             <h3 class="text-sm font-black">
-                                انتخاب موقعیت
+                                موقعیت سالن
                             </h3>
 
                             <p class="mt-1 text-[10px] text-content-muted">
-                                فعلاً مختصات را وارد کنید؛ Map Picker واقعی بعداً متصل می‌شود.
+                                مختصات Latitude و Longitude را وارد کنید.
                             </p>
 
                         </div>
 
                         <span class="badge badge-neutral">
-                            Map
-                        </span>
+                        Map
+                    </span>
 
                     </div>
 
@@ -1091,11 +1220,11 @@
                         <div
                             class="absolute inset-0"
                             style="
-                                background-image:
-                                    linear-gradient(rgba(255,255,255,.55) 1px, transparent 1px),
-                                    linear-gradient(90deg, rgba(255,255,255,.55) 1px, transparent 1px);
-                                background-size: 36px 36px;
-                            "
+                            background-image:
+                                linear-gradient(rgba(255,255,255,.55) 1px, transparent 1px),
+                                linear-gradient(90deg, rgba(255,255,255,.55) 1px, transparent 1px);
+                            background-size: 36px 36px;
+                        "
                         ></div>
 
 
@@ -1150,7 +1279,7 @@
                                         </div>
 
                                         <div class="mt-0.5 text-[10px] text-content-muted">
-                                            Latitude و Longitude را در فرم وارد کنید.
+                                            بعداً Map Picker واقعی به این بخش متصل می‌شود.
                                         </div>
 
                                     </div>
@@ -1202,8 +1331,8 @@
 
 
                             <span class="rounded-xl bg-white/10 px-3 py-2 font-mono text-[10px] text-accent-200">
-                                SLUG → AUTO
-                            </span>
+                            SLUG → AUTO
+                        </span>
 
                         </div>
 
@@ -1225,9 +1354,9 @@
 
                                 <div class="mt-1 text-sm font-black">
 
-                                    <span
-                                        x-text="document.querySelector('[name=name]')?.value || '—'"
-                                    ></span>
+                                <span
+                                    x-text="document.querySelector('[name=name]')?.value || '—'"
+                                ></span>
 
                                 </div>
 
@@ -1242,9 +1371,9 @@
 
                                 <div class="mt-1 text-sm font-black">
 
-                                    <span
-                                        x-text="document.querySelector('[name=manager_name]')?.value || '—'"
-                                    ></span>
+                                <span
+                                    x-text="document.querySelector('[name=manager_name]')?.value || '—'"
+                                ></span>
 
                                 </div>
 
@@ -1254,7 +1383,7 @@
                             <div>
 
                                 <div class="text-[10px] font-bold text-content-muted">
-                                    موبایل مسئول
+                                    شماره موبایل مسئول
                                 </div>
 
                                 <div
@@ -1262,9 +1391,9 @@
                                     dir="ltr"
                                 >
 
-                                    <span
-                                        x-text="document.querySelector('[name=manager_phone]')?.value || '—'"
-                                    ></span>
+                                <span
+                                    x-text="document.querySelector('[name=manager_phone]')?.value || '—'"
+                                ></span>
 
                                 </div>
 
@@ -1285,16 +1414,16 @@
 
                                 <div class="mt-1 text-sm font-bold leading-7">
 
-                                    <span
-                                        x-text="
-                                            [
-                                                document.querySelector('[name=province]')?.value,
-                                                document.querySelector('[name=city]')?.value,
-                                                document.querySelector('[name=district]')?.value,
-                                                document.querySelector('[name=address]')?.value
-                                            ].filter(Boolean).join('، ') || 'ثبت نشده'
-                                        "
-                                    ></span>
+                                <span
+                                    x-text="
+                                        [
+                                            document.querySelector('[name=province]')?.value,
+                                            document.querySelector('[name=city]')?.value,
+                                            document.querySelector('[name=district]')?.value,
+                                            document.querySelector('[name=address]')?.value
+                                        ].filter(Boolean).join('، ') || 'ثبت نشده'
+                                    "
+                                ></span>
 
                                 </div>
 
@@ -1309,10 +1438,10 @@
 
                                 <div class="mt-2 flex items-center gap-2">
 
-                                    <span
-                                        class="h-7 w-7 rounded-lg border border-border"
-                                        :style="`background:${primaryColor}`"
-                                    ></span>
+                                <span
+                                    class="h-7 w-7 rounded-lg border border-border"
+                                    :style="`background:${primaryColor}`"
+                                ></span>
 
                                     <code
                                         class="text-xs"
@@ -1333,10 +1462,23 @@
 
                                 <div class="mt-2 text-sm font-bold">
 
-                                    <span
-                                        x-text="coverPreview ? 'انتخاب شده ✓' : 'ثبت نشده'"
-                                    ></span>
+                                <span
+                                    x-text="coverPreview ? 'انتخاب شده ✓' : 'ثبت نشده'"
+                                ></span>
 
+                                </div>
+
+                            </div>
+
+
+                            <div>
+
+                                <div class="text-[10px] font-bold text-content-muted">
+                                    رمز عبور
+                                </div>
+
+                                <div class="mt-2 text-sm font-bold text-green-700">
+                                    تنظیم شده ✓
                                 </div>
 
                             </div>
@@ -1368,22 +1510,24 @@
 
                             <span>
 
-                                <span class="block text-xs font-black">
-                                    سالن فعال باشد
-                                </span>
-
-                                <span class="mt-1 block text-[10px] leading-6 text-content-muted">
-                                    سالن فعال در Discover و صفحه عمومی قابل مشاهده خواهد بود.
-                                </span>
-
+                            <span class="block text-xs font-black">
+                                سالن فعال باشد
                             </span>
+
+                            <span class="mt-1 block text-[10px] leading-6 text-content-muted">
+                                سالن فعال در Discover و صفحه عمومی قابل مشاهده خواهد بود.
+                            </span>
+
+                        </span>
 
                         </label>
 
                         @error('is_active')
+
                         <div class="form-error">
                             {{ $message }}
                         </div>
+
                         @enderror
 
                     </div>

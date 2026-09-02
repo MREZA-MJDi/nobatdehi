@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('title', 'پیدا کردن سالن')
@@ -11,34 +12,237 @@
 
     @php
         use Illuminate\Support\Facades\Storage;
+
+        $persianDigits = [
+            '0' => '۰',
+            '1' => '۱',
+            '2' => '۲',
+            '3' => '۳',
+            '4' => '۴',
+            '5' => '۵',
+            '6' => '۶',
+            '7' => '۷',
+            '8' => '۸',
+            '9' => '۹',
+        ];
+
+        $activeSalonCount = $activeSalonCount ?? 0;
+        $activeBarberCount = $activeBarberCount ?? 0;
+        $bookingCount = $bookingCount ?? 0;
+
+        $barbers = $barbers ?? collect();
+        $mapSalons = $mapSalons ?? collect();
+
+        $query = trim((string) ($query ?? request('q', '')));
+        $code = trim((string) ($code ?? request('code', '')));
+
+        $currentType = $type ?? request('type', 'all');
+
+        if (!in_array($currentType, ['all', 'salon', 'barber'], true)) {
+            $currentType = 'all';
+        }
+
+        $salonCountText = strtr(
+            number_format($activeSalonCount),
+            $persianDigits
+        );
+
+        $barberCountText = strtr(
+            number_format($activeBarberCount),
+            $persianDigits
+        );
+
+        $bookingCountText = strtr(
+            number_format($bookingCount),
+            $persianDigits
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Map Data
+        |--------------------------------------------------------------------------
+        */
+
+        $mapData = $mapSalons
+            ->map(function ($salon) {
+
+                $lat = (float) $salon->latitude;
+                $lng = (float) $salon->longitude;
+
+                return [
+                    'id' => $salon->id,
+                    'name' => $salon->name,
+                    'slug' => $salon->slug,
+                    'lat' => $lat,
+                    'lng' => $lng,
+                    'city' => $salon->city,
+                    'district' => $salon->district,
+
+                    'url' => route(
+                        'public.salons.show',
+                        $salon
+                    ),
+
+                    'booking_url' => route(
+                        'public.salons.booking.create',
+                        $salon
+                    ),
+
+                    'maps_url' =>
+                        'https://www.google.com/maps/dir/?api=1&destination=' .
+                        urlencode($lat . ',' . $lng),
+                ];
+            })
+            ->values();
+
+        $firstMapSalon = $mapData->first();
     @endphp
+
 
     <div
         x-data="{
-            mode: 'all',
-            mapOpen: false,
+            mode: @js($currentType),
+
             recentOpen: false,
+            mapOpen: false,
+
+            selectedMapSalon: @js($firstMapSalon),
 
             setMode(value) {
-                this.mode = value
+                this.mode = value;
             },
 
-            toggleMap() {
-                this.mapOpen = !this.mapOpen
+            selectMapSalon(salon) {
+                this.selectedMapSalon = salon;
+            },
+
+            openMap(salon = null) {
+                if (salon) {
+                    this.selectedMapSalon = salon;
+                }
+
+                this.mapOpen = true;
+            },
+
+            closeMap() {
+                this.mapOpen = false;
+            },
+
+            saveRecentSearch(value) {
+                const normalized = value?.trim();
+
+                if (!normalized) {
+                    return;
+                }
+
+                const key = 'nobatdehi_recent_searches';
+
+                let items = [];
+
+                try {
+                    items = JSON.parse(
+                        localStorage.getItem(key) || '[]'
+                    );
+
+                    if (!Array.isArray(items)) {
+                        items = [];
+                    }
+                } catch (e) {
+                    items = [];
+                }
+
+                items = [
+                    normalized,
+                    ...items.filter(
+                        item => item !== normalized
+                    )
+                ].slice(0, 6);
+
+                localStorage.setItem(
+                    key,
+                    JSON.stringify(items)
+                );
+
+                this.recentOpen = true;
+            },
+
+            getRecentSearches() {
+                try {
+                    const value = JSON.parse(
+                        localStorage.getItem(
+                            'nobatdehi_recent_searches'
+                        ) || '[]'
+                    );
+
+                    return Array.isArray(value)
+                        ? value
+                        : [];
+
+                } catch (e) {
+                    return [];
+                }
+            },
+
+            useCurrentLocation() {
+                if (!navigator.geolocation) {
+                    toast.warning(
+                        'مرورگر شما از مکان‌یابی پشتیبانی نمی‌کند.'
+                    );
+
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+
+                        const lat =
+                            position.coords.latitude;
+
+                        const lng =
+                            position.coords.longitude;
+
+                        window.location.href =
+                            '{{ route('salons.discover') }}'
+                            + '?lat='
+                            + encodeURIComponent(lat)
+                            + '&lng='
+                            + encodeURIComponent(lng);
+
+                    },
+
+                    () => {
+                        toast.error(
+                            'دسترسی به موقعیت مکانی امکان‌پذیر نشد.'
+                        );
+                    },
+
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 60000
+                    }
+                );
             }
         }"
         class="app-container"
     >
 
+
         {{-- ============================================================
             HERO
         ============================================================= --}}
 
-        <section class="discover-hero relative">
+        <section class="discover-hero relative overflow-hidden">
 
             <div
-                class="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-[rgba(189,131,91,0.08)] blur-3xl"
+                class="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-accent-500/10 blur-3xl"
             ></div>
+
+
+            <div
+                class="pointer-events-none absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-primary-500/5 blur-3xl"
+            ></div>
+
 
             <div class="relative z-10">
 
@@ -47,7 +251,7 @@
                 <div class="discover-eyebrow">
 
                     <span
-                        class="flex h-7 w-7 items-center justify-center rounded-full bg-accent-100"
+                        class="flex h-7 w-7 items-center justify-center rounded-full bg-accent-100 text-accent-700"
                     >
 
                         <svg
@@ -82,8 +286,8 @@
 
                 <p class="discover-description">
 
-                    اسم، کد اختصاصی یا موقعیت سالن را جستجو کن؛
-                    اطلاعات سالن، خدمات، امتیاز و مسیر دسترسی را قبل از رزرو ببین.
+                    اسم سالن، نام آرایشگر یا کد اختصاصی سالن را جستجو کن،
+                    بعد خدمات، موقعیت و زمان مناسب را برای رزرو ببین.
 
                 </p>
 
@@ -94,55 +298,46 @@
 
                 <div class="search-panel">
 
+
                     {{-- Search modes --}}
 
-                    <div class="mb-3 flex items-center gap-1 overflow-x-auto pb-1">
+                    <div class="mb-4 flex items-center gap-1 overflow-x-auto pb-1">
 
-                        <button
-                            type="button"
-                            @click="setMode('all')"
-                            class="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition"
-                            :class="
-                                mode === 'all'
-                                    ? 'bg-zinc-900 text-white'
-                                    : 'text-zinc-500 hover:bg-zinc-100'
-                            "
-                        >
-                            همه
-                        </button>
+                        @foreach([
+                            'all' => 'همه',
+                            'salon' => 'سالن‌ها',
+                            'barber' => 'آرایشگرها',
+                        ] as $value => $label)
 
-                        <button
-                            type="button"
-                            @click="setMode('salon')"
-                            class="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition"
-                            :class="
-                                mode === 'salon'
-                                    ? 'bg-zinc-900 text-white'
-                                    : 'text-zinc-500 hover:bg-zinc-100'
-                            "
-                        >
-                            سالن‌ها
-                        </button>
+                            <button
+                                type="button"
+                                @click="setMode('{{ $value }}')"
+                                class="shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition"
+                                :class="
+                                    mode === '{{ $value }}'
+                                        ? 'bg-primary-950 text-white'
+                                        : 'text-content-muted hover:bg-primary-100 hover:text-content'
+                                "
+                            >
+                                {{ $label }}
+                            </button>
 
-                        <button
-                            type="button"
-                            @click="setMode('barber')"
-                            class="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition"
-                            :class="
-                                mode === 'barber'
-                                    ? 'bg-zinc-900 text-white'
-                                    : 'text-zinc-500 hover:bg-zinc-100'
-                            "
-                        >
-                            آرایشگرها
-                        </button>
+                        @endforeach
 
                     </div>
 
 
+                    {{-- Search form --}}
+
                     <form
                         action="{{ route('salons.discover') }}"
                         method="GET"
+                        @submit="
+                            saveRecentSearch(
+                                $el.querySelector('[name=q]')?.value
+                                || $el.querySelector('[name=code]')?.value
+                            )
+                        "
                     >
 
                         <input
@@ -154,7 +349,8 @@
 
                         <div class="search-grid">
 
-                            {{-- Name Search --}}
+
+                            {{-- Search --}}
 
                             <div class="search-field">
 
@@ -174,19 +370,20 @@
 
                                 </span>
 
+
                                 <input
                                     type="search"
                                     name="q"
-                                    value="{{ request('q') }}"
+                                    value="{{ $query }}"
                                     class="search-input"
-                                    placeholder="اسم سالن یا آرایشگر را بنویس..."
+                                    placeholder="اسم سالن یا آرایشگر..."
                                     autocomplete="off"
                                 >
 
                             </div>
 
 
-                            {{-- Code Search --}}
+                            {{-- Salon Code --}}
 
                             <div class="search-field">
 
@@ -207,20 +404,23 @@
                                             height="16"
                                             rx="2"
                                         />
+
                                         <path d="M8 8h3v3H8z" />
                                         <path d="M13 13h3v3h-3z" />
                                         <path d="M14 8h2" />
                                         <path d="M8 16h2" />
+
                                     </svg>
 
                                 </span>
 
+
                                 <input
                                     type="search"
                                     name="code"
-                                    value="{{ request('code') }}"
+                                    value="{{ $code }}"
                                     class="search-input"
-                                    placeholder="کد اختصاصی سالن"
+                                    placeholder="کد سالن"
                                     autocomplete="off"
                                     dir="ltr"
                                 >
@@ -247,7 +447,7 @@
                                     <path d="m16 16 4.5 4.5" />
                                 </svg>
 
-                                پیدا کن
+                                جستجو
 
                             </button>
 
@@ -256,48 +456,17 @@
                     </form>
 
 
-                    {{-- Quick actions --}}
+                    {{-- Quick Actions --}}
 
                     <div class="mt-3 flex flex-wrap gap-2">
 
-                        <button
-                            type="button"
-                            class="filter-chip"
-                            x-data
-                            @click="toast.info('اسکن QR در مرحله بعد به دوربین موبایل وصل می‌شود.')"
-                        >
 
-                            <svg
-                                width="15"
-                                height="15"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <rect
-                                    x="4"
-                                    y="4"
-                                    width="16"
-                                    height="16"
-                                    rx="2"
-                                />
-                                <path d="M8 8h3v3H8z" />
-                                <path d="M13 13h3v3h-3z" />
-                                <path d="M14 8h2" />
-                                <path d="M8 16h2" />
-                            </svg>
-
-                            اسکن QR سالن
-
-                        </button>
-
+                        {{-- Near Me --}}
 
                         <button
                             type="button"
                             class="filter-chip"
-                            x-data
-                            @click="toast.info('در نسخه بعدی از موقعیت فعلی شما استفاده می‌کنیم.')"
+                            @click="useCurrentLocation()"
                         >
 
                             <svg
@@ -320,6 +489,8 @@
 
                         </button>
 
+
+                        {{-- Recent Searches --}}
 
                         <button
                             type="button"
@@ -346,28 +517,63 @@
                     </div>
 
 
-                    {{-- Recent searches --}}
+                    {{-- Recent Searches --}}
 
                     <div
                         x-cloak
                         x-show="recentOpen"
                         x-transition
-                        class="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3"
+                        x-data="{ items: getRecentSearches() }"
+                        class="mt-3 rounded-2xl border border-border bg-surface-soft p-3"
                     >
 
-                        <div class="mb-2 text-xs font-bold text-zinc-700">
-                            جستجوهای اخیر
+                        <div class="mb-2 flex items-center justify-between gap-3">
+
+                            <div class="text-xs font-black text-content">
+                                جستجوهای اخیر
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="text-[10px] font-bold text-content-faint hover:text-content"
+                                @click="
+                                    localStorage.removeItem('nobatdehi_recent_searches');
+                                    items = [];
+                                "
+                            >
+                                پاک کردن
+                            </button>
+
                         </div>
+
 
                         <div class="flex flex-wrap gap-2">
 
-                            <span class="rounded-lg bg-white px-3 py-1.5 text-xs text-zinc-500 shadow-sm">
-                                سالن فلان
-                            </span>
+                            <template
+                                x-for="item in items"
+                                :key="item"
+                            >
 
-                            <span class="rounded-lg bg-white px-3 py-1.5 text-xs text-zinc-500 shadow-sm">
-                                SALON-X8K92
-                            </span>
+                                <a
+                                    :href="
+                                        '{{ route('salons.discover') }}?q='
+                                        + encodeURIComponent(item)
+                                    "
+                                    class="rounded-xl border border-border bg-surface px-3 py-2 text-[10px] font-bold text-content-muted transition hover:border-accent-300 hover:text-accent-600"
+                                    x-text="item"
+                                ></a>
+
+                            </template>
+
+
+                            <template x-if="!items.length">
+
+                                <span class="text-[10px] text-content-faint">
+                                    هنوز جستجویی ثبت نشده است.
+                                </span>
+
+                            </template>
 
                         </div>
 
@@ -381,120 +587,117 @@
 
 
         {{-- ============================================================
-            TOP STATS
+            STATS
         ============================================================= --}}
 
-        <section class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section class="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
 
-            <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-soft">
 
-                <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
+            {{-- Salons --}}
 
-                    <svg
-                        width="17"
-                        height="17"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                        <circle cx="12" cy="10" r="2.5" />
-                    </svg>
+            <div class="rounded-2xl border border-border bg-surface p-4 shadow-soft">
+
+                <div class="mb-3 flex items-center justify-between">
+
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
+
+                        <svg
+                            width="17"
+                            height="17"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+                            <circle cx="12" cy="10" r="2.5" />
+                        </svg>
+
+                    </div>
 
                 </div>
 
-                <div class="text-xl font-black text-zinc-900">
-                    +۱۲۰
+
+                <div class="text-xl font-black text-content">
+                    {{ $salonCountText }}
                 </div>
 
-                <div class="mt-0.5 text-xs text-zinc-500">
+
+                <div class="mt-1 text-xs text-content-muted">
                     سالن فعال
                 </div>
 
             </div>
 
 
-            <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-soft">
+            {{-- Barbers --}}
 
-                <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700">
+            <div class="rounded-2xl border border-border bg-surface p-4 shadow-soft">
 
-                    <svg
-                        width="17"
-                        height="17"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <circle cx="12" cy="8" r="3.5" />
-                        <path d="M5 21c.7-4 3.1-6 7-6s6.3 2 7 6" />
-                    </svg>
+                <div class="mb-3 flex items-center justify-between">
+
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-content-soft">
+
+                        <svg
+                            width="17"
+                            height="17"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <circle cx="12" cy="8" r="3.5" />
+                            <path d="M5 21c.7-4 3.1-6 7-6s6.3 2 7 6" />
+                        </svg>
+
+                    </div>
 
                 </div>
 
-                <div class="text-xl font-black text-zinc-900">
-                    +۴۸۰
+
+                <div class="text-xl font-black text-content">
+                    {{ $barberCountText }}
                 </div>
 
-                <div class="mt-0.5 text-xs text-zinc-500">
-                    آرایشگر
+
+                <div class="mt-1 text-xs text-content-muted">
+                    آرایشگر فعال
                 </div>
 
             </div>
 
 
-            <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-soft">
+            {{-- Bookings --}}
 
-                <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-green-50 text-green-600">
+            <div class="rounded-2xl border border-border bg-surface p-4 shadow-soft">
 
-                    <svg
-                        width="17"
-                        height="17"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path d="m5 12 4 4L19 6" />
-                    </svg>
+                <div class="mb-3 flex items-center justify-between">
+
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600">
+
+                        <svg
+                            width="17"
+                            height="17"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path d="m5 12 4 4L19 6" />
+                        </svg>
+
+                    </div>
 
                 </div>
 
-                <div class="text-xl font-black text-zinc-900">
-                    +۲۵K
+
+                <div class="text-xl font-black text-content">
+                    {{ $bookingCountText }}
                 </div>
 
-                <div class="mt-0.5 text-xs text-zinc-500">
+
+                <div class="mt-1 text-xs text-content-muted">
                     نوبت ثبت‌شده
-                </div>
-
-            </div>
-
-
-            <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-soft">
-
-                <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-
-                    <svg
-                        width="17"
-                        height="17"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path d="m12 3 2.8 5.6 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.5l6.2-.9L12 3Z" />
-                    </svg>
-
-                </div>
-
-                <div class="text-xl font-black text-zinc-900">
-                    ۴.۸
-                </div>
-
-                <div class="mt-0.5 text-xs text-zinc-500">
-                    میانگین رضایت
                 </div>
 
             </div>
@@ -503,132 +706,357 @@
 
 
         {{-- ============================================================
-            RESULTS + MAP
+            RESULTS
         ============================================================= --}}
 
         <section class="discover-layout">
 
+
             {{-- ========================================================
-                RESULTS
+                RESULT COLUMN
             ========================================================= --}}
 
             <div class="results-column">
+
+
+                {{-- Header --}}
 
                 <div class="results-header">
 
                     <div>
 
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
 
                             <h2 class="section-title">
-                                پیشنهادهای مناسب شما
+
+                                @if($query || $code)
+
+                                    نتایج جستجو
+
+                                @elseif($currentType === 'barber')
+
+                                    آرایشگرها
+
+                                @elseif($currentType === 'salon')
+
+                                    سالن‌ها
+
+                                @else
+
+                                    سالن‌های فعال
+
+                                @endif
+
                             </h2>
 
-                            <span class="rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-bold text-zinc-500">
-                                نزدیک‌ترین
-                            </span>
+
+                            @if($query || $code)
+
+                                <span class="rounded-full bg-accent-100 px-2.5 py-1 text-[10px] font-bold text-accent-700">
+                                    جستجو
+                                </span>
+
+                            @endif
 
                         </div>
 
+
                         <p class="results-count mt-1">
-                            سالن‌ها و آرایشگرهای منتخب را ببینید
+
+                            @if(isset($salons))
+
+                                {{ strtr(
+                                    number_format($salons->total()),
+                                    $persianDigits
+                                ) }}
+
+                                نتیجه
+
+                            @else
+
+                                نتایج موجود
+
+                            @endif
+
                         </p>
 
                     </div>
 
-
-                    <button
-                        type="button"
-                        class="btn btn-secondary btn-sm"
-                        x-data
-                        @click="toast.info('فیلترهای پیشرفته را بعداً اضافه می‌کنیم.')"
-                    >
-
-                        <svg
-                            width="15"
-                            height="15"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-                            <path d="M4 6h16" />
-                            <path d="M7 12h10" />
-                            <path d="M10 18h4" />
-                        </svg>
-
-                        فیلتر
-
-                    </button>
-
                 </div>
 
 
-                {{-- =====================================================
-                    REAL DATA
-                ====================================================== --}}
+                {{-- ====================================================
+                    BARBER RESULTS
+                ===================================================== --}}
 
-                @if(isset($salons) && $salons->count())
+                @if(
+                    ($currentType === 'barber' || $currentType === 'all') &&
+                    $barbers->isNotEmpty()
+                )
+
+                    <section class="mb-6">
+
+                        <div class="mb-3 flex items-end justify-between gap-3">
+
+                            <div>
+
+                                <div class="text-[10px] font-black tracking-wider text-accent-600">
+                                    BARBERS
+                                </div>
+
+                                <h3 class="mt-1 text-base font-black text-content">
+                                    آرایشگرها
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="grid gap-3 sm:grid-cols-2">
+
+
+                            @foreach($barbers as $barber)
+
+                                @php
+                                    $barberSalon = $barber->salon;
+                                @endphp
+
+                                @if($barberSalon)
+
+                                    <a
+                                        href="{{ route(
+                                            'public.salons.show',
+                                            $barberSalon
+                                        ) }}#barbers"
+                                        class="group rounded-2xl border border-border bg-surface p-4 transition duration-200 hover:-translate-y-0.5 hover:border-accent-300 hover:shadow-soft"
+                                    >
+
+                                        <div class="flex items-center gap-3">
+
+                                            <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary-100 text-sm font-black text-content-soft">
+
+                                                @if($barber->image_path)
+
+                                                    <img
+                                                        src="{{ Storage::url($barber->image_path) }}"
+                                                        alt="{{ $barber->name }}"
+                                                        class="h-full w-full object-cover"
+                                                    >
+
+                                                @else
+
+                                                    {{ mb_substr(
+                                                        $barber->name,
+                                                        0,
+                                                        1
+                                                    ) }}
+
+                                                @endif
+
+                                            </div>
+
+
+                                            <div class="min-w-0 flex-1">
+
+                                                <div class="truncate text-sm font-black text-content group-hover:text-accent-700">
+                                                    {{ $barber->name }}
+                                                </div>
+
+
+                                                <div class="mt-1 truncate text-[10px] text-content-muted">
+
+                                                    {{ $barber->specialty ?: 'آرایشگر سالن' }}
+
+                                                </div>
+
+
+                                                <div class="mt-1 flex items-center gap-1 text-[10px] text-content-faint">
+
+                                                    <span>
+                                                        {{ $barberSalon->name }}
+                                                    </span>
+
+                                                    @if($barberSalon->city)
+
+                                                        <span>•</span>
+
+                                                        <span>
+                                                            {{ $barberSalon->city }}
+                                                        </span>
+
+                                                    @endif
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <svg
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="1.8"
+                                                class="shrink-0 text-content-faint transition group-hover:text-accent-600"
+                                            >
+                                                <path d="m9 18 6-6-6-6" />
+                                            </svg>
+
+                                        </div>
+
+                                    </a>
+
+                                @endif
+
+                            @endforeach
+
+                        </div>
+
+                    </section>
+
+                @endif
+
+
+                {{-- ====================================================
+                    SALON RESULTS
+                ===================================================== --}}
+
+                @if(
+                    $currentType !== 'barber' &&
+                    $salons->count()
+                )
 
                     <div class="salon-grid">
 
                         @foreach($salons as $salon)
 
-                            <article class="salon-card card-hover group">
+                            @php
 
-                                {{-- Logo --}}
+                                $coverUrl = $salon->cover_path
+                                    ? Storage::url($salon->cover_path)
+                                    : null;
 
-                                <div class="salon-logo">
+                                $logoUrl = $salon->logo_path
+                                    ? Storage::url($salon->logo_path)
+                                    : null;
 
-                                    @if($salon->logo_path)
+                                $hasLocation = (
+                                    $salon->latitude !== null &&
+                                    $salon->longitude !== null
+                                );
+
+                                $mapsUrl = $hasLocation
+                                    ? 'https://www.google.com/maps/dir/?api=1&destination=' .
+                                        urlencode(
+                                            $salon->latitude . ',' .
+                                            $salon->longitude
+                                        )
+                                    : null;
+
+                            @endphp
+
+
+                            <article
+                                class="salon-card card-hover group overflow-hidden"
+                            >
+
+
+                                {{-- Cover --}}
+
+                                <div class="relative h-44 overflow-hidden bg-primary-100">
+
+                                    @if($coverUrl)
 
                                         <img
-                                            src="{{ Storage::url($salon->logo_path) }}"
+                                            src="{{ $coverUrl }}"
                                             alt="{{ $salon->name }}"
-                                            class="h-full w-full object-cover"
+                                            class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                                         >
 
                                     @else
 
-                                        {{ mb_substr($salon->name, 0, 1) }}
+                                        <div
+                                            class="h-full w-full"
+                                            style="
+                                                background:
+                                                radial-gradient(
+                                                circle at 80% 20%,
+                                            {{ $salon->primary_color ?: '#6757E8' }}66,
+                                                transparent 45%
+                                                ),
+                                                linear-gradient(
+                                                135deg,
+                                                #18181b,
+                                                #3f3f46
+                                                );
+                                                "
+                                        ></div>
 
                                     @endif
+
+
+                                    <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/65 to-transparent"></div>
+
+
+                                    {{-- Status --}}
+
+                                    <div class="absolute left-3 top-3">
+
+                                        @if($salon->is_active)
+
+                                            <span class="rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-md">
+                                                فعال
+                                            </span>
+
+                                        @endif
+
+                                    </div>
+
+
+                                    {{-- Logo --}}
+
+                                    <div class="absolute right-4 bottom-[-1.5rem] flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-4 border-surface bg-primary-950 text-lg font-black text-white shadow-lg">
+
+                                        @if($logoUrl)
+
+                                            <img
+                                                src="{{ $logoUrl }}"
+                                                alt="{{ $salon->name }}"
+                                                class="h-full w-full bg-white object-contain"
+                                            >
+
+                                        @else
+
+                                            {{ mb_substr(
+                                                $salon->name,
+                                                0,
+                                                1
+                                            ) }}
+
+                                        @endif
+
+                                    </div>
 
                                 </div>
 
 
-                                <div class="salon-content">
+                                {{-- Content --}}
+
+                                <div class="salon-content pt-8">
+
+
+                                    {{-- Title --}}
 
                                     <div class="salon-topline">
 
                                         <div class="min-w-0">
 
-                                            <div class="mb-1 flex flex-wrap items-center gap-1.5">
-
-                                                @if($salon->is_active)
-
-                                                    <span class="badge badge-success">
-                                                        فعال
-                                                    </span>
-
-                                                @else
-
-                                                    <span class="badge badge-danger">
-                                                        غیرفعال
-                                                    </span>
-
-                                                @endif
-
-                                                <span class="badge badge-accent">
-                                                    سالن
-                                                </span>
-
-                                            </div>
-
-
                                             <h3 class="salon-name group-hover:text-accent-700">
                                                 {{ $salon->name }}
                                             </h3>
+
 
                                             <p class="salon-type">
                                                 سالن زیبایی
@@ -636,27 +1064,14 @@
 
                                         </div>
 
-
-                                        @if(isset($salon->rating))
-
-                                            <div class="salon-rating">
-
-                                                <span class="text-amber-500">
-                                                    ★
-                                                </span>
-
-                                                {{ number_format($salon->rating, 1) }}
-
-                                            </div>
-
-                                        @endif
-
                                     </div>
 
 
-                                    <div class="salon-meta">
+                                    {{-- Location --}}
 
-                                        @if($salon->city || $salon->district)
+                                    @if($salon->city || $salon->district)
+
+                                        <div class="salon-meta mt-3">
 
                                             <div class="salon-meta-item">
 
@@ -672,22 +1087,31 @@
                                                     <circle cx="12" cy="10" r="2.5" />
                                                 </svg>
 
+
                                                 <span>
 
                                                     {{ $salon->city ?: '—' }}
 
                                                     @if($salon->district)
+
                                                         ، {{ $salon->district }}
+
                                                     @endif
 
                                                 </span>
 
                                             </div>
 
-                                        @endif
+                                        </div>
+
+                                    @endif
 
 
-                                        @if($salon->phone)
+                                    {{-- Phone --}}
+
+                                    @if($salon->phone)
+
+                                        <div class="salon-meta">
 
                                             <div class="salon-meta-item">
 
@@ -702,18 +1126,88 @@
                                                     <path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.1 5.2 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .7 2.9a2 2 0 0 1-.5 2.1L9 10.9a16 16 0 0 0 4.1 4.1l1.2-1.3a2 2 0 0 1 2.1-.5c.9.4 1.9.6 2.9.7A2 2 0 0 1 22 16.9Z" />
                                                 </svg>
 
+
                                                 <span dir="ltr">
                                                     {{ $salon->phone }}
                                                 </span>
 
                                             </div>
 
+                                        </div>
+
+                                    @endif
+
+
+                                    {{-- Counters --}}
+
+                                    <div class="mt-4 flex flex-wrap gap-2">
+
+                                        @if(isset($salon->barbers_count))
+
+                                            <span class="rounded-xl bg-primary-100 px-3 py-2 text-[10px] font-bold text-content-muted">
+
+                                                {{ strtr(
+                                                    (string) $salon->barbers_count,
+                                                    $persianDigits
+                                                ) }}
+
+                                                آرایشگر
+
+                                            </span>
+
+                                        @endif
+
+
+                                        @if(isset($salon->services_count))
+
+                                            <span class="rounded-xl bg-primary-100 px-3 py-2 text-[10px] font-bold text-content-muted">
+
+                                                {{ strtr(
+                                                    (string) $salon->services_count,
+                                                    $persianDigits
+                                                ) }}
+
+                                                خدمت
+
+                                            </span>
+
                                         @endif
 
                                     </div>
 
 
-                                    <div class="salon-footer">
+                                    {{-- Actions --}}
+
+                                    <div class="mt-4 grid grid-cols-2 gap-2">
+
+
+                                        <a
+                                            href="{{ route(
+                                                'public.salons.show',
+                                                $salon
+                                            ) }}"
+                                            class="btn btn-secondary btn-sm"
+                                        >
+                                            مشاهده سالن
+                                        </a>
+
+
+                                        <a
+                                            href="{{ route(
+                                                'public.salons.booking.create',
+                                                $salon
+                                            ) }}"
+                                            class="btn btn-accent btn-sm"
+                                        >
+                                            رزرو نوبت
+                                        </a>
+
+                                    </div>
+
+
+                                    {{-- Secondary actions --}}
+
+                                    <div class="mt-2 flex items-center justify-between gap-2">
 
                                         <code
                                             class="salon-code"
@@ -723,24 +1217,41 @@
                                         </code>
 
 
-                                        <a
-                                            href="{{ route('public.salons.show', $salon) }}"
-                                            class="btn btn-primary btn-sm"
-                                        >
-                                            مشاهده سالن
+                                        @if($mapsUrl)
 
-                                            <svg
-                                                width="14"
-                                                height="14"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                stroke-width="2"
+                                            <button
+                                                type="button"
+                                                @click="
+                                                    openMap({
+                                                        id: {{ $salon->id }},
+                                                        name: @js($salon->name),
+                                                        lat: {{ (float) $salon->latitude }},
+                                                        lng: {{ (float) $salon->longitude }},
+                                                        url: @js(route('public.salons.show', $salon)),
+                                                        booking_url: @js(route('public.salons.booking.create', $salon)),
+                                                        maps_url: @js($mapsUrl)
+                                                    })
+                                                "
+                                                class="inline-flex items-center gap-1.5 text-[10px] font-bold text-content-muted transition hover:text-accent-600"
                                             >
-                                                <path d="m9 18 6-6-6-6" />
-                                            </svg>
 
-                                        </a>
+                                                <svg
+                                                    width="14"
+                                                    height="14"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="1.8"
+                                                >
+                                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+                                                    <circle cx="12" cy="10" r="2.5" />
+                                                </svg>
+
+                                                نقشه
+
+                                            </button>
+
+                                        @endif
 
                                     </div>
 
@@ -753,451 +1264,54 @@
                     </div>
 
 
+                    {{-- Pagination --}}
+
                     @if(method_exists($salons, 'links'))
 
-                        <div class="mt-5">
+                        <div class="mt-6">
                             {{ $salons->links() }}
                         </div>
 
                     @endif
 
 
-                @else
+                @elseif($currentType !== 'barber')
 
-                    {{-- =================================================
-                        PREMIUM DEMO RESULTS
-                    ================================================== --}}
+                    <div class="rounded-3xl border border-dashed border-border bg-surface p-10 text-center">
 
-                    <div class="salon-grid">
-
-
-                        {{-- CARD 01 --}}
-
-                        <article class="salon-card card-hover group">
-
-                            <div class="salon-logo">
-
-                                <span>
-                                    ن
-                                </span>
-
-                            </div>
-
-
-                            <div class="salon-content">
-
-                                <div class="salon-topline">
-
-                                    <div class="min-w-0">
-
-                                        <div class="mb-1 flex flex-wrap gap-1.5">
-
-                                            <span class="badge badge-success">
-                                                باز
-                                            </span>
-
-                                            <span class="badge badge-accent">
-                                                محبوب
-                                            </span>
-
-                                        </div>
-
-                                        <h3 class="salon-name group-hover:text-accent-700">
-                                            سالن نوبان
-                                        </h3>
-
-                                        <p class="salon-type">
-                                            سالن زیبایی و مراقبت
-                                        </p>
-
-                                    </div>
-
-
-                                    <div class="salon-rating">
-
-                                        <span class="text-amber-500">
-                                            ★
-                                        </span>
-
-                                        ۴.۹
-
-                                    </div>
-
-                                </div>
-
-
-                                <div class="salon-meta">
-
-                                    <div class="salon-meta-item">
-
-                                        <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                        >
-                                            <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                            <circle cx="12" cy="10" r="2.5" />
-                                        </svg>
-
-                                        <span>
-                                            تهران، سعادت‌آباد
-                                        </span>
-
-                                    </div>
-
-
-                                    <div class="salon-meta-item">
-
-                                        <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                        >
-                                            <circle cx="12" cy="12" r="8" />
-                                            <path d="M12 8v4l2.5 2" />
-                                        </svg>
-
-                                        <span>
-                                            امروز تا ساعت ۲۱:۰۰
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-
-                                <div class="salon-footer">
-
-                                    <code class="salon-code" dir="ltr">
-                                        SALON-X8K92
-                                    </code>
-
-
-                                    <a
-                                        href="#"
-                                        class="btn btn-primary btn-sm"
-                                    >
-                                        مشاهده سالن
-
-                                        <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                        >
-                                            <path d="m9 18 6-6-6-6" />
-                                        </svg>
-
-                                    </a>
-
-                                </div>
-
-                            </div>
-
-                        </article>
-
-
-
-                        {{-- CARD 02 --}}
-
-                        <article class="salon-card card-hover group">
-
-                            <div class="salon-logo">
-
-                                <span>
-                                    A
-                                </span>
-
-                            </div>
-
-
-                            <div class="salon-content">
-
-                                <div class="salon-topline">
-
-                                    <div class="min-w-0">
-
-                                        <div class="mb-1 flex flex-wrap gap-1.5">
-
-                                            <span class="badge badge-success">
-                                                باز
-                                            </span>
-
-                                        </div>
-
-                                        <h3 class="salon-name group-hover:text-accent-700">
-                                            علی رضایی
-                                        </h3>
-
-                                        <p class="salon-type">
-                                            آرایشگر حرفه‌ای
-                                        </p>
-
-                                    </div>
-
-
-                                    <div class="salon-rating">
-
-                                        <span class="text-amber-500">
-                                            ★
-                                        </span>
-
-                                        ۴.۸
-
-                                    </div>
-
-                                </div>
-
-
-                                <div class="salon-meta">
-
-                                    <div class="salon-meta-item">
-
-                                        <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                        >
-                                            <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                            <circle cx="12" cy="10" r="2.5" />
-                                        </svg>
-
-                                        <span>
-                                            تهران، جردن
-                                        </span>
-
-                                    </div>
-
-
-                                    <div class="salon-meta-item">
-
-                                        <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                        >
-                                            <path d="M12 2v20" />
-                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" />
-                                        </svg>
-
-                                        <span>
-                                            اصلاح، فید، استایل
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-
-                                <div class="salon-footer">
-
-                                    <code class="salon-code" dir="ltr">
-                                        BARBER-P7Q31
-                                    </code>
-
-
-                                    <a
-                                        href="#"
-                                        class="btn btn-primary btn-sm"
-                                    >
-                                        مشاهده آرایشگر
-
-                                        <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                        >
-                                            <path d="m9 18 6-6-6-6" />
-                                        </svg>
-
-                                    </a>
-
-                                </div>
-
-                            </div>
-
-                        </article>
-
-
-
-                        {{-- CARD 03 --}}
-
-                        <article class="salon-card card-hover group">
-
-                            <div class="salon-logo">
-
-                                <span>
-                                    M
-                                </span>
-
-                            </div>
-
-
-                            <div class="salon-content">
-
-                                <div class="salon-topline">
-
-                                    <div class="min-w-0">
-
-                                        <div class="mb-1 flex flex-wrap gap-1.5">
-
-                                            <span class="badge badge-success">
-                                                باز
-                                            </span>
-
-                                        </div>
-
-                                        <h3 class="salon-name group-hover:text-accent-700">
-                                            متین استایل
-                                        </h3>
-
-                                        <p class="salon-type">
-                                            سالن مردانه
-                                        </p>
-
-                                    </div>
-
-
-                                    <div class="salon-rating">
-
-                                        <span class="text-amber-500">
-                                            ★
-                                        </span>
-
-                                        ۴.۷
-
-                                    </div>
-
-                                </div>
-
-
-                                <div class="salon-meta">
-
-                                    <div class="salon-meta-item">
-
-                                        <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                        >
-                                            <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                            <circle cx="12" cy="10" r="2.5" />
-                                        </svg>
-
-                                        <span>
-                                            تهران، ونک
-                                        </span>
-
-                                    </div>
-
-
-                                    <div class="salon-meta-item">
-
-                                        <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                        >
-                                            <path d="M12 2v20" />
-                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" />
-                                        </svg>
-
-                                        <span>
-                                            از ۲۵۰ هزار تومان
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-
-                                <div class="salon-footer">
-
-                                    <code class="salon-code" dir="ltr">
-                                        SALON-M4T88
-                                    </code>
-
-
-                                    <a
-                                        href="#"
-                                        class="btn btn-primary btn-sm"
-                                    >
-                                        مشاهده سالن
-
-                                        <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                        >
-                                            <path d="m9 18 6-6-6-6" />
-                                        </svg>
-
-                                    </a>
-
-                                </div>
-
-                            </div>
-
-                        </article>
-
-                    </div>
-
-
-                    <div class="mt-4 flex items-center gap-3 rounded-2xl border border-accent-100 bg-accent-50/60 p-4">
-
-                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-accent-600 shadow-sm">
+                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-100 text-content-muted">
 
                             <svg
-                                width="18"
-                                height="18"
+                                width="24"
+                                height="24"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
                                 stroke-width="1.8"
                             >
-                                <path d="M12 21s8-6 8-11a8 8 0 1 0-16 0c0 5 8 11 8 11Z" />
-                                <circle cx="12" cy="10" r="2.5" />
+                                <circle cx="11" cy="11" r="6.5" />
+                                <path d="m16 16 4.5 4.5" />
                             </svg>
 
                         </div>
 
-                        <div class="min-w-0">
 
-                            <p class="text-xs font-bold text-zinc-800">
-                                موقعیت مکانی دقیق را اضافه می‌کنیم
-                            </p>
+                        <h2 class="mt-4 text-base font-black text-content">
+                            نتیجه‌ای پیدا نشد
+                        </h2>
 
-                            <p class="mt-0.5 text-[11px] leading-6 text-zinc-500">
-                                بعد از اتصال مختصات سالن‌ها، نتایج بر اساس فاصله واقعی مرتب می‌شوند.
-                            </p>
 
-                        </div>
+                        <p class="mt-2 text-xs leading-6 text-content-muted">
+                            عبارت جستجو یا کد سالن را تغییر بده و دوباره جستجو کن.
+                        </p>
+
+
+                        <a
+                            href="{{ route('salons.discover') }}"
+                            class="btn btn-secondary mt-5"
+                        >
+                            نمایش همه سالن‌ها
+                        </a>
 
                     </div>
 
@@ -1207,224 +1321,128 @@
 
 
             {{-- ========================================================
-                MAP
+                DESKTOP MAP
             ========================================================= --}}
 
-            <aside class="map-column">
+            <aside class="map-column hidden md:block">
 
-                <div class="map-card overflow-hidden">
+                <div class="map-card sticky top-24 overflow-hidden">
 
-                    <div class="relative h-full min-h-[29rem] bg-[#ebe8e3]">
+                    @if($mapData->count())
 
-                        {{-- Map background --}}
-
-                        <div
-                            class="absolute inset-0"
-                            style="
-                                background-image:
-                                    linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),
-                                    linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px);
-                                background-size: 38px 38px;
-                            "
-                        ></div>
+                        <div class="relative min-h-[36rem] overflow-hidden rounded-3xl border border-border bg-surface">
 
 
-                        {{-- Road shapes --}}
+                            {{-- Real Google Map --}}
 
-                        <div class="absolute left-[8%] top-[35%] h-4 w-[90%] rotate-[-10deg] rounded-full bg-white/80 shadow-sm"></div>
-
-                        <div class="absolute left-[30%] top-[8%] h-[90%] w-4 rotate-[18deg] rounded-full bg-white/75 shadow-sm"></div>
-
-                        <div class="absolute left-[5%] top-[58%] h-3 w-[65%] rotate-[18deg] rounded-full bg-white/70"></div>
-
-                        <div class="absolute left-[55%] top-[5%] h-[95%] w-2 rotate-[-38deg] rounded-full bg-white/65"></div>
-
-
-                        {{-- Green areas --}}
-
-                        <div class="absolute right-[8%] top-[18%] h-24 w-32 rounded-[40%] bg-green-100/60"></div>
-
-                        <div class="absolute bottom-[12%] left-[8%] h-20 w-28 rounded-[40%] bg-green-100/50"></div>
-
-
-                        {{-- Fake location pins --}}
-
-                        <button
-                            type="button"
-                            class="group absolute right-[25%] top-[30%]"
-                            title="سالن نوبان"
-                        >
-
-                            <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-zinc-900 text-white shadow-float transition group-hover:scale-110">
-
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                    <circle cx="12" cy="10" r="2.5" />
-                                </svg>
-
-                            </span>
-
-                        </button>
+                            <iframe
+                                :key="selectedMapSalon?.lat + '-' + selectedMapSalon?.lng"
+                                :src="
+                                    selectedMapSalon
+                                        ? 'https://www.google.com/maps?q='
+                                            + selectedMapSalon.lat
+                                            + ','
+                                            + selectedMapSalon.lng
+                                            + '&z=15&output=embed'
+                                        : ''
+                                "
+                                title="موقعیت سالن روی Google Maps"
+                                class="absolute inset-0 h-full w-full border-0"
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                            ></iframe>
 
 
-                        <button
-                            type="button"
-                            class="group absolute left-[24%] top-[47%]"
-                            title="متین استایل"
-                        >
+                            {{-- Top info --}}
 
-                            <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-accent-600 text-white shadow-float transition group-hover:scale-110">
+                            <div class="absolute inset-x-3 top-3">
 
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                    <circle cx="12" cy="10" r="2.5" />
-                                </svg>
+                                <div class="rounded-2xl border border-white/60 bg-white/88 p-3 shadow-float backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/90">
 
-                            </span>
+                                    <div class="flex items-center justify-between gap-3">
 
-                        </button>
+                                        <div class="min-w-0">
+
+                                            <div class="text-[10px] font-black tracking-wider text-accent-600">
+                                                LOCATION
+                                            </div>
 
 
-                        <button
-                            type="button"
-                            class="group absolute bottom-[19%] left-[48%]"
-                            title="علی رضایی"
-                        >
+                                            <div
+                                                class="mt-1 truncate text-xs font-black text-zinc-950 dark:text-white"
+                                                x-text="selectedMapSalon?.name || 'موقعیت سالن'"
+                                            ></div>
 
-                            <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-zinc-700 text-white shadow-float transition group-hover:scale-110">
-
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                    <circle cx="12" cy="10" r="2.5" />
-                                </svg>
-
-                            </span>
-
-                        </button>
+                                        </div>
 
 
-                        {{-- Map Controls --}}
+                                        <a
+                                            x-show="selectedMapSalon?.maps_url"
+                                            :href="selectedMapSalon?.maps_url"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="btn btn-secondary btn-sm shrink-0"
+                                        >
+                                            مسیر
+                                        </a>
 
-                        <div class="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
+                                    </div>
 
-                            <div class="map-label">
-
-                                <span class="h-2 w-2 rounded-full bg-green-500"></span>
-
-                                ۳ سالن نزدیک شما
+                                </div>
 
                             </div>
 
 
-                            <button
-                                type="button"
-                                class="flex h-9 w-9 items-center justify-center rounded-xl border border-white/70 bg-white/90 text-zinc-700 shadow-soft backdrop-blur transition hover:bg-white"
-                                x-data
-                                @click="toast.info('مکان‌یابی GPS بعداً فعال می‌شود.')"
-                                aria-label="مکان من"
-                            >
+                            {{-- Salon map list --}}
 
-                                <svg
-                                    width="17"
-                                    height="17"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                >
-                                    <circle cx="12" cy="12" r="8" />
-                                    <circle cx="12" cy="12" r="2.5" />
-                                    <path d="M12 4v2" />
-                                    <path d="M12 18v2" />
-                                    <path d="M4 12h2" />
-                                    <path d="M18 12h2" />
-                                </svg>
+                            <div class="absolute inset-x-3 bottom-3">
 
-                            </button>
+                                <div class="max-h-48 overflow-y-auto rounded-2xl border border-white/60 bg-white/88 p-2 shadow-float backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/90">
 
-                        </div>
+                                    @foreach($mapData as $mapSalon)
 
-
-                        {{-- Map Bottom Info --}}
-
-                        <div class="absolute inset-x-3 bottom-3">
-
-                            <div class="rounded-2xl border border-white/70 bg-white/92 p-3 shadow-float backdrop-blur-xl">
-
-                                <div class="flex items-center justify-between gap-3">
-
-                                    <div class="flex min-w-0 items-center gap-3">
-
-                                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-100 text-accent-700">
-
-                                            <svg
-                                                width="18"
-                                                height="18"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                stroke-width="1.8"
-                                            >
-                                                <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                                <circle cx="12" cy="10" r="2.5" />
-                                            </svg>
-
-                                        </div>
-
-                                        <div class="min-w-0">
-
-                                            <p class="truncate text-xs font-extrabold text-zinc-900">
-                                                سالن نوبان
-                                            </p>
-
-                                            <p class="mt-0.5 truncate text-[10px] text-zinc-500">
-                                                سعادت‌آباد، تهران
-                                            </p>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    <a
-                                        href="#"
-                                        class="btn btn-primary btn-sm"
-                                    >
-                                        مسیر
-
-                                        <svg
-                                            width="13"
-                                            height="13"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
+                                        <button
+                                            type="button"
+                                            @click="
+                                                selectMapSalon({
+                                                    id: {{ $mapSalon['id'] }},
+                                                    name: @js($mapSalon['name']),
+                                                    lat: {{ $mapSalon['lat'] }},
+                                                    lng: {{ $mapSalon['lng'] }},
+                                                    url: @js($mapSalon['url']),
+                                                    booking_url: @js($mapSalon['booking_url']),
+                                                    maps_url: @js($mapSalon['maps_url'])
+                                                })
+                                            "
+                                            class="flex w-full items-center justify-between gap-3 rounded-xl p-3 text-right transition hover:bg-zinc-100 dark:hover:bg-zinc-800"
                                         >
-                                            <path d="m9 18 6-6-6-6" />
-                                        </svg>
 
-                                    </a>
+                                            <div class="min-w-0">
+
+                                                <div class="truncate text-xs font-black text-zinc-950 dark:text-white">
+                                                    {{ $mapSalon['name'] }}
+                                                </div>
+
+
+                                                <div class="mt-1 truncate text-[10px] text-zinc-500 dark:text-zinc-400">
+
+                                                    {{ collect([
+                                                        $mapSalon['city'],
+                                                        $mapSalon['district'],
+                                                    ])->filter()->join('، ') }}
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <span class="shrink-0 text-[10px] font-bold text-accent-600">
+                                                انتخاب
+                                            </span>
+
+                                        </button>
+
+                                    @endforeach
 
                                 </div>
 
@@ -1432,7 +1450,43 @@
 
                         </div>
 
-                    </div>
+                    @else
+
+                        <div class="flex min-h-[36rem] items-center justify-center rounded-3xl border border-dashed border-border bg-surface p-8 text-center">
+
+                            <div>
+
+                                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-100 text-content-muted">
+
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.8"
+                                    >
+                                        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+                                        <circle cx="12" cy="10" r="2.5" />
+                                    </svg>
+
+                                </div>
+
+
+                                <h3 class="mt-4 text-sm font-black text-content">
+                                    نقشه آماده است
+                                </h3>
+
+
+                                <p class="mt-2 text-[10px] leading-6 text-content-muted">
+                                    به‌محض ثبت مختصات سالن‌ها، موقعیت واقعی آن‌ها در اینجا نمایش داده می‌شود.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    @endif
 
                 </div>
 
@@ -1445,31 +1499,35 @@
             MOBILE MAP BUTTON
         ============================================================= --}}
 
-        <div class="mt-4 md:hidden">
+        @if($mapData->count())
 
-            <button
-                type="button"
-                class="btn btn-secondary w-full"
-                @click="toggleMap()"
-            >
+            <div class="mt-4 md:hidden">
 
-                <svg
-                    width="17"
-                    height="17"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
+                <button
+                    type="button"
+                    class="btn btn-secondary w-full"
+                    @click="openMap()"
                 >
-                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                    <circle cx="12" cy="10" r="2.5" />
-                </svg>
 
-                <span x-text="mapOpen ? 'بستن نقشه' : 'نمایش روی نقشه'"></span>
+                    <svg
+                        width="17"
+                        height="17"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                    >
+                        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+                        <circle cx="12" cy="10" r="2.5" />
+                    </svg>
 
-            </button>
+                    نمایش نقشه
 
-        </div>
+                </button>
+
+            </div>
+
+        @endif
 
 
         {{-- ============================================================
@@ -1484,8 +1542,8 @@
         >
 
             <div
-                class="absolute inset-0 bg-black/40 backdrop-blur-sm"
-                @click="mapOpen = false"
+                class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                @click="closeMap()"
             ></div>
 
 
@@ -1496,31 +1554,32 @@
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="translate-y-0"
                 x-transition:leave-end="translate-y-full"
-                class="absolute inset-x-0 bottom-0 overflow-hidden rounded-t-[2rem] bg-white p-3 shadow-float"
+                class="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-hidden rounded-t-[2rem] border border-border bg-surface p-3 shadow-float"
             >
 
-                <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-zinc-200"></div>
+                <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-primary-300"></div>
 
 
-                <div class="mb-3 flex items-center justify-between px-2">
+                <div class="mb-3 flex items-center justify-between gap-3 px-2">
 
-                    <div>
+                    <div class="min-w-0">
 
-                        <h3 class="text-sm font-black text-zinc-900">
-                            سالن‌های روی نقشه
-                        </h3>
+                        <div class="text-[10px] font-black tracking-wider text-accent-600">
+                            MAP
+                        </div>
 
-                        <p class="mt-0.5 text-[10px] text-zinc-500">
-                            موقعیت تقریبی سالن‌ها
-                        </p>
+                        <h3
+                            class="mt-1 truncate text-sm font-black text-content"
+                            x-text="selectedMapSalon?.name || 'موقعیت سالن'"
+                        ></h3>
 
                     </div>
 
 
                     <button
                         type="button"
-                        class="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600"
-                        @click="mapOpen = false"
+                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-content-muted"
+                        @click="closeMap()"
                         aria-label="بستن"
                     >
                         ×
@@ -1529,43 +1588,58 @@
                 </div>
 
 
-                <div class="map-card">
+                <div class="overflow-hidden rounded-2xl border border-border">
 
-                    <div class="relative h-[20rem] overflow-hidden bg-[#ebe8e3]">
-
-                        <div
-                            class="absolute inset-0"
-                            style="
-                                background-image:
-                                    linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),
-                                    linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px);
-                                background-size: 34px 34px;
-                            "
-                        ></div>
-
-                        <div class="absolute left-[10%] top-[40%] h-3 w-[85%] rotate-[-12deg] rounded-full bg-white"></div>
-
-                        <div class="absolute left-[38%] top-[5%] h-[90%] w-3 rotate-[14deg] rounded-full bg-white"></div>
-
-                        <div class="absolute right-[22%] top-[29%] flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-zinc-900 text-white shadow-float">
-
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                <circle cx="12" cy="10" r="2.5" />
-                            </svg>
-
-                        </div>
-
-                    </div>
+                    <iframe
+                        :src="
+                            selectedMapSalon
+                                ? 'https://www.google.com/maps?q='
+                                    + selectedMapSalon.lat
+                                    + ','
+                                    + selectedMapSalon.lng
+                                    + '&z=15&output=embed'
+                                : ''
+                        "
+                        title="موقعیت سالن روی Google Maps"
+                        class="h-[22rem] w-full border-0"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                    ></iframe>
 
                 </div>
+
+
+                <div class="mt-3 grid grid-cols-2 gap-2">
+
+                    <a
+                        x-show="selectedMapSalon?.url"
+                        :href="selectedMapSalon?.url"
+                        class="btn btn-secondary"
+                    >
+                        صفحه سالن
+                    </a>
+
+
+                    <a
+                        x-show="selectedMapSalon?.booking_url"
+                        :href="selectedMapSalon?.booking_url"
+                        class="btn btn-accent"
+                    >
+                        رزرو نوبت
+                    </a>
+
+                </div>
+
+
+                <a
+                    x-show="selectedMapSalon?.maps_url"
+                    :href="selectedMapSalon?.maps_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn-primary mt-2 w-full"
+                >
+                    باز کردن مسیر در Google Maps ↗
+                </a>
 
             </div>
 
@@ -1574,3 +1648,4 @@
     </div>
 
 @endsection
+

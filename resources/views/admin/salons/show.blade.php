@@ -65,7 +65,7 @@
                 </a>
 
                 <a
-                    href="{{ route('admin.salons.barbers.index', $salon) }}"
+                    href="{{ route('admin.salons.index', $salon) }}"
                     class="btn btn-secondary btn-sm"
                 >
                     مدیریت آرایشگران
@@ -311,7 +311,7 @@
                 </div>
 
                 <a
-                    href="{{ route('admin.salons.barbers.index', $salon) }}"
+                    href="{{ route('admin.salons.index', $salon) }}"
                     class="mt-2 inline-block text-[10px] font-bold text-accent-700"
                 >
                     مدیریت نیروها ←
@@ -418,7 +418,7 @@
                             </span>
 
                             <a
-                                href="{{ route('admin.salons.barbers.create', $salon) }}"
+                                href="{{ route('admin.salons.create', $salon) }}"
                                 class="btn btn-accent btn-sm"
                             >
                                 + افزودن نیرو
@@ -521,7 +521,7 @@
                                 </p>
 
                                 <a
-                                    href="{{ route('admin.salons.barbers.create', $salon) }}"
+                                    href="{{ route('admin.salons.create', $salon) }}"
                                     class="btn btn-accent btn-sm mt-4"
                                 >
                                     افزودن اولین نیرو

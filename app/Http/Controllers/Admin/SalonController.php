@@ -46,7 +46,9 @@ class SalonController extends Controller
 
     public function create(): View
     {
-        return view('admin.salons.create');
+        return view(
+            'admin.salons.create'
+        );
     }
 
 
@@ -61,19 +63,35 @@ class SalonController extends Controller
     ): RedirectResponse {
         $data = $request->validated();
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Public Identity
+        |--------------------------------------------------------------------------
+        */
+
         $slug = $this->generateUniqueSlug(
             $data['name']
         );
 
         $code = $this->generateUniqueCode();
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Uploaded Files
+        |--------------------------------------------------------------------------
+        */
+
         $logoPath = null;
         $coverPath = null;
 
+
         try {
+
             /*
             |--------------------------------------------------------------------------
-            | Upload Logo
+            | Logo
             |--------------------------------------------------------------------------
             */
 
@@ -89,7 +107,7 @@ class SalonController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Upload Cover
+            | Cover
             |--------------------------------------------------------------------------
             */
 
@@ -105,7 +123,7 @@ class SalonController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Create Owner + Salon
+            | Owner + Salon
             |--------------------------------------------------------------------------
             */
 
@@ -119,7 +137,7 @@ class SalonController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | Find Existing Owner Account
+                | Find Existing Owner
                 |--------------------------------------------------------------------------
                 */
 
@@ -134,7 +152,7 @@ class SalonController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | Existing Account
+                | Existing Owner
                 |--------------------------------------------------------------------------
                 */
 
@@ -142,12 +160,13 @@ class SalonController extends Controller
 
                     /*
                     |--------------------------------------------------------------------------
-                    | Must Be Salon Owner
+                    | Role Check
                     |--------------------------------------------------------------------------
                     */
 
                     if (
-                        $owner->role !== UserRole::SALON_OWNER
+                        $owner->role !==
+                        UserRole::SALON_OWNER
                     ) {
                         throw ValidationException::withMessages([
                             'manager_phone' =>
@@ -179,20 +198,27 @@ class SalonController extends Controller
 
                     /*
                     |--------------------------------------------------------------------------
-                    | Sync Owner Name
+                    | Sync Owner
                     |--------------------------------------------------------------------------
                     */
 
                     $owner->update([
                         'name' =>
                             $data['manager_name'],
+
+                        'password' =>
+                            $data['manager_password'],
+
+                        'phone_verified_at' =>
+                            $owner->phone_verified_at
+                            ?? now(),
                     ]);
 
                 } else {
 
                     /*
                     |--------------------------------------------------------------------------
-                    | Create Salon Owner Account
+                    | Create Owner Account
                     |--------------------------------------------------------------------------
                     */
 
@@ -207,13 +233,13 @@ class SalonController extends Controller
                             null,
 
                         'password' =>
-                            null,
+                            $data['manager_password'],
 
                         'role' =>
                             UserRole::SALON_OWNER,
 
                         'phone_verified_at' =>
-                            null,
+                            now(),
 
                         'email_verified_at' =>
                             null,
@@ -228,6 +254,7 @@ class SalonController extends Controller
                 */
 
                 return Salon::create([
+
                     'name' =>
                         $data['name'],
 
@@ -245,15 +272,26 @@ class SalonController extends Controller
                         $owner->id,
 
                     /*
-                    | Salon contact is the same mobile
-                    | used for the owner login.
+                    |--------------------------------------------------------------------------
+                    | Salon Contact
+                    |--------------------------------------------------------------------------
+                    |
+                    | Same phone as the salon owner login.
+                    |
                     */
+
                     'phone' =>
                         $data['manager_phone'],
 
                     'email' =>
                         $data['email']
                         ?? null,
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Branding
+                    |--------------------------------------------------------------------------
+                    */
 
                     'logo_path' =>
                         $logoPath,
@@ -268,6 +306,12 @@ class SalonController extends Controller
                     'secondary_color' =>
                         $data['secondary_color']
                         ?? '#37B8C8',
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Location
+                    |--------------------------------------------------------------------------
+                    */
 
                     'province' =>
                         $data['province']
@@ -293,8 +337,20 @@ class SalonController extends Controller
                         $data['longitude']
                         ?? null,
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Creator
+                    |--------------------------------------------------------------------------
+                    */
+
                     'created_by' =>
                         auth()->id(),
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Status
+                    |--------------------------------------------------------------------------
+                    */
 
                     'is_active' =>
                         $data['is_active']
@@ -305,7 +361,7 @@ class SalonController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Generate Public URL
+            | Public URL
             |--------------------------------------------------------------------------
             */
 
@@ -317,16 +373,16 @@ class SalonController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Generate QR
+            | QR Code
             |--------------------------------------------------------------------------
             */
 
             $qrPath =
                 'salons/qr/' .
                 $salon->slug .
-                '.png';
+                '.svg';
 
-            $qrContents = QrCode::format('png')
+            $qrContents = QrCode::format('svg')
                 ->size(800)
                 ->margin(2)
                 ->generate(
@@ -387,6 +443,7 @@ class SalonController extends Controller
                 );
             }
 
+
             throw $e;
         }
     }
@@ -404,6 +461,8 @@ class SalonController extends Controller
         $salon->load([
             'owner',
             'barbers',
+            'services',
+            'workingHours',
         ]);
 
         return view(
@@ -462,7 +521,8 @@ class SalonController extends Controller
 
 
         if (
-            $owner->role !== UserRole::SALON_OWNER
+            $owner->role !==
+            UserRole::SALON_OWNER
         ) {
             throw ValidationException::withMessages([
                 'manager_phone' =>
@@ -473,7 +533,7 @@ class SalonController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Check New Phone
+        | Check Owner Phone
         |--------------------------------------------------------------------------
         */
 
@@ -489,6 +549,7 @@ class SalonController extends Controller
             )
             ->first();
 
+
         if ($existingOwner) {
             throw ValidationException::withMessages([
                 'manager_phone' =>
@@ -499,12 +560,22 @@ class SalonController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | File State
+        | Old Files
         |--------------------------------------------------------------------------
         */
 
-        $oldLogoPath = $salon->logo_path;
-        $oldCoverPath = $salon->cover_path;
+        $oldLogoPath =
+            $salon->logo_path;
+
+        $oldCoverPath =
+            $salon->cover_path;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | New Files
+        |--------------------------------------------------------------------------
+        */
 
         $newLogoPath = null;
         $newCoverPath = null;
@@ -514,7 +585,7 @@ class SalonController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | New Logo
+            | Upload New Logo
             |--------------------------------------------------------------------------
             */
 
@@ -530,7 +601,7 @@ class SalonController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | New Cover
+            | Upload New Cover
             |--------------------------------------------------------------------------
             */
 
@@ -561,17 +632,61 @@ class SalonController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | Update Owner Account
+                | Owner Account
                 |--------------------------------------------------------------------------
                 */
 
-                $owner->update([
+                $ownerData = [
                     'name' =>
                         $data['manager_name'],
 
                     'phone' =>
                         $data['manager_phone'],
-                ]);
+                ];
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Optional Password Change
+                |--------------------------------------------------------------------------
+                |
+                | Requires manager_password to be present
+                | in UpdateSalonRequest.
+                |
+                */
+
+                if (
+                    !empty(
+                    $data['manager_password']
+                    )
+                ) {
+                    $ownerData['password'] =
+                        $data['manager_password'];
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | If Phone Changes
+                |--------------------------------------------------------------------------
+                |
+                | The new phone is the new login identity.
+                |
+                */
+
+                if (
+                    $owner->phone !==
+                    $data['manager_phone']
+                ) {
+                    $ownerData[
+                    'phone_verified_at'
+                    ] = null;
+                }
+
+
+                $owner->update(
+                    $ownerData
+                );
 
 
                 /*
@@ -640,11 +755,20 @@ class SalonController extends Controller
                 |--------------------------------------------------------------------------
                 */
 
-                if ($request->boolean('remove_logo')) {
-                    $salonData['logo_path'] = null;
+                if (
+                    $request->boolean(
+                        'remove_logo'
+                    )
+                ) {
+                    $salonData[
+                    'logo_path'
+                    ] = null;
+
                 } elseif ($newLogoPath) {
-                    $salonData['logo_path'] =
-                        $newLogoPath;
+
+                    $salonData[
+                    'logo_path'
+                    ] = $newLogoPath;
                 }
 
 
@@ -654,17 +778,26 @@ class SalonController extends Controller
                 |--------------------------------------------------------------------------
                 */
 
-                if ($request->boolean('remove_cover')) {
-                    $salonData['cover_path'] = null;
+                if (
+                    $request->boolean(
+                        'remove_cover'
+                    )
+                ) {
+                    $salonData[
+                    'cover_path'
+                    ] = null;
+
                 } elseif ($newCoverPath) {
-                    $salonData['cover_path'] =
-                        $newCoverPath;
+
+                    $salonData[
+                    'cover_path'
+                    ] = $newCoverPath;
                 }
 
 
                 /*
                 |--------------------------------------------------------------------------
-                | Update
+                | Update Salon
                 |--------------------------------------------------------------------------
                 */
 
@@ -680,13 +813,13 @@ class SalonController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            $logoShouldDelete = (
-                $request->boolean('remove_logo') ||
-                $newLogoPath
-            );
-
             if (
-                $logoShouldDelete &&
+                (
+                    $request->boolean(
+                        'remove_logo'
+                    ) ||
+                    $newLogoPath
+                ) &&
                 $oldLogoPath
             ) {
                 Storage::disk('public')->delete(
@@ -701,13 +834,13 @@ class SalonController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            $coverShouldDelete = (
-                $request->boolean('remove_cover') ||
-                $newCoverPath
-            );
-
             if (
-                $coverShouldDelete &&
+                (
+                    $request->boolean(
+                        'remove_cover'
+                    ) ||
+                    $newCoverPath
+                ) &&
                 $oldCoverPath
             ) {
                 Storage::disk('public')->delete(
@@ -736,7 +869,7 @@ class SalonController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Cleanup Newly Uploaded Files
+            | Cleanup New Files
             |--------------------------------------------------------------------------
             */
 
@@ -751,6 +884,7 @@ class SalonController extends Controller
                     $newCoverPath
                 );
             }
+
 
             throw $e;
         }
@@ -768,7 +902,7 @@ class SalonController extends Controller
     ): RedirectResponse {
         /*
         |--------------------------------------------------------------------------
-        | Delete Logo
+        | Files
         |--------------------------------------------------------------------------
         */
 
@@ -778,25 +912,11 @@ class SalonController extends Controller
             );
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Delete Cover
-        |--------------------------------------------------------------------------
-        */
-
         if ($salon->cover_path) {
             Storage::disk('public')->delete(
                 $salon->cover_path
             );
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Delete QR
-        |--------------------------------------------------------------------------
-        */
 
         if ($salon->qr_code_path) {
             Storage::disk('public')->delete(
@@ -827,21 +947,25 @@ class SalonController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Generate Unique Slug
+    | Unique Slug
     |--------------------------------------------------------------------------
     */
 
     private function generateUniqueSlug(
         string $name
     ): string {
-        $baseSlug = Str::slug($name);
+        $baseSlug =
+            Str::slug($name);
+
 
         if ($baseSlug === '') {
             $baseSlug = 'salon';
         }
 
+
         $slug = $baseSlug;
         $counter = 2;
+
 
         while (
         Salon::query()
@@ -859,24 +983,27 @@ class SalonController extends Controller
             $counter++;
         }
 
+
         return $slug;
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Generate Unique Code
+    | Unique Public Code
     |--------------------------------------------------------------------------
     */
 
     private function generateUniqueCode(): string
     {
         do {
+
             $code =
                 'SALON-' .
                 Str::upper(
                     Str::random(5)
                 );
+
         } while (
             Salon::query()
                 ->where(
@@ -885,6 +1012,7 @@ class SalonController extends Controller
                 )
                 ->exists()
         );
+
 
         return $code;
     }

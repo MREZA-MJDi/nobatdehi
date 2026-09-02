@@ -101,6 +101,13 @@ class StoreSalonRequest extends FormRequest
                 'regex:/^09\d{9}$/',
             ],
 
+            'manager_password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
+
 
             /*
             |--------------------------------------------------------------------------
@@ -269,7 +276,14 @@ class StoreSalonRequest extends FormRequest
             'manager_phone.regex' =>
                 'شماره موبایل مسئول سالن باید یک شماره معتبر ایرانی باشد.',
 
+            'manager_password.required' =>
+                'رمز عبور مسئول سالن الزامی است.',
 
+            'manager_password.min' =>
+                'رمز عبور مسئول سالن باید حداقل ۸ کاراکتر باشد.',
+
+            'manager_password.confirmed' =>
+                'تکرار رمز عبور مسئول سالن یکسان نیست.',
             /*
             |--------------------------------------------------------------------------
             | Email

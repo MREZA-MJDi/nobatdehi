@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 
-<html lang="fa" dir="rtl">
+<html
+    lang="fa"
+    dir="rtl"
+>
 
 <head>
-
 
     <meta charset="UTF-8">
 
@@ -17,6 +19,7 @@
         content="{{ csrf_token() }}"
     >
 
+
     <title>
         @hasSection('title')
             @yield('title') | نوبت‌دهی
@@ -25,119 +28,248 @@
         @endif
     </title>
 
+
     <meta
         name="description"
         content="@yield(
-        'meta_description',
-        'پیدا کردن سالن و آرایشگر و رزرو نوبت'
-    )"
+            'meta_description',
+            'پیدا کردن سالن و آرایشگر و رزرو نوبت'
+        )"
     >
+
+
+    {{-- ============================================================
+        THEME
+    ============================================================= --}}
+
+    <script>
+        (() => {
+            const key = 'nobatdehi_theme';
+            const saved = localStorage.getItem(key);
+
+            document.documentElement.dataset.theme =
+                saved === 'dark'
+                    ? 'dark'
+                    : 'light';
+        })();
+    </script>
+
+
+    {{-- ============================================================
+        ASSETS
+    ============================================================= --}}
 
     @vite([
     'resources/css/app.css',
     'resources/js/app.js'
     ])
 
-
 </head>
+
 
 <body>
 
-<div id="app" class="page-shell">
+<div
+    id="app"
+    class="page-shell"
+>
 
 
     {{-- ============================================================
-        DESKTOP NAVBAR
-        در موبایل توسط CSS کاملاً مخفی می‌شود.
+        HEADER
     ============================================================= --}}
 
     <header class="app-navbar">
 
         <div class="app-container navbar-inner">
 
+
             {{-- Brand --}}
 
             <a
-                href="{{ url('/') }}"
+                href="{{ route('home') }}"
                 class="brand"
-                aria-label="صفحه اصلی"
+                aria-label="صفحه اصلی نوبت‌دهی"
             >
 
-            <span class="brand-mark">
-                ن
-            </span>
+                <span class="brand-mark">
+                    ن
+                </span>
 
                 <span class="brand-text">
 
-                <span class="brand-name">
-                    نوبت‌دهی
-                </span>
+                    <span class="brand-name">
+                        نوبت‌دهی
+                    </span>
 
-                <span class="brand-caption">
-                    رزرو آسان، تجربه بهتر
-                </span>
+                    <span class="brand-caption">
+                        رزرو آسان، تجربه بهتر
+                    </span>
 
-            </span>
+                </span>
 
             </a>
 
 
-            {{-- Desktop Navigation --}}
+            {{-- ====================================================
+                DESKTOP NAVIGATION
+            ===================================================== --}}
 
             <nav
-                class="navbar-links"
-                aria-label="منوی اصلی"
+                class="hidden items-center gap-1 md:flex"
+                aria-label="ناوبری اصلی"
             >
 
                 <a
+                    href="{{ route('home') }}"
+                    class="rounded-xl px-3 py-2 text-xs font-bold transition
+                    {{ request()->routeIs('home')
+                        ? 'bg-primary-100 text-content'
+                        : 'text-content-muted hover:bg-primary-50 hover:text-content'
+                    }}"
+                >
+                    خانه
+                </a>
+
+
+                <a
                     href="{{ route('salons.discover') }}"
-                    class="navbar-link {{ request()->routeIs('salons.discover') ? 'is-active' : '' }}"
+                    class="rounded-xl px-3 py-2 text-xs font-bold transition
+                    {{ request()->routeIs('salons.discover')
+                        ? 'bg-primary-100 text-content'
+                        : 'text-content-muted hover:bg-primary-50 hover:text-content'
+                    }}"
                 >
                     کشف
                 </a>
 
-                <a
-                    href="#"
-                    class="navbar-link"
-                >
-                    نوبت‌های من
-                </a>
 
-                <a
-                    href="#"
-                    class="navbar-link"
-                >
-                    علاقه‌مندی‌ها
-                </a>
+                @auth
 
-                <a
-                    href="#"
-                    class="navbar-link"
-                >
-                    درباره ما
-                </a>
+                    @if(auth()->user()->isCustomer())
+
+                        <a
+                            href="{{ route('salons.discover') }}"
+                            class="rounded-xl px-3 py-2 text-xs font-bold text-content-muted transition hover:bg-primary-50 hover:text-content"
+                        >
+                            رزرو نوبت
+                        </a>
+
+
+                        <a
+                            href="{{ route('customer.dashboard') }}"
+                            class="rounded-xl px-3 py-2 text-xs font-bold transition
+                            {{ request()->routeIs('customer.*')
+                                ? 'bg-primary-100 text-content'
+                                : 'text-content-muted hover:bg-primary-50 hover:text-content'
+                            }}"
+                        >
+                            حساب من
+                        </a>
+
+
+                    @elseif(auth()->user()->isSalonOwner())
+
+                        <a
+                            href="{{ route('salon.dashboard') }}"
+                            class="rounded-xl px-3 py-2 text-xs font-bold transition
+                            {{ request()->routeIs('salon.dashboard')
+                                ? 'bg-primary-100 text-content'
+                                : 'text-content-muted hover:bg-primary-50 hover:text-content'
+                            }}"
+                        >
+                            پنل سالن
+                        </a>
+
+
+                        <a
+                            href="{{ route('salon.bookings.index') }}"
+                            class="rounded-xl px-3 py-2 text-xs font-bold transition
+                            {{ request()->routeIs('salon.bookings.*')
+                                ? 'bg-primary-100 text-content'
+                                : 'text-content-muted hover:bg-primary-50 hover:text-content'
+                            }}"
+                        >
+                            نوبت‌ها
+                        </a>
+
+
+                        <a
+                            href="{{ route('salon.notifications.index') }}"
+                            class="rounded-xl px-3 py-2 text-xs font-bold transition
+                            {{ request()->routeIs('salon.notifications.*')
+                                ? 'bg-primary-100 text-content'
+                                : 'text-content-muted hover:bg-primary-50 hover:text-content'
+                            }}"
+                        >
+                            اعلان‌ها
+                        </a>
+
+
+                    @elseif(auth()->user()->isSuperAdmin())
+
+                        <a
+                            href="{{ route('admin.dashboard') }}"
+                            class="rounded-xl px-3 py-2 text-xs font-bold transition
+                            {{ request()->routeIs('admin.dashboard')
+                                ? 'bg-primary-100 text-content'
+                                : 'text-content-muted hover:bg-primary-50 hover:text-content'
+                            }}"
+                        >
+                            مدیریت
+                        </a>
+
+
+                        <a
+                            href="{{ route('admin.salons.index') }}"
+                            class="rounded-xl px-3 py-2 text-xs font-bold transition
+                            {{ request()->routeIs('admin.salons.*')
+                                ? 'bg-primary-100 text-content'
+                                : 'text-content-muted hover:bg-primary-50 hover:text-content'
+                            }}"
+                        >
+                            سالن‌ها
+                        </a>
+
+                    @endif
+
+                @endauth
 
             </nav>
 
 
-            {{-- Desktop Actions --}}
+            {{-- ====================================================
+                HEADER ACTIONS
+            ===================================================== --}}
 
-            <div class="hidden items-center gap-2 md:flex">
+            <div class="ml-auto flex items-center gap-2">
+
+                <x-theme-toggle />
+
 
                 @guest
 
                     <a
                         href="{{ route('login') }}"
-                        class="btn btn-ghost btn-sm"
+                        class="btn btn-ghost btn-sm hidden sm:inline-flex"
                     >
                         ورود
                     </a>
 
+
                     <a
                         href="{{ route('register') }}"
-                        class="btn btn-primary btn-sm"
+                        class="btn btn-primary btn-sm hidden sm:inline-flex"
                     >
                         ثبت‌نام
+                    </a>
+
+
+                    <a
+                        href="{{ route('login') }}"
+                        class="btn btn-primary btn-sm sm:hidden"
+                    >
+                        ورود
                     </a>
 
                 @else
@@ -146,30 +278,50 @@
 
                         <a
                             href="{{ route('admin.dashboard') }}"
-                            class="btn btn-secondary btn-sm"
+                            class="btn btn-secondary btn-sm hidden sm:inline-flex"
                         >
                             پنل مدیریت
                         </a>
 
-                    @elseif(auth()->user()->isBarber())
+
+                    @elseif(auth()->user()->isSalonOwner())
 
                         <a
-                            href="{{ route('barber.dashboard') }}"
-                            class="btn btn-secondary btn-sm"
+                            href="{{ route('salon.dashboard') }}"
+                            class="btn btn-secondary btn-sm hidden sm:inline-flex"
                         >
-                            پنل آرایشگر
+                            پنل سالن
                         </a>
 
-                    @else
+
+                    @elseif(auth()->user()->isCustomer())
 
                         <a
                             href="{{ route('customer.dashboard') }}"
-                            class="btn btn-secondary btn-sm"
+                            class="btn btn-secondary btn-sm hidden sm:inline-flex"
                         >
                             حساب من
                         </a>
 
                     @endif
+
+
+                    <form
+                        action="{{ route('logout') }}"
+                        method="POST"
+                        class="hidden sm:block"
+                    >
+
+                        @csrf
+
+                        <button
+                            type="submit"
+                            class="btn btn-ghost btn-sm"
+                        >
+                            خروج
+                        </button>
+
+                    </form>
 
                 @endguest
 
@@ -180,12 +332,12 @@
     </header>
 
 
-
     {{-- ============================================================
-        MAIN CONTENT
+        MAIN
     ============================================================= --}}
 
-    <main class="page-content">
+    <main class="page-content pb-24 md:pb-0">
+
 
         {{-- Success --}}
 
@@ -228,239 +380,15 @@
     </main>
 
 
-
     {{-- ============================================================
-        MOBILE APP BOTTOM NAVIGATION
-        فقط موبایل
-        بدون Navbar
-        بدون Sidebar
+        MOBILE BOTTOM NAV
     ============================================================= --}}
 
-    <nav
-        class="mobile-bottom-nav"
-        aria-label="ناوبری اصلی"
-    >
-
-        <div class="mobile-bottom-nav-inner">
-
-
-            {{-- ====================================================
-                Home
-            ===================================================== --}}
-
-            <a
-                href="{{ url('/') }}"
-                class="bottom-nav-item {{ request()->is('/') ? 'is-active' : '' }}"
-            >
-
-            <span class="bottom-nav-icon">
-
-                <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    aria-hidden="true"
-                >
-                    <path d="M3 10.5 12 3l9 7.5" />
-                    <path d="M5.5 9.5V21h13V9.5" />
-                </svg>
-
-            </span>
-
-                <span class="bottom-nav-label">
-                خانه
-            </span>
-
-            </a>
-
-
-
-            {{-- ====================================================
-                Discover
-            ===================================================== --}}
-
-            <a
-                href="{{ route('salons.discover') }}"
-                class="bottom-nav-item {{ request()->routeIs('salons.discover') ? 'is-active' : '' }}"
-            >
-
-            <span class="bottom-nav-icon">
-
-                <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    aria-hidden="true"
-                >
-                    <circle
-                        cx="11"
-                        cy="11"
-                        r="6.5"
-                    />
-
-                    <path d="m16 16 4.5 4.5" />
-                </svg>
-
-            </span>
-
-                <span class="bottom-nav-label">
-                کشف
-            </span>
-
-            </a>
-
-
-
-            {{-- ====================================================
-                Bookings
-            ===================================================== --}}
-
-            <a
-                href="#"
-                class="bottom-nav-item"
-            >
-
-            <span class="bottom-nav-icon">
-
-                <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    aria-hidden="true"
-                >
-
-                    <rect
-                        x="4"
-                        y="5"
-                        width="16"
-                        height="16"
-                        rx="2"
-                    />
-
-                    <path d="M8 3v4" />
-                    <path d="M16 3v4" />
-                    <path d="M4 10h16" />
-
-                </svg>
-
-            </span>
-
-                <span class="bottom-nav-label">
-                نوبت
-            </span>
-
-            </a>
-
-
-
-            {{-- ====================================================
-                Favorites
-            ===================================================== --}}
-
-            <a
-                href="#"
-                class="bottom-nav-item"
-            >
-
-            <span class="bottom-nav-icon">
-
-                <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    aria-hidden="true"
-                >
-                    <path
-                        d="
-                            M20.8 8.9
-                            c0 5.5-8.8 10.2-8.8 10.2
-                            S3.2 14.4 3.2 8.9
-                            A4.7 4.7 0 0 1 8 4.2
-                            c1.6 0 3.1.8 4 2
-                            .9-1.2 2.4-2 4-2
-                            a4.7 4.7 0 0 1 4.8 4.7Z
-                        "
-                    />
-                </svg>
-
-            </span>
-
-                <span class="bottom-nav-label">
-                علاقه‌مندی
-            </span>
-
-            </a>
-
-
-
-            {{-- ====================================================
-                Profile
-            ===================================================== --}}
-
-            <a
-                href="#"
-                class="bottom-nav-item"
-            >
-
-            <span class="bottom-nav-icon">
-
-                <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    aria-hidden="true"
-                >
-
-                    <circle
-                        cx="12"
-                        cy="8"
-                        r="3.5"
-                    />
-
-                    <path
-                        d="
-                            M5 21
-                            c.7-4
-                            3.1-6
-                            7-6
-                            s6.3 2
-                            7 6
-                        "
-                    />
-
-                </svg>
-
-            </span>
-
-                <span class="bottom-nav-label">
-                من
-            </span>
-
-            </a>
-
-        </div>
-
-    </nav>
-
+    <x-navigation.mobile-bottom-nav />
 
 
     {{-- ============================================================
-        TOAST SYSTEM
+        TOAST
     ============================================================= --}}
 
     <div
@@ -481,26 +409,22 @@
                 class="toast"
             >
 
-                {{-- Icon --}}
-
                 <div
                     class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
                     :class="{
-                    'bg-green-100 text-green-700':
-                        item.type === 'success',
+                        'bg-green-100 text-green-700':
+                            item.type === 'success',
 
-                    'bg-red-100 text-red-700':
-                        item.type === 'danger',
+                        'bg-red-100 text-red-700':
+                            item.type === 'danger',
 
-                    'bg-amber-100 text-amber-700':
-                        item.type === 'warning',
+                        'bg-amber-100 text-amber-700':
+                            item.type === 'warning',
 
-                    'bg-blue-100 text-blue-700':
-                        item.type === 'info',
-                }"
+                        'bg-blue-100 text-blue-700':
+                            item.type === 'info'
+                    }"
                 >
-
-                    {{-- Success --}}
 
                     <svg
                         x-show="item.type === 'success'"
@@ -515,8 +439,6 @@
                     </svg>
 
 
-                    {{-- Danger --}}
-
                     <svg
                         x-show="item.type === 'danger'"
                         width="15"
@@ -528,11 +450,13 @@
                     >
                         <path d="M12 8v4" />
                         <path d="M12 16h.01" />
-                        <circle cx="12" cy="12" r="9" />
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="9"
+                        />
                     </svg>
 
-
-                    {{-- Warning --}}
 
                     <svg
                         x-show="item.type === 'warning'"
@@ -545,20 +469,9 @@
                     >
                         <path d="M12 8v4" />
                         <path d="M12 16h.01" />
-                        <path
-                            d="
-                            m10.3 3.7-8 14
-                            A2 2 0 0 0 4 20.7
-                            h16
-                            a2 2 0 0 0 1.7-3
-                            l-8-14
-                            a2 2 0 0 0-3.4 0Z
-                        "
-                        />
+                        <path d="m10.3 3.7-8 14A2 2 0 0 0 4 20.7h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z" />
                     </svg>
 
-
-                    {{-- Info --}}
 
                     <svg
                         x-show="item.type === 'info'"
@@ -582,19 +495,15 @@
                 </div>
 
 
-                {{-- Message --}}
-
                 <div
                     class="toast-message"
                     x-text="item.message"
                 ></div>
 
 
-                {{-- Close --}}
-
                 <button
                     type="button"
-                    class="text-zinc-400 transition hover:text-zinc-700"
+                    class="text-content-faint transition hover:text-content"
                     @click="$store.toast.remove(item.id)"
                     aria-label="بستن"
                 >
@@ -607,8 +516,8 @@
 
     </div>
 
-
 </div>
 
 </body>
+
 </html>

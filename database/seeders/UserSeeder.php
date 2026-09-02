@@ -28,7 +28,10 @@ class UserSeeder extends Seeder
                     'admin@nobatdehi.test'
                 ),
 
-                'password' => null,
+                'password' => env(
+                    'SUPER_ADMIN_PASSWORD',
+                    'change-me-12345678'
+                ),
 
                 'role' =>
                     UserRole::SUPER_ADMIN,

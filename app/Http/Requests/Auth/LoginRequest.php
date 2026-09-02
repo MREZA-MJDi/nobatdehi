@@ -15,12 +15,10 @@ class LoginRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         try {
-            $phone = PhoneNumber::normalize(
-                $this->input('phone', '')
-            );
-
             $this->merge([
-                'phone' => $phone,
+                'phone' => PhoneNumber::normalize(
+                    $this->input('phone', '')
+                ),
             ]);
         } catch (\Throwable) {
             $this->merge([
@@ -35,6 +33,12 @@ class LoginRequest extends FormRequest
             'phone' => [
                 'required',
                 'regex:/^09\d{9}$/',
+            ],
+
+            'password' => [
+                'required',
+                'string',
+                'min:8',
             ],
 
             'remember' => [
@@ -52,6 +56,12 @@ class LoginRequest extends FormRequest
 
             'phone.regex' =>
                 'شماره موبایل معتبر نیست.',
+
+            'password.required' =>
+                'رمز عبور الزامی است.',
+
+            'password.min' =>
+                'رمز عبور باید حداقل ۸ کاراکتر باشد.',
 
             'remember.boolean' =>
                 'مقدار گزینه مرا به خاطر بسپار معتبر نیست.',
