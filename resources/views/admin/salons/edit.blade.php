@@ -4,43 +4,54 @@
 
 @section('content')
 
+    @php
+        $logoUrl = $salon->logo_path
+            ? \Illuminate\Support\Facades\Storage::url($salon->logo_path)
+            : '';
+
+        $coverUrl = $salon->cover_path
+            ? \Illuminate\Support\Facades\Storage::url($salon->cover_path)
+            : '';
+
+        $publicUrl = route(
+            'public.salons.show',
+            $salon
+        );
+    @endphp
+
     <div
         x-data="{
-        primaryColor: '{{ old('primary_color', $salon->primary_color ?: '#6757E8') }}',
-        secondaryColor: '{{ old('secondary_color', $salon->secondary_color ?: '#37B8C8') }}',
+            primaryColor: '{{ old('primary_color', $salon->primary_color ?: '#6757E8') }}',
+            secondaryColor: '{{ old('secondary_color', $salon->secondary_color ?: '#37B8C8') }}',
 
+            logoPreview: @js($logoUrl),
+            coverPreview: @js($coverUrl),
 
-    logoPreview: '{{ $salon->logo_url ?: '' }}',
-    coverPreview: '{{ $salon->cover_url ?: '' }}',
+            previewImage(event, type) {
+                const file = event.target.files?.[0]
 
-    previewImage(event, type) {
-        const file = event.target.files?.[0];
+                if (!file) {
+                    return
+                }
 
-        if (!file) {
-            return;
-        }
+                const reader = new FileReader()
 
-        const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (type === 'logo') {
+                        this.logoPreview = e.target.result
+                    }
 
-        reader.onload = (e) => {
-            if (type === 'logo') {
-                this.logoPreview = e.target.result;
+                    if (type === 'cover') {
+                        this.coverPreview = e.target.result
+                    }
+                }
+
+                reader.readAsDataURL(file)
             }
-
-            if (type === 'cover') {
-                this.coverPreview = e.target.result;
-            }
-        };
-
-        reader.readAsDataURL(file);
-    }
-}"
+        }"
         class="mx-auto max-w-[1400px] px-4 py-5 pb-24 md:px-6 md:py-7"
-        ```
-
     >
 
-        ```
         {{-- ============================================================
             PAGE HEADER
         ============================================================= --}}
@@ -67,7 +78,7 @@
                     </h1>
 
                     <p class="page-subtitle">
-                        اطلاعات، برندینگ، مدیر و موقعیت سالن را مدیریت کنید.
+                        اطلاعات، برندینگ، حساب کنترل‌کننده و موقعیت سالن را مدیریت کنید.
                     </p>
 
                 </div>
@@ -78,16 +89,16 @@
                     @if($salon->is_active)
 
                         <span class="badge badge-success">
-                    <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                    فعال
-                </span>
+                            <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                            فعال
+                        </span>
 
                     @else
 
                         <span class="badge badge-danger">
-                    <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
-                    غیرفعال
-                </span>
+                            <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                            غیرفعال
+                        </span>
 
                     @endif
 
@@ -104,7 +115,6 @@
             </div>
 
         </div>
-
 
 
         {{-- ============================================================
@@ -148,7 +158,6 @@
         @endif
 
 
-
         {{-- ============================================================
             FORM
         ============================================================= --}}
@@ -160,12 +169,10 @@
         >
 
             @csrf
-
             @method('PUT')
 
 
             <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-
 
                 {{-- ====================================================
                     MAIN CONTENT
@@ -191,7 +198,7 @@
                             </h2>
 
                             <p class="page-subtitle">
-                                اطلاعات اصلی این سالن را مدیریت کنید.
+                                اطلاعات اصلی این سالن و حساب کنترل‌کننده را مدیریت کنید.
                             </p>
 
                         </div>
@@ -224,6 +231,66 @@
                                 >
 
                                 @error('name')
+                                <div class="form-error">
+                                    {{ $message }}
+                                </div>
+                                @enderror
+
+                            </div>
+
+
+                            {{-- Owner --}}
+
+                            <div class="form-group sm:col-span-2">
+
+                                <label
+                                    for="owner_id"
+                                    class="form-label"
+                                >
+                                    حساب کنترل‌کننده سالن
+                                    <span class="text-danger-600">*</span>
+                                </label>
+
+                                <select
+                                    id="owner_id"
+                                    name="owner_id"
+                                    class="form-control"
+                                    required
+                                >
+
+                                    <option value="">
+                                        انتخاب حساب
+                                    </option>
+
+                                    @foreach($users as $user)
+
+                                        <option
+                                            value="{{ $user->id }}"
+                                            @selected(
+                                            old(
+                                        'owner_id',
+                                        $salon->owner_id
+                                        ) == $user->id
+                                        )
+                                        >
+                                        {{ $user->name }}
+
+                                        @if($user->phone)
+                                            — {{ $user->phone }}
+                                        @elseif($user->email)
+                                            — {{ $user->email }}
+                                            @endif
+                                            </option>
+
+                                            @endforeach
+
+                                </select>
+
+                                <div class="form-help">
+                                    این حساب کنترل و مدیریت این سالن را بر عهده دارد.
+                                </div>
+
+                                @error('owner_id')
                                 <div class="form-error">
                                     {{ $message }}
                                 </div>
@@ -325,66 +392,9 @@
 
                             </div>
 
-
-                            {{-- Manager Barber --}}
-
-                            <div class="form-group sm:col-span-2">
-
-                                <label
-                                    for="manager_barber_id"
-                                    class="form-label"
-                                >
-                                    مدیر سالن
-                                </label>
-
-                                <select
-                                    id="manager_barber_id"
-                                    name="manager_barber_id"
-                                    class="form-control"
-                                >
-
-                                    <option value="">
-                                        بدون مدیر
-                                    </option>
-
-                                    @foreach($barbers as $barber)
-
-                                        <option
-                                            value="{{ $barber->id }}"
-                                            @selected(
-                                            old(
-                                        'manager_barber_id',
-                                        $salon->manager_barber_id
-                                        ) == $barber->id
-                                        )
-                                        >
-                                        {{ $barber->user?->name ?? 'بدون نام' }}
-
-                                        @if($barber->user?->email)
-                                            — {{ $barber->user->email }}
-                                            @endif
-                                            </option>
-
-                                            @endforeach
-
-                                </select>
-
-                                <div class="form-help">
-                                    این آرایشگر مدیر این سالن خواهد بود و بعداً می‌تواند پنل مدیریتی سالن را داشته باشد.
-                                </div>
-
-                                @error('manager_barber_id')
-                                <div class="form-error">
-                                    {{ $message }}
-                                </div>
-                                @enderror
-
-                            </div>
-
                         </div>
 
                     </section>
-
 
 
                     {{-- ==================================================
@@ -422,7 +432,6 @@
                                 <label class="form-label">
                                     لوگو
                                 </label>
-
 
                                 <div class="relative overflow-hidden rounded-2xl border border-border bg-primary-50">
 
@@ -473,9 +482,9 @@
 
                                     <label class="absolute bottom-3 right-3 cursor-pointer">
 
-                                <span class="btn btn-primary btn-sm">
-                                    تغییر لوگو
-                                </span>
+                                        <span class="btn btn-primary btn-sm">
+                                            تغییر لوگو
+                                        </span>
 
                                         <input
                                             type="file"
@@ -522,7 +531,6 @@
                             </div>
 
 
-
                             {{-- ==================================================
                                 COVER
                             =================================================== --}}
@@ -532,7 +540,6 @@
                                 <label class="form-label">
                                     تصویر اصلی / Cover
                                 </label>
-
 
                                 <div class="relative overflow-hidden rounded-2xl border border-border bg-primary-50">
 
@@ -586,9 +593,9 @@
 
                                     <label class="absolute bottom-3 right-3 cursor-pointer">
 
-                                <span class="btn btn-primary btn-sm">
-                                    تغییر Cover
-                                </span>
+                                        <span class="btn btn-primary btn-sm">
+                                            تغییر Cover
+                                        </span>
 
                                         <input
                                             type="file"
@@ -635,7 +642,6 @@
                             </div>
 
 
-
                             {{-- Primary Color --}}
 
                             <div class="form-group">
@@ -675,7 +681,6 @@
                                 @enderror
 
                             </div>
-
 
 
                             {{-- Secondary Color --}}
@@ -721,7 +726,6 @@
                         </div>
 
                     </section>
-
 
 
                     {{-- ==================================================
@@ -772,7 +776,9 @@
                                 >
 
                                 @error('province')
-                                <div class="form-error">{{ $message }}</div>
+                                <div class="form-error">
+                                    {{ $message }}
+                                </div>
                                 @enderror
 
                             </div>
@@ -800,7 +806,9 @@
                                 >
 
                                 @error('city')
-                                <div class="form-error">{{ $message }}</div>
+                                <div class="form-error">
+                                    {{ $message }}
+                                </div>
                                 @enderror
 
                             </div>
@@ -828,13 +836,15 @@
                                 >
 
                                 @error('district')
-                                <div class="form-error">{{ $message }}</div>
+                                <div class="form-error">
+                                    {{ $message }}
+                                </div>
                                 @enderror
 
                             </div>
 
 
-                            {{-- Full Address --}}
+                            {{-- Address --}}
 
                             <div class="form-group sm:col-span-3">
 
@@ -854,7 +864,9 @@
                                 >{{ old('address', $salon->address) }}</textarea>
 
                                 @error('address')
-                                <div class="form-error">{{ $message }}</div>
+                                <div class="form-error">
+                                    {{ $message }}
+                                </div>
                                 @enderror
 
                             </div>
@@ -883,7 +895,9 @@
                                 >
 
                                 @error('latitude')
-                                <div class="form-error">{{ $message }}</div>
+                                <div class="form-error">
+                                    {{ $message }}
+                                </div>
                                 @enderror
 
                             </div>
@@ -912,7 +926,9 @@
                                 >
 
                                 @error('longitude')
-                                <div class="form-error">{{ $message }}</div>
+                                <div class="form-error">
+                                    {{ $message }}
+                                </div>
                                 @enderror
 
                             </div>
@@ -926,11 +942,14 @@
 
                                     <div class="flex items-center gap-2">
 
-                                        @if($salon->latitude && $salon->longitude)
+                                        @if(
+                                            !is_null($salon->latitude) &&
+                                            !is_null($salon->longitude)
+                                        )
 
                                             <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-green-100 text-green-700">
-                                        ✓
-                                    </span>
+                                                ✓
+                                            </span>
 
                                             <div>
 
@@ -938,8 +957,12 @@
                                                     موقعیت ثبت شده
                                                 </div>
 
-                                                <div class="mt-0.5 font-mono text-[8px] text-content-muted" dir="ltr">
-                                                    {{ $salon->latitude }}, {{ $salon->longitude }}
+                                                <div
+                                                    class="mt-0.5 font-mono text-[8px] text-content-muted"
+                                                    dir="ltr"
+                                                >
+                                                    {{ $salon->latitude }},
+                                                    {{ $salon->longitude }}
                                                 </div>
 
                                             </div>
@@ -947,8 +970,8 @@
                                         @else
 
                                             <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
-                                        !
-                                    </span>
+                                                !
+                                            </span>
 
                                             <div>
 
@@ -975,7 +998,6 @@
                     </section>
 
                 </div>
-
 
 
                 {{-- ====================================================
@@ -1026,10 +1048,18 @@
                                     <div
                                         class="h-full w-full"
                                         :style="
-                                    `background:
-                                    radial-gradient(circle at 80% 20%, ${primaryColor}66, transparent 45%),
-                                    linear-gradient(135deg, #171a24, #2d323e);`
-                                "
+                                            `background:
+                                            radial-gradient(
+                                                circle at 80% 20%,
+                                                ${primaryColor}66,
+                                                transparent 45%
+                                            ),
+                                            linear-gradient(
+                                                135deg,
+                                                #171a24,
+                                                #2d323e
+                                            );`
+                                        "
                                     ></div>
 
                                 </template>
@@ -1057,9 +1087,9 @@
 
                                     <template x-if="!logoPreview">
 
-                                <span>
-                                    ن
-                                </span>
+                                        <span>
+                                            {{ mb_substr($salon->name, 0, 1) }}
+                                        </span>
 
                                     </template>
 
@@ -1069,9 +1099,7 @@
                                 {{-- Name --}}
 
                                 <h3 class="mt-3 truncate text-base font-black text-content">
-
                                     {{ $salon->name }}
-
                                 </h3>
 
 
@@ -1082,19 +1110,19 @@
 
                                 <div class="mt-4 flex gap-2">
 
-                            <span
-                                class="flex-1 rounded-xl px-3 py-2 text-center text-[9px] font-bold text-white"
-                                :style="`background:${primaryColor}`"
-                            >
-                                رزرو نوبت
-                            </span>
+                                    <span
+                                        class="flex-1 rounded-xl px-3 py-2 text-center text-[9px] font-bold text-white"
+                                        :style="`background:${primaryColor}`"
+                                    >
+                                        رزرو نوبت
+                                    </span>
 
                                     <span
                                         class="flex-1 rounded-xl px-3 py-2 text-center text-[9px] font-bold text-white"
                                         :style="`background:${secondaryColor}`"
                                     >
-                                خدمات
-                            </span>
+                                        خدمات
+                                    </span>
 
                                 </div>
 
@@ -1105,58 +1133,29 @@
                     </section>
 
 
-
                     {{-- ==================================================
-                        PUBLIC CODE
+                        PUBLIC URL
                     =================================================== --}}
 
                     <section class="card bg-primary-950 p-5 text-white">
 
-                        <div class="flex items-start justify-between gap-3">
-
-                            <div>
-
-                                <div class="text-[9px] font-bold text-accent-300">
-                                    PUBLIC CODE
-                                </div>
-
-                                <code
-                                    class="mt-2 block break-all text-sm font-black"
-                                    dir="ltr"
-                                >
-                                    {{ $salon->code }}
-                                </code>
-
-                            </div>
-
-
-                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-accent-300">
-
-                                <svg
-                                    width="17"
-                                    height="17"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                >
-                                    <rect x="4" y="4" width="16" height="16" rx="2" />
-                                    <path d="M8 8h3v3H8z" />
-                                    <path d="M13 13h3v3h-3z" />
-                                </svg>
-
-                            </div>
-
+                        <div class="text-[9px] font-bold text-accent-300">
+                            PUBLIC URL
                         </div>
 
+                        <div
+                            class="mt-2 break-all font-mono text-[10px] font-bold text-white"
+                            dir="ltr"
+                        >
+                            {{ $publicUrl }}
+                        </div>
 
                         <p class="mt-3 text-[10px] leading-6 text-primary-300">
-                            این کد برای صفحه عمومی و QR سالن استفاده می‌شود و در ویرایش قابل تغییر نیست.
+                            این لینک بر اساس slug ساخته شده و در ویرایش تغییر نمی‌کند.
                         </p>
 
-
                         <a
-                            href="{{ route('salons.show', $salon->code) }}"
+                            href="{{ $publicUrl }}"
                             target="_blank"
                             rel="noopener"
                             class="btn mt-4 w-full border border-white/10 bg-white/10 text-white hover:bg-white/15"
@@ -1166,6 +1165,41 @@
 
                     </section>
 
+
+                    {{-- ==================================================
+                        PUBLIC CODE
+                    =================================================== --}}
+
+                    <section class="card p-5">
+
+                        <div class="flex items-center justify-between gap-3">
+
+                            <div>
+
+                                <div class="text-[9px] font-bold text-content-muted">
+                                    PUBLIC CODE
+                                </div>
+
+                                <code
+                                    class="mt-2 block text-sm font-black text-content"
+                                    dir="ltr"
+                                >
+                                    {{ $salon->code }}
+                                </code>
+
+                            </div>
+
+                            <span class="badge badge-neutral">
+                                ثابت
+                            </span>
+
+                        </div>
+
+                        <div class="mt-3 text-[10px] leading-6 text-content-muted">
+                            این کد هنگام ویرایش تغییر نمی‌کند.
+                        </div>
+
+                    </section>
 
 
                     {{-- ==================================================
@@ -1192,14 +1226,14 @@
                             @if($salon->is_active)
 
                                 <span class="badge badge-success">
-                            فعال
-                        </span>
+                                    فعال
+                                </span>
 
                             @else
 
                                 <span class="badge badge-danger">
-                            غیرفعال
-                        </span>
+                                    غیرفعال
+                                </span>
 
                             @endif
 
@@ -1218,20 +1252,19 @@
 
                             <span>
 
-                        <span class="block text-xs font-black text-content">
-                            سالن فعال باشد
-                        </span>
+                                <span class="block text-xs font-black text-content">
+                                    سالن فعال باشد
+                                </span>
 
-                        <span class="mt-1 block text-[10px] leading-6 text-content-muted">
-                            در حالت فعال، سالن در سایت عمومی و Discover قابل مشاهده است.
-                        </span>
+                                <span class="mt-1 block text-[10px] leading-6 text-content-muted">
+                                    در حالت فعال، سالن در سایت عمومی و Discover قابل مشاهده است.
+                                </span>
 
-                    </span>
+                            </span>
 
                         </label>
 
                     </section>
-
 
 
                     {{-- ==================================================
@@ -1275,7 +1308,6 @@
             </div>
 
         </form>
-
 
     </div>
 

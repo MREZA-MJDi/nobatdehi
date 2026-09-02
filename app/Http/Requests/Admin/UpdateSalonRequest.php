@@ -10,12 +10,20 @@ class UpdateSalonRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole(UserRole::SUPER_ADMIN) === true;
+        return $this->user()?->hasRole(
+                UserRole::SUPER_ADMIN
+            ) === true;
     }
 
     public function rules(): array
     {
         return [
+            /*
+            |--------------------------------------------------------------------------
+            | Basic Information
+            |--------------------------------------------------------------------------
+            */
+
             'name' => [
                 'required',
                 'string',
@@ -29,6 +37,24 @@ class UpdateSalonRequest extends FormRequest
                 'max:5000',
             ],
 
+            /*
+            |--------------------------------------------------------------------------
+            | Owner / Account
+            |--------------------------------------------------------------------------
+            */
+
+            'owner_id' => [
+                'required',
+                'integer',
+                Rule::exists('users', 'id'),
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Contact
+            |--------------------------------------------------------------------------
+            */
+
             'phone' => [
                 'nullable',
                 'string',
@@ -40,6 +66,12 @@ class UpdateSalonRequest extends FormRequest
                 'email',
                 'max:190',
             ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Branding
+            |--------------------------------------------------------------------------
+            */
 
             'logo' => [
                 'nullable',
@@ -75,6 +107,12 @@ class UpdateSalonRequest extends FormRequest
                 'regex:/^#[0-9A-Fa-f]{6}$/',
             ],
 
+            /*
+            |--------------------------------------------------------------------------
+            | Address
+            |--------------------------------------------------------------------------
+            */
+
             'province' => [
                 'nullable',
                 'string',
@@ -99,6 +137,12 @@ class UpdateSalonRequest extends FormRequest
                 'max:1000',
             ],
 
+            /*
+            |--------------------------------------------------------------------------
+            | Map / Location
+            |--------------------------------------------------------------------------
+            */
+
             'latitude' => [
                 'nullable',
                 'numeric',
@@ -111,11 +155,11 @@ class UpdateSalonRequest extends FormRequest
                 'between:-180,180',
             ],
 
-            'manager_barber_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('barbers', 'id'),
-            ],
+            /*
+            |--------------------------------------------------------------------------
+            | Status
+            |--------------------------------------------------------------------------
+            */
 
             'is_active' => [
                 'nullable',
@@ -133,14 +177,38 @@ class UpdateSalonRequest extends FormRequest
             'name.min' =>
                 'نام سالن حداقل باید ۲ کاراکتر باشد.',
 
+            'owner_id.required' =>
+                'حساب کنترل‌کننده سالن الزامی است.',
+
+            'owner_id.exists' =>
+                'حساب انتخاب شده وجود ندارد.',
+
             'email.email' =>
                 'ایمیل وارد شده معتبر نیست.',
 
             'logo.image' =>
                 'فایل لوگو باید تصویر باشد.',
 
+            'logo.mimes' =>
+                'فرمت لوگو باید jpg، jpeg، png یا webp باشد.',
+
+            'logo.max' =>
+                'حجم لوگو نباید بیشتر از ۴ مگابایت باشد.',
+
             'cover.image' =>
                 'فایل تصویر اصلی باید تصویر باشد.',
+
+            'cover.mimes' =>
+                'فرمت تصویر اصلی باید jpg، jpeg، png یا webp باشد.',
+
+            'cover.max' =>
+                'حجم تصویر اصلی نباید بیشتر از ۸ مگابایت باشد.',
+
+            'remove_logo.boolean' =>
+                'مقدار حذف لوگو معتبر نیست.',
+
+            'remove_cover.boolean' =>
+                'مقدار حذف تصویر اصلی معتبر نیست.',
 
             'primary_color.regex' =>
                 'رنگ اصلی معتبر نیست.',
@@ -148,14 +216,17 @@ class UpdateSalonRequest extends FormRequest
             'secondary_color.regex' =>
                 'رنگ مکمل معتبر نیست.',
 
+            'latitude.numeric' =>
+                'عرض جغرافیایی باید عدد باشد.',
+
             'latitude.between' =>
                 'مختصات عرض جغرافیایی معتبر نیست.',
 
+            'longitude.numeric' =>
+                'طول جغرافیایی باید عدد باشد.',
+
             'longitude.between' =>
                 'مختصات طول جغرافیایی معتبر نیست.',
-
-            'manager_barber_id.exists' =>
-                'آرایشگر انتخاب شده وجود ندارد.',
         ];
     }
 }

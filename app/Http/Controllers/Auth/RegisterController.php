@@ -18,6 +18,12 @@ use RuntimeException;
 
 class RegisterController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Register Page
+    |--------------------------------------------------------------------------
+    */
+
     public function create(): View
     {
         return view('auth.register');
@@ -36,9 +42,14 @@ class RegisterController extends Controller
     ): RedirectResponse {
         $data = $request->validated();
 
-
         $phone = $data['phone'];
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | User Must Not Already Exist
+        |--------------------------------------------------------------------------
+        */
 
         if (
             User::query()
@@ -56,7 +67,7 @@ class RegisterController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Store pending registration
+        | Store Pending Registration
         |--------------------------------------------------------------------------
         */
 
@@ -64,28 +75,28 @@ class RegisterController extends Controller
             'auth.otp',
             [
                 'purpose' => 'register',
-
                 'phone' => $phone,
-
                 'name' => $data['name'],
             ]
         );
 
 
-        try {
+        /*
+        |--------------------------------------------------------------------------
+        | Send OTP
+        |--------------------------------------------------------------------------
+        */
 
+        try {
             $otp->send(
                 $phone,
                 'register',
                 $request->ip()
             );
-
         } catch (RuntimeException $e) {
-
             return back()
                 ->withErrors([
-                    'phone' =>
-                        $e->getMessage(),
+                    'phone' => $e->getMessage(),
                 ])
                 ->withInput();
         }
@@ -105,10 +116,7 @@ class RegisterController extends Controller
     public function showVerify(
         Request $request
     ): View|RedirectResponse {
-        $pending =
-            $request->session()->get(
-                'auth.otp'
-            );
+        $pending = $request->session()->get('auth.otp');
 
 
         if (
@@ -125,10 +133,9 @@ class RegisterController extends Controller
         return view(
             'auth.register-verify',
             [
-                'phone' =>
-                    PhoneNumber::mask(
-                        $pending['phone']
-                    ),
+                'phone' => PhoneNumber::mask(
+                    $pending['phone']
+                ),
             ]
         );
     }
@@ -144,10 +151,7 @@ class RegisterController extends Controller
         RegisterVerifyRequest $request,
         OtpService $otp
     ): RedirectResponse {
-        $pending =
-            $request->session()->get(
-                'auth.otp'
-            );
+        $pending = $request->session()->get('auth.otp');
 
 
         if (
@@ -160,6 +164,12 @@ class RegisterController extends Controller
                 ->route('register');
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Verify OTP
+        |--------------------------------------------------------------------------
+        */
 
         $verified = $otp->verify(
             $pending['phone'],
@@ -183,60 +193,98 @@ class RegisterController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $user = DB::transaction(
-            function () use ($pending) {
+        $user = DB::transaction(function () use ($pending) {
 
-                /*
-                * Race-condition protection:
-                * check phone again immediately before create.
-                */
+            /*
+            |--------------------------------------------------------------------------
+            | Check Again Before Create
+            |--------------------------------------------------------------------------
+            */
 
-                $existing =
-                    User::query()
-                        ->where(
-                            'phone',
-                            $pending['phone']
-                        )
-                        ->first();
+            $existing = User::query()
+                ->where(
+                    'phone',
+                    $pending['phone']
+                )
+                ->first();
 
-                if ($existing) {
-                    return $existing;
-                }
-
-
-                return User::create([
-                    'name' => $pending['name'],
-
-                    'phone' => $pending['phone'],
-
-                    'phone_verified_at' => now(),
-
-                    'role' => UserRole::CUSTOMER,
-
-                    'password' => null,
-                ]);
+            if ($existing) {
+                return null;
             }
-        );
+
+
+            return User::create([
+                'name' =>
+                    $pending['name'],
+
+                'phone' =>
+                    $pending['phone'],
+
+                'phone_verified_at' =>
+                    now(),
+
+                'role' =>
+                    UserRole::CUSTOMER,
+
+                'password' =>
+                    null,
+            ]);
+        });
 
 
         /*
         |--------------------------------------------------------------------------
-        | Login
+        | Handle Race Condition
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$user) {
+            $request->session()->forget('auth.otp');
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'phone' =>
+                        'این شماره قبلاً ثبت شده است. وارد شوید.',
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Login Customer
         |--------------------------------------------------------------------------
         */
 
         Auth::login($user);
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Regenerate Session
+        |--------------------------------------------------------------------------
+        */
+
         $request->session()->regenerate();
 
 
-        $request->session()->forget(
-            'auth.otp'
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | Forget Pending OTP
+        |--------------------------------------------------------------------------
+        */
 
+        $request->session()->forget('auth.otp');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Customer Dashboard
+        |--------------------------------------------------------------------------
+        */
 
         return redirect()
-            ->intended(url('/'))
+            ->route('customer.dashboard')
             ->with(
                 'success',
                 'حساب شما با موفقیت ساخته شد.'
@@ -246,7 +294,7 @@ class RegisterController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Resend
+    | Resend OTP
     |--------------------------------------------------------------------------
     */
 
@@ -254,15 +302,13 @@ class RegisterController extends Controller
         Request $request,
         OtpService $otp
     ): RedirectResponse {
-        $pending =
-            $request->session()->get(
-                'auth.otp'
-            );
+        $pending = $request->session()->get('auth.otp');
 
 
         if (
             !$pending ||
-            ($pending['purpose'] ?? null) !== 'register'
+            ($pending['purpose'] ?? null) !== 'register' ||
+            empty($pending['phone'])
         ) {
             return redirect()
                 ->route('register');
@@ -270,15 +316,12 @@ class RegisterController extends Controller
 
 
         try {
-
             $otp->send(
                 $pending['phone'],
                 'register',
                 $request->ip()
             );
-
         } catch (RuntimeException $e) {
-
             return back()
                 ->withErrors([
                     'code' => $e->getMessage(),

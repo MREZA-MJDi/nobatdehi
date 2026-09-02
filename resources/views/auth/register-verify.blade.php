@@ -4,6 +4,7 @@
 
 @section('content')
 
+
     <div
         x-data="otpForm()"
         class="card overflow-hidden"
@@ -13,7 +14,7 @@
 
             <a
                 href="{{ route('register') }}"
-                class="mb-6 inline-flex items-center gap-2 text-xs font-bold text-content-muted hover:text-accent-600"
+                class="mb-6 inline-flex items-center gap-2 text-xs font-bold text-content-muted transition hover:text-accent-600"
             >
                 ← تغییر اطلاعات
             </a>
@@ -139,7 +140,7 @@
 
 
             <form
-                action="{{ route('register.resend') }}"
+                action="{{ route('register.verify.resend') }}"
                 method="POST"
                 class="mt-4 text-center"
             >
@@ -148,7 +149,7 @@
 
                 <button
                     type="submit"
-                    class="text-xs font-bold text-accent-600 hover:text-accent-700"
+                    class="text-xs font-bold text-accent-600 transition hover:text-accent-700"
                 >
                     ارسال مجدد کد
                 </button>
@@ -158,5 +159,6 @@
         </div>
 
     </div>
+
 
 @endsection

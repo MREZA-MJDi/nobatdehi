@@ -1,44 +1,109 @@
 <?php
 
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\SalonController;
+use App\Enums\UserRole;
+
+use App\Http\Controllers\Admin\BarberController as AdminBarberController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\SalonController as AdminSalonController;
+use App\Http\Controllers\Admin\ServiceController as AdminServiceController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Models\Salon;
+
+use App\Http\Controllers\Barber\DashboardController as BarberDashboardController;
+
+use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
+
+use App\Http\Controllers\PublicSite\DiscoverController;
+use App\Http\Controllers\PublicSite\SalonController as PublicSalonController;
+
 use Illuminate\Support\Facades\Route;
+
+
+/*
+|--------------------------------------------------------------------------
+| PUBLIC WEBSITE
+|--------------------------------------------------------------------------
+|
+| The public website starts from Discover.
+|
+*/
+
+
+/*
+|--------------------------------------------------------------------------
+| Home
+|--------------------------------------------------------------------------
+|
+| nobatdehi.com
+|      ↓
+| Discover
+|
+*/
+
+Route::get(
+    '/',
+    [DiscoverController::class, 'index']
+)->name('home');
+
+
+/*
+|--------------------------------------------------------------------------
+| Discover
+|--------------------------------------------------------------------------
+|
+| Salon discovery only.
+|
+| IMPORTANT:
+| Must be before /salons/{salon}.
+|
+*/
+
+Route::get(
+    '/salons/discover',
+    [DiscoverController::class, 'index']
+)->name('salons.discover');
 
 
 /*
 |--------------------------------------------------------------------------
 | Public Salon
 |--------------------------------------------------------------------------
+|
+| Example:
+|
+| /salons/noban
+|
+| {salon} is resolved using Salon::getRouteKeyName()
+| and therefore uses slug.
+|
 */
 
 Route::get(
-    '/salons/{salon:code}',
-    function (Salon $salon) {
-
-        abort_unless(
-            $salon->is_active,
-            404
-        );
-
-        return view(
-            'customer.salon',
-            compact('salon')
-        );
-    }
-)->name('salons.show');
+    '/salons/{salon}',
+    [PublicSalonController::class, 'show']
+)->name('public.salons.show');
 
 
 /*
 |--------------------------------------------------------------------------
-| Guest Auth
+| GUEST / AUTHENTICATION
 |--------------------------------------------------------------------------
+|
+| One authentication flow:
+|
+| Phone
+|   ↓
+| OTP
+|   ↓
+| User Role
+|
 */
 
 Route::middleware('guest')->group(function () {
+
 
     /*
     |--------------------------------------------------------------------------
@@ -51,35 +116,32 @@ Route::middleware('guest')->group(function () {
         [LoginController::class, 'create']
     )->name('login');
 
-
     Route::post(
         '/login',
         [LoginController::class, 'store']
-    )
-        ->middleware('throttle:10,1')
-        ->name('login.store');
+    )->name('login.store');
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Login OTP
+    |--------------------------------------------------------------------------
+    */
 
     Route::get(
         '/login/verify',
         [LoginController::class, 'showVerify']
     )->name('login.verify');
 
-
     Route::post(
         '/login/verify',
         [LoginController::class, 'verify']
-    )
-        ->middleware('throttle:10,1')
-        ->name('login.verify.store');
-
+    )->name('login.verify.store');
 
     Route::post(
-        '/login/resend',
+        '/login/verify/resend',
         [LoginController::class, 'resend']
-    )
-        ->middleware('throttle:5,1')
-        ->name('login.resend');
+    )->name('login.verify.resend');
 
 
     /*
@@ -93,75 +155,208 @@ Route::middleware('guest')->group(function () {
         [RegisterController::class, 'create']
     )->name('register');
 
-
     Route::post(
         '/register',
         [RegisterController::class, 'store']
-    )
-        ->middleware('throttle:10,1')
-        ->name('register.store');
+    )->name('register.store');
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Register OTP
+    |--------------------------------------------------------------------------
+    */
 
     Route::get(
         '/register/verify',
         [RegisterController::class, 'showVerify']
     )->name('register.verify');
 
-
     Route::post(
         '/register/verify',
         [RegisterController::class, 'verify']
-    )
-        ->middleware('throttle:10,1')
-        ->name('register.verify.store');
-
+    )->name('register.verify.store');
 
     Route::post(
-        '/register/resend',
+        '/register/verify/resend',
         [RegisterController::class, 'resend']
-    )
-        ->middleware('throttle:5,1')
-        ->name('register.resend');
+    )->name('register.verify.resend');
 });
 
 
 /*
 |--------------------------------------------------------------------------
-| Authenticated
+| AUTHENTICATED USERS
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('auth')->group(function () {
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Logout
+    |--------------------------------------------------------------------------
+    */
+
     Route::post(
         '/logout',
-        [LogoutController::class, 'store']
+        [LogoutController::class, 'destroy']
     )->name('logout');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | BARBER
+    |--------------------------------------------------------------------------
+    |
+    | role = barber
+    |
+    */
+
+    Route::middleware(
+        'role:' . UserRole::BARBER->value
+    )->group(function () {
+
+        Route::get(
+            '/barber/dashboard',
+            BarberDashboardController::class
+        )->name('barber.dashboard');
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CUSTOMER
+    |--------------------------------------------------------------------------
+    |
+    | role = customer
+    |
+    */
+
+    Route::middleware(
+        'role:' . UserRole::CUSTOMER->value
+    )->group(function () {
+
+        Route::get(
+            '/customer/dashboard',
+            CustomerDashboardController::class
+        )->name('customer.dashboard');
+
+    });
 });
 
 
 /*
 |--------------------------------------------------------------------------
-| Super Admin
+| SUPER ADMIN
 |--------------------------------------------------------------------------
+|
+| auth
+| +
+| role:super_admin
+|
 */
 
 Route::middleware([
     'auth',
-    'role:super_admin',
+    'role:' . UserRole::SUPER_ADMIN->value,
 ])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Home
+        |--------------------------------------------------------------------------
+        |
+        | /admin
+        |    ↓
+        | /admin/dashboard
+        |
+        */
+
         Route::get(
             '/',
-            DashboardController::class
+            function () {
+                return redirect()
+                    ->route('admin.dashboard');
+            }
+        )->name('home');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Dashboard
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/dashboard',
+            AdminDashboardController::class
         )->name('dashboard');
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Salon Management
+        |--------------------------------------------------------------------------
+        |
+        | CRUD:
+        |
+        | /admin/salons
+        |
+        */
+
         Route::resource(
             'salons',
-            SalonController::class
+            AdminSalonController::class
         );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Barber Management
+        |--------------------------------------------------------------------------
+        |
+        | Barbers belong to a Salon.
+        |
+        | /admin/salons/{salon}/barbers
+        |
+        */
+
+        Route::resource(
+            'salons.barbers',
+            AdminBarberController::class
+        )->except([
+            'show',
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Service Management
+        |--------------------------------------------------------------------------
+        */
+
+        Route::resource(
+            'services',
+            AdminServiceController::class
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | User Management
+        |--------------------------------------------------------------------------
+        */
+
+        Route::resource(
+            'users',
+            AdminUserController::class
+        );
+
     });

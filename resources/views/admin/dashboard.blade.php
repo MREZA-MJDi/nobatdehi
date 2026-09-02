@@ -6,9 +6,7 @@
 
     <div class="mx-auto max-w-[1400px] px-4 py-5 md:px-6 md:py-7">
 
-
         {{-- Header --}}
-
         <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
             <div>
@@ -51,11 +49,10 @@
         </div>
 
 
-
         {{-- Stats --}}
-
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
 
+            {{-- Total Salons --}}
             <div class="card p-4 md:p-5">
 
                 <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-accent-100 text-accent-700">
@@ -85,6 +82,7 @@
             </div>
 
 
+            {{-- Active Salons --}}
             <div class="card p-4 md:p-5">
 
                 <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-700">
@@ -113,6 +111,7 @@
             </div>
 
 
+            {{-- Barbers --}}
             <div class="card p-4 md:p-5">
 
                 <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-700">
@@ -142,6 +141,7 @@
             </div>
 
 
+            {{-- Customers --}}
             <div class="card p-4 md:p-5">
 
                 <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
@@ -175,11 +175,10 @@
         </div>
 
 
-
-        {{-- Main Action --}}
-
+        {{-- Main Actions --}}
         <div class="mt-5 grid gap-4 lg:grid-cols-2">
 
+            {{-- Manage Salons --}}
             <a
                 href="{{ route('admin.salons.index') }}"
                 class="group rounded-2xl border border-border bg-white p-5 shadow-soft transition hover:-translate-y-1 hover:border-accent-200 hover:shadow-card"
@@ -206,19 +205,19 @@
 
                     <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-100 text-accent-700 transition group-hover:scale-105">
 
-                    <svg
-                        width="19"
-                        height="19"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path d="M4 21V8l8-5 8 5v13" />
-                        <path d="M8 21v-6h8v6" />
-                    </svg>
+                        <svg
+                            width="19"
+                            height="19"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path d="M4 21V8l8-5 8 5v13" />
+                            <path d="M8 21v-6h8v6" />
+                        </svg>
 
-                </span>
+                    </span>
 
                 </div>
 
@@ -228,14 +227,15 @@
                     مشاهده سالن‌ها
 
                     <span class="transition group-hover:-translate-x-1">
-                    ←
-                </span>
+                        ←
+                    </span>
 
                 </div>
 
             </a>
 
 
+            {{-- Create Salon --}}
             <a
                 href="{{ route('admin.salons.create') }}"
                 class="group rounded-2xl border border-primary-200 bg-primary-950 p-5 text-white shadow-soft transition hover:-translate-y-1 hover:shadow-card"
@@ -262,18 +262,18 @@
 
                     <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-accent-300">
 
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path d="M12 5v14M5 12h14" />
-                    </svg>
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
 
-                </span>
+                    </span>
 
                 </div>
 

@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -30,30 +29,17 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-
             'phone_verified_at' => 'datetime',
-
             'password' => 'hashed',
-
             'role' => UserRole::class,
         ];
     }
-
 
     /*
     |--------------------------------------------------------------------------
     | Relations
     |--------------------------------------------------------------------------
     */
-
-    public function barberProfile(): HasOne
-    {
-        return $this->hasOne(
-            Barber::class,
-            'user_id'
-        );
-    }
-
 
     public function createdSalons(): HasMany
     {
@@ -63,6 +49,13 @@ class User extends Authenticatable
         );
     }
 
+    public function managedSalons(): HasMany
+    {
+        return $this->hasMany(
+            Salon::class,
+            'owner_id'
+        );
+    }
 
     public function phoneOtps(): HasMany
     {
@@ -72,7 +65,6 @@ class User extends Authenticatable
             'phone'
         );
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -85,18 +77,15 @@ class User extends Authenticatable
         return $this->role === UserRole::SUPER_ADMIN;
     }
 
-
     public function isBarber(): bool
     {
         return $this->role === UserRole::BARBER;
     }
 
-
     public function isCustomer(): bool
     {
         return $this->role === UserRole::CUSTOMER;
     }
-
 
     public function hasRole(
         UserRole|string $role
@@ -108,7 +97,6 @@ class User extends Authenticatable
         return $role !== null
             && $this->role === $role;
     }
-
 
     public function hasAnyRole(
         array $roles

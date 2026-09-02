@@ -9,20 +9,24 @@
 
 @section('content')
 
+    @php
+        use Illuminate\Support\Facades\Storage;
+    @endphp
+
     <div
         x-data="{
-        mode: 'all',
-        mapOpen: false,
-        recentOpen: false,
+            mode: 'all',
+            mapOpen: false,
+            recentOpen: false,
 
-        setMode(value) {
-            this.mode = value
-        },
+            setMode(value) {
+                this.mode = value
+            },
 
-        toggleMap() {
-            this.mapOpen = !this.mapOpen
-        }
-    }"
+            toggleMap() {
+                this.mapOpen = !this.mapOpen
+            }
+        }"
         class="app-container"
     >
 
@@ -31,8 +35,6 @@
         ============================================================= --}}
 
         <section class="discover-hero relative">
-
-            {{-- Decorative glow --}}
 
             <div
                 class="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-[rgba(189,131,91,0.08)] blur-3xl"
@@ -44,23 +46,23 @@
 
                 <div class="discover-eyebrow">
 
-                <span
-                    class="flex h-7 w-7 items-center justify-center rounded-full bg-accent-100"
-                >
-
-                    <svg
-                        width="15"
-                        height="15"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
+                    <span
+                        class="flex h-7 w-7 items-center justify-center rounded-full bg-accent-100"
                     >
-                        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                        <circle cx="12" cy="10" r="2.5" />
-                    </svg>
 
-                </span>
+                        <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+                            <circle cx="12" cy="10" r="2.5" />
+                        </svg>
+
+                    </span>
 
                     نزدیک‌ترین جای خوب برای نوبتت را پیدا کن
 
@@ -101,10 +103,10 @@
                             @click="setMode('all')"
                             class="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition"
                             :class="
-                            mode === 'all'
-                                ? 'bg-zinc-900 text-white'
-                                : 'text-zinc-500 hover:bg-zinc-100'
-                        "
+                                mode === 'all'
+                                    ? 'bg-zinc-900 text-white'
+                                    : 'text-zinc-500 hover:bg-zinc-100'
+                            "
                         >
                             همه
                         </button>
@@ -114,10 +116,10 @@
                             @click="setMode('salon')"
                             class="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition"
                             :class="
-                            mode === 'salon'
-                                ? 'bg-zinc-900 text-white'
-                                : 'text-zinc-500 hover:bg-zinc-100'
-                        "
+                                mode === 'salon'
+                                    ? 'bg-zinc-900 text-white'
+                                    : 'text-zinc-500 hover:bg-zinc-100'
+                            "
                         >
                             سالن‌ها
                         </button>
@@ -127,10 +129,10 @@
                             @click="setMode('barber')"
                             class="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition"
                             :class="
-                            mode === 'barber'
-                                ? 'bg-zinc-900 text-white'
-                                : 'text-zinc-500 hover:bg-zinc-100'
-                        "
+                                mode === 'barber'
+                                    ? 'bg-zinc-900 text-white'
+                                    : 'text-zinc-500 hover:bg-zinc-100'
+                            "
                         >
                             آرایشگرها
                         </button>
@@ -156,21 +158,21 @@
 
                             <div class="search-field">
 
-                            <span class="search-field-icon">
+                                <span class="search-field-icon">
 
-                                <svg
-                                    width="19"
-                                    height="19"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                >
-                                    <circle cx="11" cy="11" r="6.5" />
-                                    <path d="m16 16 4.5 4.5" />
-                                </svg>
+                                    <svg
+                                        width="19"
+                                        height="19"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.8"
+                                    >
+                                        <circle cx="11" cy="11" r="6.5" />
+                                        <path d="m16 16 4.5 4.5" />
+                                    </svg>
 
-                            </span>
+                                </span>
 
                                 <input
                                     type="search"
@@ -188,37 +190,37 @@
 
                             <div class="search-field">
 
-                            <span class="search-field-icon">
+                                <span class="search-field-icon">
 
-                                <svg
-                                    width="19"
-                                    height="19"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                >
-                                    <rect
-                                        x="4"
-                                        y="4"
-                                        width="16"
-                                        height="16"
-                                        rx="2"
-                                    />
-                                    <path d="M8 8h3v3H8z" />
-                                    <path d="M13 13h3v3h-3z" />
-                                    <path d="M14 8h2" />
-                                    <path d="M8 16h2" />
-                                </svg>
+                                    <svg
+                                        width="19"
+                                        height="19"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.8"
+                                    >
+                                        <rect
+                                            x="4"
+                                            y="4"
+                                            width="16"
+                                            height="16"
+                                            rx="2"
+                                        />
+                                        <path d="M8 8h3v3H8z" />
+                                        <path d="M13 13h3v3h-3z" />
+                                        <path d="M14 8h2" />
+                                        <path d="M8 16h2" />
+                                    </svg>
 
-                            </span>
+                                </span>
 
                                 <input
                                     type="search"
                                     name="code"
                                     value="{{ request('code') }}"
                                     class="search-input"
-                                    placeholder="کد اختصاصی سالن یا آرایشگر"
+                                    placeholder="کد اختصاصی سالن"
                                     autocomplete="off"
                                     dir="ltr"
                                 >
@@ -307,7 +309,7 @@
                                 stroke-width="1.8"
                             >
                                 <circle cx="12" cy="12" r="8" />
-                                <circle cx="12" cy="12" r="2.5" />
+                                <circle cx="12" cy="12" r="2" />
                                 <path d="M12 4v2" />
                                 <path d="M12 18v2" />
                                 <path d="M4 12h2" />
@@ -359,13 +361,13 @@
 
                         <div class="flex flex-wrap gap-2">
 
-                        <span class="rounded-lg bg-white px-3 py-1.5 text-xs text-zinc-500 shadow-sm">
-                            سالن فلان
-                        </span>
+                            <span class="rounded-lg bg-white px-3 py-1.5 text-xs text-zinc-500 shadow-sm">
+                                سالن فلان
+                            </span>
 
                             <span class="rounded-lg bg-white px-3 py-1.5 text-xs text-zinc-500 shadow-sm">
-                            SALON-X8K92
-                        </span>
+                                SALON-X8K92
+                            </span>
 
                         </div>
 
@@ -376,7 +378,6 @@
             </div>
 
         </section>
-
 
 
         {{-- ============================================================
@@ -501,13 +502,11 @@
         </section>
 
 
-
         {{-- ============================================================
             RESULTS + MAP
         ============================================================= --}}
 
         <section class="discover-layout">
-
 
             {{-- ========================================================
                 RESULTS
@@ -526,8 +525,8 @@
                             </h2>
 
                             <span class="rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-bold text-zinc-500">
-                            نزدیک‌ترین
-                        </span>
+                                نزدیک‌ترین
+                            </span>
 
                         </div>
 
@@ -565,7 +564,9 @@
                 </div>
 
 
-                {{-- REAL DATA --}}
+                {{-- =====================================================
+                    REAL DATA
+                ====================================================== --}}
 
                 @if(isset($salons) && $salons->count())
 
@@ -579,11 +580,12 @@
 
                                 <div class="salon-logo">
 
-                                    @if($salon->logo)
+                                    @if($salon->logo_path)
 
                                         <img
-                                            src="{{ asset('storage/' . $salon->logo) }}"
+                                            src="{{ Storage::url($salon->logo_path) }}"
                                             alt="{{ $salon->name }}"
+                                            class="h-full w-full object-cover"
                                         >
 
                                     @else
@@ -603,13 +605,23 @@
 
                                             <div class="mb-1 flex flex-wrap items-center gap-1.5">
 
-                                            <span class="badge badge-success">
-                                                فعال
-                                            </span>
+                                                @if($salon->is_active)
+
+                                                    <span class="badge badge-success">
+                                                        فعال
+                                                    </span>
+
+                                                @else
+
+                                                    <span class="badge badge-danger">
+                                                        غیرفعال
+                                                    </span>
+
+                                                @endif
 
                                                 <span class="badge badge-accent">
-                                                قابل رزرو
-                                            </span>
+                                                    سالن
+                                                </span>
 
                                             </div>
 
@@ -625,30 +637,26 @@
                                         </div>
 
 
-                                        <div class="flex flex-col items-end">
+                                        @if(isset($salon->rating))
 
-                                            @if(isset($salon->rating))
-
-                                                <div class="salon-rating">
+                                            <div class="salon-rating">
 
                                                 <span class="text-amber-500">
                                                     ★
                                                 </span>
 
-                                                    {{ number_format($salon->rating, 1) }}
+                                                {{ number_format($salon->rating, 1) }}
 
-                                                </div>
+                                            </div>
 
-                                            @endif
-
-                                        </div>
+                                        @endif
 
                                     </div>
 
 
                                     <div class="salon-meta">
 
-                                        @if($salon->address)
+                                        @if($salon->city || $salon->district)
 
                                             <div class="salon-meta-item">
 
@@ -665,8 +673,14 @@
                                                 </svg>
 
                                                 <span>
-                                                {{ $salon->address }}
-                                            </span>
+
+                                                    {{ $salon->city ?: '—' }}
+
+                                                    @if($salon->district)
+                                                        ، {{ $salon->district }}
+                                                    @endif
+
+                                                </span>
 
                                             </div>
 
@@ -689,8 +703,8 @@
                                                 </svg>
 
                                                 <span dir="ltr">
-                                                {{ $salon->phone }}
-                                            </span>
+                                                    {{ $salon->phone }}
+                                                </span>
 
                                             </div>
 
@@ -701,13 +715,16 @@
 
                                     <div class="salon-footer">
 
-                                        <code class="salon-code">
+                                        <code
+                                            class="salon-code"
+                                            dir="ltr"
+                                        >
                                             {{ $salon->code }}
                                         </code>
 
 
                                         <a
-                                            href="{{ url('/salons/' . $salon->code) }}"
+                                            href="{{ route('public.salons.show', $salon) }}"
                                             class="btn btn-primary btn-sm"
                                         >
                                             مشاهده سالن
@@ -760,9 +777,9 @@
 
                             <div class="salon-logo">
 
-                            <span>
-                                ن
-                            </span>
+                                <span>
+                                    ن
+                                </span>
 
                             </div>
 
@@ -775,13 +792,13 @@
 
                                         <div class="mb-1 flex flex-wrap gap-1.5">
 
-                                        <span class="badge badge-success">
-                                            باز
-                                        </span>
+                                            <span class="badge badge-success">
+                                                باز
+                                            </span>
 
                                             <span class="badge badge-accent">
-                                            محبوب
-                                        </span>
+                                                محبوب
+                                            </span>
 
                                         </div>
 
@@ -797,10 +814,13 @@
 
 
                                     <div class="salon-rating">
-                                    <span class="text-amber-500">
-                                        ★
-                                    </span>
+
+                                        <span class="text-amber-500">
+                                            ★
+                                        </span>
+
                                         ۴.۹
+
                                     </div>
 
                                 </div>
@@ -810,28 +830,42 @@
 
                                     <div class="salon-meta-item">
 
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                        >
                                             <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
                                             <circle cx="12" cy="10" r="2.5" />
                                         </svg>
 
                                         <span>
-                                        تهران، سعادت‌آباد
-                                    </span>
+                                            تهران، سعادت‌آباد
+                                        </span>
 
                                     </div>
 
 
                                     <div class="salon-meta-item">
 
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                        >
                                             <circle cx="12" cy="12" r="8" />
                                             <path d="M12 8v4l2.5 2" />
                                         </svg>
 
                                         <span>
-                                        امروز تا ساعت ۲۱:۰۰
-                                    </span>
+                                            امروز تا ساعت ۲۱:۰۰
+                                        </span>
 
                                     </div>
 
@@ -840,7 +874,7 @@
 
                                 <div class="salon-footer">
 
-                                    <code class="salon-code">
+                                    <code class="salon-code" dir="ltr">
                                         SALON-X8K92
                                     </code>
 
@@ -851,7 +885,14 @@
                                     >
                                         مشاهده سالن
 
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
                                             <path d="m9 18 6-6-6-6" />
                                         </svg>
 
@@ -869,11 +910,11 @@
 
                         <article class="salon-card card-hover group">
 
-                            <div class="salon-logo bg-accent-600">
+                            <div class="salon-logo">
 
-                            <span>
-                                A
-                            </span>
+                                <span>
+                                    A
+                                </span>
 
                             </div>
 
@@ -886,9 +927,9 @@
 
                                         <div class="mb-1 flex flex-wrap gap-1.5">
 
-                                        <span class="badge badge-success">
-                                            باز
-                                        </span>
+                                            <span class="badge badge-success">
+                                                باز
+                                            </span>
 
                                         </div>
 
@@ -904,10 +945,13 @@
 
 
                                     <div class="salon-rating">
-                                    <span class="text-amber-500">
-                                        ★
-                                    </span>
+
+                                        <span class="text-amber-500">
+                                            ★
+                                        </span>
+
                                         ۴.۸
+
                                     </div>
 
                                 </div>
@@ -917,28 +961,42 @@
 
                                     <div class="salon-meta-item">
 
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                        >
                                             <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
                                             <circle cx="12" cy="10" r="2.5" />
                                         </svg>
 
                                         <span>
-                                        تهران، جردن
-                                    </span>
+                                            تهران، جردن
+                                        </span>
 
                                     </div>
 
 
                                     <div class="salon-meta-item">
 
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                        >
                                             <path d="M12 2v20" />
                                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" />
                                         </svg>
 
                                         <span>
-                                        اصلاح، فید، استایل
-                                    </span>
+                                            اصلاح، فید، استایل
+                                        </span>
 
                                     </div>
 
@@ -947,7 +1005,7 @@
 
                                 <div class="salon-footer">
 
-                                    <code class="salon-code">
+                                    <code class="salon-code" dir="ltr">
                                         BARBER-P7Q31
                                     </code>
 
@@ -958,7 +1016,14 @@
                                     >
                                         مشاهده آرایشگر
 
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
                                             <path d="m9 18 6-6-6-6" />
                                         </svg>
 
@@ -976,11 +1041,11 @@
 
                         <article class="salon-card card-hover group">
 
-                            <div class="salon-logo bg-zinc-800">
+                            <div class="salon-logo">
 
-                            <span>
-                                M
-                            </span>
+                                <span>
+                                    M
+                                </span>
 
                             </div>
 
@@ -993,9 +1058,9 @@
 
                                         <div class="mb-1 flex flex-wrap gap-1.5">
 
-                                        <span class="badge badge-success">
-                                            باز
-                                        </span>
+                                            <span class="badge badge-success">
+                                                باز
+                                            </span>
 
                                         </div>
 
@@ -1011,10 +1076,13 @@
 
 
                                     <div class="salon-rating">
-                                    <span class="text-amber-500">
-                                        ★
-                                    </span>
+
+                                        <span class="text-amber-500">
+                                            ★
+                                        </span>
+
                                         ۴.۷
+
                                     </div>
 
                                 </div>
@@ -1024,28 +1092,42 @@
 
                                     <div class="salon-meta-item">
 
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                        >
                                             <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
                                             <circle cx="12" cy="10" r="2.5" />
                                         </svg>
 
                                         <span>
-                                        تهران، ونک
-                                    </span>
+                                            تهران، ونک
+                                        </span>
 
                                     </div>
 
 
                                     <div class="salon-meta-item">
 
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                        >
                                             <path d="M12 2v20" />
                                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" />
                                         </svg>
 
                                         <span>
-                                        از ۲۵۰ هزار تومان
-                                    </span>
+                                            از ۲۵۰ هزار تومان
+                                        </span>
 
                                     </div>
 
@@ -1054,7 +1136,7 @@
 
                                 <div class="salon-footer">
 
-                                    <code class="salon-code">
+                                    <code class="salon-code" dir="ltr">
                                         SALON-M4T88
                                     </code>
 
@@ -1065,7 +1147,14 @@
                                     >
                                         مشاهده سالن
 
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
                                             <path d="m9 18 6-6-6-6" />
                                         </svg>
 
@@ -1117,7 +1206,6 @@
             </div>
 
 
-
             {{-- ========================================================
                 MAP
             ========================================================= --}}
@@ -1128,16 +1216,16 @@
 
                     <div class="relative h-full min-h-[29rem] bg-[#ebe8e3]">
 
-                        {{-- Map placeholder background --}}
+                        {{-- Map background --}}
 
                         <div
                             class="absolute inset-0"
                             style="
-                            background-image:
-                                linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),
-                                linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px);
-                            background-size: 38px 38px;
-                        "
+                                background-image:
+                                    linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),
+                                    linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px);
+                                background-size: 38px 38px;
+                            "
                         ></div>
 
 
@@ -1156,7 +1244,7 @@
 
                         <div class="absolute right-[8%] top-[18%] h-24 w-32 rounded-[40%] bg-green-100/60"></div>
 
-                        <div class="absolute left-[8%] bottom-[12%] h-20 w-28 rounded-[40%] bg-green-100/50"></div>
+                        <div class="absolute bottom-[12%] left-[8%] h-20 w-28 rounded-[40%] bg-green-100/50"></div>
 
 
                         {{-- Fake location pins --}}
@@ -1167,21 +1255,21 @@
                             title="سالن نوبان"
                         >
 
-                        <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-zinc-900 text-white shadow-float transition group-hover:scale-110">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-zinc-900 text-white shadow-float transition group-hover:scale-110">
 
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                <circle cx="12" cy="10" r="2.5" />
-                            </svg>
+                                <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+                                    <circle cx="12" cy="10" r="2.5" />
+                                </svg>
 
-                        </span>
+                            </span>
 
                         </button>
 
@@ -1192,51 +1280,51 @@
                             title="متین استایل"
                         >
 
-                        <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-accent-600 text-white shadow-float transition group-hover:scale-110">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-accent-600 text-white shadow-float transition group-hover:scale-110">
 
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                <circle cx="12" cy="10" r="2.5" />
-                            </svg>
+                                <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+                                    <circle cx="12" cy="10" r="2.5" />
+                                </svg>
 
-                        </span>
+                            </span>
 
                         </button>
 
 
                         <button
                             type="button"
-                            class="group absolute left-[48%] bottom-[19%]"
+                            class="group absolute bottom-[19%] left-[48%]"
                             title="علی رضایی"
                         >
 
-                        <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-zinc-700 text-white shadow-float transition group-hover:scale-110">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-zinc-700 text-white shadow-float transition group-hover:scale-110">
 
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                <circle cx="12" cy="10" r="2.5" />
-                            </svg>
+                                <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+                                    <circle cx="12" cy="10" r="2.5" />
+                                </svg>
 
-                        </span>
+                            </span>
 
                         </button>
 
 
-                        {{-- Map top controls --}}
+                        {{-- Map Controls --}}
 
                         <div class="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
 
@@ -1278,7 +1366,7 @@
                         </div>
 
 
-                        {{-- Map bottom info --}}
+                        {{-- Map Bottom Info --}}
 
                         <div class="absolute inset-x-3 bottom-3">
 
@@ -1353,7 +1441,6 @@
         </section>
 
 
-
         {{-- ============================================================
             MOBILE MAP BUTTON
         ============================================================= --}}
@@ -1383,7 +1470,6 @@
             </button>
 
         </div>
-
 
 
         {{-- ============================================================
@@ -1450,21 +1536,31 @@
                         <div
                             class="absolute inset-0"
                             style="
-                            background-image:
-                                linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),
-                                linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px);
-                            background-size: 34px 34px;
-                        "
+                                background-image:
+                                    linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px),
+                                    linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px);
+                                background-size: 34px 34px;
+                            "
                         ></div>
 
                         <div class="absolute left-[10%] top-[40%] h-3 w-[85%] rotate-[-12deg] rounded-full bg-white"></div>
+
                         <div class="absolute left-[38%] top-[5%] h-[90%] w-3 rotate-[14deg] rounded-full bg-white"></div>
 
                         <div class="absolute right-[22%] top-[29%] flex h-10 w-10 items-center justify-center rounded-full border-4 border-white bg-zinc-900 text-white shadow-float">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
                                 <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
                                 <circle cx="12" cy="10" r="2.5" />
                             </svg>
+
                         </div>
 
                     </div>

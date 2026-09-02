@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,19 +10,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Salon extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'name',
+        'slug',
         'code',
         'description',
+
+        'owner_id',
 
         'phone',
         'email',
 
         'logo_path',
         'cover_path',
-
         'primary_color',
         'secondary_color',
 
@@ -37,7 +39,6 @@ class Salon extends Model
 
         'qr_code_path',
 
-        'manager_barber_id',
         'created_by',
 
         'is_active',
@@ -48,30 +49,27 @@ class Salon extends Model
         return [
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
-
             'is_active' => 'boolean',
         ];
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | Manager Barber
+    | Owner
     |--------------------------------------------------------------------------
     */
 
-    public function manager(): BelongsTo
+    public function owner(): BelongsTo
     {
         return $this->belongsTo(
-            Barber::class,
-            'manager_barber_id'
+            User::class,
+            'owner_id'
         );
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | Creator - Super Admin
+    | Creator
     |--------------------------------------------------------------------------
     */
 
@@ -82,7 +80,6 @@ class Salon extends Model
             'created_by'
         );
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -98,85 +95,14 @@ class Salon extends Model
         );
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | Scopes
+    | Route Binding
     |--------------------------------------------------------------------------
     */
 
-    public function scopeActive(
-        Builder $query
-    ): Builder {
-        return $query->where(
-            'is_active',
-            true
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Accessors
-    |--------------------------------------------------------------------------
-    */
-
-    public function getLogoUrlAttribute(): ?string
+    public function getRouteKeyName(): string
     {
-        if (!$this->logo_path) {
-            return null;
-        }
-
-        return asset(
-            'storage/' . $this->logo_path
-        );
-    }
-
-
-    public function getCoverUrlAttribute(): ?string
-    {
-        if (!$this->cover_path) {
-            return null;
-        }
-
-        return asset(
-            'storage/' . $this->cover_path
-        );
-    }
-
-
-    public function getQrCodeUrlAttribute(): ?string
-    {
-        if (!$this->qr_code_path) {
-            return null;
-        }
-
-        return asset(
-            'storage/' . $this->qr_code_path
-        );
-    }
-
-
-    public function getPublicUrlAttribute(): string
-    {
-        return route(
-            'salons.show',
-            [
-                'salon' => $this->code,
-            ]
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Manager Check
-    |--------------------------------------------------------------------------
-    */
-
-    public function isManagedBy(
-        User $user
-    ): bool {
-        return $this->manager?->user_id === $user->id;
+        return 'slug';
     }
 }

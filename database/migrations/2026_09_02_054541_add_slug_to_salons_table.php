@@ -9,20 +9,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('salons', function (Blueprint $table) {
-            $table->foreign('manager_barber_id')
-                ->references('id')
-                ->on('barbers')
-                ->nullOnDelete();
+            $table->string('slug', 180)
+                ->unique()
+                ->after('name');
         });
     }
-
 
     public function down(): void
     {
         Schema::table('salons', function (Blueprint $table) {
-            $table->dropForeign([
-                'manager_barber_id',
-            ]);
+            $table->dropUnique(['slug']);
+            $table->dropColumn('slug');
         });
     }
 };

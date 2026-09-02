@@ -18,7 +18,6 @@ class UserSeeder extends Seeder
             )
         );
 
-
         User::updateOrCreate(
             [
                 'phone' => $phone,
@@ -34,12 +33,33 @@ class UserSeeder extends Seeder
                     'admin@nobatdehi.test'
                 ),
 
+                /*
+                |--------------------------------------------------------------------------
+                | Authentication
+                |--------------------------------------------------------------------------
+                |
+                | This project uses Phone + OTP authentication.
+                | No password is required for Super Admin login.
+                |
+                */
+
                 'password' => null,
+
+                /*
+                |--------------------------------------------------------------------------
+                | Role
+                |--------------------------------------------------------------------------
+                */
 
                 'role' => UserRole::SUPER_ADMIN,
 
-                'phone_verified_at' => now(),
+                /*
+                |--------------------------------------------------------------------------
+                | Verification
+                |--------------------------------------------------------------------------
+                */
 
+                'phone_verified_at' => now(),
                 'email_verified_at' => now(),
             ]
         );

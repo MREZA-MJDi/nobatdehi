@@ -4,6 +4,7 @@
 
 @section('content')
 
+
     <div
         x-data="{
         step: 1,
@@ -15,52 +16,55 @@
         secondaryColor: '{{ old('secondary_color', '#37B8C8') }}',
 
         previewFile(event, type) {
-            const file = event.target.files?.[0]
+            const file = event.target.files?.[0];
 
             if (!file) {
-                return
+                return;
             }
 
-            const reader = new FileReader()
+            const reader = new FileReader();
 
             reader.onload = (e) => {
                 if (type === 'logo') {
-                    this.logoPreview = e.target.result
+                    this.logoPreview = e.target.result;
                 }
 
                 if (type === 'cover') {
-                    this.coverPreview = e.target.result
+                    this.coverPreview = e.target.result;
                 }
-            }
+            };
 
-            reader.readAsDataURL(file)
+            reader.readAsDataURL(file);
         },
 
         next() {
             if (this.step < 4) {
-                this.step++
+                this.step++;
+
                 window.scrollTo({
                     top: 0,
                     behavior: 'smooth'
-                })
+                });
             }
         },
 
         previous() {
             if (this.step > 1) {
-                this.step--
+                this.step--;
+
                 window.scrollTo({
                     top: 0,
                     behavior: 'smooth'
-                })
+                });
             }
         }
     }"
         class="mx-auto max-w-[1400px] px-4 py-5 pb-24 md:px-6 md:py-7"
     >
 
-
-        {{-- Header --}}
+        {{-- ============================================================
+            HEADER
+        ============================================================= --}}
 
         <div class="mb-6">
 
@@ -82,12 +86,54 @@
         </div>
 
 
+        {{-- ============================================================
+            VALIDATION ERRORS
+        ============================================================= --}}
 
-        {{-- Stepper --}}
+        @if($errors->any())
+
+            <div class="mb-5 rounded-2xl border border-red-100 bg-red-50 p-4">
+
+                <div class="flex items-start gap-3">
+
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 font-black text-red-600">
+                        !
+                    </div>
+
+                    <div>
+
+                        <div class="text-xs font-black text-red-800">
+                            اطلاعات نیاز به بررسی دارند
+                        </div>
+
+                        <div class="mt-2 space-y-1 text-[10px] leading-6 text-red-700">
+
+                            @foreach($errors->all() as $error)
+
+                                <div>
+                                    • {{ $error }}
+                                </div>
+
+                            @endforeach
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        @endif
+
+
+        {{-- ============================================================
+            STEPPER
+        ============================================================= --}}
 
         <div class="mb-6 overflow-x-auto">
 
-            <div class="flex min-w-[500px] items-center">
+            <div class="flex min-w-[520px] items-center">
 
                 @foreach([
                     1 => ['title' => 'اطلاعات', 'desc' => 'مشخصات پایه'],
@@ -109,14 +155,13 @@
                             :class="
                                 step >= {{ $number }}
                                 ? 'bg-accent-600 text-white shadow-iris'
-                                : 'bg-white text-content-muted border border-border'
+                                : 'border border-border bg-white text-content-muted'
 "
                         >
                             {{ $number }}
                         </span>
 
-
-                            <span class="hidden sm:block text-right">
+                            <span class="hidden text-right sm:block">
 
                             <span
                                 class="block text-xs font-black"
@@ -137,7 +182,6 @@
 
                         </button>
 
-
                         @if($number < 4)
 
                             <span class="mx-3 h-px w-8 bg-border sm:w-16"></span>
@@ -153,6 +197,9 @@
         </div>
 
 
+        {{-- ============================================================
+            MAIN FORM
+        ============================================================= --}}
 
         <form
             action="{{ route('admin.salons.store') }}"
@@ -178,6 +225,10 @@
 
                     <div class="mb-6">
 
+                        <div class="mb-1 text-[10px] font-bold text-accent-600">
+                            01
+                        </div>
+
                         <h2 class="section-title">
                             اطلاعات پایه
                         </h2>
@@ -191,117 +242,172 @@
 
                     <div class="grid gap-5 sm:grid-cols-2">
 
+
+                        {{-- Name --}}
+
                         <div class="form-group sm:col-span-2">
 
-                            <label class="form-label">
+                            <label
+                                for="name"
+                                class="form-label"
+                            >
                                 نام سالن
                                 <span class="text-danger-600">*</span>
                             </label>
 
                             <input
+                                id="name"
                                 type="text"
                                 name="name"
                                 value="{{ old('name') }}"
                                 class="form-control"
                                 placeholder="مثلاً سالن نوبان"
+                                maxlength="120"
                                 required
                             >
 
                             @error('name')
-                            <div class="form-error">{{ $message }}</div>
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
                             @enderror
 
                         </div>
 
 
+                        {{-- Phone --}}
+
                         <div class="form-group">
 
-                            <label class="form-label">
+                            <label
+                                for="phone"
+                                class="form-label"
+                            >
                                 شماره تماس
                             </label>
 
                             <input
+                                id="phone"
                                 type="text"
                                 name="phone"
                                 value="{{ old('phone') }}"
                                 class="form-control"
                                 placeholder="021..."
+                                maxlength="30"
                                 dir="ltr"
                             >
 
                             @error('phone')
-                            <div class="form-error">{{ $message }}</div>
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
                             @enderror
 
                         </div>
 
 
+                        {{-- Email --}}
+
                         <div class="form-group">
 
-                            <label class="form-label">
+                            <label
+                                for="email"
+                                class="form-label"
+                            >
                                 ایمیل
                             </label>
 
                             <input
+                                id="email"
                                 type="email"
                                 name="email"
                                 value="{{ old('email') }}"
                                 class="form-control"
                                 placeholder="salon@example.com"
+                                maxlength="190"
                                 dir="ltr"
                             >
 
                             @error('email')
-                            <div class="form-error">{{ $message }}</div>
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
                             @enderror
 
                         </div>
 
 
+                        {{-- Description --}}
+
                         <div class="form-group sm:col-span-2">
 
-                            <label class="form-label">
-                                توضیحات
+                            <label
+                                for="description"
+                                class="form-label"
+                            >
+                                توضیحات سالن
                             </label>
 
                             <textarea
+                                id="description"
                                 name="description"
                                 class="form-control"
+                                maxlength="5000"
                                 placeholder="توضیح کوتاهی درباره سالن..."
                             >{{ old('description') }}</textarea>
 
                             @error('description')
-                            <div class="form-error">{{ $message }}</div>
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
                             @enderror
 
                         </div>
 
 
+                        {{-- Owner --}}
+
                         <div class="form-group sm:col-span-2">
 
-                            <label class="form-label">
-                                مدیر سالن
+                            <label
+                                for="owner_id"
+                                class="form-label"
+                            >
+                                حساب کنترل‌کننده
                             </label>
 
                             <select
-                                name="manager_barber_id"
+                                id="owner_id"
+                                name="owner_id"
                                 class="form-control"
                             >
 
                                 <option value="">
-                                    هنوز انتخاب نشده
+                                    انتخاب حساب
                                 </option>
 
-                                @foreach($barbers as $barber)
+                                @foreach(($owners ?? collect()) as $owner)
 
                                     <option
-                                        value="{{ $barber->id }}"
-                                        @selected(old('manager_barber_id') == $barber->id)
+                                        value="{{ $owner->id }}"
+                                        @selected(
+                                        old('owner_id') == $owner->id
+                                    )
                                     >
-                                    {{ $barber->user?->name ?? 'بدون نام' }}
-                                    @if($barber->user?->email)
-                                        — {{ $barber->user->email }}
+                                    {{ $owner->name }}
+
+                                    @if($owner->phone)
+                                        — {{ $owner->phone }}
                                         @endif
+
                                         </option>
 
                                         @endforeach
@@ -309,11 +415,15 @@
                             </select>
 
                             <div class="form-help">
-                                این آرایشگر مسئول مدیریت این سالن خواهد بود.
+                                حسابی که برای کنترل و مدیریت این سالن در نظر گرفته می‌شود.
                             </div>
 
-                            @error('manager_barber_id')
-                            <div class="form-error">{{ $message }}</div>
+                            @error('owner_id')
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
                             @enderror
 
                         </div>
@@ -348,24 +458,23 @@
                     </h3>
 
                     <p class="mt-2 text-xs leading-7 text-primary-300">
-                        بعد از ساخت سالن یک کد عمومی یکتا مانند
+                        بعد از ساخت سالن، یک
                         <span
                             class="font-mono text-accent-300"
                             dir="ltr"
                         >
-                        SALON-X8K92
+                        slug
                     </span>
-                        برای آن ثبت می‌شود.
+                        و یک کد عمومی یکتا برای سالن ساخته می‌شود.
                     </p>
 
                     <div class="mt-5 rounded-xl border border-white/10 bg-white/5 p-3 text-[10px] leading-6 text-primary-300">
-                        این کد پایه لینک عمومی و QR سالن است و بعداً تغییر نمی‌کند.
+                        slug برای URL عمومی سالن استفاده می‌شود و کد عمومی سالن نیز به‌صورت یکتا نگهداری می‌شود.
                     </div>
 
                 </aside>
 
             </div>
-
 
 
             {{-- ========================================================
@@ -383,20 +492,27 @@
 
                     <div class="mb-6">
 
+                        <div class="mb-1 text-[10px] font-bold text-accent-600">
+                            02
+                        </div>
+
                         <h2 class="section-title">
                             برندینگ سالن
                         </h2>
 
                         <p class="page-subtitle">
-                            ظاهر عمومی سالن را تعیین کنید.
+                            لوگو، تصویر اصلی و رنگ‌های اختصاصی سالن را انتخاب کنید.
                         </p>
 
                     </div>
 
 
-                    <div class="grid gap-5 sm:grid-cols-2">
+                    <div class="grid gap-6 md:grid-cols-2">
 
-                        {{-- Logo --}}
+
+                        {{-- ==================================================
+                            LOGO
+                        =================================================== --}}
 
                         <div class="form-group">
 
@@ -404,7 +520,7 @@
                                 لوگو
                             </label>
 
-                            <label class="group relative flex min-h-48 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-primary-50 transition hover:border-accent-300">
+                            <label class="group relative flex min-h-56 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-primary-50 transition hover:border-accent-300">
 
                                 <template x-if="logoPreview">
 
@@ -416,23 +532,34 @@
 
                                 </template>
 
-
                                 <template x-if="!logoPreview">
 
                                     <div class="text-center">
 
-                                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-content-muted shadow-soft">
+                                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-content-muted shadow-soft">
 
                                             <svg
-                                                width="22"
-                                                height="22"
+                                                width="24"
+                                                height="24"
                                                 viewBox="0 0 24 24"
                                                 fill="none"
                                                 stroke="currentColor"
                                                 stroke-width="1.7"
                                             >
-                                                <rect x="3" y="3" width="18" height="18" rx="3" />
-                                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                                <rect
+                                                    x="3"
+                                                    y="3"
+                                                    width="18"
+                                                    height="18"
+                                                    rx="3"
+                                                />
+
+                                                <circle
+                                                    cx="8.5"
+                                                    cy="8.5"
+                                                    r="1.5"
+                                                />
+
                                                 <path d="m21 15-5-5L5 21" />
                                             </svg>
 
@@ -443,13 +570,12 @@
                                         </div>
 
                                         <div class="mt-1 text-[10px] text-content-muted">
-                                            JPG / PNG / WEBP
+                                            JPG / PNG / WEBP — حداکثر ۴ مگابایت
                                         </div>
 
                                     </div>
 
                                 </template>
-
 
                                 <input
                                     type="file"
@@ -462,21 +588,36 @@
                             </label>
 
                             @error('logo')
-                            <div class="form-error">{{ $message }}</div>
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
                             @enderror
 
                         </div>
 
 
-                        {{-- Cover --}}
+                        {{-- ==================================================
+                            COVER
+                        =================================================== --}}
 
-                        <div class="form-group">
+                        <div class="form-group md:col-span-2">
 
-                            <label class="form-label">
-                                تصویر اصلی / Cover
-                            </label>
+                            <div class="mb-2 flex items-center justify-between gap-3">
 
-                            <label class="group relative flex min-h-48 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-primary-50 transition hover:border-accent-300">
+                                <label class="form-label mb-0">
+                                    تصویر اصلی / Cover
+                                </label>
+
+                                <span class="text-[10px] text-content-muted">
+                                پیشنهاد: تصویر افقی و باکیفیت
+                            </span>
+
+                            </div>
+
+
+                            <label class="group relative flex min-h-[18rem] cursor-pointer items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed border-border bg-primary-50 transition hover:border-accent-300 md:min-h-[22rem]">
 
                                 <template x-if="coverPreview">
 
@@ -493,28 +634,35 @@
 
                                     <div class="text-center">
 
-                                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-content-muted shadow-soft">
+                                        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-content-muted shadow-soft">
 
                                             <svg
-                                                width="22"
-                                                height="22"
+                                                width="28"
+                                                height="28"
                                                 viewBox="0 0 24 24"
                                                 fill="none"
                                                 stroke="currentColor"
                                                 stroke-width="1.7"
                                             >
-                                                <rect x="3" y="3" width="18" height="18" rx="3" />
+                                                <rect
+                                                    x="3"
+                                                    y="3"
+                                                    width="18"
+                                                    height="18"
+                                                    rx="3"
+                                                />
+
                                                 <path d="m3 16 5-5 4 4 3-3 6 6" />
                                             </svg>
 
                                         </div>
 
-                                        <div class="mt-3 text-xs font-bold text-content">
-                                            انتخاب Cover
+                                        <div class="mt-4 text-sm font-black text-content">
+                                            انتخاب تصویر Cover
                                         </div>
 
                                         <div class="mt-1 text-[10px] text-content-muted">
-                                            تصویر افقی با کیفیت بالا
+                                            JPG / PNG / WEBP — حداکثر ۸ مگابایت
                                         </div>
 
                                     </div>
@@ -533,13 +681,17 @@
                             </label>
 
                             @error('cover')
-                            <div class="form-error">{{ $message }}</div>
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
                             @enderror
 
                         </div>
 
 
-                        {{-- Colors --}}
+                        {{-- Primary Color --}}
 
                         <div class="form-group">
 
@@ -551,13 +703,13 @@
 
                                 <input
                                     type="color"
-                                    name="primary_color"
                                     x-model="primaryColor"
-                                    class="h-12 w-14 cursor-pointer rounded-xl border border-border bg-white p-1"
+                                    class="h-12 w-14 shrink-0 cursor-pointer rounded-xl border border-border bg-white p-1"
                                 >
 
                                 <input
                                     type="text"
+                                    name="primary_color"
                                     x-model="primaryColor"
                                     class="form-control"
                                     maxlength="7"
@@ -567,8 +719,18 @@
 
                             </div>
 
+                            @error('primary_color')
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
+                            @enderror
+
                         </div>
 
+
+                        {{-- Secondary Color --}}
 
                         <div class="form-group">
 
@@ -580,13 +742,13 @@
 
                                 <input
                                     type="color"
-                                    name="secondary_color"
                                     x-model="secondaryColor"
-                                    class="h-12 w-14 cursor-pointer rounded-xl border border-border bg-white p-1"
+                                    class="h-12 w-14 shrink-0 cursor-pointer rounded-xl border border-border bg-white p-1"
                                 >
 
                                 <input
                                     type="text"
+                                    name="secondary_color"
                                     x-model="secondaryColor"
                                     class="form-control"
                                     maxlength="7"
@@ -595,6 +757,14 @@
                                 >
 
                             </div>
+
+                            @error('secondary_color')
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
+                            @enderror
 
                         </div>
 
@@ -607,60 +777,107 @@
 
                 <aside class="card h-fit overflow-hidden">
 
-                    <div
-                        class="h-36 bg-primary-900 transition"
-                        :style="coverPreview
-                        ? `background-image:url('${coverPreview}');background-size:cover;background-position:center`
-                        : ''"
-                    ></div>
+                    <div class="border-b border-border px-5 py-4">
 
-                    <div class="relative px-5 pb-5">
+                        <div class="text-[10px] font-bold text-accent-600">
+                            LIVE PREVIEW
+                        </div>
 
-                        <div class="-mt-10 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-primary-900 text-xl font-black text-white shadow-card">
+                        <h2 class="mt-1 text-sm font-black">
+                            پیش‌نمایش سالن
+                        </h2>
 
-                            <template x-if="logoPreview">
+                    </div>
+
+
+                    <div>
+
+                        <div class="relative h-40 overflow-hidden">
+
+                            <template x-if="coverPreview">
 
                                 <img
-                                    :src="logoPreview"
+                                    :src="coverPreview"
                                     alt=""
-                                    class="h-full w-full object-contain"
+                                    class="h-full w-full object-cover"
                                 >
 
                             </template>
 
-                            <template x-if="!logoPreview">
-                            <span>
-                                ن
-                            </span>
+
+                            <template x-if="!coverPreview">
+
+                                <div
+                                    class="h-full w-full"
+                                    :style="
+                                    `background:
+                                    radial-gradient(circle at 80% 20%, ${primaryColor}66, transparent 45%),
+                                    linear-gradient(135deg, #171a24, #2d323e);`
+                                "
+                                ></div>
+
                             </template>
 
                         </div>
 
 
-                        <h3 class="mt-3 text-lg font-black">
-                            <span x-text="$el.closest('aside') ? (document.querySelector('[name=name]')?.value || 'نام سالن') : ''"></span>
-                        </h3>
+                        <div class="relative px-5 pb-5">
 
-                        <p class="mt-1 text-xs text-content-muted">
-                            سالن زیبایی و مراقبت
-                        </p>
+                            <div class="-mt-8 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-primary-900 text-lg font-black text-white shadow-card">
+
+                                <template x-if="logoPreview">
+
+                                    <img
+                                        :src="logoPreview"
+                                        alt=""
+                                        class="h-full w-full object-contain"
+                                    >
+
+                                </template>
 
 
-                        <div class="mt-4 flex gap-2">
+                                <template x-if="!logoPreview">
 
-                        <span
-                            class="rounded-lg px-3 py-2 text-[10px] font-bold text-white"
-                            :style="`background:${primaryColor}`"
-                        >
-                            رزرو نوبت
-                        </span>
+                                <span>
+                                    ن
+                                </span>
+
+                                </template>
+
+                            </div>
+
+
+                            <h3 class="mt-3 truncate text-base font-black text-content">
 
                             <span
-                                class="rounded-lg px-3 py-2 text-[10px] font-bold"
-                                :style="`background:${secondaryColor};color:white`"
+                                x-text="document.querySelector('[name=name]')?.value || 'نام سالن'"
+                            ></span>
+
+                            </h3>
+
+
+                            <p class="mt-0.5 text-[10px] text-content-muted">
+                                سالن زیبایی
+                            </p>
+
+
+                            <div class="mt-4 flex gap-2">
+
+                            <span
+                                class="flex-1 rounded-xl px-3 py-2 text-center text-[9px] font-bold text-white"
+                                :style="`background:${primaryColor}`"
                             >
-                            خدمات
-                        </span>
+                                رزرو نوبت
+                            </span>
+
+                                <span
+                                    class="flex-1 rounded-xl px-3 py-2 text-center text-[9px] font-bold text-white"
+                                    :style="`background:${secondaryColor}`"
+                                >
+                                خدمات
+                            </span>
+
+                            </div>
 
                         </div>
 
@@ -669,7 +886,6 @@
                 </aside>
 
             </div>
-
 
 
             {{-- ========================================================
@@ -687,12 +903,16 @@
 
                     <div class="mb-6">
 
+                        <div class="mb-1 text-[10px] font-bold text-accent-600">
+                            03
+                        </div>
+
                         <h2 class="section-title">
                             آدرس و موقعیت
                         </h2>
 
                         <p class="page-subtitle">
-                            موقعیت سالن را ثبت کنید تا در Map و Discover نمایش داده شود.
+                            موقعیت سالن را برای صفحه عمومی ثبت کنید.
                         </p>
 
                     </div>
@@ -700,81 +920,148 @@
 
                     <div class="space-y-5">
 
+
+                        {{-- Province --}}
+
                         <div class="form-group">
 
-                            <label class="form-label">
+                            <label
+                                for="province"
+                                class="form-label"
+                            >
                                 استان
                             </label>
 
                             <input
+                                id="province"
                                 type="text"
                                 name="province"
                                 value="{{ old('province') }}"
                                 class="form-control"
+                                maxlength="100"
                                 placeholder="تهران"
                             >
+
+                            @error('province')
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
+                            @enderror
 
                         </div>
 
 
+                        {{-- City --}}
+
                         <div class="form-group">
 
-                            <label class="form-label">
+                            <label
+                                for="city"
+                                class="form-label"
+                            >
                                 شهر
                             </label>
 
                             <input
+                                id="city"
                                 type="text"
                                 name="city"
                                 value="{{ old('city') }}"
                                 class="form-control"
+                                maxlength="100"
                                 placeholder="تهران"
                             >
+
+                            @error('city')
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
+                            @enderror
 
                         </div>
 
 
+                        {{-- District --}}
+
                         <div class="form-group">
 
-                            <label class="form-label">
-                                منطقه / محله
+                            <label
+                                for="district"
+                                class="form-label"
+                            >
+                                محله / منطقه
                             </label>
 
                             <input
+                                id="district"
                                 type="text"
                                 name="district"
                                 value="{{ old('district') }}"
                                 class="form-control"
+                                maxlength="100"
                                 placeholder="سعادت‌آباد"
                             >
+
+                            @error('district')
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
+                            @enderror
 
                         </div>
 
 
+                        {{-- Address --}}
+
                         <div class="form-group">
 
-                            <label class="form-label">
+                            <label
+                                for="address"
+                                class="form-label"
+                            >
                                 آدرس کامل
                             </label>
 
                             <textarea
+                                id="address"
                                 name="address"
                                 class="form-control"
+                                maxlength="1000"
                                 placeholder="خیابان، بلوار، پلاک..."
                             >{{ old('address') }}</textarea>
 
+                            @error('address')
+
+                            <div class="form-error">
+                                {{ $message }}
+                            </div>
+
+                            @enderror
+
                         </div>
 
+
+                        {{-- Coordinates --}}
 
                         <div class="grid grid-cols-2 gap-3">
 
                             <div class="form-group">
 
-                                <label class="form-label">
+                                <label
+                                    for="latitude"
+                                    class="form-label"
+                                >
                                     Latitude
                                 </label>
 
                                 <input
+                                    id="latitude"
                                     type="number"
                                     step="0.0000001"
                                     name="latitude"
@@ -784,16 +1071,28 @@
                                     dir="ltr"
                                 >
 
+                                @error('latitude')
+
+                                <div class="form-error">
+                                    {{ $message }}
+                                </div>
+
+                                @enderror
+
                             </div>
 
 
                             <div class="form-group">
 
-                                <label class="form-label">
+                                <label
+                                    for="longitude"
+                                    class="form-label"
+                                >
                                     Longitude
                                 </label>
 
                                 <input
+                                    id="longitude"
                                     type="number"
                                     step="0.0000001"
                                     name="longitude"
@@ -802,6 +1101,14 @@
                                     placeholder="51.3347"
                                     dir="ltr"
                                 >
+
+                                @error('longitude')
+
+                                <div class="form-error">
+                                    {{ $message }}
+                                </div>
+
+                                @enderror
 
                             </div>
 
@@ -812,7 +1119,7 @@
                 </section>
 
 
-                {{-- Map Placeholder --}}
+                {{-- Map Preview --}}
 
                 <section class="card overflow-hidden">
 
@@ -825,11 +1132,10 @@
                             </h3>
 
                             <p class="mt-1 text-[10px] text-content-muted">
-                                فعلاً مختصات را وارد کنید؛ Map Picker واقعی را در مرحله بعد وصل می‌کنیم.
+                                فعلاً مختصات را وارد کنید؛ Map Picker واقعی بعداً متصل می‌شود.
                             </p>
 
                         </div>
-
 
                         <span class="badge badge-neutral">
                         Map
@@ -902,7 +1208,7 @@
                                         </div>
 
                                         <div class="mt-0.5 text-[10px] text-content-muted">
-                                            Latitude و Longitude را در فرم وارد کنید.
+                                            Latitude و Longitude را وارد کنید.
                                         </div>
 
                                     </div>
@@ -920,7 +1226,6 @@
             </div>
 
 
-
             {{-- ========================================================
                 STEP 4
             ========================================================= --}}
@@ -935,7 +1240,7 @@
 
                     <div class="bg-primary-950 p-6 text-white">
 
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 
                             <div>
 
@@ -955,7 +1260,7 @@
 
 
                             <span class="rounded-xl bg-white/10 px-3 py-2 font-mono text-[10px] text-accent-200">
-                            CODE → AUTO
+                            SLUG → AUTO
                         </span>
 
                         </div>
@@ -964,6 +1269,9 @@
 
 
                     <div class="grid gap-6 p-5 md:grid-cols-2 md:p-6">
+
+
+                        {{-- Left Review --}}
 
                         <div class="space-y-4">
 
@@ -974,7 +1282,9 @@
                                 </div>
 
                                 <div class="mt-1 text-sm font-black">
-                                    <span x-text="document.querySelector('[name=name]')?.value || '—'"></span>
+                                <span
+                                    x-text="document.querySelector('[name=name]')?.value || '—'"
+                                ></span>
                                 </div>
 
                             </div>
@@ -986,8 +1296,13 @@
                                     تلفن
                                 </div>
 
-                                <div class="mt-1 text-sm font-bold" dir="ltr">
-                                    <span x-text="document.querySelector('[name=phone]')?.value || '—'"></span>
+                                <div
+                                    class="mt-1 text-sm font-bold"
+                                    dir="ltr"
+                                >
+                                <span
+                                    x-text="document.querySelector('[name=phone]')?.value || '—'"
+                                ></span>
                                 </div>
 
                             </div>
@@ -996,19 +1311,26 @@
                             <div>
 
                                 <div class="text-[10px] font-bold text-content-muted">
-                                    مدیر سالن
+                                    حساب کنترل‌کننده
                                 </div>
 
                                 <div class="mt-1 text-sm font-bold">
-                                <span x-text="
-                                    document.querySelector('[name=manager_barber_id] option:checked')?.textContent?.trim() || 'تعیین نشده'
-                                "></span>
+
+                                <span
+                                    x-text="
+                                        document.querySelector('[name=owner_id] option:checked')?.textContent?.trim()
+                                        || 'تعیین نشده'
+                                    "
+                                ></span>
+
                                 </div>
 
                             </div>
 
                         </div>
 
+
+                        {{-- Right Review --}}
 
                         <div class="space-y-4">
 
@@ -1019,13 +1341,18 @@
                                 </div>
 
                                 <div class="mt-1 text-sm font-bold leading-7">
-                                <span x-text="
-                                    [
-                                        document.querySelector('[name=city]')?.value,
-                                        document.querySelector('[name=district]')?.value,
-                                        document.querySelector('[name=address]')?.value
-                                    ].filter(Boolean).join('، ') || 'ثبت نشده'
-                                "></span>
+
+                                <span
+                                    x-text="
+                                        [
+                                            document.querySelector('[name=province]')?.value,
+                                            document.querySelector('[name=city]')?.value,
+                                            document.querySelector('[name=district]')?.value,
+                                            document.querySelector('[name=address]')?.value
+                                        ].filter(Boolean).join('، ') || 'ثبت نشده'
+                                    "
+                                ></span>
+
                                 </div>
 
                             </div>
@@ -1054,21 +1381,44 @@
 
                             </div>
 
+
+                            <div>
+
+                                <div class="text-[10px] font-bold text-content-muted">
+                                    تصویر Cover
+                                </div>
+
+                                <div class="mt-2 text-sm font-bold">
+
+                                    <span x-text="coverPreview ? 'انتخاب شده ✓' : 'ثبت نشده'"></span>
+
+                                </div>
+
+                            </div>
+
                         </div>
 
                     </div>
 
+
+                    {{-- Active Status --}}
 
                     <div class="border-t border-border bg-primary-50 p-5">
 
                         <label class="flex cursor-pointer items-start gap-3">
 
                             <input
+                                type="hidden"
+                                name="is_active"
+                                value="0"
+                            >
+
+                            <input
                                 type="checkbox"
                                 name="is_active"
                                 value="1"
-                                checked
-                                class="mt-1 h-4 w-4 rounded border-border text-accent-600 focus:ring-accent-500"
+                                @checked(old('is_active', true))
+                            class="mt-1 h-4 w-4 rounded border-border text-accent-600 focus:ring-accent-500"
                             >
 
                             <span>
@@ -1085,6 +1435,14 @@
 
                         </label>
 
+                        @error('is_active')
+
+                        <div class="form-error">
+                            {{ $message }}
+                        </div>
+
+                        @enderror
+
                     </div>
 
                 </section>
@@ -1092,12 +1450,14 @@
             </div>
 
 
-
             {{-- ========================================================
                 ACTIONS
             ========================================================= --}}
 
             <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+
+
+                {{-- Previous --}}
 
                 <button
                     type="button"
@@ -1110,6 +1470,8 @@
                 </button>
 
 
+                {{-- Right Actions --}}
+
                 <div class="flex flex-1 justify-end gap-2">
 
                     <a
@@ -1120,21 +1482,27 @@
                     </a>
 
 
+                    {{-- Next --}}
+
                     <button
                         type="button"
                         x-show="step < 4"
+                        x-cloak
                         @click="next()"
                         class="btn btn-primary"
                     >
                         مرحله بعد →
+
                     </button>
 
+
+                    {{-- Submit --}}
 
                     <button
                         type="submit"
                         x-show="step === 4"
                         x-cloak
-                        class="btn btn-accent min-w-40"
+                        class="btn btn-accent min-w-44"
                     >
 
                         <svg
@@ -1159,5 +1527,6 @@
         </form>
 
     </div>
+
 
 @endsection

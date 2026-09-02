@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\LoginVerifyRequest;
@@ -9,12 +10,19 @@ use App\Models\User;
 use App\Services\Auth\OtpService;
 use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use RuntimeException;
 
 class LoginController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Login Page
+    |--------------------------------------------------------------------------
+    */
+
     public function create(): View
     {
         return view('auth.login');
@@ -23,7 +31,7 @@ class LoginController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Send OTP
+    | Send Login OTP
     |--------------------------------------------------------------------------
     */
 
@@ -33,17 +41,15 @@ class LoginController extends Controller
     ): RedirectResponse {
         $phone = $request->validated('phone');
 
-
         /*
         |--------------------------------------------------------------------------
-        | User must exist
+        | Find User
         |--------------------------------------------------------------------------
         */
 
         $user = User::query()
             ->where('phone', $phone)
             ->first();
-
 
         if (!$user) {
             return back()
@@ -54,10 +60,9 @@ class LoginController extends Controller
                 ->withInput();
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Store pending authentication
+        | Store Pending Authentication
         |--------------------------------------------------------------------------
         */
 
@@ -65,32 +70,30 @@ class LoginController extends Controller
             'auth.otp',
             [
                 'purpose' => 'login',
-
                 'phone' => $phone,
-
-                'remember' =>
-                    $request->boolean('remember'),
+                'remember' => $request->boolean('remember'),
             ]
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Send OTP
+        |--------------------------------------------------------------------------
+        */
 
         try {
-
             $otp->send(
                 $phone,
                 'login',
                 $request->ip()
             );
-
         } catch (RuntimeException $e) {
-
             return back()
                 ->withErrors([
                     'phone' => $e->getMessage(),
                 ])
                 ->withInput();
         }
-
 
         return redirect()
             ->route('login.verify');
@@ -104,13 +107,9 @@ class LoginController extends Controller
     */
 
     public function showVerify(
-        \Illuminate\Http\Request $request
+        Request $request
     ): View|RedirectResponse {
-        $pending =
-            $request->session()->get(
-                'auth.otp'
-            );
-
+        $pending = $request->session()->get('auth.otp');
 
         if (
             !$pending ||
@@ -121,14 +120,12 @@ class LoginController extends Controller
                 ->route('login');
         }
 
-
         return view(
             'auth.login-verify',
             [
-                'phone' =>
-                    PhoneNumber::mask(
-                        $pending['phone']
-                    ),
+                'phone' => PhoneNumber::mask(
+                    $pending['phone']
+                ),
             ]
         );
     }
@@ -144,11 +141,13 @@ class LoginController extends Controller
         LoginVerifyRequest $request,
         OtpService $otp
     ): RedirectResponse {
-        $pending =
-            $request->session()->get(
-                'auth.otp'
-            );
+        $pending = $request->session()->get('auth.otp');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Pending Login Check
+        |--------------------------------------------------------------------------
+        */
 
         if (
             !$pending ||
@@ -159,13 +158,17 @@ class LoginController extends Controller
                 ->route('login');
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Verify OTP
+        |--------------------------------------------------------------------------
+        */
 
         $verified = $otp->verify(
             $pending['phone'],
             'login',
             $request->validated('code')
         );
-
 
         if (!$verified) {
             return back()
@@ -175,6 +178,11 @@ class LoginController extends Controller
                 ]);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Find User Again
+        |--------------------------------------------------------------------------
+        */
 
         $user = User::query()
             ->where(
@@ -183,11 +191,8 @@ class LoginController extends Controller
             )
             ->first();
 
-
         if (!$user) {
-            $request->session()->forget(
-                'auth.otp'
-            );
+            $request->session()->forget('auth.otp');
 
             return redirect()
                 ->route('login')
@@ -197,10 +202,9 @@ class LoginController extends Controller
                 ]);
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Mark phone verified
+        | Mark Phone Verified
         |--------------------------------------------------------------------------
         */
 
@@ -209,7 +213,6 @@ class LoginController extends Controller
                 'phone_verified_at' => now(),
             ])->save();
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -222,16 +225,44 @@ class LoginController extends Controller
             (bool) ($pending['remember'] ?? false)
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Regenerate Session
+        |--------------------------------------------------------------------------
+        */
 
         $request->session()->regenerate();
 
-        $request->session()->forget(
-            'auth.otp'
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | Remove Pending OTP
+        |--------------------------------------------------------------------------
+        */
 
+        $request->session()->forget('auth.otp');
 
-        return redirect()
-            ->intended(url('/'))
+        /*
+        |--------------------------------------------------------------------------
+        | Role Based Redirect
+        |--------------------------------------------------------------------------
+        */
+
+        $redirectUrl = match ($user->role) {
+
+            UserRole::SUPER_ADMIN =>
+            route('admin.dashboard'),
+
+            UserRole::BARBER =>
+            route('barber.dashboard'),
+
+            UserRole::CUSTOMER =>
+            route('customer.dashboard'),
+
+            default =>
+            url('/'),
+        };
+
+        return redirect($redirectUrl)
             ->with(
                 'success',
                 'خوش آمدید.'
@@ -241,45 +272,37 @@ class LoginController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Resend
+    | Resend OTP
     |--------------------------------------------------------------------------
     */
 
     public function resend(
-        \Illuminate\Http\Request $request,
+        Request $request,
         OtpService $otp
     ): RedirectResponse {
-        $pending =
-            $request->session()->get(
-                'auth.otp'
-            );
-
+        $pending = $request->session()->get('auth.otp');
 
         if (
             !$pending ||
-            ($pending['purpose'] ?? null) !== 'login'
+            ($pending['purpose'] ?? null) !== 'login' ||
+            empty($pending['phone'])
         ) {
             return redirect()
                 ->route('login');
         }
 
-
         try {
-
             $otp->send(
                 $pending['phone'],
                 'login',
                 $request->ip()
             );
-
         } catch (RuntimeException $e) {
-
             return back()
                 ->withErrors([
                     'code' => $e->getMessage(),
                 ]);
         }
-
 
         return back()
             ->with(

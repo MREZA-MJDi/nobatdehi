@@ -127,14 +127,14 @@
                 @guest
 
                     <a
-                        href="#"
+                        href="{{ route('login') }}"
                         class="btn btn-ghost btn-sm"
                     >
                         ورود
                     </a>
 
                     <a
-                        href="#"
+                        href="{{ route('register') }}"
                         class="btn btn-primary btn-sm"
                     >
                         ثبت‌نام
@@ -142,12 +142,34 @@
 
                 @else
 
-                    <a
-                        href="#"
-                        class="btn btn-secondary btn-sm"
-                    >
-                        حساب من
-                    </a>
+                    @if(auth()->user()->isSuperAdmin())
+
+                        <a
+                            href="{{ route('admin.dashboard') }}"
+                            class="btn btn-secondary btn-sm"
+                        >
+                            پنل مدیریت
+                        </a>
+
+                    @elseif(auth()->user()->isBarber())
+
+                        <a
+                            href="{{ route('barber.dashboard') }}"
+                            class="btn btn-secondary btn-sm"
+                        >
+                            پنل آرایشگر
+                        </a>
+
+                    @else
+
+                        <a
+                            href="{{ route('customer.dashboard') }}"
+                            class="btn btn-secondary btn-sm"
+                        >
+                            حساب من
+                        </a>
+
+                    @endif
 
                 @endguest
 

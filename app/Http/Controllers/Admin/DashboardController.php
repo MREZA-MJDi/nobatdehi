@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Models\Barber;
 use App\Models\Salon;
 use App\Models\User;
 use Illuminate\View\View;
@@ -14,27 +16,45 @@ class DashboardController extends Controller
         return view(
             'admin.dashboard',
             [
-                'salonCount' =>
-                    Salon::count(),
+                /*
+                |--------------------------------------------------------------------------
+                | Salons
+                |--------------------------------------------------------------------------
+                */
 
-                'activeSalonCount' =>
-                    Salon::active()->count(),
+                'salonCount' => Salon::query()
+                    ->count(),
 
-                'barberCount' =>
-                    User::query()
-                        ->where(
-                            'role',
-                            'barber'
-                        )
-                        ->count(),
+                'activeSalonCount' => Salon::query()
+                    ->where('is_active', true)
+                    ->count(),
 
-                'customerCount' =>
-                    User::query()
-                        ->where(
-                            'role',
-                            'customer'
-                        )
-                        ->count(),
+
+                /*
+                |--------------------------------------------------------------------------
+                | Barbers
+                |--------------------------------------------------------------------------
+                |
+                | Barber is a separate model, not a User account.
+                |
+                */
+
+                'barberCount' => Barber::query()
+                    ->count(),
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Customers
+                |--------------------------------------------------------------------------
+                */
+
+                'customerCount' => User::query()
+                    ->where(
+                        'role',
+                        UserRole::CUSTOMER->value
+                    )
+                    ->count(),
             ]
         );
     }

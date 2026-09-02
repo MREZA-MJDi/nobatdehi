@@ -6,7 +6,6 @@
 
     <div class="mx-auto max-w-[1400px] px-4 py-5 md:px-6 md:py-7">
 
-
         {{-- Header --}}
 
         <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -22,7 +21,6 @@
                 </p>
 
             </div>
-
 
             <a
                 href="{{ route('admin.salons.create') }}"
@@ -47,7 +45,6 @@
         </div>
 
 
-
         {{-- Desktop Table --}}
 
         <div class="table-wrap hidden md:block">
@@ -67,7 +64,7 @@
                     </th>
 
                     <th>
-                        مدیر
+                        حساب کنترل‌کننده
                     </th>
 
                     <th>
@@ -93,16 +90,18 @@
 
                     <tr>
 
+                        {{-- Salon --}}
+
                         <td>
 
                             <div class="flex items-center gap-3">
 
                                 <div class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary-900 text-sm font-black text-white">
 
-                                    @if($salon->logo_url)
+                                    @if($salon->logo_path)
 
                                         <img
-                                            src="{{ $salon->logo_url }}"
+                                            src="{{ Storage::url($salon->logo_path) }}"
                                             alt="{{ $salon->name }}"
                                             class="h-full w-full object-cover"
                                         >
@@ -133,37 +132,62 @@
                         </td>
 
 
+                        {{-- Code --}}
+
                         <td>
 
-                            <code class="rounded-lg bg-primary-50 px-2 py-1 text-[10px] font-bold text-primary-700" dir="ltr">
+                            <code
+                                class="rounded-lg bg-primary-50 px-2 py-1 text-[10px] font-bold text-primary-700"
+                                dir="ltr"
+                            >
                                 {{ $salon->code }}
                             </code>
 
                         </td>
 
 
+                        {{-- Owner --}}
+
                         <td>
 
-                            @if($salon->manager?->user)
+                            @if($salon->owner)
 
                                 <div class="text-xs font-bold text-content">
-                                    {{ $salon->manager->user->name }}
+                                    {{ $salon->owner->name }}
                                 </div>
 
-                                <div class="mt-0.5 text-[10px] text-content-muted">
-                                    آرایشگر
-                                </div>
+                                @if($salon->owner->phone)
+
+                                    <div
+                                        class="mt-0.5 text-[10px] text-content-muted"
+                                        dir="ltr"
+                                    >
+                                        {{ $salon->owner->phone }}
+                                    </div>
+
+                                @elseif($salon->owner->email)
+
+                                    <div
+                                        class="mt-0.5 text-[10px] text-content-muted"
+                                        dir="ltr"
+                                    >
+                                        {{ $salon->owner->email }}
+                                    </div>
+
+                                @endif
 
                             @else
 
                                 <span class="text-xs text-content-muted">
-                                تعیین نشده
-                            </span>
+                                    تعیین نشده
+                                </span>
 
                             @endif
 
                         </td>
 
+
+                        {{-- Location --}}
 
                         <td>
 
@@ -180,24 +204,28 @@
                         </td>
 
 
+                        {{-- Status --}}
+
                         <td>
 
                             @if($salon->is_active)
 
                                 <span class="badge badge-success">
-                                فعال
-                            </span>
+                                    فعال
+                                </span>
 
                             @else
 
                                 <span class="badge badge-danger">
-                                غیرفعال
-                            </span>
+                                    غیرفعال
+                                </span>
 
                             @endif
 
                         </td>
 
+
+                        {{-- Actions --}}
 
                         <td>
 
@@ -277,7 +305,6 @@
         </div>
 
 
-
         {{-- Mobile Cards --}}
 
         <div class="space-y-3 md:hidden">
@@ -290,10 +317,10 @@
 
                         <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary-900 text-base font-black text-white">
 
-                            @if($salon->logo_url)
+                            @if($salon->logo_path)
 
                                 <img
-                                    src="{{ $salon->logo_url }}"
+                                    src="{{ Storage::url($salon->logo_path) }}"
                                     alt="{{ $salon->name }}"
                                     class="h-full w-full object-cover"
                                 >
@@ -327,25 +354,36 @@
                                 @if($salon->is_active)
 
                                     <span class="badge badge-success shrink-0">
-                                    فعال
-                                </span>
+                                        فعال
+                                    </span>
 
                                 @else
 
                                     <span class="badge badge-danger shrink-0">
-                                    غیرفعال
-                                </span>
+                                        غیرفعال
+                                    </span>
 
                                 @endif
 
                             </div>
 
 
-                            <div class="mt-3">
+                            <div class="mt-3 flex flex-wrap items-center gap-2">
 
-                                <code class="rounded-lg bg-primary-50 px-2 py-1 text-[9px] font-bold text-primary-700" dir="ltr">
+                                <code
+                                    class="rounded-lg bg-primary-50 px-2 py-1 text-[9px] font-bold text-primary-700"
+                                    dir="ltr"
+                                >
                                     {{ $salon->code }}
                                 </code>
+
+                                @if($salon->owner)
+
+                                    <span class="text-[10px] text-content-muted">
+                                        {{ $salon->owner->name }}
+                                    </span>
+
+                                @endif
 
                             </div>
 
@@ -388,6 +426,10 @@
                             هنوز سالنی ندارید
                         </h3>
 
+                        <p class="mt-1 text-xs text-content-muted">
+                            اولین سالن را ایجاد کنید.
+                        </p>
+
                         <a
                             href="{{ route('admin.salons.create') }}"
                             class="btn btn-accent btn-sm mt-4"
@@ -402,7 +444,6 @@
             @endforelse
 
         </div>
-
 
 
         {{-- Pagination --}}

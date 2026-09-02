@@ -5,15 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Barber extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
-        'user_id',
         'salon_id',
+        'name',
+        'phone',
         'bio',
         'specialty',
         'image_path',
@@ -29,21 +31,6 @@ class Barber extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | User
-    |--------------------------------------------------------------------------
-    */
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(
-            User::class,
-            'user_id'
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
     | Salon
     |--------------------------------------------------------------------------
     */
@@ -54,32 +41,5 @@ class Barber extends Model
             Salon::class,
             'salon_id'
         );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Manager
-    |--------------------------------------------------------------------------
-    */
-
-    public function managedSalon(): HasMany
-    {
-        return $this->hasMany(
-            Salon::class,
-            'manager_barber_id'
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Helpers
-    |--------------------------------------------------------------------------
-    */
-
-    public function getNameAttribute(): string
-    {
-        return $this->user?->name ?? 'بدون نام';
     }
 }
