@@ -35,12 +35,6 @@ class User extends Authenticatable
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relations
-    |--------------------------------------------------------------------------
-    */
-
     public function createdSalons(): HasMany
     {
         return $this->hasMany(
@@ -66,15 +60,14 @@ class User extends Authenticatable
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Role Helpers
-    |--------------------------------------------------------------------------
-    */
-
     public function isSuperAdmin(): bool
     {
         return $this->role === UserRole::SUPER_ADMIN;
+    }
+
+    public function isSalonOwner(): bool
+    {
+        return $this->role === UserRole::SALON_OWNER;
     }
 
     public function isBarber(): bool
@@ -108,5 +101,16 @@ class User extends Authenticatable
         }
 
         return false;
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(
+            Booking::class,
+            'customer_id'
+        );
     }
 }

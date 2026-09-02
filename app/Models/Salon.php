@@ -105,4 +105,35 @@ class Salon extends Model
     {
         return 'slug';
     }
+
+    public function services(): HasMany
+    {
+        return $this->hasMany(
+            Service::class,
+            'salon_id'
+        );
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function workingHours(): HasMany
+    {
+        return $this->hasMany(
+            WorkingHour::class,
+            'salon_id'
+        )->orderBy('day_of_week')
+            ->orderBy('sort_order');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(
+            Booking::class,
+            'salon_id'
+        );
+    }
 }

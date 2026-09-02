@@ -4,7 +4,6 @@ namespace App\Http\Requests\Auth;
 
 use App\Support\PhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
@@ -24,7 +23,9 @@ class LoginRequest extends FormRequest
                 'phone' => $phone,
             ]);
         } catch (\Throwable) {
-            //
+            $this->merge([
+                'phone' => $this->input('phone', ''),
+            ]);
         }
     }
 
@@ -51,6 +52,9 @@ class LoginRequest extends FormRequest
 
             'phone.regex' =>
                 'شماره موبایل معتبر نیست.',
+
+            'remember.boolean' =>
+                'مقدار گزینه مرا به خاطر بسپار معتبر نیست.',
         ];
     }
 }

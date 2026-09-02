@@ -41,12 +41,6 @@ class LoginController extends Controller
     ): RedirectResponse {
         $phone = $request->validated('phone');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Find User
-        |--------------------------------------------------------------------------
-        */
-
         $user = User::query()
             ->where('phone', $phone)
             ->first();
@@ -60,6 +54,25 @@ class LoginController extends Controller
                 ->withInput();
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Barber Is Not A Login Account
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $user->role === UserRole::BARBER
+        ) {
+            return back()
+                ->withErrors([
+                    'phone' =>
+                        'آرایشگر حساب ورود ندارد.',
+                ])
+                ->withInput();
+        }
+
+
         /*
         |--------------------------------------------------------------------------
         | Store Pending Authentication
@@ -70,10 +83,27 @@ class LoginController extends Controller
             'auth.otp',
             [
                 'purpose' => 'login',
+
                 'phone' => $phone,
-                'remember' => $request->boolean('remember'),
+
+                'remember' =>
+                    $request->boolean('remember'),
             ]
         );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Force Session Save
+        |--------------------------------------------------------------------------
+        |
+        | Make sure the OTP state is persisted before redirecting
+        | to the verification page.
+        |
+        */
+
+        $request->session()->save();
+
 
         /*
         |--------------------------------------------------------------------------
@@ -82,50 +112,73 @@ class LoginController extends Controller
         */
 
         try {
+
             $otp->send(
                 $phone,
                 'login',
                 $request->ip()
             );
+
         } catch (RuntimeException $e) {
+
+            $request->session()->forget(
+                'auth.otp'
+            );
+
+            $request->session()->save();
+
             return back()
                 ->withErrors([
-                    'phone' => $e->getMessage(),
+                    'phone' =>
+                        $e->getMessage(),
                 ])
                 ->withInput();
         }
 
+
         return redirect()
-            ->route('login.verify');
+            ->route(
+                'login.verify'
+            );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Verify Page
+    | Verification Page
     |--------------------------------------------------------------------------
     */
 
     public function showVerify(
         Request $request
     ): View|RedirectResponse {
-        $pending = $request->session()->get('auth.otp');
+        $pending =
+            $request->session()->get(
+                'auth.otp'
+            );
+
 
         if (
-            !$pending ||
+            !is_array($pending) ||
             ($pending['purpose'] ?? null) !== 'login' ||
             empty($pending['phone'])
         ) {
             return redirect()
-                ->route('login');
+                ->route('login')
+                ->withErrors([
+                    'phone' =>
+                        'فرآیند ورود منقضی شده است. دوباره تلاش کنید.',
+                ]);
         }
+
 
         return view(
             'auth.login-verify',
             [
-                'phone' => PhoneNumber::mask(
-                    $pending['phone']
-                ),
+                'phone' =>
+                    PhoneNumber::mask(
+                        $pending['phone']
+                    ),
             ]
         );
     }
@@ -141,22 +194,25 @@ class LoginController extends Controller
         LoginVerifyRequest $request,
         OtpService $otp
     ): RedirectResponse {
-        $pending = $request->session()->get('auth.otp');
+        $pending =
+            $request->session()->get(
+                'auth.otp'
+            );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Pending Login Check
-        |--------------------------------------------------------------------------
-        */
 
         if (
-            !$pending ||
+            !is_array($pending) ||
             ($pending['purpose'] ?? null) !== 'login' ||
             empty($pending['phone'])
         ) {
             return redirect()
-                ->route('login');
+                ->route('login')
+                ->withErrors([
+                    'phone' =>
+                        'فرآیند ورود منقضی شده است. دوباره تلاش کنید.',
+                ]);
         }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -170,6 +226,7 @@ class LoginController extends Controller
             $request->validated('code')
         );
 
+
         if (!$verified) {
             return back()
                 ->withErrors([
@@ -178,9 +235,10 @@ class LoginController extends Controller
                 ]);
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | Find User Again
+        | Find User
         |--------------------------------------------------------------------------
         */
 
@@ -191,8 +249,12 @@ class LoginController extends Controller
             )
             ->first();
 
+
         if (!$user) {
-            $request->session()->forget('auth.otp');
+
+            $request->session()->forget(
+                'auth.otp'
+            );
 
             return redirect()
                 ->route('login')
@@ -202,17 +264,45 @@ class LoginController extends Controller
                 ]);
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Barber Protection
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $user->role === UserRole::BARBER
+        ) {
+
+            $request->session()->forget(
+                'auth.otp'
+            );
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'phone' =>
+                        'آرایشگر حساب ورود ندارد.',
+                ]);
+        }
+
+
         /*
         |--------------------------------------------------------------------------
         | Mark Phone Verified
         |--------------------------------------------------------------------------
         */
 
-        if (!$user->phone_verified_at) {
+        if (
+            !$user->phone_verified_at
+        ) {
             $user->forceFill([
-                'phone_verified_at' => now(),
+                'phone_verified_at' =>
+                    now(),
             ])->save();
         }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -222,8 +312,11 @@ class LoginController extends Controller
 
         Auth::login(
             $user,
-            (bool) ($pending['remember'] ?? false)
+            (bool) (
+                $pending['remember'] ?? false
+            )
         );
+
 
         /*
         |--------------------------------------------------------------------------
@@ -233,40 +326,104 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Remove Pending OTP
-        |--------------------------------------------------------------------------
-        */
-
-        $request->session()->forget('auth.otp');
 
         /*
         |--------------------------------------------------------------------------
-        | Role Based Redirect
+        | Clear OTP State
         |--------------------------------------------------------------------------
         */
 
-        $redirectUrl = match ($user->role) {
+        $request->session()->forget(
+            'auth.otp'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Customer Booking Flow
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $user->role === UserRole::CUSTOMER &&
+            $request->session()->has(
+                'booking.pending'
+            )
+        ) {
+            return redirect()
+                ->route(
+                    'customer.bookings.confirm'
+                )
+                ->with(
+                    'success',
+                    'ورود با موفقیت انجام شد. نوبت خود را بررسی و نهایی کنید.'
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Remove Invalid Booking State
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $request->session()->has(
+                'booking.pending'
+            )
+        ) {
+            $request->session()->forget(
+                'booking.pending'
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Role Redirect
+        |--------------------------------------------------------------------------
+        */
+
+        return match ($user->role) {
 
             UserRole::SUPER_ADMIN =>
-            route('admin.dashboard'),
+            redirect()
+                ->route(
+                    'admin.dashboard'
+                )
+                ->with(
+                    'success',
+                    'خوش آمدید.'
+                ),
 
-            UserRole::BARBER =>
-            route('barber.dashboard'),
+            UserRole::SALON_OWNER =>
+            redirect()
+                ->route(
+                    'salon.dashboard'
+                )
+                ->with(
+                    'success',
+                    'خوش آمدید.'
+                ),
 
             UserRole::CUSTOMER =>
-            route('customer.dashboard'),
+            redirect()
+                ->route(
+                    'customer.dashboard'
+                )
+                ->with(
+                    'success',
+                    'خوش آمدید.'
+                ),
 
             default =>
-            url('/'),
+            redirect()
+                ->route('home')
+                ->with(
+                    'error',
+                    'نقش حساب کاربری معتبر نیست.'
+                ),
         };
-
-        return redirect($redirectUrl)
-            ->with(
-                'success',
-                'خوش آمدید.'
-            );
     }
 
 
@@ -280,10 +437,14 @@ class LoginController extends Controller
         Request $request,
         OtpService $otp
     ): RedirectResponse {
-        $pending = $request->session()->get('auth.otp');
+        $pending =
+            $request->session()->get(
+                'auth.otp'
+            );
+
 
         if (
-            !$pending ||
+            !is_array($pending) ||
             ($pending['purpose'] ?? null) !== 'login' ||
             empty($pending['phone'])
         ) {
@@ -291,18 +452,24 @@ class LoginController extends Controller
                 ->route('login');
         }
 
+
         try {
+
             $otp->send(
                 $pending['phone'],
                 'login',
                 $request->ip()
             );
+
         } catch (RuntimeException $e) {
+
             return back()
                 ->withErrors([
-                    'code' => $e->getMessage(),
+                    'code' =>
+                        $e->getMessage(),
                 ]);
         }
+
 
         return back()
             ->with(

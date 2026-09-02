@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\UserRole;
+use App\Support\PhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,15 +16,32 @@ class UpdateSalonRequest extends FormRequest
             ) === true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $phone = trim(
+            (string) $this->input('manager_phone', '')
+        );
+
+        if ($phone !== '') {
+            try {
+                $phone = PhoneNumber::normalize($phone);
+            } catch (\Throwable) {
+                //
+            }
+        }
+
+        $this->merge([
+            'manager_phone' => $phone,
+        ]);
+    }
+
     public function rules(): array
     {
-        return [
-            /*
-            |--------------------------------------------------------------------------
-            | Basic Information
-            |--------------------------------------------------------------------------
-            */
+        $salon = $this->route('salon');
 
+        $ownerId = $salon?->owner_id;
+
+        return [
             'name' => [
                 'required',
                 'string',
@@ -37,28 +55,19 @@ class UpdateSalonRequest extends FormRequest
                 'max:5000',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Owner / Account
-            |--------------------------------------------------------------------------
-            */
-
-            'owner_id' => [
+            'manager_name' => [
                 'required',
-                'integer',
-                Rule::exists('users', 'id'),
+                'string',
+                'min:2',
+                'max:120',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Contact
-            |--------------------------------------------------------------------------
-            */
-
-            'phone' => [
-                'nullable',
+            'manager_phone' => [
+                'required',
                 'string',
-                'max:30',
+                'regex:/^09\d{9}$/',
+                Rule::unique('users', 'phone')
+                    ->ignore($ownerId),
             ],
 
             'email' => [
@@ -66,12 +75,6 @@ class UpdateSalonRequest extends FormRequest
                 'email',
                 'max:190',
             ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Branding
-            |--------------------------------------------------------------------------
-            */
 
             'logo' => [
                 'nullable',
@@ -107,12 +110,6 @@ class UpdateSalonRequest extends FormRequest
                 'regex:/^#[0-9A-Fa-f]{6}$/',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Address
-            |--------------------------------------------------------------------------
-            */
-
             'province' => [
                 'nullable',
                 'string',
@@ -137,12 +134,6 @@ class UpdateSalonRequest extends FormRequest
                 'max:1000',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Map / Location
-            |--------------------------------------------------------------------------
-            */
-
             'latitude' => [
                 'nullable',
                 'numeric',
@@ -154,12 +145,6 @@ class UpdateSalonRequest extends FormRequest
                 'numeric',
                 'between:-180,180',
             ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Status
-            |--------------------------------------------------------------------------
-            */
 
             'is_active' => [
                 'nullable',
@@ -177,14 +162,35 @@ class UpdateSalonRequest extends FormRequest
             'name.min' =>
                 'نام سالن حداقل باید ۲ کاراکتر باشد.',
 
-            'owner_id.required' =>
-                'حساب کنترل‌کننده سالن الزامی است.',
+            'name.max' =>
+                'نام سالن نباید بیشتر از ۱۲۰ کاراکتر باشد.',
 
-            'owner_id.exists' =>
-                'حساب انتخاب شده وجود ندارد.',
+            'description.max' =>
+                'توضیحات سالن نباید بیشتر از ۵۰۰۰ کاراکتر باشد.',
+
+            'manager_name.required' =>
+                'نام مسئول سالن الزامی است.',
+
+            'manager_name.min' =>
+                'نام مسئول سالن حداقل باید ۲ کاراکتر باشد.',
+
+            'manager_name.max' =>
+                'نام مسئول سالن نباید بیشتر از ۱۲۰ کاراکتر باشد.',
+
+            'manager_phone.required' =>
+                'شماره موبایل مسئول سالن الزامی است.',
+
+            'manager_phone.regex' =>
+                'شماره موبایل مسئول سالن معتبر نیست.',
+
+            'manager_phone.unique' =>
+                'این شماره موبایل قبلاً برای حساب دیگری ثبت شده است.',
 
             'email.email' =>
                 'ایمیل وارد شده معتبر نیست.',
+
+            'email.max' =>
+                'ایمیل نباید بیشتر از ۱۹۰ کاراکتر باشد.',
 
             'logo.image' =>
                 'فایل لوگو باید تصویر باشد.',
@@ -196,19 +202,19 @@ class UpdateSalonRequest extends FormRequest
                 'حجم لوگو نباید بیشتر از ۴ مگابایت باشد.',
 
             'cover.image' =>
-                'فایل تصویر اصلی باید تصویر باشد.',
+                'فایل Cover باید تصویر باشد.',
 
             'cover.mimes' =>
-                'فرمت تصویر اصلی باید jpg، jpeg، png یا webp باشد.',
+                'فرمت Cover باید jpg، jpeg، png یا webp باشد.',
 
             'cover.max' =>
-                'حجم تصویر اصلی نباید بیشتر از ۸ مگابایت باشد.',
+                'حجم Cover نباید بیشتر از ۸ مگابایت باشد.',
 
             'remove_logo.boolean' =>
                 'مقدار حذف لوگو معتبر نیست.',
 
             'remove_cover.boolean' =>
-                'مقدار حذف تصویر اصلی معتبر نیست.',
+                'مقدار حذف Cover معتبر نیست.',
 
             'primary_color.regex' =>
                 'رنگ اصلی معتبر نیست.',
@@ -216,17 +222,32 @@ class UpdateSalonRequest extends FormRequest
             'secondary_color.regex' =>
                 'رنگ مکمل معتبر نیست.',
 
+            'province.max' =>
+                'نام استان نباید بیشتر از ۱۰۰ کاراکتر باشد.',
+
+            'city.max' =>
+                'نام شهر نباید بیشتر از ۱۰۰ کاراکتر باشد.',
+
+            'district.max' =>
+                'نام محله یا منطقه نباید بیشتر از ۱۰۰ کاراکتر باشد.',
+
+            'address.max' =>
+                'آدرس نباید بیشتر از ۱۰۰۰ کاراکتر باشد.',
+
             'latitude.numeric' =>
-                'عرض جغرافیایی باید عدد باشد.',
+                'Latitude باید عدد باشد.',
 
             'latitude.between' =>
-                'مختصات عرض جغرافیایی معتبر نیست.',
+                'Latitude معتبر نیست.',
 
             'longitude.numeric' =>
-                'طول جغرافیایی باید عدد باشد.',
+                'Longitude باید عدد باشد.',
 
             'longitude.between' =>
-                'مختصات طول جغرافیایی معتبر نیست.',
+                'Longitude معتبر نیست.',
+
+            'is_active.boolean' =>
+                'وضعیت سالن معتبر نیست.',
         ];
     }
 }

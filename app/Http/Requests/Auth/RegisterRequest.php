@@ -24,7 +24,9 @@ class RegisterRequest extends FormRequest
                 'phone' => $phone,
             ]);
         } catch (\Throwable) {
-            //
+            $this->merge([
+                'phone' => $this->input('phone', ''),
+            ]);
         }
     }
 
@@ -35,7 +37,7 @@ class RegisterRequest extends FormRequest
                 'required',
                 'string',
                 'min:2',
-                'max:100',
+                'max:120',
             ],
 
             'phone' => [
@@ -48,6 +50,7 @@ class RegisterRequest extends FormRequest
             ],
 
             'terms' => [
+                'required',
                 'accepted',
             ],
         ];
@@ -57,10 +60,16 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name.required' =>
-                'نام الزامی است.',
+                'نام و نام خانوادگی الزامی است.',
+
+            'name.string' =>
+                'نام و نام خانوادگی معتبر نیست.',
 
             'name.min' =>
-                'نام باید حداقل ۲ کاراکتر باشد.',
+                'نام و نام خانوادگی حداقل باید ۲ کاراکتر باشد.',
+
+            'name.max' =>
+                'نام و نام خانوادگی نباید بیشتر از ۱۲۰ کاراکتر باشد.',
 
             'phone.required' =>
                 'شماره موبایل الزامی است.',
@@ -69,10 +78,13 @@ class RegisterRequest extends FormRequest
                 'شماره موبایل معتبر نیست.',
 
             'phone.unique' =>
-                'این شماره قبلاً ثبت شده است. وارد حساب خود شوید.',
+                'این شماره موبایل قبلاً ثبت شده است. وارد شوید.',
+
+            'terms.required' =>
+                'پذیرش قوانین الزامی است.',
 
             'terms.accepted' =>
-                'پذیرش قوانین الزامی است.',
+                'برای ثبت‌نام باید قوانین و شرایط استفاده را بپذیرید.',
         ];
     }
 }

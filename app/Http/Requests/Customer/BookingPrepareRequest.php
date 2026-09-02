@@ -4,11 +4,11 @@ namespace App\Http\Requests\Customer;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class BookingRequest extends FormRequest
+class BookingPrepareRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isCustomer() === true;
+        return true;
     }
 
     public function rules(): array
@@ -54,31 +54,31 @@ class BookingRequest extends FormRequest
     {
         return [
             'salon_id.required' =>
-                'انتخاب سالن الزامی است.',
+                'سالن انتخاب نشده است.',
 
             'salon_id.exists' =>
                 'سالن انتخاب شده پیدا نشد.',
 
             'barber_id.required' =>
-                'انتخاب آرایشگر الزامی است.',
+                'آرایشگر را انتخاب کنید.',
 
             'barber_id.exists' =>
                 'آرایشگر انتخاب شده پیدا نشد.',
 
             'service_id.required' =>
-                'انتخاب خدمت الزامی است.',
+                'خدمت را انتخاب کنید.',
 
             'service_id.exists' =>
                 'خدمت انتخاب شده پیدا نشد.',
 
             'booking_date.required' =>
-                'تاریخ نوبت الزامی است.',
+                'تاریخ نوبت را انتخاب کنید.',
 
             'booking_date.date_format' =>
                 'تاریخ نوبت معتبر نیست.',
 
             'start_time.required' =>
-                'ساعت نوبت الزامی است.',
+                'ساعت نوبت را انتخاب کنید.',
 
             'start_time.date_format' =>
                 'ساعت نوبت معتبر نیست.',
@@ -87,7 +87,7 @@ class BookingRequest extends FormRequest
                 'توضیحات نوبت معتبر نیست.',
 
             'notes.max' =>
-                'توضیحات نوبت نباید بیشتر از ۲۰۰۰ کاراکتر باشد.',
+                'توضیحات نوبت بیش از حد مجاز است.',
         ];
     }
 }

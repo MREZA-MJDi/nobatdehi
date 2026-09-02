@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSalonRequest;
 use App\Http\Requests\Admin\UpdateSalonRequest;
@@ -12,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class SalonController extends Controller
@@ -26,7 +28,7 @@ class SalonController extends Controller
     {
         $salons = Salon::query()
             ->with('owner')
-            ->latest()
+            ->latest('id')
             ->paginate(15);
 
         return view(
@@ -44,14 +46,7 @@ class SalonController extends Controller
 
     public function create(): View
     {
-        $users = User::query()
-            ->orderBy('name')
-            ->get();
-
-        return view(
-            'admin.salons.create',
-            compact('users')
-        );
+        return view('admin.salons.create');
     }
 
 
@@ -75,43 +70,45 @@ class SalonController extends Controller
         $logoPath = null;
         $coverPath = null;
 
-        /*
-        |--------------------------------------------------------------------------
-        | Logo
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->hasFile('logo')) {
-            $logoPath = $request
-                ->file('logo')
-                ->store(
-                    'salons/logos',
-                    'public'
-                );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Cover
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->hasFile('cover')) {
-            $coverPath = $request
-                ->file('cover')
-                ->store(
-                    'salons/covers',
-                    'public'
-                );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Create Salon
-        |--------------------------------------------------------------------------
-        */
-
         try {
+            /*
+            |--------------------------------------------------------------------------
+            | Upload Logo
+            |--------------------------------------------------------------------------
+            */
+
+            if ($request->hasFile('logo')) {
+                $logoPath = $request
+                    ->file('logo')
+                    ->store(
+                        'salons/logos',
+                        'public'
+                    );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Upload Cover
+            |--------------------------------------------------------------------------
+            */
+
+            if ($request->hasFile('cover')) {
+                $coverPath = $request
+                    ->file('cover')
+                    ->store(
+                        'salons/covers',
+                        'public'
+                    );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Create Owner + Salon
+            |--------------------------------------------------------------------------
+            */
+
             $salon = DB::transaction(function () use (
                 $data,
                 $slug,
@@ -119,22 +116,144 @@ class SalonController extends Controller
                 $logoPath,
                 $coverPath
             ) {
+
+                /*
+                |--------------------------------------------------------------------------
+                | Find Existing Owner Account
+                |--------------------------------------------------------------------------
+                */
+
+                $owner = User::query()
+                    ->where(
+                        'phone',
+                        $data['manager_phone']
+                    )
+                    ->lockForUpdate()
+                    ->first();
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Existing Account
+                |--------------------------------------------------------------------------
+                */
+
+                if ($owner) {
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Must Be Salon Owner
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        $owner->role !== UserRole::SALON_OWNER
+                    ) {
+                        throw ValidationException::withMessages([
+                            'manager_phone' =>
+                                'این شماره قبلاً برای حساب دیگری استفاده شده است.',
+                        ]);
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | One Owner -> One Salon
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $alreadyOwnsSalon = Salon::query()
+                        ->where(
+                            'owner_id',
+                            $owner->id
+                        )
+                        ->exists();
+
+                    if ($alreadyOwnsSalon) {
+                        throw ValidationException::withMessages([
+                            'manager_phone' =>
+                                'این حساب قبلاً مسئول یک سالن دیگر است.',
+                        ]);
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Sync Owner Name
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $owner->update([
+                        'name' =>
+                            $data['manager_name'],
+                    ]);
+
+                } else {
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Create Salon Owner Account
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $owner = User::create([
+                        'name' =>
+                            $data['manager_name'],
+
+                        'phone' =>
+                            $data['manager_phone'],
+
+                        'email' =>
+                            null,
+
+                        'password' =>
+                            null,
+
+                        'role' =>
+                            UserRole::SALON_OWNER,
+
+                        'phone_verified_at' =>
+                            null,
+
+                        'email_verified_at' =>
+                            null,
+                    ]);
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Create Salon
+                |--------------------------------------------------------------------------
+                */
+
                 return Salon::create([
-                    'name' => $data['name'],
-                    'slug' => $slug,
-                    'code' => $code,
+                    'name' =>
+                        $data['name'],
+
+                    'slug' =>
+                        $slug,
+
+                    'code' =>
+                        $code,
 
                     'description' =>
-                        $data['description'] ?? null,
+                        $data['description']
+                        ?? null,
 
                     'owner_id' =>
-                        $data['owner_id'],
+                        $owner->id,
 
+                    /*
+                    | Salon contact is the same mobile
+                    | used for the owner login.
+                    */
                     'phone' =>
-                        $data['phone'] ?? null,
+                        $data['manager_phone'],
 
                     'email' =>
-                        $data['email'] ?? null,
+                        $data['email']
+                        ?? null,
 
                     'logo_path' =>
                         $logoPath,
@@ -143,103 +262,133 @@ class SalonController extends Controller
                         $coverPath,
 
                     'primary_color' =>
-                        $data['primary_color'] ?? null,
+                        $data['primary_color']
+                        ?? '#6757E8',
 
                     'secondary_color' =>
-                        $data['secondary_color'] ?? null,
+                        $data['secondary_color']
+                        ?? '#37B8C8',
 
                     'province' =>
-                        $data['province'] ?? null,
+                        $data['province']
+                        ?? null,
 
                     'city' =>
-                        $data['city'] ?? null,
+                        $data['city']
+                        ?? null,
 
                     'district' =>
-                        $data['district'] ?? null,
+                        $data['district']
+                        ?? null,
 
                     'address' =>
-                        $data['address'] ?? null,
+                        $data['address']
+                        ?? null,
 
                     'latitude' =>
-                        $data['latitude'] ?? null,
+                        $data['latitude']
+                        ?? null,
 
                     'longitude' =>
-                        $data['longitude'] ?? null,
+                        $data['longitude']
+                        ?? null,
 
                     'created_by' =>
                         auth()->id(),
 
                     'is_active' =>
-                        $data['is_active'] ?? true,
+                        $data['is_active']
+                        ?? true,
                 ]);
             });
-        } catch (\Throwable $e) {
+
+
             /*
-             * If DB creation fails, remove uploaded files.
-             */
+            |--------------------------------------------------------------------------
+            | Generate Public URL
+            |--------------------------------------------------------------------------
+            */
+
+            $publicUrl = route(
+                'public.salons.show',
+                $salon
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Generate QR
+            |--------------------------------------------------------------------------
+            */
+
+            $qrPath =
+                'salons/qr/' .
+                $salon->slug .
+                '.png';
+
+            $qrContents = QrCode::format('png')
+                ->size(800)
+                ->margin(2)
+                ->generate(
+                    $publicUrl
+                );
+
+            Storage::disk('public')->put(
+                $qrPath,
+                $qrContents
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Save QR Path
+            |--------------------------------------------------------------------------
+            */
+
+            $salon->update([
+                'qr_code_path' =>
+                    $qrPath,
+            ]);
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Success
+            |--------------------------------------------------------------------------
+            */
+
+            return redirect()
+                ->route(
+                    'admin.salons.show',
+                    $salon
+                )
+                ->with(
+                    'success',
+                    'سالن و حساب مسئول سالن با موفقیت ایجاد شدند.'
+                );
+
+        } catch (\Throwable $e) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Cleanup Uploaded Files
+            |--------------------------------------------------------------------------
+            */
 
             if ($logoPath) {
-                Storage::disk('public')->delete($logoPath);
+                Storage::disk('public')->delete(
+                    $logoPath
+                );
             }
 
             if ($coverPath) {
-                Storage::disk('public')->delete($coverPath);
+                Storage::disk('public')->delete(
+                    $coverPath
+                );
             }
 
             throw $e;
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Generate Public URL
-        |--------------------------------------------------------------------------
-        */
-
-        $publicUrl = route(
-            'public.salons.show',
-            $salon
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Generate QR
-        |--------------------------------------------------------------------------
-        */
-
-        $qrPath =
-            'salons/qr/' .
-            $salon->slug .
-            '.png';
-
-        $qrContents = QrCode::format('png')
-            ->size(800)
-            ->margin(2)
-            ->generate($publicUrl);
-
-        Storage::disk('public')->put(
-            $qrPath,
-            $qrContents
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Save QR Path
-        |--------------------------------------------------------------------------
-        */
-
-        $salon->update([
-            'qr_code_path' => $qrPath,
-        ]);
-
-        return redirect()
-            ->route(
-                'admin.salons.show',
-                $salon
-            )
-            ->with(
-                'success',
-                'سالن با موفقیت ایجاد شد.'
-            );
     }
 
 
@@ -273,16 +422,11 @@ class SalonController extends Controller
     public function edit(
         Salon $salon
     ): View {
-        $users = User::query()
-            ->orderBy('name')
-            ->get();
+        $salon->load('owner');
 
         return view(
             'admin.salons.edit',
-            compact(
-                'salon',
-                'users'
-            )
+            compact('salon')
         );
     }
 
@@ -299,136 +443,317 @@ class SalonController extends Controller
     ): RedirectResponse {
         $data = $request->validated();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Important
-        |--------------------------------------------------------------------------
-        |
-        | slug and code are immutable.
-        |
-        */
-
-        unset(
-            $data['slug'],
-            $data['code'],
-            $data['created_by'],
-            $data['qr_code_path']
-        );
-
 
         /*
         |--------------------------------------------------------------------------
-        | Logo Removal
+        | Current Owner
         |--------------------------------------------------------------------------
         */
 
-        if ($request->boolean('remove_logo')) {
+        $owner = $salon->owner;
 
-            if ($salon->logo_path) {
-                Storage::disk('public')->delete(
-                    $salon->logo_path
-                );
-            }
 
-            $data['logo_path'] = null;
+        if (!$owner) {
+            throw ValidationException::withMessages([
+                'manager_phone' =>
+                    'حساب مسئول این سالن پیدا نشد.',
+            ]);
+        }
+
+
+        if (
+            $owner->role !== UserRole::SALON_OWNER
+        ) {
+            throw ValidationException::withMessages([
+                'manager_phone' =>
+                    'حساب مسئول سالن نقش معتبری ندارد.',
+            ]);
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | New Logo
+        | Check New Phone
         |--------------------------------------------------------------------------
         */
 
-        if ($request->hasFile('logo')) {
-
-            if ($salon->logo_path) {
-                Storage::disk('public')->delete(
-                    $salon->logo_path
-                );
-            }
-
-            $data['logo_path'] = $request
-                ->file('logo')
-                ->store(
-                    'salons/logos',
-                    'public'
-                );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Cover Removal
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->boolean('remove_cover')) {
-
-            if ($salon->cover_path) {
-                Storage::disk('public')->delete(
-                    $salon->cover_path
-                );
-            }
-
-            $data['cover_path'] = null;
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | New Cover
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->hasFile('cover')) {
-
-            if ($salon->cover_path) {
-                Storage::disk('public')->delete(
-                    $salon->cover_path
-                );
-            }
-
-            $data['cover_path'] = $request
-                ->file('cover')
-                ->store(
-                    'salons/covers',
-                    'public'
-                );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Remove Non-DB Fields
-        |--------------------------------------------------------------------------
-        */
-
-        unset(
-            $data['logo'],
-            $data['cover'],
-            $data['remove_logo'],
-            $data['remove_cover']
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Update Salon
-        |--------------------------------------------------------------------------
-        */
-
-        $salon->update($data);
-
-        return redirect()
-            ->route(
-                'admin.salons.show',
-                $salon
+        $existingOwner = User::query()
+            ->where(
+                'phone',
+                $data['manager_phone']
             )
-            ->with(
-                'success',
-                'اطلاعات سالن با موفقیت به‌روزرسانی شد.'
+            ->where(
+                'id',
+                '!=',
+                $owner->id
+            )
+            ->first();
+
+        if ($existingOwner) {
+            throw ValidationException::withMessages([
+                'manager_phone' =>
+                    'این شماره موبایل قبلاً برای حساب دیگری ثبت شده است.',
+            ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | File State
+        |--------------------------------------------------------------------------
+        */
+
+        $oldLogoPath = $salon->logo_path;
+        $oldCoverPath = $salon->cover_path;
+
+        $newLogoPath = null;
+        $newCoverPath = null;
+
+
+        try {
+
+            /*
+            |--------------------------------------------------------------------------
+            | New Logo
+            |--------------------------------------------------------------------------
+            */
+
+            if ($request->hasFile('logo')) {
+                $newLogoPath = $request
+                    ->file('logo')
+                    ->store(
+                        'salons/logos',
+                        'public'
+                    );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | New Cover
+            |--------------------------------------------------------------------------
+            */
+
+            if ($request->hasFile('cover')) {
+                $newCoverPath = $request
+                    ->file('cover')
+                    ->store(
+                        'salons/covers',
+                        'public'
+                    );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Database Update
+            |--------------------------------------------------------------------------
+            */
+
+            DB::transaction(function () use (
+                $data,
+                $salon,
+                $owner,
+                $request,
+                $newLogoPath,
+                $newCoverPath
+            ) {
+
+                /*
+                |--------------------------------------------------------------------------
+                | Update Owner Account
+                |--------------------------------------------------------------------------
+                */
+
+                $owner->update([
+                    'name' =>
+                        $data['manager_name'],
+
+                    'phone' =>
+                        $data['manager_phone'],
+                ]);
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Salon Data
+                |--------------------------------------------------------------------------
+                */
+
+                $salonData = [
+
+                    'name' =>
+                        $data['name'],
+
+                    'description' =>
+                        $data['description']
+                        ?? null,
+
+                    'phone' =>
+                        $data['manager_phone'],
+
+                    'email' =>
+                        $data['email']
+                        ?? null,
+
+                    'primary_color' =>
+                        $data['primary_color']
+                        ?? '#6757E8',
+
+                    'secondary_color' =>
+                        $data['secondary_color']
+                        ?? '#37B8C8',
+
+                    'province' =>
+                        $data['province']
+                        ?? null,
+
+                    'city' =>
+                        $data['city']
+                        ?? null,
+
+                    'district' =>
+                        $data['district']
+                        ?? null,
+
+                    'address' =>
+                        $data['address']
+                        ?? null,
+
+                    'latitude' =>
+                        $data['latitude']
+                        ?? null,
+
+                    'longitude' =>
+                        $data['longitude']
+                        ?? null,
+
+                    'is_active' =>
+                        $data['is_active']
+                        ?? true,
+                ];
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Logo
+                |--------------------------------------------------------------------------
+                */
+
+                if ($request->boolean('remove_logo')) {
+                    $salonData['logo_path'] = null;
+                } elseif ($newLogoPath) {
+                    $salonData['logo_path'] =
+                        $newLogoPath;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Cover
+                |--------------------------------------------------------------------------
+                */
+
+                if ($request->boolean('remove_cover')) {
+                    $salonData['cover_path'] = null;
+                } elseif ($newCoverPath) {
+                    $salonData['cover_path'] =
+                        $newCoverPath;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Update
+                |--------------------------------------------------------------------------
+                */
+
+                $salon->update(
+                    $salonData
+                );
+            });
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Old Logo
+            |--------------------------------------------------------------------------
+            */
+
+            $logoShouldDelete = (
+                $request->boolean('remove_logo') ||
+                $newLogoPath
             );
+
+            if (
+                $logoShouldDelete &&
+                $oldLogoPath
+            ) {
+                Storage::disk('public')->delete(
+                    $oldLogoPath
+                );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Old Cover
+            |--------------------------------------------------------------------------
+            */
+
+            $coverShouldDelete = (
+                $request->boolean('remove_cover') ||
+                $newCoverPath
+            );
+
+            if (
+                $coverShouldDelete &&
+                $oldCoverPath
+            ) {
+                Storage::disk('public')->delete(
+                    $oldCoverPath
+                );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Success
+            |--------------------------------------------------------------------------
+            */
+
+            return redirect()
+                ->route(
+                    'admin.salons.show',
+                    $salon
+                )
+                ->with(
+                    'success',
+                    'اطلاعات سالن با موفقیت به‌روزرسانی شد.'
+                );
+
+        } catch (\Throwable $e) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Cleanup Newly Uploaded Files
+            |--------------------------------------------------------------------------
+            */
+
+            if ($newLogoPath) {
+                Storage::disk('public')->delete(
+                    $newLogoPath
+                );
+            }
+
+            if ($newCoverPath) {
+                Storage::disk('public')->delete(
+                    $newCoverPath
+                );
+            }
+
+            throw $e;
+        }
     }
 
 
@@ -443,7 +768,7 @@ class SalonController extends Controller
     ): RedirectResponse {
         /*
         |--------------------------------------------------------------------------
-        | Delete Files
+        | Delete Logo
         |--------------------------------------------------------------------------
         */
 
@@ -453,11 +778,25 @@ class SalonController extends Controller
             );
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Delete Cover
+        |--------------------------------------------------------------------------
+        */
+
         if ($salon->cover_path) {
             Storage::disk('public')->delete(
                 $salon->cover_path
             );
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Delete QR
+        |--------------------------------------------------------------------------
+        */
 
         if ($salon->qr_code_path) {
             Storage::disk('public')->delete(
@@ -465,16 +804,20 @@ class SalonController extends Controller
             );
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | Soft Delete Salon
+        | Soft Delete
         |--------------------------------------------------------------------------
         */
 
         $salon->delete();
 
+
         return redirect()
-            ->route('admin.salons.index')
+            ->route(
+                'admin.salons.index'
+            )
             ->with(
                 'success',
                 'سالن با موفقیت حذف شد.'
@@ -501,7 +844,12 @@ class SalonController extends Controller
         $counter = 2;
 
         while (
-        Salon::where('slug', $slug)->exists()
+        Salon::query()
+            ->where(
+                'slug',
+                $slug
+            )
+            ->exists()
         ) {
             $slug =
                 $baseSlug .
@@ -530,10 +878,12 @@ class SalonController extends Controller
                     Str::random(5)
                 );
         } while (
-            Salon::where(
-                'code',
-                $code
-            )->exists()
+            Salon::query()
+                ->where(
+                    'code',
+                    $code
+                )
+                ->exists()
         );
 
         return $code;
