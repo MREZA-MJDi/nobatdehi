@@ -9,48 +9,103 @@ use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Notifications
+    |--------------------------------------------------------------------------
+    */
+
     public function index(
         Request $request
     ): View {
-        $notifications = $request
-            ->user()
-            ->notifications()
-            ->latest()
-            ->paginate(20);
+
+        $user =
+            $request->user();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Notifications
+        |--------------------------------------------------------------------------
+        */
+
+        $notifications =
+            $user
+                ->notifications()
+                ->latest()
+                ->paginate(20);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Unread Count
+        |--------------------------------------------------------------------------
+        |
+        | Required by layouts.salon
+        |
+        */
+
+        $unreadNotifications =
+            $user
+                ->unreadNotifications()
+                ->count();
+
 
         return view(
             'salon.notifications.index',
-            compact('notifications')
+            compact(
+                'notifications',
+                'unreadNotifications'
+            )
         );
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mark One Notification As Read
+    |--------------------------------------------------------------------------
+    */
 
     public function read(
         Request $request,
         string $notification
     ): RedirectResponse {
-        $item = $request
-            ->user()
-            ->notifications()
-            ->findOrFail(
-                $notification
-            );
+
+        $item =
+            $request
+                ->user()
+                ->notifications()
+                ->findOrFail(
+                    $notification
+                );
+
 
         $item->markAsRead();
+
 
         return back();
     }
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | Mark All As Read
+    |--------------------------------------------------------------------------
+    */
+
     public function readAll(
         Request $request
     ): RedirectResponse {
+
         $request
             ->user()
             ->unreadNotifications()
             ->update([
-                'read_at' => now(),
+                'read_at' =>
+                    now(),
             ]);
+
 
         return back()
             ->with(

@@ -921,7 +921,108 @@
 
                 </section>
 
+                {{-- ============================================================
+                    PORTFOLIO
+                ============================================================= --}}
 
+                @if($salon->portfolioItems->count())
+
+                    <section class="mt-6">
+
+                        <div class="mb-4 flex items-end justify-between gap-3">
+
+                            <div>
+
+                                <div class="text-[10px] font-black tracking-wider text-accent-600">
+                                    PORTFOLIO
+                                </div>
+
+                                <h2 class="mt-1 text-xl font-black text-content">
+                                    نمونه‌کارها
+                                </h2>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+                            @foreach($salon->portfolioItems as $item)
+
+                                <article class="overflow-hidden rounded-3xl border border-border bg-surface shadow-soft">
+
+                                    <div class="grid grid-cols-2">
+
+                                        <div class="relative aspect-square overflow-hidden">
+
+                                            <img
+                                                src="{{ asset('storage/' . $item->before_image_path) }}"
+                                                alt="قبل {{ $item->title }}"
+                                                class="h-full w-full object-cover"
+                                                loading="lazy"
+                                            >
+
+                                            <span class="absolute right-2 top-2 rounded-full bg-black/65 px-2.5 py-1 text-[9px] font-black text-white">
+                                قبل
+                            </span>
+
+                                        </div>
+
+
+                                        <div class="relative aspect-square overflow-hidden">
+
+                                            <img
+                                                src="{{ asset('storage/' . $item->after_image_path) }}"
+                                                alt="بعد {{ $item->title }}"
+                                                class="h-full w-full object-cover"
+                                                loading="lazy"
+                                            >
+
+                                            <span class="absolute right-2 top-2 rounded-full bg-accent-600 px-2.5 py-1 text-[9px] font-black text-white">
+                                بعد
+                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="p-4">
+
+                                        <div class="text-sm font-black text-content">
+                                            {{ $item->title }}
+                                        </div>
+
+
+                                        @if($item->barber)
+
+                                            <div class="mt-1 text-[10px] text-content-muted">
+                                                توسط {{ $item->barber->name }}
+                                            </div>
+
+                                        @endif
+
+
+                                        @if($item->service)
+
+                                            <div class="mt-1 text-[10px] text-content-muted">
+                                                {{ $item->service->name }}
+                                            </div>
+
+                                        @endif
+
+                                    </div>
+
+                                </article>
+
+                            @endforeach
+
+                        </div>
+
+                    </section>
+
+                @endif
                 {{-- ====================================================
                     WORKING HOURS
                 ===================================================== --}}

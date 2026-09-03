@@ -4,6 +4,25 @@
 
 @section('content')
 
+    @php
+        $barberData = $barbers->map(function ($barber) {
+            return [
+                'id' => $barber->id,
+                'name' => $barber->name,
+            ];
+        })->values();
+
+        $serviceData = $services->map(function ($service) {
+            return [
+                'id' => $service->id,
+                'name' => $service->name,
+                'price' => $service->price,
+                'duration' => (int) $service->duration_minutes,
+            ];
+        })->values();
+    @endphp
+
+
     <div
         x-data="bookingPage()"
         x-init="init()"
@@ -17,7 +36,7 @@
         <div class="mb-6">
 
             <a
-                href="{{ url('/salons/' . $salon->slug) }}"
+                href="{{ route('public.salons.show', $salon) }}"
                 class="mb-3 inline-flex items-center gap-2 text-xs font-bold text-content-muted hover:text-accent-600"
             >
                 ← بازگشت به سالن
@@ -64,13 +83,12 @@
         ============================================================= --}}
 
         <form
-            action="{{ request()->url() }}"
+            action="{{ route('public.salons.booking.prepare', $salon) }}"
             method="POST"
             class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]"
         >
 
             @csrf
-
 
             <div class="space-y-5">
 
@@ -94,74 +112,88 @@
                     </div>
 
 
-                    <div class="grid gap-3 sm:grid-cols-2">
+                    @if($barbers->count())
 
-                        @foreach($barbers as $barber)
+                        <div class="grid gap-3 sm:grid-cols-2">
 
-                            <button
-                                type="button"
-                                @click="selectBarber({{ $barber->id }})"
-                                class="rounded-2xl border p-4 text-right transition"
-                                :class="
-                                    barberId === {{ $barber->id }}
-                                    ? 'border-accent-500 bg-accent-50 ring-2 ring-accent-500/10'
-                                    : 'border-border bg-white hover:border-accent-200'
+                            @foreach($barbers as $barber)
+
+                                <button
+                                    type="button"
+                                    @click="selectBarber({{ $barber->id }})"
+                                    class="rounded-2xl border p-4 text-right transition"
+                                    :class="
+                                        barberId === {{ $barber->id }}
+                                        ? 'border-accent-500 bg-accent-50 ring-2 ring-accent-500/10'
+                                        : 'border-border bg-white hover:border-accent-200'
 "
-                            >
+                                >
 
-                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-3">
 
-                                    <div class="h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-primary-100">
+                                        <div class="h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-primary-100">
 
-                                        @if($barber->image_path)
+                                            @if($barber->image_path)
 
-                                            <img
-                                                src="{{ asset('storage/' . $barber->image_path) }}"
-                                                alt="{{ $barber->name }}"
-                                                class="h-full w-full object-cover"
-                                            >
+                                                <img
+                                                    src="{{ asset('storage/' . $barber->image_path) }}"
+                                                    alt="{{ $barber->name }}"
+                                                    class="h-full w-full object-cover"
+                                                >
 
-                                        @else
+                                            @else
 
-                                            <div class="flex h-full w-full items-center justify-center text-sm font-black text-content-muted">
-                                                {{ mb_substr($barber->name, 0, 1) }}
-                                            </div>
+                                                <div class="flex h-full w-full items-center justify-center text-sm font-black text-content-muted">
+                                                    {{ mb_substr($barber->name, 0, 1) }}
+                                                </div>
 
-                                        @endif
+                                            @endif
 
-                                    </div>
-
-
-                                    <div class="min-w-0">
-
-                                        <div class="truncate text-sm font-black text-content">
-                                            {{ $barber->name }}
                                         </div>
 
-                                        @if($barber->specialty)
 
-                                            <div class="mt-1 truncate text-[10px] text-content-muted">
-                                                {{ $barber->specialty }}
+                                        <div class="min-w-0">
+
+                                            <div class="truncate text-sm font-black text-content">
+                                                {{ $barber->name }}
                                             </div>
 
-                                        @endif
+                                            @if($barber->specialty)
+
+                                                <div class="mt-1 truncate text-[10px] text-content-muted">
+                                                    {{ $barber->specialty }}
+                                                </div>
+
+                                            @endif
+
+                                        </div>
 
                                     </div>
 
-                                </div>
+                                </button>
 
-                            </button>
+                            @endforeach
 
-                        @endforeach
-
-                    </div>
+                        </div>
 
 
-                    <input
-                        type="hidden"
-                        name="barber_id"
-                        :value="barberId"
-                    >
+                        <input
+                            type="hidden"
+                            name="barber_id"
+                            x-model="barberId"
+                        >
+
+                    @else
+
+                        <div class="rounded-2xl border border-border bg-primary-50 p-5 text-center">
+
+                            <div class="text-xs font-black text-content">
+                                برای این سالن هنوز آرایشگری ثبت نشده است.
+                            </div>
+
+                        </div>
+
+                    @endif
 
                 </section>
 
@@ -185,59 +217,76 @@
                     </div>
 
 
-                    <div class="grid gap-3">
+                    @if($services->count())
 
-                        @foreach($services as $service)
+                        <div class="grid gap-3">
 
-                            <button
-                                type="button"
-                                @click="selectService({{ $service->id }})"
-                                class="flex items-center justify-between gap-4 rounded-2xl border p-4 text-right transition"
-                                :class="
-                                    serviceId === {{ $service->id }}
-                                    ? 'border-accent-500 bg-accent-50 ring-2 ring-accent-500/10'
-                                    : 'border-border bg-white hover:border-accent-200'
+                            @foreach($services as $service)
+
+                                <button
+                                    type="button"
+                                    @click="selectService({{ $service->id }})"
+                                    class="flex items-center justify-between gap-4 rounded-2xl border p-4 text-right transition"
+                                    :class="
+                                        serviceId === {{ $service->id }}
+                                        ? 'border-accent-500 bg-accent-50 ring-2 ring-accent-500/10'
+                                        : 'border-border bg-white hover:border-accent-200'
 "
-                            >
+                                >
 
-                                <div class="min-w-0">
+                                    <div class="min-w-0">
 
-                                    <div class="text-sm font-black text-content">
-                                        {{ $service->name }}
+                                        <div class="text-sm font-black text-content">
+                                            {{ $service->name }}
+                                        </div>
+
+                                        <div class="mt-1 text-[10px] text-content-muted">
+                                            {{ $service->duration_minutes }} دقیقه
+                                        </div>
+
                                     </div>
 
-                                    <div class="mt-1 text-[10px] text-content-muted">
-                                        {{ $service->duration_minutes }} دقیقه
+
+                                    <div class="shrink-0 text-sm font-black text-content">
+
+                                        {{ number_format($service->price) }}
+
+                                        <span class="text-[10px] font-bold text-content-muted">
+                                            تومان
+                                        </span>
+
                                     </div>
 
-                                </div>
+                                </button>
+
+                            @endforeach
+
+                        </div>
 
 
-                                <div class="shrink-0 text-sm font-black text-content">
-                                    {{ number_format($service->price) }}
-                                    <span class="text-[10px] font-bold text-content-muted">
-                                        تومان
-                                    </span>
-                                </div>
+                        <input
+                            type="hidden"
+                            name="service_id"
+                            x-model="serviceId"
+                        >
 
-                            </button>
+                    @else
 
-                        @endforeach
+                        <div class="rounded-2xl border border-border bg-primary-50 p-5 text-center">
 
-                    </div>
+                            <div class="text-xs font-black text-content">
+                                برای این سالن هنوز خدمتی ثبت نشده است.
+                            </div>
 
+                        </div>
 
-                    <input
-                        type="hidden"
-                        name="service_id"
-                        :value="serviceId"
-                    >
+                    @endif
 
                 </section>
 
 
                 {{-- ==================================================
-                    STEP 3 — DATE
+                    STEP 3 — DATE + TIME
                 =================================================== --}}
 
                 <section class="card p-5 sm:p-6">
@@ -288,7 +337,10 @@
 
                         <div class="mb-2 grid grid-cols-7 gap-1 text-center">
 
-                            <template x-for="day in weekDays" :key="day">
+                            <template
+                                x-for="day in weekDays"
+                                :key="day"
+                            >
 
                                 <div class="py-2 text-[10px] font-black text-content-muted">
                                     <span x-text="day"></span>
@@ -301,7 +353,10 @@
 
                         <div class="grid grid-cols-7 gap-1">
 
-                            <template x-for="(cell, index) in calendarCells" :key="index">
+                            <template
+                                x-for="(cell, index) in calendarCells"
+                                :key="index"
+                            >
 
                                 <div class="aspect-square">
 
@@ -362,7 +417,7 @@
                                 </div>
 
                                 <div class="mt-1 text-[10px] text-content-muted">
-                                    مدت خدمت از قبل در زمان‌بندی محاسبه شده است.
+                                    زمان‌های رزروشده برای این آرایشگر قابل انتخاب نیستند.
                                 </div>
 
                             </div>
@@ -375,6 +430,8 @@
                         </div>
 
 
+                        {{-- Loading --}}
+
                         <div
                             x-show="loadingSlots"
                             x-cloak
@@ -383,6 +440,8 @@
                             در حال دریافت زمان‌های آزاد...
                         </div>
 
+
+                        {{-- No slots --}}
 
                         <div
                             x-show="!loadingSlots && slots.length === 0"
@@ -395,14 +454,16 @@
                             </div>
 
                             <div class="mt-1 text-[10px] leading-6 text-content-muted">
-                                تاریخ دیگری انتخاب کنید.
+                                آرایشگر، خدمت یا تاریخ دیگری انتخاب کنید.
                             </div>
 
                         </div>
 
 
+                        {{-- Slots --}}
+
                         <div
-                            x-show="!loadingSlots && slots.length"
+                            x-show="!loadingSlots && slots.length > 0"
                             x-cloak
                             class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4"
                         >
@@ -414,18 +475,32 @@
 
                                 <button
                                     type="button"
-                                    @click="selectedTime = slot.start"
+                                    :disabled="!slot.available"
+                                    @click="
+                                        if (slot.available) {
+                                            selectedTime = slot.start
+                                        }
+                                    "
                                     class="rounded-2xl border px-3 py-3 text-center text-xs font-black transition"
                                     :class="
-                                        selectedTime === slot.start
-                                            ? 'border-accent-500 bg-accent-600 text-white shadow-iris'
-                                            : 'border-border bg-white text-content hover:border-accent-300'
+                                        !slot.available
+                                            ? 'cursor-not-allowed border-red-100 bg-red-50 text-red-400'
+                                            : selectedTime === slot.start
+                                                ? 'border-accent-500 bg-accent-600 text-white shadow-iris'
+                                                : 'border-border bg-white text-content hover:border-accent-300'
                                     "
                                 >
 
-                                    <span
+                                    <div
                                         x-text="toPersianTime(slot.start)"
-                                    ></span>
+                                    ></div>
+
+                                    <div
+                                        x-show="!slot.available"
+                                        class="mt-1 text-[9px] font-bold"
+                                    >
+                                        رزرو شده
+                                    </div>
 
                                 </button>
 
@@ -543,6 +618,24 @@
                         <div>
 
                             <div class="text-[10px] text-content-muted">
+                                مدت خدمت
+                            </div>
+
+                            <div
+                                class="mt-1 text-sm font-black"
+                                x-text="
+                                    selectedDuration
+                                        ? persianNumber(selectedDuration) + ' دقیقه'
+                                        : '—'
+                                "
+                            ></div>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="text-[10px] text-content-muted">
                                 تاریخ
                             </div>
 
@@ -563,7 +656,11 @@
                             <div
                                 class="mt-1 text-sm font-black"
                                 dir="ltr"
-                                x-text="selectedTime ? toPersianTime(selectedTime) : 'انتخاب نشده'"
+                                x-text="
+                                    selectedTime
+                                        ? toPersianTime(selectedTime)
+                                        : 'انتخاب نشده'
+                                "
                             ></div>
 
                         </div>
@@ -579,7 +676,11 @@
 
                                 <strong
                                     class="text-lg font-black text-content"
-                                    x-text="selectedPrice ? persianNumber(selectedPrice) + ' تومان' : '—'"
+                                    x-text="
+                                        selectedPrice
+                                            ? Number(selectedPrice).toLocaleString('fa-IR') + ' تومان'
+                                            : '—'
+                                    "
                                 ></strong>
 
                             </div>
@@ -620,25 +721,23 @@
     </div>
 
 
-    <script>
-        function bookingPage() {
-            const barberData = @json(
-                $barbers->map(fn ($barber) => [
-                    'id' => $barber->id,
-                    'name' => $barber->name,
-                ])->values()
-            );
+    {{-- ============================================================
+        BOOKING JAVASCRIPT
+    ============================================================= --}}
 
-            const serviceData = @json(
-                $services->map(fn ($service) => [
-                    'id' => $service->id,
-                    'name' => $service->name,
-                    'price' => $service->price,
-                ])->values()
-            );
+    <script>
+
+        const barberData = @js($barberData);
+
+        const serviceData = @js($serviceData);
+
+
+        function bookingPage() {
 
             return {
+
                 barberId: null,
+
                 serviceId: null,
 
                 selectedDate: @js(
@@ -648,9 +747,11 @@
         )
         ),
 
-            selectedTime: null,
+            selectedTime: @js(
+                old('start_time')
+            ),
 
-                slots: [],
+            slots: [],
 
                 loadingSlots: false,
 
@@ -676,6 +777,9 @@
 
                 selectedPrice: 0,
 
+                selectedDuration: 0,
+
+
                 persianFormatter: new Intl.DateTimeFormat(
                 'fa-IR-u-ca-persian-nu-arabext',
                 {
@@ -685,6 +789,7 @@
                 }
             ),
 
+
                 monthFormatter: new Intl.DateTimeFormat(
                 'fa-IR-u-ca-persian-nu-arabext',
                 {
@@ -693,8 +798,11 @@
                 }
             ),
 
+
                 init() {
+
                 this.renderCalendar();
+
 
                 const firstBarber =
                     barberData[0] ?? null;
@@ -702,62 +810,117 @@
                 const firstService =
                     serviceData[0] ?? null;
 
-                if (firstBarber) {
+
+                const oldBarberId =
+                @js(old('barber_id'));
+
+                const oldServiceId =
+                @js(old('service_id'));
+
+
+                if (oldBarberId) {
+
                     this.selectBarber(
-                        firstBarber.id,
+                        Number(oldBarberId),
                         false
                     );
+
+                } else if (firstBarber) {
+
+                    this.selectBarber(
+                        Number(firstBarber.id),
+                        false
+                    );
+
                 }
 
-                if (firstService) {
+
+                if (oldServiceId) {
+
                     this.selectService(
-                        firstService.id,
+                        Number(oldServiceId),
                         false
                     );
+
+                } else if (firstService) {
+
+                    this.selectService(
+                        Number(firstService.id),
+                        false
+                    );
+
                 }
+
 
                 this.syncViewDateToSelectedDate();
 
                 this.loadSlots();
+
             },
+
 
             normalizeDigits(value) {
+
                 return String(value)
-                    .replace(/[۰-۹]/g, digit =>
-                        '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)
+
+                    .replace(
+                        /[۰-۹]/g,
+                        digit =>
+                            '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)
                     )
-                    .replace(/[٠-٩]/g, digit =>
-                        '٠١٢٣٤٥٦٧٨٩'.indexOf(digit)
+
+                    .replace(
+                        /[٠-٩]/g,
+                        digit =>
+                            '٠١٢٣٤٥٦٧٨٩'.indexOf(digit)
                     );
+
             },
+
 
             persianNumber(value) {
-                return String(value)
-                    .replace(/\d/g, digit =>
+
+                return String(value).replace(
+                    /\d/g,
+                    digit =>
                         '۰۱۲۳۴۵۶۷۸۹'[digit]
-                    );
+                );
+
             },
+
 
             toPersianTime(time) {
-                return this.persianNumber(
-                    time
-                );
+
+                if (!time) {
+                    return '';
+                }
+
+                return this.persianNumber(time);
+
             },
 
+
             dateParts(date) {
+
                 const parts =
                     this.persianFormatter
                         .formatToParts(date);
 
-                const get = (type) =>
-                    this.normalizeDigits(
+
+                const get = (type) => {
+
+                    return this.normalizeDigits(
                         parts.find(
                             part =>
                                 part.type === type
                         )?.value ?? ''
                     );
 
+                };
+
+
                 return {
+
                     year: Number(
                         get('year')
                     ),
@@ -769,17 +932,24 @@
                     day: Number(
                         get('day')
                     ),
+
                 };
+
             },
 
+
             monthKey(date) {
+
                 const parts =
                     this.dateParts(date);
 
                 return `${parts.year}-${parts.month}`;
+
             },
 
+
             addDays(date, days) {
+
                 const result =
                     new Date(date);
 
@@ -788,30 +958,39 @@
                 );
 
                 return result;
+
             },
 
+
             startOfPersianMonth(date) {
+
                 let current =
                     new Date(date);
 
+
                 while (
-                    this.dateParts(
-                        current
-                    ).day !== 1
+                    this.dateParts(current).day !== 1
                     ) {
+
                     current =
                         this.addDays(
                             current,
                             -1
                         );
+
                 }
 
+
                 return current;
+
             },
 
+
             daysInPersianMonth(start) {
+
                 const key =
                     this.monthKey(start);
+
 
                 let current =
                     this.addDays(
@@ -819,13 +998,14 @@
                         1
                     );
 
+
                 let count = 1;
 
+
                 while (
-                    this.monthKey(
-                        current
-                    ) === key
+                    this.monthKey(current) === key
                     ) {
+
                     count++;
 
                     current =
@@ -833,83 +1013,112 @@
                             current,
                             1
                         );
+
                 }
 
+
                 return count;
+
             },
 
-            iranianWeekday(date) {
-                /*
-                Sunday = 0
-                Saturday = 6
 
-                Iranian:
-                Saturday = 0
-                ...
-                Friday = 6
-                */
+            iranianWeekday(date) {
 
                 return (
                     date.getDay() + 1
                 ) % 7;
+
             },
 
+
+            formatDateISO(date) {
+
+                const year =
+                    date.getFullYear();
+
+                const month =
+                    String(
+                        date.getMonth() + 1
+                    ).padStart(2, '0');
+
+                const day =
+                    String(
+                        date.getDate()
+                    ).padStart(2, '0');
+
+
+                return `${year}-${month}-${day}`;
+
+            },
+
+
             renderCalendar() {
+
                 const start =
                     this.startOfPersianMonth(
                         this.viewDate
                     );
 
-                const parts =
-                    this.dateParts(start);
 
                 this.monthTitle =
                     this.monthFormatter.format(
                         start
                     );
 
+
                 const totalDays =
                     this.daysInPersianMonth(
                         start
                     );
+
 
                 const leading =
                     this.iranianWeekday(
                         start
                     );
 
+
                 const cells = [];
+
 
                 for (
                     let i = 0;
                     i < leading;
                     i++
                 ) {
+
                     cells.push(null);
+
                 }
+
 
                 for (
                     let day = 0;
                     day < totalDays;
                     day++
                 ) {
+
                     const current =
                         this.addDays(
                             start,
                             day
                         );
 
+
                     const iso =
-                        current
-                            .toISOString()
-                            .slice(0, 10);
+                        this.formatDateISO(
+                            current
+                        );
+
 
                     const today =
-                        new Date()
-                            .toISOString()
-                            .slice(0, 10);
+                        this.formatDateISO(
+                            new Date()
+                        );
+
 
                     cells.push({
+
                         day:
                             this.persianNumber(
                                 this.dateParts(
@@ -921,46 +1130,63 @@
 
                         disabled:
                             iso < today,
+
                     });
+
                 }
+
 
                 while (
                     cells.length % 7 !== 0
                     ) {
+
                     cells.push(null);
+
                 }
+
 
                 this.calendarCells =
                     cells;
+
             },
 
+
             syncViewDateToSelectedDate() {
+
                 if (!this.selectedDate) {
                     return;
                 }
+
 
                 const parsed =
                     new Date(
                         `${this.selectedDate}T00:00:00`
                     );
 
+
                 if (
                     !Number.isNaN(
                         parsed.getTime()
                     )
                 ) {
+
                     this.viewDate =
                         parsed;
 
                     this.renderCalendar();
+
                 }
+
             },
 
+
             previousMonth() {
+
                 const current =
                     this.startOfPersianMonth(
                         this.viewDate
                     );
+
 
                 this.viewDate =
                     this.addDays(
@@ -968,19 +1194,25 @@
                         -1
                     );
 
+
                 this.renderCalendar();
+
             },
 
+
             nextMonth() {
+
                 const current =
                     this.startOfPersianMonth(
                         this.viewDate
                     );
 
+
                 const total =
                     this.daysInPersianMonth(
                         current
                     );
+
 
                 this.viewDate =
                     this.addDays(
@@ -988,59 +1220,90 @@
                         total
                     );
 
+
                 this.renderCalendar();
+
             },
+
 
             selectBarber(
                 id,
                 load = true
             ) {
-                this.barberId = id;
+
+                this.barberId =
+                    Number(id);
+
 
                 const item =
                     barberData.find(
                         barber =>
-                            barber.id === id
+                            Number(barber.id) ===
+                            Number(id)
                     );
+
 
                 this.selectedBarberName =
                     item?.name ?? '';
 
+
                 this.selectedTime =
                     null;
+
 
                 if (load) {
                     this.loadSlots();
                 }
+
             },
+
 
             selectService(
                 id,
                 load = true
             ) {
-                this.serviceId = id;
+
+                this.serviceId =
+                    Number(id);
+
 
                 const item =
                     serviceData.find(
                         service =>
-                            service.id === id
+                            Number(service.id) ===
+                            Number(id)
                     );
+
 
                 this.selectedServiceName =
                     item?.name ?? '';
 
+
                 this.selectedPrice =
-                    item?.price ?? 0;
+                    Number(
+                        item?.price ?? 0
+                    );
+
+
+                this.selectedDuration =
+                    Number(
+                        item?.duration ?? 0
+                    );
+
 
                 this.selectedTime =
                     null;
 
+
                 if (load) {
                     this.loadSlots();
                 }
+
             },
 
+
             selectDate(cell) {
+
                 if (
                     !cell ||
                     cell.disabled
@@ -1048,108 +1311,155 @@
                     return;
                 }
 
+
                 this.selectedDate =
                     cell.iso;
+
 
                 this.selectedTime =
                     null;
 
+
                 this.loadSlots();
+
             },
 
+
             get selectedDateLabel() {
+
+                if (!this.selectedDate) {
+                    return '';
+                }
+
+
+                const date =
+                    new Date(
+                        `${this.selectedDate}T00:00:00`
+                    );
+
+
                 if (
-                    !this.selectedDate
+                    Number.isNaN(
+                        date.getTime()
+                    )
                 ) {
                     return '';
                 }
 
-                return this.persianFormatter
-                    .format(
-                        new Date(
-                            `${this.selectedDate}T00:00:00`
-                        )
-                    );
+
+                return this.persianFormatter.format(
+                    date
+                );
+
             },
 
+
             async loadSlots() {
+
                 if (
                     !this.barberId ||
                     !this.serviceId ||
                     !this.selectedDate
                 ) {
+
                     this.slots = [];
+
                     return;
+
                 }
+
 
                 this.loadingSlots =
                     true;
 
+
                 try {
+
                     const url =
                         new URL(
-                            window.location.href
+                            "{{ route('public.salons.booking.availability', $salon) }}",
+                            window.location.origin
                         );
 
-                    url.search = '';
-
-                    url.searchParams.set(
-                        'availability',
-                        '1'
-                    );
 
                     url.searchParams.set(
                         'barber_id',
                         this.barberId
                     );
 
+
                     url.searchParams.set(
                         'service_id',
                         this.serviceId
                     );
+
 
                     url.searchParams.set(
                         'booking_date',
                         this.selectedDate
                     );
 
+
                     const response =
                         await fetch(
                             url.toString(),
                             {
+                                method: 'GET',
+
                                 headers: {
-                                    Accept:
-                                        'application/json'
+                                    'Accept':
+                                        'application/json',
+
+                                    'X-Requested-With':
+                                        'XMLHttpRequest'
                                 }
                             }
                         );
 
-                    if (
-                        !response.ok
-                    ) {
+
+                    if (!response.ok) {
+
                         throw new Error(
-                            'Availability request failed'
+                            `Availability failed: ${response.status}`
                         );
+
                     }
+
 
                     const data =
                         await response.json();
 
+
                     this.slots =
-                        data.slots ?? [];
+                        Array.isArray(data.slots)
+                            ? data.slots
+                            : [];
+
 
                 } catch (error) {
 
+                    console.error(
+                        'Booking availability error:',
+                        error
+                    );
+
+
                     this.slots = [];
+
 
                 } finally {
 
                     this.loadingSlots =
                         false;
+
                 }
+
             }
+
+        };
+
         }
-        }
+
     </script>
 
 @endsection

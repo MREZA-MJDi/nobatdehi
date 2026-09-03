@@ -136,4 +136,22 @@ class Salon extends Model
             'salon_id'
         );
     }
+
+    public function portfolioItems(): HasMany
+    {
+        return $this->hasMany(
+            PortfolioItem::class,
+            'salon_id'
+        )
+            ->orderBy('sort_order')
+            ->latest('id');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(
+            Review::class,
+            'salon_id'
+        );
+    }
 }

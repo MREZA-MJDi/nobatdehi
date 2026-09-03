@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.salon')
 
 @section('title', 'ایجاد خدمت')
 
@@ -56,7 +56,7 @@
             @csrf
 
 
-            <div class="grid gap-5 sm:grid-cols-2">
+
 
                 <div class="form-group sm:col-span-2">
 
@@ -133,43 +133,92 @@
                 </div>
 
 
-                <div class="form-group">
+            <div
+                class="form-group"
+                x-data="{
+        rawPrice: @js(old('price', '')),
 
-                    <label
-                        for="price"
-                        class="form-label"
+        get formattedPrice() {
+            if (!this.rawPrice) {
+                return '';
+            }
+
+            const digits = String(this.rawPrice)
+                .replace(/[^0-9]/g, '');
+
+            if (!digits) {
+                return '';
+            }
+
+            return Number(digits).toLocaleString('en-US');
+        },
+
+        updatePrice(value) {
+            this.rawPrice = String(value)
+                .replace(/[^0-9]/g, '');
+        }
+    }"
+            >
+
+                <label
+                    for="price_display"
+                    class="form-label"
+                >
+                    قیمت خدمت
+                </label>
+
+                <div class="relative">
+
+                    {{-- چیزی که کاربر می‌بیند --}}
+                    <input
+                        id="price_display"
+                        type="text"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        class="form-control pl-20 text-left"
+                        placeholder="مثلاً 500,000"
+                        :value="formattedPrice"
+                        @input="updatePrice($event.target.value)"
                     >
-                        قیمت
-                    </label>
 
-                    <div class="relative">
+                    {{-- مقدار واقعی که به Laravel ارسال می‌شود --}}
+                    <input
+                        type="hidden"
+                        name="price"
+                        :value="rawPrice"
+                    >
 
-                        <input
-                            id="price"
-                            type="number"
-                            name="price"
-                            value="{{ old('price', 0) }}"
-                            class="form-control pl-16"
-                            min="0"
-                            step="1000"
-                            inputmode="numeric"
-                            required
-                        >
-
-                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-content-muted">
-                            تومان
-                        </span>
-
-                    </div>
-
-                    @error('price')
-                    <div class="form-error">
-                        {{ $message }}
-                    </div>
-                    @enderror
+                    <span
+                        class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-content-muted"
+                    >
+            تومان
+        </span>
 
                 </div>
 
+
+                <div class="mt-2 flex items-center justify-between gap-3">
+
+                    <div class="text-[10px] leading-5 text-content-muted">
+                        مبلغ را به تومان وارد کنید.
+                    </div>
+
+                    <div class="shrink-0 rounded-lg bg-accent-50 px-2 py-1 text-[9px] font-black text-accent-700">
+                        تومان
+                    </div>
+
+                </div>
+
+
+                @error('price')
+
+                <div class="form-error">
+                    {{ $message }}
+                </div>
+
+                @enderror
+
+            </div>
 
                 <div class="form-group">
 

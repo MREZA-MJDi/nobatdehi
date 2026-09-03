@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\RegisterController;
 
 use App\Http\Controllers\Customer\BookingController as CustomerBookingController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
+use App\Http\Controllers\Customer\ReviewController as CustomerReviewController;
 
 use App\Http\Controllers\PublicSite\DiscoverController;
 use App\Http\Controllers\PublicSite\SalonController as PublicSalonController;
@@ -19,6 +20,8 @@ use App\Http\Controllers\Salon\BarberController as SalonBarberController;
 use App\Http\Controllers\Salon\BookingController as SalonBookingController;
 use App\Http\Controllers\Salon\DashboardController as SalonDashboardController;
 use App\Http\Controllers\Salon\NotificationController as SalonNotificationController;
+use App\Http\Controllers\Salon\PortfolioItemController as SalonPortfolioController;
+use App\Http\Controllers\Salon\ReviewController as SalonReviewController;
 use App\Http\Controllers\Salon\ServiceController as SalonServiceController;
 use App\Http\Controllers\Salon\WorkingHourController as SalonWorkingHourController;
 
@@ -44,47 +47,41 @@ Route::get(
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC SALON
+| PUBLIC SALON + BOOKING
 |--------------------------------------------------------------------------
-|
-| Public salon page and booking flow.
-|
 */
 
-Route::get(
-    '/salons/{salon}/booking',
-    [CustomerBookingController::class, 'create']
-)->name('public.salons.booking.create');
+Route::prefix('salons/{salon}')->name('public.salons.')->group(function () {
 
-Route::get(
-    '/salons/{salon}/booking/availability',
-    [CustomerBookingController::class, 'availability']
-)->name('public.salons.booking.availability');
+    Route::get(
+        '/booking',
+        [CustomerBookingController::class, 'create']
+    )->name('booking.create');
 
-Route::post(
-    '/salons/{salon}/booking/prepare',
-    [CustomerBookingController::class, 'prepare']
-)->name('public.salons.booking.prepare');
+    Route::get(
+        '/booking/availability',
+        [CustomerBookingController::class, 'availability']
+    )->name('booking.availability');
 
-Route::get(
-    '/salons/{salon}',
-    [PublicSalonController::class, 'show']
-)->name('public.salons.show');
+    Route::post(
+        '/booking/prepare',
+        [CustomerBookingController::class, 'prepare']
+    )->name('booking.prepare');
+
+    Route::get(
+        '/',
+        [PublicSalonController::class, 'show']
+    )->name('show');
+});
 
 
 /*
 |--------------------------------------------------------------------------
-| GUEST AUTHENTICATION
+| GUEST AUTH
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('guest')->group(function () {
-
-    /*
-    |--------------------------------------------------------------------------
-    | Login
-    |--------------------------------------------------------------------------
-    */
 
     Route::get(
         '/login',
@@ -97,12 +94,6 @@ Route::middleware('guest')->group(function () {
     )->name('login.store');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Register
-    |--------------------------------------------------------------------------
-    */
-
     Route::get(
         '/register',
         [RegisterController::class, 'create']
@@ -113,12 +104,6 @@ Route::middleware('guest')->group(function () {
         [RegisterController::class, 'store']
     )->name('register.store');
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Register OTP
-    |--------------------------------------------------------------------------
-    */
 
     Route::get(
         '/register/verify',
@@ -136,9 +121,10 @@ Route::middleware('guest')->group(function () {
     )->name('register.verify.resend');
 });
 
+
 /*
 |--------------------------------------------------------------------------
-| AUTHENTICATED USERS
+| AUTHENTICATED
 |--------------------------------------------------------------------------
 */
 
@@ -174,6 +160,13 @@ Route::middleware('auth')->group(function () {
                 CustomerDashboardController::class
             )->name('dashboard');
 
+
+            /*
+            |------------------------------------------------------------------
+            | Booking
+            |------------------------------------------------------------------
+            */
+
             Route::get(
                 '/bookings/confirm',
                 [CustomerBookingController::class, 'confirm']
@@ -183,6 +176,23 @@ Route::middleware('auth')->group(function () {
                 '/bookings',
                 [CustomerBookingController::class, 'store']
             )->name('bookings.store');
+
+
+            /*
+            |------------------------------------------------------------------
+            | Reviews
+            |------------------------------------------------------------------
+            */
+
+            Route::get(
+                '/bookings/{booking}/review',
+                [CustomerReviewController::class, 'create']
+            )->name('bookings.review.create');
+
+            Route::post(
+                '/bookings/{booking}/review',
+                [CustomerReviewController::class, 'store']
+            )->name('bookings.review.store');
         });
 
 
@@ -200,9 +210,9 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
 
             /*
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
             | Dashboard
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
             */
 
             Route::get(
@@ -212,37 +222,33 @@ Route::middleware('auth')->group(function () {
 
 
             /*
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
             | Barbers
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
             */
 
             Route::resource(
                 'barbers',
                 SalonBarberController::class
-            )->except([
-                'show',
-            ]);
+            )->except('show');
 
 
             /*
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
             | Services
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
             */
 
             Route::resource(
                 'services',
                 SalonServiceController::class
-            )->except([
-                'show',
-            ]);
+            )->except('show');
 
 
             /*
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
             | Working Hours
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
             */
 
             Route::get(
@@ -254,18 +260,36 @@ Route::middleware('auth')->group(function () {
                 '/working-hours',
                 [SalonWorkingHourController::class, 'update']
             )->name('working-hours.update');
-
+            Route::post(
+                '/working-hours/apply-default',
+                [SalonWorkingHourController::class, 'applyDefault']
+            )->name('working-hours.apply-default');
 
             /*
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
             | Bookings
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
             */
 
             Route::get(
                 '/bookings',
                 [SalonBookingController::class, 'index']
             )->name('bookings.index');
+
+            Route::get(
+                '/bookings/create',
+                [SalonBookingController::class, 'create']
+            )->name('bookings.create');
+
+            Route::get(
+                '/bookings/availability',
+                [SalonBookingController::class, 'availability']
+            )->name('bookings.availability');
+
+            Route::post(
+                '/bookings',
+                [SalonBookingController::class, 'storeManual']
+            )->name('bookings.store-manual');
 
             Route::get(
                 '/bookings/{booking}',
@@ -279,9 +303,38 @@ Route::middleware('auth')->group(function () {
 
 
             /*
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
+            | Portfolio
+            |------------------------------------------------------------------
+            */
+
+            Route::resource(
+                'portfolio',
+                SalonPortfolioController::class
+            )->except('show');
+
+
+            /*
+            |------------------------------------------------------------------
+            | Reviews
+            |------------------------------------------------------------------
+            */
+
+            Route::get(
+                '/reviews',
+                [SalonReviewController::class, 'index']
+            )->name('reviews.index');
+
+            Route::patch(
+                '/reviews/{review}/publish',
+                [SalonReviewController::class, 'togglePublished']
+            )->name('reviews.publish');
+
+
+            /*
+            |------------------------------------------------------------------
             | Notifications
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
             */
 
             Route::get(
@@ -305,14 +358,11 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     | SUPER ADMIN
     |--------------------------------------------------------------------------
-    |
-    | Super Admin manages salons only.
-    |
     */
 
-    Route::middleware([
-        'role:' . UserRole::SUPER_ADMIN->value,
-    ])
+    Route::middleware(
+        'role:' . UserRole::SUPER_ADMIN->value
+    )
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {

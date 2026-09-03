@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.salon')
 
 @section('title', 'نوبت‌های سالن')
 
@@ -17,20 +17,9 @@
             '8' => '۸',
             '9' => '۹',
         ];
-
-        $dateFormatter = new IntlDateFormatter(
-            'fa_IR@calendar=persian',
-            IntlDateFormatter::LONG,
-            IntlDateFormatter::NONE,
-            config('app.timezone'),
-            IntlDateFormatter::TRADITIONAL
-        );
     @endphp
 
-
     <div class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-
-        {{-- Header --}}
 
         <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
@@ -52,15 +41,20 @@
                 </h1>
 
                 <p class="mt-2 text-xs leading-6 text-content-muted">
-                    نوبت‌های مشتریان و وضعیت آن‌ها را مدیریت کنید.
+                    نوبت‌های مشتریان و رزروهای دستی سالن را مدیریت کنید.
                 </p>
 
             </div>
 
+            <a
+                href="{{ route('salon.bookings.create') }}"
+                class="btn btn-accent"
+            >
+                + ثبت نوبت دستی
+            </a>
+
         </div>
 
-
-        {{-- Errors --}}
 
         @if($errors->any())
 
@@ -86,8 +80,9 @@
                 @foreach($bookings as $booking)
 
                     @php
-                        $bookingDate = $dateFormatter->format(
-                            $booking->booking_date
+                        $bookingDate = strtr(
+                            $booking->booking_date->format('Y/m/d'),
+                            $persianDigits
                         );
 
                         $startTime = strtr(
@@ -109,19 +104,18 @@
                         );
                     @endphp
 
-
                     <article class="card p-4 sm:p-5">
 
                         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-                            {{-- Customer / Service --}}
 
                             <div class="min-w-0">
 
                                 <div class="flex items-start gap-3">
 
                                     <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent-50 text-sm font-black text-accent-700">
+
                                         {{ mb_substr($booking->customer?->name ?? 'م', 0, 1) }}
+
                                     </div>
 
                                     <div class="min-w-0">
@@ -146,11 +140,9 @@
                             </div>
 
 
-                            {{-- Date / Time --}}
-
                             <div class="flex flex-wrap items-center gap-2">
 
-                                <span class="badge badge-neutral">
+                                <span class="badge">
                                     {{ $bookingDate }}
                                 </span>
 
@@ -165,8 +157,6 @@
                             </div>
 
 
-                            {{-- Price --}}
-
                             <div>
 
                                 <div class="text-[10px] text-content-muted">
@@ -174,14 +164,12 @@
                                 </div>
 
                                 <div class="mt-1 text-sm font-black text-content">
-                                    {{ number_format($booking->price) }}
+                                    {{ strtr(number_format($booking->price), $persianDigits) }}
                                     تومان
                                 </div>
 
                             </div>
 
-
-                            {{-- Status --}}
 
                             <div>
 
@@ -224,8 +212,6 @@
                             </div>
 
 
-                            {{-- Action --}}
-
                             <div class="shrink-0">
 
                                 <a
@@ -259,28 +245,7 @@
             <section class="card p-8 text-center">
 
                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-50 text-accent-600">
-
-                    <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <rect
-                            x="4"
-                            y="5"
-                            width="16"
-                            height="16"
-                            rx="2"
-                        />
-
-                        <path d="M8 3v4" />
-                        <path d="M16 3v4" />
-                        <path d="M4 10h16" />
-                    </svg>
-
+                    ◷
                 </div>
 
                 <h2 class="mt-4 text-base font-black text-content">
@@ -288,8 +253,15 @@
                 </h2>
 
                 <p class="mt-2 text-xs leading-6 text-content-muted">
-                    وقتی مشتری نوبت بگیرد، اینجا نمایش داده می‌شود.
+                    می‌توانید اولین نوبت را به‌صورت دستی ثبت کنید.
                 </p>
+
+                <a
+                    href="{{ route('salon.bookings.create') }}"
+                    class="btn btn-accent mt-5"
+                >
+                    ثبت نوبت دستی
+                </a>
 
             </section>
 

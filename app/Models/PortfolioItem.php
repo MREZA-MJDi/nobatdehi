@@ -2,34 +2,33 @@
 
 namespace App\Models;
 
-use App\Enums\BookingStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Booking extends Model
+class PortfolioItem extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'salon_id',
         'barber_id',
         'service_id',
-        'customer_id',
-        'booking_date',
-        'start_time',
-        'end_time',
-        'price',
-        'status',
-        'notes',
+        'title',
+        'description',
+        'before_image_path',
+        'after_image_path',
+        'is_active',
+        'sort_order',
     ];
 
     protected function casts(): array
     {
         return [
-            'booking_date' => 'date',
-            'price' => 'integer',
-            'status' => BookingStatus::class,
+            'is_active' => 'boolean',
+            'sort_order' => 'integer',
         ];
     }
 
@@ -51,21 +50,6 @@ class Booking extends Model
     {
         return $this->belongsTo(
             Service::class
-        );
-    }
-
-    public function customer(): BelongsTo
-    {
-        return $this->belongsTo(
-            User::class,
-            'customer_id'
-        );
-    }
-
-    public function review(): HasOne
-    {
-        return $this->hasOne(
-            Review::class
         );
     }
 }
