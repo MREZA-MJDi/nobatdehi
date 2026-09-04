@@ -8,31 +8,64 @@ use Illuminate\Validation\Rule;
 
 class RegisterRequest extends FormRequest
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Authorization
+    |--------------------------------------------------------------------------
+    */
+
     public function authorize(): bool
     {
         return true;
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prepare Input
+    |--------------------------------------------------------------------------
+    */
+
     protected function prepareForValidation(): void
     {
-        try {
-            $phone = PhoneNumber::normalize(
-                $this->input('phone', '')
+        $rawPhone =
+            (string) $this->input(
+                'phone',
+                ''
             );
 
-            $this->merge([
-                'phone' => $phone,
-            ]);
+
+        try {
+
+            $phone =
+                PhoneNumber::normalize(
+                    $rawPhone
+                );
+
         } catch (\Throwable) {
-            $this->merge([
-                'phone' => $this->input('phone', ''),
-            ]);
+
+            $phone =
+                $rawPhone;
         }
+
+
+        $this->merge([
+            'phone' =>
+                $phone,
+        ]);
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rules
+    |--------------------------------------------------------------------------
+    */
 
     public function rules(): array
     {
         return [
+
             'name' => [
                 'required',
                 'string',
@@ -40,25 +73,38 @@ class RegisterRequest extends FormRequest
                 'max:120',
             ],
 
+
             'phone' => [
                 'required',
+                'string',
                 'regex:/^09\d{9}$/',
+
                 Rule::unique(
                     'users',
                     'phone'
                 ),
             ],
 
+
             'terms' => [
                 'required',
                 'accepted',
             ],
+
         ];
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Messages
+    |--------------------------------------------------------------------------
+    */
 
     public function messages(): array
     {
         return [
+
             'name.required' =>
                 'نام و نام خانوادگی الزامی است.',
 
@@ -71,8 +117,12 @@ class RegisterRequest extends FormRequest
             'name.max' =>
                 'نام و نام خانوادگی نباید بیشتر از ۱۲۰ کاراکتر باشد.',
 
+
             'phone.required' =>
                 'شماره موبایل الزامی است.',
+
+            'phone.string' =>
+                'شماره موبایل معتبر نیست.',
 
             'phone.regex' =>
                 'شماره موبایل معتبر نیست.',
@@ -80,11 +130,13 @@ class RegisterRequest extends FormRequest
             'phone.unique' =>
                 'این شماره موبایل قبلاً ثبت شده است. وارد شوید.',
 
+
             'terms.required' =>
                 'پذیرش قوانین الزامی است.',
 
             'terms.accepted' =>
                 'برای ثبت‌نام باید قوانین و شرایط استفاده را بپذیرید.',
+
         ];
     }
 }

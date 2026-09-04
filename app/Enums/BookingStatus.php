@@ -18,4 +18,19 @@ enum BookingStatus: string
             self::CANCELLED => 'لغو شده',
         };
     }
+
+    /**
+     * آیا این وضعیت باید در محاسبه availability
+     * زمان را اشغال‌شده در نظر بگیرد؟
+     */
+    public function blocksAvailability(): bool
+    {
+        return match ($this) {
+            self::PENDING,
+            self::CONFIRMED => true,
+
+            self::COMPLETED,
+            self::CANCELLED => false,
+        };
+    }
 }

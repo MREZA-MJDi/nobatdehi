@@ -1,1651 +1,540 @@
-
-@extends('layouts.app')
-
-@section('title', 'پیدا کردن سالن')
-
-@section(
-    'meta_description',
-    'سالن یا آرایشگر موردنظر خود را با نام، کد اختصاصی یا موقعیت پیدا کنید و نوبت بگیرید.'
-)
-
-@section('content')
-
-    @php
-        use Illuminate\Support\Facades\Storage;
-
-        $persianDigits = [
-            '0' => '۰',
-            '1' => '۱',
-            '2' => '۲',
-            '3' => '۳',
-            '4' => '۴',
-            '5' => '۵',
-            '6' => '۶',
-            '7' => '۷',
-            '8' => '۸',
-            '9' => '۹',
-        ];
-
-        $activeSalonCount = $activeSalonCount ?? 0;
-        $activeBarberCount = $activeBarberCount ?? 0;
-        $bookingCount = $bookingCount ?? 0;
-
-        $barbers = $barbers ?? collect();
-        $mapSalons = $mapSalons ?? collect();
-
-        $query = trim((string) ($query ?? request('q', '')));
-        $code = trim((string) ($code ?? request('code', '')));
-
-        $currentType = $type ?? request('type', 'all');
-
-        if (!in_array($currentType, ['all', 'salon', 'barber'], true)) {
-            $currentType = 'all';
-        }
-
-        $salonCountText = strtr(
-            number_format($activeSalonCount),
-            $persianDigits
-        );
-
-        $barberCountText = strtr(
-            number_format($activeBarberCount),
-            $persianDigits
-        );
-
-        $bookingCountText = strtr(
-            number_format($bookingCount),
-            $persianDigits
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Map Data
-        |--------------------------------------------------------------------------
-        */
-
-        $mapData = $mapSalons
-            ->map(function ($salon) {
-
-                $lat = (float) $salon->latitude;
-                $lng = (float) $salon->longitude;
-
-                return [
-                    'id' => $salon->id,
-                    'name' => $salon->name,
-                    'slug' => $salon->slug,
-                    'lat' => $lat,
-                    'lng' => $lng,
-                    'city' => $salon->city,
-                    'district' => $salon->district,
-
-                    'url' => route(
-                        'public.salons.show',
-                        $salon
-                    ),
-
-                    'booking_url' => route(
-                        'public.salons.booking.create',
-                        $salon
-                    ),
-
-                    'maps_url' =>
-                        'https://www.google.com/maps/dir/?api=1&destination=' .
-                        urlencode($lat . ',' . $lng),
-                ];
-            })
-            ->values();
-
-        $firstMapSalon = $mapData->first();
-    @endphp
-
-
-    <div
-        x-data="{
-            mode: @js($currentType),
-
-            recentOpen: false,
-            mapOpen: false,
-
-            selectedMapSalon: @js($firstMapSalon),
-
-            setMode(value) {
-                this.mode = value;
-            },
-
-            selectMapSalon(salon) {
-                this.selectedMapSalon = salon;
-            },
-
-            openMap(salon = null) {
-                if (salon) {
-                    this.selectedMapSalon = salon;
-                }
-
-                this.mapOpen = true;
-            },
-
-            closeMap() {
-                this.mapOpen = false;
-            },
-
-            saveRecentSearch(value) {
-                const normalized = value?.trim();
-
-                if (!normalized) {
-                    return;
-                }
-
-                const key = 'nobatdehi_recent_searches';
-
-                let items = [];
-
-                try {
-                    items = JSON.parse(
-                        localStorage.getItem(key) || '[]'
-                    );
-
-                    if (!Array.isArray(items)) {
-                        items = [];
-                    }
-                } catch (e) {
-                    items = [];
-                }
-
-                items = [
-                    normalized,
-                    ...items.filter(
-                        item => item !== normalized
-                    )
-                ].slice(0, 6);
-
-                localStorage.setItem(
-                    key,
-                    JSON.stringify(items)
-                );
-
-                this.recentOpen = true;
-            },
-
-            getRecentSearches() {
-                try {
-                    const value = JSON.parse(
-                        localStorage.getItem(
-                            'nobatdehi_recent_searches'
-                        ) || '[]'
-                    );
-
-                    return Array.isArray(value)
-                        ? value
-                        : [];
-
-                } catch (e) {
-                    return [];
-                }
-            },
-
-            useCurrentLocation() {
-                if (!navigator.geolocation) {
-                    toast.warning(
-                        'مرورگر شما از مکان‌یابی پشتیبانی نمی‌کند.'
-                    );
-
-                    return;
-                }
-
-                navigator.geolocation.getCurrentPosition(
-                    position => {
-
-                        const lat =
-                            position.coords.latitude;
-
-                        const lng =
-                            position.coords.longitude;
-
-                        window.location.href =
-                            '{{ route('salons.discover') }}'
-                            + '?lat='
-                            + encodeURIComponent(lat)
-                            + '&lng='
-                            + encodeURIComponent(lng);
-
-                    },
-
-                    () => {
-                        toast.error(
-                            'دسترسی به موقعیت مکانی امکان‌پذیر نشد.'
-                        );
-                    },
-
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 60000
-                    }
-                );
-            }
-        }"
-        class="app-container"
-    >
-
-
-        {{-- ============================================================
-            HERO
-        ============================================================= --}}
-
-        <section class="discover-hero relative overflow-hidden">
-
-            <div
-                class="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-accent-500/10 blur-3xl"
-            ></div>
-
-
-            <div
-                class="pointer-events-none absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-primary-500/5 blur-3xl"
-            ></div>
-
-
-            <div class="relative z-10">
-
-                {{-- Eyebrow --}}
-
-                <div class="discover-eyebrow">
-
-                    <span
-                        class="flex h-7 w-7 items-center justify-center rounded-full bg-accent-100 text-accent-700"
-                    >
-
-                        <svg
-                            width="15"
-                            height="15"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-                            <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                            <circle cx="12" cy="10" r="2.5" />
-                        </svg>
-
+@extends('layouts.customer')
+
+@section('title', $seoTitle ?? 'کشف سالن و آرایشگر | RM نوبت‌دهی')
+@section('meta_description', $seoDescription ?? 'سالن، آرایشگر و خدمات زیبایی مناسب خودت را پیدا کن و نوبت بگیر.')
+@section('robots', $robots ?? 'index,follow')
+
+@push('head')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+@endpush
+
+@php
+    $mediaUrl = function (?string $path): ?string {
+        if (!$path) return null;
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) return $path;
+        return \Illuminate\Support\Facades\Storage::url($path);
+    };
+
+    $fa = fn ($value) => strtr((string) $value, [
+        '0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹',
+    ]);
+
+    $salonImage = function ($salon) use ($mediaUrl) {
+        if ($salon->cover_path) return $mediaUrl($salon->cover_path);
+        if ($salon->logo_path) return $mediaUrl($salon->logo_path);
+        $portfolio = $salon->portfolioItems?->first();
+        if ($portfolio?->after_image_path) return $mediaUrl($portfolio->after_image_path);
+        if ($portfolio?->before_image_path) return $mediaUrl($portfolio->before_image_path);
+        return null;
+    };
+@endphp
+
+<main dir="rtl" class="overflow-hidden">
+
+    {{-- HERO --------------------------------------------------------- --}}
+    <section class="relative isolate overflow-hidden border-b border-border/50">
+        <x-ui.aurora-background intensity="subtle" />
+        <x-ui.grid-pattern
+            :width="52"
+            :height="52"
+            class="fill-transparent stroke-border/60 [mask-image:radial-gradient(ellipse_70%_58%_at_50%_0%,black,transparent)]"
+        />
+        <x-ui.particles :quantity="30" class="text-primary/30" />
+
+        <div class="relative z-10 mx-auto max-w-7xl px-5 pb-20 pt-24 sm:px-8 lg:pb-28 lg:pt-36">
+            <div class="mx-auto max-w-4xl text-center">
+
+                <x-ui.blur-fade direction="down">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-border bg-background/75 px-4 py-2 text-sm font-semibold shadow-soft backdrop-blur-xl">
+                        <span class="size-2 rounded-full bg-primary animate-pulse"></span>
+                        {{ $hasLocation ? 'جستجو بر اساس موقعیت شما' : 'سالن و متخصص مناسب خودت را پیدا کن' }}
                     </span>
+                </x-ui.blur-fade>
 
-                    نزدیک‌ترین جای خوب برای نوبتت را پیدا کن
-
-                </div>
-
-
-                {{-- Heading --}}
-
-                <h1 class="discover-title text-balance">
-
-                    سالن یا آرایشگر
-                    <span>موردنظرت</span>
-                    اینجاست.
-
+                <h1 class="mt-7 text-balance text-4xl font-black leading-tight tracking-tight sm:text-6xl lg:text-7xl">
+                    <x-ui.text-reveal
+                        as="span"
+                        text="پیدا کن، انتخاب کن، نوبت بگیر"
+                    />
+                    <span class="mt-3 block">
+                        <x-ui.animated-gradient-text>
+                            <x-ui.typewriter
+                                :words="[
+                                    'نزدیک خودت',
+                                    'با بهترین امتیازها',
+                                    'با نوبت خالی امروز',
+                                    'برای استایل تو',
+                                ]"
+                                :type-speed="70"
+                                :delete-speed="40"
+                                :hold-time="1700"
+                            />
+                        </x-ui.animated-gradient-text>
+                    </span>
                 </h1>
 
+                <x-ui.blur-fade :delay=".2">
+                    <p class="mx-auto mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+                        سالن‌ها، خدمات و متخصص‌های اطراف خودت را ببین، امتیاز و نمونه‌کارها را بررسی کن و بدون تماس تلفنی نوبت بگیر.
+                    </p>
+                </x-ui.blur-fade>
 
-                <p class="discover-description">
+                {{-- SEARCH ------------------------------------------------ --}}
+                <x-ui.blur-fade :delay=".35">
+                    <form action="{{ route('salons.discover') }}" method="GET" class="mx-auto mt-9 max-w-4xl">
+                        <div class="rounded-3xl border border-border/70 bg-card/95 p-2 shadow-float backdrop-blur-xl">
+                            <div class="grid gap-2 lg:grid-cols-[1fr_1fr_auto_auto]">
 
-                    اسم سالن، نام آرایشگر یا کد اختصاصی سالن را جستجو کن،
-                    بعد خدمات، موقعیت و زمان مناسب را برای رزرو ببین.
-
-                </p>
-
-
-                {{-- ====================================================
-                    SEARCH PANEL
-                ===================================================== --}}
-
-                <div class="search-panel">
-
-
-                    {{-- Search modes --}}
-
-                    <div class="mb-4 flex items-center gap-1 overflow-x-auto pb-1">
-
-                        @foreach([
-                            'all' => 'همه',
-                            'salon' => 'سالن‌ها',
-                            'barber' => 'آرایشگرها',
-                        ] as $value => $label)
-
-                            <button
-                                type="button"
-                                @click="setMode('{{ $value }}')"
-                                class="shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition"
-                                :class="
-                                    mode === '{{ $value }}'
-                                        ? 'bg-primary-950 text-white'
-                                        : 'text-content-muted hover:bg-primary-100 hover:text-content'
-                                "
-                            >
-                                {{ $label }}
-                            </button>
-
-                        @endforeach
-
-                    </div>
-
-
-                    {{-- Search form --}}
-
-                    <form
-                        action="{{ route('salons.discover') }}"
-                        method="GET"
-                        @submit="
-                            saveRecentSearch(
-                                $el.querySelector('[name=q]')?.value
-                                || $el.querySelector('[name=code]')?.value
-                            )
-                        "
-                    >
-
-                        <input
-                            type="hidden"
-                            name="type"
-                            :value="mode === 'all' ? '' : mode"
-                        >
-
-
-                        <div class="search-grid">
-
-
-                            {{-- Search --}}
-
-                            <div class="search-field">
-
-                                <span class="search-field-icon">
-
-                                    <svg
-                                        width="19"
-                                        height="19"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                    >
-                                        <circle cx="11" cy="11" r="6.5" />
-                                        <path d="m16 16 4.5 4.5" />
+                                <div class="flex min-h-14 items-center gap-3 rounded-2xl bg-muted px-4 text-right">
+                                    <svg class="size-5 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>
                                     </svg>
+                                    <div class="min-w-0 flex-1">
+                                        <label for="discover-city" class="block text-xs font-semibold text-muted-foreground">شهر</label>
+                                        <input id="discover-city" name="city" value="{{ $city }}" list="discover-cities" class="mt-1 w-full border-0 bg-transparent p-0 text-sm font-semibold outline-none placeholder:text-muted-foreground/60 focus:ring-0" placeholder="مثلاً تهران">
+                                        <datalist id="discover-cities">
+                                            @foreach($cities as $availableCity)
+                                                <option value="{{ $availableCity }}"></option>
+                                            @endforeach
+                                        </datalist>
+                                    </div>
+                                </div>
 
-                                </span>
-
-
-                                <input
-                                    type="search"
-                                    name="q"
-                                    value="{{ $query }}"
-                                    class="search-input"
-                                    placeholder="اسم سالن یا آرایشگر..."
-                                    autocomplete="off"
-                                >
-
-                            </div>
-
-
-                            {{-- Salon Code --}}
-
-                            <div class="search-field">
-
-                                <span class="search-field-icon">
-
-                                    <svg
-                                        width="19"
-                                        height="19"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                    >
-                                        <rect
-                                            x="4"
-                                            y="4"
-                                            width="16"
-                                            height="16"
-                                            rx="2"
-                                        />
-
-                                        <path d="M8 8h3v3H8z" />
-                                        <path d="M13 13h3v3h-3z" />
-                                        <path d="M14 8h2" />
-                                        <path d="M8 16h2" />
-
+                                <div class="flex min-h-14 items-center gap-3 rounded-2xl bg-muted px-4 text-right">
+                                    <svg class="size-5 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>
                                     </svg>
-
-                                </span>
-
-
-                                <input
-                                    type="search"
-                                    name="code"
-                                    value="{{ $code }}"
-                                    class="search-input"
-                                    placeholder="کد سالن"
-                                    autocomplete="off"
-                                    dir="ltr"
-                                >
-
-                            </div>
-
-
-                            {{-- Submit --}}
-
-                            <button
-                                type="submit"
-                                class="btn btn-accent btn-lg search-submit"
-                            >
-
-                                <svg
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <circle cx="11" cy="11" r="6.5" />
-                                    <path d="m16 16 4.5 4.5" />
-                                </svg>
-
-                                جستجو
-
-                            </button>
-
-                        </div>
-
-                    </form>
-
-
-                    {{-- Quick Actions --}}
-
-                    <div class="mt-3 flex flex-wrap gap-2">
-
-
-                        {{-- Near Me --}}
-
-                        <button
-                            type="button"
-                            class="filter-chip"
-                            @click="useCurrentLocation()"
-                        >
-
-                            <svg
-                                width="15"
-                                height="15"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <circle cx="12" cy="12" r="8" />
-                                <circle cx="12" cy="12" r="2" />
-                                <path d="M12 4v2" />
-                                <path d="M12 18v2" />
-                                <path d="M4 12h2" />
-                                <path d="M18 12h2" />
-                            </svg>
-
-                            نزدیک من
-
-                        </button>
-
-
-                        {{-- Recent Searches --}}
-
-                        <button
-                            type="button"
-                            class="filter-chip"
-                            @click="recentOpen = !recentOpen"
-                        >
-
-                            <svg
-                                width="15"
-                                height="15"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <circle cx="12" cy="12" r="8" />
-                                <path d="M12 8v4l2.5 2" />
-                            </svg>
-
-                            جستجوهای اخیر
-
-                        </button>
-
-                    </div>
-
-
-                    {{-- Recent Searches --}}
-
-                    <div
-                        x-cloak
-                        x-show="recentOpen"
-                        x-transition
-                        x-data="{ items: getRecentSearches() }"
-                        class="mt-3 rounded-2xl border border-border bg-surface-soft p-3"
-                    >
-
-                        <div class="mb-2 flex items-center justify-between gap-3">
-
-                            <div class="text-xs font-black text-content">
-                                جستجوهای اخیر
-                            </div>
-
-
-                            <button
-                                type="button"
-                                class="text-[10px] font-bold text-content-faint hover:text-content"
-                                @click="
-                                    localStorage.removeItem('nobatdehi_recent_searches');
-                                    items = [];
-                                "
-                            >
-                                پاک کردن
-                            </button>
-
-                        </div>
-
-
-                        <div class="flex flex-wrap gap-2">
-
-                            <template
-                                x-for="item in items"
-                                :key="item"
-                            >
-
-                                <a
-                                    :href="
-                                        '{{ route('salons.discover') }}?q='
-                                        + encodeURIComponent(item)
-                                    "
-                                    class="rounded-xl border border-border bg-surface px-3 py-2 text-[10px] font-bold text-content-muted transition hover:border-accent-300 hover:text-accent-600"
-                                    x-text="item"
-                                ></a>
-
-                            </template>
-
-
-                            <template x-if="!items.length">
-
-                                <span class="text-[10px] text-content-faint">
-                                    هنوز جستجویی ثبت نشده است.
-                                </span>
-
-                            </template>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        {{-- ============================================================
-            STATS
-        ============================================================= --}}
-
-        <section class="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-
-
-            {{-- Salons --}}
-
-            <div class="rounded-2xl border border-border bg-surface p-4 shadow-soft">
-
-                <div class="mb-3 flex items-center justify-between">
-
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
-
-                        <svg
-                            width="17"
-                            height="17"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-                            <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                            <circle cx="12" cy="10" r="2.5" />
-                        </svg>
-
-                    </div>
-
-                </div>
-
-
-                <div class="text-xl font-black text-content">
-                    {{ $salonCountText }}
-                </div>
-
-
-                <div class="mt-1 text-xs text-content-muted">
-                    سالن فعال
-                </div>
-
-            </div>
-
-
-            {{-- Barbers --}}
-
-            <div class="rounded-2xl border border-border bg-surface p-4 shadow-soft">
-
-                <div class="mb-3 flex items-center justify-between">
-
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-content-soft">
-
-                        <svg
-                            width="17"
-                            height="17"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-                            <circle cx="12" cy="8" r="3.5" />
-                            <path d="M5 21c.7-4 3.1-6 7-6s6.3 2 7 6" />
-                        </svg>
-
-                    </div>
-
-                </div>
-
-
-                <div class="text-xl font-black text-content">
-                    {{ $barberCountText }}
-                </div>
-
-
-                <div class="mt-1 text-xs text-content-muted">
-                    آرایشگر فعال
-                </div>
-
-            </div>
-
-
-            {{-- Bookings --}}
-
-            <div class="rounded-2xl border border-border bg-surface p-4 shadow-soft">
-
-                <div class="mb-3 flex items-center justify-between">
-
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600">
-
-                        <svg
-                            width="17"
-                            height="17"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-                            <path d="m5 12 4 4L19 6" />
-                        </svg>
-
-                    </div>
-
-                </div>
-
-
-                <div class="text-xl font-black text-content">
-                    {{ $bookingCountText }}
-                </div>
-
-
-                <div class="mt-1 text-xs text-content-muted">
-                    نوبت ثبت‌شده
-                </div>
-
-            </div>
-
-        </section>
-
-
-        {{-- ============================================================
-            RESULTS
-        ============================================================= --}}
-
-        <section class="discover-layout">
-
-
-            {{-- ========================================================
-                RESULT COLUMN
-            ========================================================= --}}
-
-            <div class="results-column">
-
-
-                {{-- Header --}}
-
-                <div class="results-header">
-
-                    <div>
-
-                        <div class="flex flex-wrap items-center gap-2">
-
-                            <h2 class="section-title">
-
-                                @if($query || $code)
-
-                                    نتایج جستجو
-
-                                @elseif($currentType === 'barber')
-
-                                    آرایشگرها
-
-                                @elseif($currentType === 'salon')
-
-                                    سالن‌ها
-
-                                @else
-
-                                    سالن‌های فعال
-
-                                @endif
-
-                            </h2>
-
-
-                            @if($query || $code)
-
-                                <span class="rounded-full bg-accent-100 px-2.5 py-1 text-[10px] font-bold text-accent-700">
+                                    <div class="min-w-0 flex-1">
+                                        <label for="discover-q" class="block text-xs font-semibold text-muted-foreground">خدمت، سالن یا متخصص</label>
+                                        <input id="discover-q" name="q" value="{{ $query }}" class="mt-1 w-full border-0 bg-transparent p-0 text-sm font-semibold outline-none placeholder:text-muted-foreground/60 focus:ring-0" placeholder="مثلاً رنگ مو یا مانیکور">
+                                    </div>
+                                </div>
+
+                                <input type="hidden" name="lat" id="discover-lat" value="{{ $latitude }}">
+                                <input type="hidden" name="lng" id="discover-lng" value="{{ $longitude }}">
+
+                                <button type="button" id="discover-location-button" class="min-h-14 rounded-2xl border border-border bg-background px-5 text-sm font-bold text-content-soft transition hover:border-primary/40 hover:text-primary">
+                                    <span class="inline-flex items-center justify-center gap-2">
+                                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M16.9 16.9l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/>
+                                        </svg>
+                                        <span>موقعیت من</span>
+                                    </span>
+                                </button>
+
+                                <x-ui.shimmer-button type="submit" class="min-h-14 rounded-2xl px-7">
                                     جستجو
-                                </span>
-
-                            @endif
-
-                        </div>
-
-
-                        <p class="results-count mt-1">
-
-                            @if(isset($salons))
-
-                                {{ strtr(
-                                    number_format($salons->total()),
-                                    $persianDigits
-                                ) }}
-
-                                نتیجه
-
-                            @else
-
-                                نتایج موجود
-
-                            @endif
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                {{-- ====================================================
-                    BARBER RESULTS
-                ===================================================== --}}
-
-                @if(
-                    ($currentType === 'barber' || $currentType === 'all') &&
-                    $barbers->isNotEmpty()
-                )
-
-                    <section class="mb-6">
-
-                        <div class="mb-3 flex items-end justify-between gap-3">
-
-                            <div>
-
-                                <div class="text-[10px] font-black tracking-wider text-accent-600">
-                                    BARBERS
-                                </div>
-
-                                <h3 class="mt-1 text-base font-black text-content">
-                                    آرایشگرها
-                                </h3>
-
+                                </x-ui.shimmer-button>
                             </div>
-
                         </div>
-
-
-                        <div class="grid gap-3 sm:grid-cols-2">
-
-
-                            @foreach($barbers as $barber)
-
-                                @php
-                                    $barberSalon = $barber->salon;
-                                @endphp
-
-                                @if($barberSalon)
-
-                                    <a
-                                        href="{{ route(
-                                            'public.salons.show',
-                                            $barberSalon
-                                        ) }}#barbers"
-                                        class="group rounded-2xl border border-border bg-surface p-4 transition duration-200 hover:-translate-y-0.5 hover:border-accent-300 hover:shadow-soft"
-                                    >
-
-                                        <div class="flex items-center gap-3">
-
-                                            <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary-100 text-sm font-black text-content-soft">
-
-                                                @if($barber->image_path)
-
-                                                    <img
-                                                        src="{{ Storage::url($barber->image_path) }}"
-                                                        alt="{{ $barber->name }}"
-                                                        class="h-full w-full object-cover"
-                                                    >
-
-                                                @else
-
-                                                    {{ mb_substr(
-                                                        $barber->name,
-                                                        0,
-                                                        1
-                                                    ) }}
-
-                                                @endif
-
-                                            </div>
-
-
-                                            <div class="min-w-0 flex-1">
-
-                                                <div class="truncate text-sm font-black text-content group-hover:text-accent-700">
-                                                    {{ $barber->name }}
-                                                </div>
-
-
-                                                <div class="mt-1 truncate text-[10px] text-content-muted">
-
-                                                    {{ $barber->specialty ?: 'آرایشگر سالن' }}
-
-                                                </div>
-
-
-                                                <div class="mt-1 flex items-center gap-1 text-[10px] text-content-faint">
-
-                                                    <span>
-                                                        {{ $barberSalon->name }}
-                                                    </span>
-
-                                                    @if($barberSalon->city)
-
-                                                        <span>•</span>
-
-                                                        <span>
-                                                            {{ $barberSalon->city }}
-                                                        </span>
-
-                                                    @endif
-
-                                                </div>
-
-                                            </div>
-
-
-                                            <svg
-                                                width="16"
-                                                height="16"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                stroke-width="1.8"
-                                                class="shrink-0 text-content-faint transition group-hover:text-accent-600"
-                                            >
-                                                <path d="m9 18 6-6-6-6" />
-                                            </svg>
-
-                                        </div>
-
-                                    </a>
-
-                                @endif
-
-                            @endforeach
-
-                        </div>
-
-                    </section>
-
-                @endif
-
-
-                {{-- ====================================================
-                    SALON RESULTS
-                ===================================================== --}}
-
-                @if(
-                    $currentType !== 'barber' &&
-                    $salons->count()
-                )
-
-                    <div class="salon-grid">
-
-                        @foreach($salons as $salon)
-
-                            @php
-
-                                $coverUrl = $salon->cover_path
-                                    ? Storage::url($salon->cover_path)
-                                    : null;
-
-                                $logoUrl = $salon->logo_path
-                                    ? Storage::url($salon->logo_path)
-                                    : null;
-
-                                $hasLocation = (
-                                    $salon->latitude !== null &&
-                                    $salon->longitude !== null
-                                );
-
-                                $mapsUrl = $hasLocation
-                                    ? 'https://www.google.com/maps/dir/?api=1&destination=' .
-                                        urlencode(
-                                            $salon->latitude . ',' .
-                                            $salon->longitude
-                                        )
-                                    : null;
-
-                            @endphp
-
-
-                            <article
-                                class="salon-card card-hover group overflow-hidden"
-                            >
-
-
-                                {{-- Cover --}}
-
-                                <div class="relative h-44 overflow-hidden bg-primary-100">
-
-                                    @if($coverUrl)
-
-                                        <img
-                                            src="{{ $coverUrl }}"
-                                            alt="{{ $salon->name }}"
-                                            class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                                        >
-
-                                    @else
-
-                                        <div
-                                            class="h-full w-full"
-                                            style="
-                                                background:
-                                                radial-gradient(
-                                                circle at 80% 20%,
-                                            {{ $salon->primary_color ?: '#6757E8' }}66,
-                                                transparent 45%
-                                                ),
-                                                linear-gradient(
-                                                135deg,
-                                                #18181b,
-                                                #3f3f46
-                                                );
-                                                "
-                                        ></div>
-
-                                    @endif
-
-
-                                    <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/65 to-transparent"></div>
-
-
-                                    {{-- Status --}}
-
-                                    <div class="absolute left-3 top-3">
-
-                                        @if($salon->is_active)
-
-                                            <span class="rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-md">
-                                                فعال
-                                            </span>
-
-                                        @endif
-
-                                    </div>
-
-
-                                    {{-- Logo --}}
-
-                                    <div class="absolute right-4 bottom-[-1.5rem] flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-4 border-surface bg-primary-950 text-lg font-black text-white shadow-lg">
-
-                                        @if($logoUrl)
-
-                                            <img
-                                                src="{{ $logoUrl }}"
-                                                alt="{{ $salon->name }}"
-                                                class="h-full w-full bg-white object-contain"
-                                            >
-
-                                        @else
-
-                                            {{ mb_substr(
-                                                $salon->name,
-                                                0,
-                                                1
-                                            ) }}
-
-                                        @endif
-
-                                    </div>
-
-                                </div>
-
-
-                                {{-- Content --}}
-
-                                <div class="salon-content pt-8">
-
-
-                                    {{-- Title --}}
-
-                                    <div class="salon-topline">
-
-                                        <div class="min-w-0">
-
-                                            <h3 class="salon-name group-hover:text-accent-700">
-                                                {{ $salon->name }}
-                                            </h3>
-
-
-                                            <p class="salon-type">
-                                                سالن زیبایی
-                                            </p>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    {{-- Location --}}
-
-                                    @if($salon->city || $salon->district)
-
-                                        <div class="salon-meta mt-3">
-
-                                            <div class="salon-meta-item">
-
-                                                <svg
-                                                    width="14"
-                                                    height="14"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    stroke-width="1.8"
-                                                >
-                                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                                    <circle cx="12" cy="10" r="2.5" />
-                                                </svg>
-
-
-                                                <span>
-
-                                                    {{ $salon->city ?: '—' }}
-
-                                                    @if($salon->district)
-
-                                                        ، {{ $salon->district }}
-
-                                                    @endif
-
-                                                </span>
-
-                                            </div>
-
-                                        </div>
-
-                                    @endif
-
-
-                                    {{-- Phone --}}
-
-                                    @if($salon->phone)
-
-                                        <div class="salon-meta">
-
-                                            <div class="salon-meta-item">
-
-                                                <svg
-                                                    width="14"
-                                                    height="14"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    stroke-width="1.8"
-                                                >
-                                                    <path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.1 5.2 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .7 2.9a2 2 0 0 1-.5 2.1L9 10.9a16 16 0 0 0 4.1 4.1l1.2-1.3a2 2 0 0 1 2.1-.5c.9.4 1.9.6 2.9.7A2 2 0 0 1 22 16.9Z" />
-                                                </svg>
-
-
-                                                <span dir="ltr">
-                                                    {{ $salon->phone }}
-                                                </span>
-
-                                            </div>
-
-                                        </div>
-
-                                    @endif
-
-
-                                    {{-- Counters --}}
-
-                                    <div class="mt-4 flex flex-wrap gap-2">
-
-                                        @if(isset($salon->barbers_count))
-
-                                            <span class="rounded-xl bg-primary-100 px-3 py-2 text-[10px] font-bold text-content-muted">
-
-                                                {{ strtr(
-                                                    (string) $salon->barbers_count,
-                                                    $persianDigits
-                                                ) }}
-
-                                                آرایشگر
-
-                                            </span>
-
-                                        @endif
-
-
-                                        @if(isset($salon->services_count))
-
-                                            <span class="rounded-xl bg-primary-100 px-3 py-2 text-[10px] font-bold text-content-muted">
-
-                                                {{ strtr(
-                                                    (string) $salon->services_count,
-                                                    $persianDigits
-                                                ) }}
-
-                                                خدمت
-
-                                            </span>
-
-                                        @endif
-
-                                    </div>
-
-
-                                    {{-- Actions --}}
-
-                                    <div class="mt-4 grid grid-cols-2 gap-2">
-
-
-                                        <a
-                                            href="{{ route(
-                                                'public.salons.show',
-                                                $salon
-                                            ) }}"
-                                            class="btn btn-secondary btn-sm"
-                                        >
-                                            مشاهده سالن
-                                        </a>
-
-
-                                        <a
-                                            href="{{ route(
-                                                'public.salons.booking.create',
-                                                $salon
-                                            ) }}"
-                                            class="btn btn-accent btn-sm"
-                                        >
-                                            رزرو نوبت
-                                        </a>
-
-                                    </div>
-
-
-                                    {{-- Secondary actions --}}
-
-                                    <div class="mt-2 flex items-center justify-between gap-2">
-
-                                        <code
-                                            class="salon-code"
-                                            dir="ltr"
-                                        >
-                                            {{ $salon->code }}
-                                        </code>
-
-
-                                        @if($mapsUrl)
-
-                                            <button
-                                                type="button"
-                                                @click="
-                                                    openMap({
-                                                        id: {{ $salon->id }},
-                                                        name: @js($salon->name),
-                                                        lat: {{ (float) $salon->latitude }},
-                                                        lng: {{ (float) $salon->longitude }},
-                                                        url: @js(route('public.salons.show', $salon)),
-                                                        booking_url: @js(route('public.salons.booking.create', $salon)),
-                                                        maps_url: @js($mapsUrl)
-                                                    })
-                                                "
-                                                class="inline-flex items-center gap-1.5 text-[10px] font-bold text-content-muted transition hover:text-accent-600"
-                                            >
-
-                                                <svg
-                                                    width="14"
-                                                    height="14"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    stroke-width="1.8"
-                                                >
-                                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                                    <circle cx="12" cy="10" r="2.5" />
-                                                </svg>
-
-                                                نقشه
-
-                                            </button>
-
-                                        @endif
-
-                                    </div>
-
-                                </div>
-
-                            </article>
-
-                        @endforeach
-
+                    </form>
+                </x-ui.blur-fade>
+
+                <x-ui.blur-fade :delay=".5">
+                    <div class="mt-10 flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-sm text-muted-foreground">
+                        <span><b class="text-foreground">{{ $fa($activeSalonCount) }}</b> سالن فعال</span>
+                        <span class="hidden size-1 rounded-full bg-border sm:block"></span>
+                        <span><b class="text-foreground">{{ $fa($activeBarberCount) }}</b> متخصص فعال</span>
+                        <span class="hidden size-1 rounded-full bg-border sm:block"></span>
+                        <span><b class="text-foreground">{{ $fa($publishedReviewCount) }}</b> نظر ثبت‌شده</span>
                     </div>
-
-
-                    {{-- Pagination --}}
-
-                    @if(method_exists($salons, 'links'))
-
-                        <div class="mt-6">
-                            {{ $salons->links() }}
-                        </div>
-
-                    @endif
-
-
-                @elseif($currentType !== 'barber')
-
-                    <div class="rounded-3xl border border-dashed border-border bg-surface p-10 text-center">
-
-                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-100 text-content-muted">
-
-                            <svg
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <circle cx="11" cy="11" r="6.5" />
-                                <path d="m16 16 4.5 4.5" />
-                            </svg>
-
-                        </div>
-
-
-                        <h2 class="mt-4 text-base font-black text-content">
-                            نتیجه‌ای پیدا نشد
-                        </h2>
-
-
-                        <p class="mt-2 text-xs leading-6 text-content-muted">
-                            عبارت جستجو یا کد سالن را تغییر بده و دوباره جستجو کن.
-                        </p>
-
-
-                        <a
-                            href="{{ route('salons.discover') }}"
-                            class="btn btn-secondary mt-5"
-                        >
-                            نمایش همه سالن‌ها
-                        </a>
-
-                    </div>
-
-                @endif
-
+                </x-ui.blur-fade>
             </div>
-
-
-            {{-- ========================================================
-                DESKTOP MAP
-            ========================================================= --}}
-
-            <aside class="map-column hidden md:block">
-
-                <div class="map-card sticky top-24 overflow-hidden">
-
-                    @if($mapData->count())
-
-                        <div class="relative min-h-[36rem] overflow-hidden rounded-3xl border border-border bg-surface">
-
-
-                            {{-- Real Google Map --}}
-
-                            <iframe
-                                :key="selectedMapSalon?.lat + '-' + selectedMapSalon?.lng"
-                                :src="
-                                    selectedMapSalon
-                                        ? 'https://www.google.com/maps?q='
-                                            + selectedMapSalon.lat
-                                            + ','
-                                            + selectedMapSalon.lng
-                                            + '&z=15&output=embed'
-                                        : ''
-                                "
-                                title="موقعیت سالن روی Google Maps"
-                                class="absolute inset-0 h-full w-full border-0"
-                                loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade"
-                            ></iframe>
-
-
-                            {{-- Top info --}}
-
-                            <div class="absolute inset-x-3 top-3">
-
-                                <div class="rounded-2xl border border-white/60 bg-white/88 p-3 shadow-float backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/90">
-
-                                    <div class="flex items-center justify-between gap-3">
-
-                                        <div class="min-w-0">
-
-                                            <div class="text-[10px] font-black tracking-wider text-accent-600">
-                                                LOCATION
-                                            </div>
-
-
-                                            <div
-                                                class="mt-1 truncate text-xs font-black text-zinc-950 dark:text-white"
-                                                x-text="selectedMapSalon?.name || 'موقعیت سالن'"
-                                            ></div>
-
-                                        </div>
-
-
-                                        <a
-                                            x-show="selectedMapSalon?.maps_url"
-                                            :href="selectedMapSalon?.maps_url"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="btn btn-secondary btn-sm shrink-0"
-                                        >
-                                            مسیر
-                                        </a>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            {{-- Salon map list --}}
-
-                            <div class="absolute inset-x-3 bottom-3">
-
-                                <div class="max-h-48 overflow-y-auto rounded-2xl border border-white/60 bg-white/88 p-2 shadow-float backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/90">
-
-                                    @foreach($mapData as $mapSalon)
-
-                                        <button
-                                            type="button"
-                                            @click="
-                                                selectMapSalon({
-                                                    id: {{ $mapSalon['id'] }},
-                                                    name: @js($mapSalon['name']),
-                                                    lat: {{ $mapSalon['lat'] }},
-                                                    lng: {{ $mapSalon['lng'] }},
-                                                    url: @js($mapSalon['url']),
-                                                    booking_url: @js($mapSalon['booking_url']),
-                                                    maps_url: @js($mapSalon['maps_url'])
-                                                })
-                                            "
-                                            class="flex w-full items-center justify-between gap-3 rounded-xl p-3 text-right transition hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                                        >
-
-                                            <div class="min-w-0">
-
-                                                <div class="truncate text-xs font-black text-zinc-950 dark:text-white">
-                                                    {{ $mapSalon['name'] }}
-                                                </div>
-
-
-                                                <div class="mt-1 truncate text-[10px] text-zinc-500 dark:text-zinc-400">
-
-                                                    {{ collect([
-                                                        $mapSalon['city'],
-                                                        $mapSalon['district'],
-                                                    ])->filter()->join('، ') }}
-
-                                                </div>
-
-                                            </div>
-
-
-                                            <span class="shrink-0 text-[10px] font-bold text-accent-600">
-                                                انتخاب
-                                            </span>
-
-                                        </button>
-
-                                    @endforeach
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    @else
-
-                        <div class="flex min-h-[36rem] items-center justify-center rounded-3xl border border-dashed border-border bg-surface p-8 text-center">
-
-                            <div>
-
-                                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-100 text-content-muted">
-
-                                    <svg
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                    >
-                                        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                                        <circle cx="12" cy="10" r="2.5" />
-                                    </svg>
-
-                                </div>
-
-
-                                <h3 class="mt-4 text-sm font-black text-content">
-                                    نقشه آماده است
-                                </h3>
-
-
-                                <p class="mt-2 text-[10px] leading-6 text-content-muted">
-                                    به‌محض ثبت مختصات سالن‌ها، موقعیت واقعی آن‌ها در اینجا نمایش داده می‌شود.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                    @endif
-
-                </div>
-
-            </aside>
-
-        </section>
-
-
-        {{-- ============================================================
-            MOBILE MAP BUTTON
-        ============================================================= --}}
-
-        @if($mapData->count())
-
-            <div class="mt-4 md:hidden">
-
-                <button
-                    type="button"
-                    class="btn btn-secondary w-full"
-                    @click="openMap()"
-                >
-
-                    <svg
-                        width="17"
-                        height="17"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                        <circle cx="12" cy="10" r="2.5" />
-                    </svg>
-
-                    نمایش نقشه
-
-                </button>
-
-            </div>
-
-        @endif
-
-
-        {{-- ============================================================
-            MOBILE MAP DRAWER
-        ============================================================= --}}
-
-        <div
-            x-cloak
-            x-show="mapOpen"
-            x-transition.opacity
-            class="fixed inset-0 z-[80] md:hidden"
-        >
-
-            <div
-                class="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                @click="closeMap()"
-            ></div>
-
-
-            <div
-                x-transition:enter="transition ease-out duration-250"
-                x-transition:enter-start="translate-y-full"
-                x-transition:enter-end="translate-y-0"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="translate-y-0"
-                x-transition:leave-end="translate-y-full"
-                class="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-hidden rounded-t-[2rem] border border-border bg-surface p-3 shadow-float"
-            >
-
-                <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-primary-300"></div>
-
-
-                <div class="mb-3 flex items-center justify-between gap-3 px-2">
-
-                    <div class="min-w-0">
-
-                        <div class="text-[10px] font-black tracking-wider text-accent-600">
-                            MAP
-                        </div>
-
-                        <h3
-                            class="mt-1 truncate text-sm font-black text-content"
-                            x-text="selectedMapSalon?.name || 'موقعیت سالن'"
-                        ></h3>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-content-muted"
-                        @click="closeMap()"
-                        aria-label="بستن"
-                    >
-                        ×
-                    </button>
-
-                </div>
-
-
-                <div class="overflow-hidden rounded-2xl border border-border">
-
-                    <iframe
-                        :src="
-                            selectedMapSalon
-                                ? 'https://www.google.com/maps?q='
-                                    + selectedMapSalon.lat
-                                    + ','
-                                    + selectedMapSalon.lng
-                                    + '&z=15&output=embed'
-                                : ''
-                        "
-                        title="موقعیت سالن روی Google Maps"
-                        class="h-[22rem] w-full border-0"
-                        loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"
-                    ></iframe>
-
-                </div>
-
-
-                <div class="mt-3 grid grid-cols-2 gap-2">
-
-                    <a
-                        x-show="selectedMapSalon?.url"
-                        :href="selectedMapSalon?.url"
-                        class="btn btn-secondary"
-                    >
-                        صفحه سالن
-                    </a>
-
-
-                    <a
-                        x-show="selectedMapSalon?.booking_url"
-                        :href="selectedMapSalon?.booking_url"
-                        class="btn btn-accent"
-                    >
-                        رزرو نوبت
-                    </a>
-
-                </div>
-
-
-                <a
-                    x-show="selectedMapSalon?.maps_url"
-                    :href="selectedMapSalon?.maps_url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="btn btn-primary mt-2 w-full"
-                >
-                    باز کردن مسیر در Google Maps ↗
-                </a>
-
-            </div>
-
         </div>
+    </section>
 
-    </div>
+    {{-- CATEGORIES --------------------------------------------------- --}}
+    @if($categories)
+        <section class="py-14 lg:py-20">
+            <div class="mx-auto max-w-7xl px-5 sm:px-8">
+                <div class="mb-7 flex items-end justify-between gap-4">
+                    <div>
+                        <span class="text-sm font-semibold text-primary">شروع سریع</span>
+                        <h2 class="mt-2 text-2xl font-black tracking-tight sm:text-3xl">دنبال چه خدمتی هستی؟</h2>
+                    </div>
+                    <span class="hidden text-sm text-muted-foreground sm:block">پرطرفدارترین جستجوها</span>
+                </div>
 
-@endsection
+                <div class="flex gap-4 overflow-x-auto pb-3 scrollbar-hide">
+                    @foreach($categories as $category)
+                        <x-ui.spotlight-card class="min-w-[220px] shrink-0">
+                            <a href="{{ route('salons.discover', array_filter(['q'=>$category['query'],'city'=>$city,'type'=>$type !== 'all' ? $type : null])) }}" class="block p-5">
+                                <div class="flex items-start justify-between">
+                                    <span class="grid size-12 place-items-center rounded-2xl bg-primary/10 text-2xl text-primary">{{ $category['icon'] }}</span>
+                                    <svg class="size-5 rotate-180 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                </div>
+                                <h3 class="mt-7 text-lg font-black">{{ $category['title'] }}</h3>
+                                <p class="mt-1 text-sm leading-6 text-muted-foreground">{{ $category['subtitle'] }}</p>
+                            </a>
+                        </x-ui.spotlight-card>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
 
+    {{-- SALONS ------------------------------------------------------- --}}
+    <section class="py-14 lg:py-20">
+        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+            <div class="flex items-end justify-between gap-4">
+                <div>
+                    <span class="text-sm font-semibold text-primary">{{ $hasLocation ? 'نزدیک تو' : 'پیشنهادهای امروز' }}</span>
+                    <h2 class="mt-2 text-2xl font-black tracking-tight sm:text-3xl">{{ $type === 'salon' ? 'سالن‌ها' : 'سالن‌های محبوب' }}</h2>
+                    <p class="mt-2 text-sm text-muted-foreground">{{ $fa($salons->total()) }} نتیجه از سالن‌های فعال</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('salons.discover', array_filter(['sort'=>'rating','city'=>$city,'q'=>$query])) }}" class="hidden rounded-xl border border-border px-4 py-2 text-xs font-bold text-muted-foreground hover:border-primary/30 hover:text-primary sm:inline-flex">بیشترین امتیاز</a>
+                    <a href="{{ route('salons.discover', array_filter(['sort'=>'newest','city'=>$city,'q'=>$query])) }}" class="hidden rounded-xl border border-border px-4 py-2 text-xs font-bold text-muted-foreground hover:border-primary/30 hover:text-primary sm:inline-flex">جدیدترین</a>
+                </div>
+            </div>
+
+            @if($salons->count())
+                <div class="mt-8 flex gap-5 overflow-x-auto pb-5 scrollbar-hide">
+                    @foreach($salons as $salon)
+                        @php
+                            $image = $salonImage($salon);
+                            $rating = $salon->reviews_avg_rating !== null ? number_format((float)$salon->reviews_avg_rating, 1, '.', '') : null;
+                        @endphp
+                        <x-ui.blur-fade :delay="($loop->index % 4) * .06" class="min-w-[315px] shrink-0 sm:min-w-[360px]">
+                            <x-ui.tilt-card class="h-full">
+                                <article class="group overflow-hidden rounded-3xl border bg-card shadow-soft transition hover:shadow-card">
+                                    <div class="relative aspect-[1.35] overflow-hidden bg-muted">
+                                        @if($image)
+                                            <img src="{{ $image }}" alt="{{ $salon->name }}" class="h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="lazy">
+                                        @else
+                                            <div class="flex h-full items-center justify-center bg-gradient-to-br from-primary-100 via-accent-50 to-cyan-50">
+                                                <span class="text-5xl font-black text-primary/30">{{ mb_substr($salon->name, 0, 1) }}</span>
+                                            </div>
+                                        @endif
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent"></div>
+                                        @if($hasLocation && isset($salon->distance_km))
+                                            <span class="absolute right-3 top-3 rounded-full bg-background/90 px-3 py-1.5 text-xs font-bold backdrop-blur">{{ $fa(number_format((float)$salon->distance_km, 1, '.', '')) }} کیلومتر</span>
+                                        @endif
+                                        <div class="absolute bottom-4 right-4 left-4 flex items-end justify-between gap-3 text-white">
+                                            <div class="min-w-0">
+                                                <h3 class="truncate text-lg font-black">{{ $salon->name }}</h3>
+                                                <p class="mt-1 truncate text-xs text-white/80">{{ $salon->district ?: $salon->city ?: 'موقعیت ثبت نشده' }}</p>
+                                            </div>
+                                            @if($rating)
+                                                <span class="shrink-0 rounded-xl bg-black/35 px-2.5 py-1.5 text-xs font-bold backdrop-blur">★ {{ $fa($rating) }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="p-5">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div class="rounded-2xl bg-muted p-3"><span class="block text-[11px] text-muted-foreground">متخصص فعال</span><strong class="mt-1 block">{{ $fa($salon->barbers_count) }}</strong></div>
+                                            <div class="rounded-2xl bg-muted p-3"><span class="block text-[11px] text-muted-foreground">خدمت فعال</span><strong class="mt-1 block">{{ $fa($salon->services_count) }}</strong></div>
+                                        </div>
+                                        <div class="mt-3 flex items-center justify-between gap-4 text-xs text-muted-foreground">
+                                            <span>{{ $fa($salon->reviews_count) }} نظر</span>
+                                            <span>{{ $salon->city ?: '—' }}</span>
+                                        </div>
+                                        <div class="mt-5 grid grid-cols-2 gap-2">
+                                            <a href="{{ route('public.salons.show', $salon) }}" class="flex h-11 items-center justify-center rounded-xl bg-foreground text-sm font-bold text-background transition hover:scale-[1.01]">مشاهده سالن</a>
+                                            <a href="{{ route('public.salons.booking.create', $salon) }}" class="flex h-11 items-center justify-center rounded-xl border border-border bg-background text-sm font-bold hover:border-primary/40 hover:text-primary">رزرو</a>
+                                        </div>
+                                    </div>
+                                </article>
+                            </x-ui.tilt-card>
+                        </x-ui.blur-fade>
+                    @endforeach
+                </div>
+
+                @if($salons->hasPages())
+                    <div class="mt-4">{{ $salons->onEachSide(1)->links() }}</div>
+                @endif
+            @else
+                <div class="mt-8 rounded-3xl border border-dashed border-border bg-card p-10 text-center">
+                    <div class="mx-auto grid size-16 place-items-center rounded-2xl bg-muted text-2xl">⌕</div>
+                    <h3 class="mt-4 text-lg font-black">سالنی با این جستجو پیدا نشد</h3>
+                    <p class="mx-auto mt-2 max-w-md text-sm leading-7 text-muted-foreground">عبارت جستجو یا شهر را تغییر بده و دوباره امتحان کن.</p>
+                    <a href="{{ route('salons.discover') }}" class="mt-5 inline-flex rounded-xl bg-foreground px-5 py-3 text-sm font-bold text-background">حذف فیلترها</a>
+                </div>
+            @endif
+        </div>
+    </section>
+
+    {{-- POPULAR BARBERS ---------------------------------------------- --}}
+    @if($barbers->count() && $type !== 'salon')
+        <section class="border-y border-border/50 bg-muted/20 py-14 lg:py-20">
+            <div class="mx-auto max-w-7xl px-5 sm:px-8">
+                <div>
+                    <span class="text-sm font-semibold text-primary">محبوب بین مشتری‌ها</span>
+                    <h2 class="mt-2 text-2xl font-black tracking-tight sm:text-3xl">محبوب‌ترین متخصص‌ها</h2>
+                    <p class="mt-2 text-sm text-muted-foreground">مرتب‌شده بر اساس تعداد نوبت‌های تکمیل‌شده</p>
+                </div>
+
+                <div class="mt-8 flex gap-5 overflow-x-auto pb-4 scrollbar-hide">
+                    @foreach($barbers as $barber)
+                        @php $barberImage = $mediaUrl($barber->image_path); @endphp
+                        <article class="min-w-[285px] shrink-0 rounded-2xl border bg-card p-4 transition hover:-translate-y-1 hover:shadow-card">
+                            <div class="flex items-center gap-4">
+                                <div class="size-16 shrink-0 overflow-hidden rounded-2xl bg-muted">
+                                    @if($barberImage)
+                                        <img src="{{ $barberImage }}" alt="{{ $barber->name }}" class="h-full w-full object-cover" loading="lazy">
+                                    @else
+                                        <div class="flex h-full items-center justify-center text-xl font-black text-primary/50">{{ mb_substr($barber->name, 0, 1) }}</div>
+                                    @endif
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="truncate font-black">{{ $barber->name }}</h3>
+                                    <p class="mt-1 truncate text-xs text-muted-foreground">{{ $barber->specialty ?: 'متخصص زیبایی' }}</p>
+                                    <p class="mt-1 truncate text-xs text-muted-foreground">{{ $barber->salon?->name }}</p>
+                                </div>
+                            </div>
+                            <div class="mt-5 flex items-center justify-between gap-3">
+                                @if($barber->salon?->reviews_avg_rating)
+                                    <span class="text-sm font-bold">★ {{ $fa(number_format((float)$barber->salon->reviews_avg_rating,1,'.','')) }}</span>
+                                @else
+                                    <span class="text-xs text-muted-foreground">امتیاز سالن ثبت نشده</span>
+                                @endif
+                                <span class="text-xs text-muted-foreground">{{ $fa($barber->completed_bookings_count ?? 0) }} رزرو</span>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
+    {{-- AVAILABLE SLOTS ---------------------------------------------- --}}
+    @if($availableSlots->count())
+        <section class="py-14 lg:py-20">
+            <div class="mx-auto max-w-7xl px-5 sm:px-8">
+                <div>
+                    <span class="text-sm font-semibold text-primary">رزرو سریع</span>
+                    <h2 class="mt-2 text-2xl font-black tracking-tight sm:text-3xl">نوبت‌های خالی نزدیک</h2>
+                    <p class="mt-2 text-sm text-muted-foreground">اولین زمان واقعی آزاد برای هر سالن از سیستم زمان‌بندی پیدا شده است.</p>
+                </div>
+
+                <div class="mt-8 flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                    @foreach($availableSlots as $item)
+                        @php
+                            $date = $item['date']->copy()->locale('fa');
+                            $bookingUrl = route('public.salons.booking.create', $item['salon']) . '?' . http_build_query([
+                                'service_id' => $item['service']->id,
+                                'barber_id' => $item['barber']->id,
+                                'date' => $item['date']->format('Y-m-d'),
+                                'start_time' => $item['slot']['start'],
+                            ]);
+                        @endphp
+                        <x-ui.spotlight-card class="min-w-[320px] shrink-0">
+                            <div class="p-5">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <span class="inline-flex rounded-full bg-success-100 px-2.5 py-1 text-[11px] font-bold text-success-700">نوبت آزاد</span>
+                                        <h3 class="mt-3 truncate font-black">{{ $item['salon']->name }}</h3>
+                                    </div>
+                                    <span class="shrink-0 rounded-xl bg-primary/10 px-3 py-2 text-sm font-black text-primary">{{ $fa($item['slot']['start']) }}</span>
+                                </div>
+                                <div class="mt-5 space-y-3 text-sm">
+                                    <div class="flex justify-between gap-4"><span class="text-muted-foreground">روز</span><span class="font-semibold">{{ $date->isoFormat('dddd D MMMM') }}</span></div>
+                                    <div class="flex justify-between gap-4"><span class="text-muted-foreground">خدمت</span><span class="font-semibold">{{ $item['service']->name }}</span></div>
+                                    <div class="flex justify-between gap-4"><span class="text-muted-foreground">متخصص</span><span class="font-semibold">{{ $item['barber']->name }}</span></div>
+                                    <div class="flex justify-between gap-4"><span class="text-muted-foreground">مدت</span><span class="font-semibold">{{ $fa($item['service']->duration_minutes) }} دقیقه</span></div>
+                                    <div class="flex justify-between gap-4"><span class="text-muted-foreground">قیمت</span><span class="font-black">{{ $fa(number_format($item['service']->price)) }} تومان</span></div>
+                                </div>
+                                <a href="{{ $bookingUrl }}" class="mt-6 flex h-11 items-center justify-center rounded-xl bg-foreground text-sm font-bold text-background">رزرو این زمان</a>
+                            </div>
+                        </x-ui.spotlight-card>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
+    {{-- FEATURED ----------------------------------------------------- --}}
+    @if($featuredSalons->count())
+        <section class="relative overflow-hidden bg-slate-950 py-16 text-white lg:py-24">
+            <x-ui.retro-grid :angle="58" :cell-size="64" :opacity=".2" />
+            <div class="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
+                <div>
+                    <span class="text-sm font-semibold text-white/60">ویترین</span>
+                    <h2 class="mt-2 text-2xl font-black tracking-tight sm:text-4xl">سالن‌هایی که ارزش دیدن دارند</h2>
+                    <p class="mt-3 max-w-2xl text-sm leading-7 text-white/60 sm:text-base">کاور سالن، نمونه‌کار، امتیاز و جزئیات را ببین و بعد برای رزرو تصمیم بگیر.</p>
+                </div>
+
+                <div class="mt-10 flex gap-5 overflow-x-auto pb-4 scrollbar-hide">
+                    @foreach($featuredSalons as $salon)
+                        @php
+                            $image = $salonImage($salon);
+                            $rating = $salon->reviews_avg_rating !== null ? number_format((float)$salon->reviews_avg_rating,1,'.','') : null;
+                        @endphp
+                        <article class="group min-w-[330px] shrink-0 overflow-hidden rounded-3xl border border-white/10 bg-white/5 sm:min-w-[440px]">
+                            <div class="relative aspect-[1.08] overflow-hidden bg-white/5">
+                                @if($image)
+                                    <img src="{{ $image }}" alt="{{ $salon->name }}" class="h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="lazy">
+                                @else
+                                    <div class="flex h-full items-center justify-center"><span class="text-6xl font-black text-white/15">{{ mb_substr($salon->name,0,1) }}</span></div>
+                                @endif
+                                <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                                <span class="absolute right-4 top-4 rounded-full border border-white/10 bg-black/30 px-3 py-1.5 text-xs font-bold backdrop-blur">{{ $loop->first ? 'منتخب' : 'محبوب' }}</span>
+                                <div class="absolute bottom-4 right-4 left-4 flex items-end justify-between gap-4">
+                                    <div class="min-w-0"><h3 class="truncate text-xl font-black">{{ $salon->name }}</h3><p class="mt-1 truncate text-sm text-white/70">{{ $salon->district ?: $salon->city ?: '—' }}</p></div>
+                                    @if($rating)<span class="shrink-0 rounded-xl bg-black/40 px-3 py-2 text-sm font-black backdrop-blur">★ {{ $fa($rating) }}</span>@endif
+                                </div>
+                            </div>
+                            <div class="p-5">
+                                @if($salon->portfolioItems?->first())
+                                    <p class="line-clamp-2 text-sm leading-7 text-white/60">{{ $salon->portfolioItems->first()->title ?: 'نمونه‌کارهای این سالن را ببین' }}</p>
+                                @else
+                                    <p class="text-sm leading-7 text-white/60">خدمات، متخصص‌ها و اطلاعات کامل سالن را ببین.</p>
+                                @endif
+                                <div class="mt-5 flex items-center justify-between gap-4">
+                                    <span class="text-xs text-white/50">{{ $fa($salon->reviews_count) }} نظر</span>
+                                    <a href="{{ route('public.salons.show', $salon) }}" class="rounded-xl bg-white px-5 py-2.5 text-sm font-black text-slate-950">مشاهده سالن</a>
+                                </div>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
+    {{-- MAP ---------------------------------------------------------- --}}
+    <section class="py-16 lg:py-24">
+        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+            <div class="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-start">
+                <div>
+                    <span class="text-sm font-semibold text-primary">نقشه سالن‌ها</span>
+                    <h2 class="mt-2 text-3xl font-black tracking-tight">سالن‌های اطرافت را روی نقشه ببین</h2>
+                    <p class="mt-4 leading-8 text-muted-foreground">روی هر سالن بزن تا اطلاعاتش را ببینی. وقتی موقعیت خودت را بدهی، مرتب‌سازی نزدیک‌ترین سالن‌ها هم فعال می‌شود.</p>
+
+                    @if($mapSalons->count())
+                        <div class="mt-8 space-y-3">
+                            @foreach($mapSalons->take(6) as $index => $salon)
+                                <a href="{{ route('public.salons.show', $salon) }}" data-map-focus="{{ $index }}" class="discover-map-row flex items-center gap-4 rounded-2xl border bg-card p-4 transition hover:border-primary/40 hover:shadow-soft">
+                                    <span class="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-black text-primary">{{ $fa($index+1) }}</span>
+                                    <span class="min-w-0 flex-1"><span class="block truncate font-bold">{{ $salon->name }}</span><span class="mt-1 block truncate text-xs text-muted-foreground">{{ $salon->district ?: $salon->city ?: 'موقعیت ثبت نشده' }}</span></span>
+                                    @if($hasLocation && $salon->distance_km !== null)<span class="text-xs font-bold text-primary">{{ $fa(number_format((float)$salon->distance_km,1,'.','')) }} km</span>@endif
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <div class="relative overflow-hidden rounded-3xl border bg-muted shadow-float">
+                    <div id="discover-map" class="h-[460px] w-full" data-map='@json($mapSalons->values())' data-user-lat="{{ $latitude }}" data-user-lng="{{ $longitude }}"></div>
+                    <div class="pointer-events-none absolute bottom-4 right-4 z-[500] rounded-2xl border bg-card/90 p-4 shadow-xl backdrop-blur">
+                        <div class="text-sm font-black">{{ $fa($mapSalons->count()) }} سالن روی نقشه</div>
+                        <div class="mt-1 text-xs text-muted-foreground">موقعیت‌های ثبت‌شده سالن‌ها</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- CTA ---------------------------------------------------------- --}}
+    <section class="relative isolate overflow-hidden border-t border-border/40 py-16 lg:py-24">
+        <x-ui.aurora-background intensity="subtle" />
+        <x-ui.particles :quantity="24" class="text-primary/30" />
+        <div class="relative z-10 mx-auto max-w-4xl px-5 text-center sm:px-8">
+            <x-ui.blur-fade>
+                <span class="inline-flex rounded-full border border-border bg-card/75 px-4 py-2 text-xs font-bold backdrop-blur">آماده‌ای؟</span>
+                <h2 class="mt-6 text-3xl font-black tracking-tight sm:text-5xl">سالن مناسب خودت را پیدا کن، <span class="text-primary">نوبتت را بگیر.</span></h2>
+                <p class="mx-auto mt-5 max-w-2xl text-base leading-8 text-muted-foreground">از جستجو تا رزرو، همه‌چیز را یکجا انجام بده.</p>
+                <div class="mt-8"><x-ui.shimmer-button type="button" class="h-14 px-10 text-base" onclick="window.location.href='{{ route('salons.discover') }}'">شروع جستجو</x-ui.shimmer-button></div>
+            </x-ui.blur-fade>
+        </div>
+    </section>
+
+    {{-- FOOTER ------------------------------------------------------- --}}
+    <footer class="border-t border-border/50 bg-muted/20">
+        <div class="mx-auto max-w-7xl px-5 py-12 sm:px-8">
+            <div class="grid gap-10 md:grid-cols-4">
+                <div class="md:col-span-2">
+                    <div class="text-xl font-black">RM نوبت‌دهی</div>
+                    <p class="mt-4 max-w-md text-sm leading-7 text-muted-foreground">پلتفرم پیدا کردن سالن‌ها، متخصص‌ها و رزرو آنلاین نوبت؛ ساده، سریع و بدون تماس تلفنی.</p>
+                </div>
+                <div><h3 class="font-black">کشف</h3><div class="mt-4 space-y-3 text-sm text-muted-foreground"><a class="block hover:text-foreground" href="{{ route('salons.discover') }}">سالن‌ها</a><a class="block hover:text-foreground" href="{{ route('salons.discover', ['type'=>'barber']) }}">آرایشگرها</a><a class="block hover:text-foreground" href="{{ route('salons.discover') }}?sort=rating">محبوب‌ترین‌ها</a></div></div>
+                <div><h3 class="font-black">برای سالن‌ها</h3><div class="mt-4 space-y-3 text-sm text-muted-foreground"><a class="block hover:text-foreground" href="{{ route('login') }}">ورود</a><a class="block hover:text-foreground" href="{{ route('register') }}">ثبت‌نام</a><a class="block hover:text-foreground" href="{{ route('salons.discover') }}">مشاهده بازار</a></div></div>
+            </div>
+            <div class="mt-10 border-t border-border/50 pt-6 text-xs text-muted-foreground">© {{ now()->year }} RM نوبت‌دهی — همه حقوق محفوظ است.</div>
+        </div>
+    </footer>
+</main>
+
+@push('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const latInput = document.getElementById('discover-lat');
+            const lngInput = document.getElementById('discover-lng');
+            const locationButton = document.getElementById('discover-location-button');
+
+            if (locationButton && latInput && lngInput && 'geolocation' in navigator) {
+                locationButton.addEventListener('click', () => {
+                    const original = locationButton.innerHTML;
+                    locationButton.disabled = true;
+                    locationButton.innerHTML = '<span class="inline-flex items-center gap-2"><span class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span><span>در حال یافتن...</span></span>';
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            latInput.value = position.coords.latitude;
+                            lngInput.value = position.coords.longitude;
+                            const form = locationButton.closest('form');
+                            if (form) {
+                                const sort = document.createElement('input');
+                                sort.type = 'hidden';
+                                sort.name = 'sort';
+                                sort.value = 'nearest';
+                                form.appendChild(sort);
+                                form.submit();
+                            }
+                        },
+                        () => {
+                            locationButton.innerHTML = original;
+                            locationButton.disabled = false;
+                            alert('دسترسی به موقعیت مکانی امکان‌پذیر نشد.');
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+                    );
+                });
+            }
+
+            const mapEl = document.getElementById('discover-map');
+            if (mapEl && window.L) {
+                const salons = JSON.parse(mapEl.dataset.map || '[]');
+                const userLat = parseFloat(mapEl.dataset.userLat || '');
+                const userLng = parseFloat(mapEl.dataset.userLng || '');
+
+                let center = [35.7219, 51.3347];
+                if (Number.isFinite(userLat) && Number.isFinite(userLng)) center = [userLat, userLng];
+                else if (salons.length && salons[0].latitude && salons[0].longitude) center = [Number(salons[0].latitude), Number(salons[0].longitude)];
+
+                const map = L.map(mapEl, { scrollWheelZoom: false }).setView(center, Number.isFinite(userLat) ? 13 : 11);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                const markers = [];
+                salons.forEach((salon, index) => {
+                    if (salon.latitude === null || salon.longitude === null) return;
+                    const marker = L.marker([Number(salon.latitude), Number(salon.longitude)]).addTo(map);
+                    const url = `/salons/${encodeURIComponent(salon.slug)}`;
+                    marker.bindPopup(`<strong>${salon.name ?? ''}</strong><br><a href="${url}">مشاهده سالن</a>`);
+                    markers[index] = marker;
+                });
+
+                if (Number.isFinite(userLat) && Number.isFinite(userLng)) {
+                    L.circleMarker([userLat, userLng], { radius: 8, color: '#4f46e5', fillColor: '#4f46e5', fillOpacity: .35 }).addTo(map).bindPopup('موقعیت شما');
+                }
+
+                document.querySelectorAll('[data-map-focus]').forEach((row) => {
+                    row.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        const index = Number(row.dataset.mapFocus);
+                        const salon = salons[index];
+                        if (!salon || salon.latitude === null || salon.longitude === null) return;
+                        map.setView([Number(salon.latitude), Number(salon.longitude)], 15);
+                        markers[index]?.openPopup();
+                    });
+                });
+
+                setTimeout(() => map.invalidateSize(), 250);
+            }
+        });
+    </script>
+@endpush
