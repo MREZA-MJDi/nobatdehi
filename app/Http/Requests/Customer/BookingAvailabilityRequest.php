@@ -11,9 +11,11 @@ class BookingAvailabilityRequest extends FormRequest
         return true;
     }
 
+
     public function rules(): array
     {
         return [
+
             'barber_id' => [
                 'required',
                 'integer',
@@ -30,8 +32,10 @@ class BookingAvailabilityRequest extends FormRequest
                 'required',
                 'date_format:Y-m-d',
             ],
+
         ];
     }
+
 
     public function messages(): array
     {
@@ -39,14 +43,8 @@ class BookingAvailabilityRequest extends FormRequest
             'barber_id.required' =>
                 'آرایشگر را انتخاب کنید.',
 
-            'barber_id.exists' =>
-                'آرایشگر پیدا نشد.',
-
             'service_id.required' =>
                 'خدمت را انتخاب کنید.',
-
-            'service_id.exists' =>
-                'خدمت پیدا نشد.',
 
             'booking_date.required' =>
                 'تاریخ را انتخاب کنید.',

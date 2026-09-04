@@ -11,9 +11,11 @@ class BookingRequest extends FormRequest
         return $this->user()?->isCustomer() === true;
     }
 
+
     public function rules(): array
     {
         return [
+
             'salon_id' => [
                 'required',
                 'integer',
@@ -47,47 +49,28 @@ class BookingRequest extends FormRequest
                 'string',
                 'max:2000',
             ],
+
         ];
     }
+
 
     public function messages(): array
     {
         return [
             'salon_id.required' =>
-                'انتخاب سالن الزامی است.',
-
-            'salon_id.exists' =>
-                'سالن انتخاب شده پیدا نشد.',
+                'سالن انتخاب نشده است.',
 
             'barber_id.required' =>
-                'انتخاب آرایشگر الزامی است.',
-
-            'barber_id.exists' =>
-                'آرایشگر انتخاب شده پیدا نشد.',
+                'آرایشگر را انتخاب کنید.',
 
             'service_id.required' =>
-                'انتخاب خدمت الزامی است.',
-
-            'service_id.exists' =>
-                'خدمت انتخاب شده پیدا نشد.',
+                'خدمت انتخاب نشده است.',
 
             'booking_date.required' =>
-                'تاریخ نوبت الزامی است.',
-
-            'booking_date.date_format' =>
-                'تاریخ نوبت معتبر نیست.',
+                'تاریخ انتخاب نشده است.',
 
             'start_time.required' =>
-                'ساعت نوبت الزامی است.',
-
-            'start_time.date_format' =>
-                'ساعت نوبت معتبر نیست.',
-
-            'notes.string' =>
-                'توضیحات نوبت معتبر نیست.',
-
-            'notes.max' =>
-                'توضیحات نوبت نباید بیشتر از ۲۰۰۰ کاراکتر باشد.',
+                'ساعت انتخاب نشده است.',
         ];
     }
 }

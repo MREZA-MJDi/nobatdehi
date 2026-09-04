@@ -11,9 +11,11 @@ class BookingPrepareRequest extends FormRequest
         return true;
     }
 
+
     public function rules(): array
     {
         return [
+
             'salon_id' => [
                 'required',
                 'integer',
@@ -47,8 +49,10 @@ class BookingPrepareRequest extends FormRequest
                 'string',
                 'max:2000',
             ],
+
         ];
     }
+
 
     public function messages(): array
     {
@@ -56,38 +60,23 @@ class BookingPrepareRequest extends FormRequest
             'salon_id.required' =>
                 'سالن انتخاب نشده است.',
 
-            'salon_id.exists' =>
-                'سالن انتخاب شده پیدا نشد.',
-
             'barber_id.required' =>
                 'آرایشگر را انتخاب کنید.',
-
-            'barber_id.exists' =>
-                'آرایشگر انتخاب شده پیدا نشد.',
 
             'service_id.required' =>
                 'خدمت را انتخاب کنید.',
 
-            'service_id.exists' =>
-                'خدمت انتخاب شده پیدا نشد.',
-
             'booking_date.required' =>
-                'تاریخ نوبت را انتخاب کنید.',
+                'تاریخ را انتخاب کنید.',
 
             'booking_date.date_format' =>
-                'تاریخ نوبت معتبر نیست.',
+                'تاریخ معتبر نیست.',
 
             'start_time.required' =>
-                'ساعت نوبت را انتخاب کنید.',
+                'ساعت را انتخاب کنید.',
 
             'start_time.date_format' =>
-                'ساعت نوبت معتبر نیست.',
-
-            'notes.string' =>
-                'توضیحات نوبت معتبر نیست.',
-
-            'notes.max' =>
-                'توضیحات نوبت بیش از حد مجاز است.',
+                'ساعت معتبر نیست.',
         ];
     }
 }

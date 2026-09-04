@@ -8,23 +8,11 @@ use Illuminate\Validation\Rule;
 
 class RegisterRequest extends FormRequest
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Authorization
-    |--------------------------------------------------------------------------
-    */
-
     public function authorize(): bool
     {
         return true;
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Prepare Input
-    |--------------------------------------------------------------------------
-    */
 
     protected function prepareForValidation(): void
     {
@@ -36,31 +24,20 @@ class RegisterRequest extends FormRequest
 
 
         try {
-
             $phone =
                 PhoneNumber::normalize(
                     $rawPhone
                 );
-
         } catch (\Throwable) {
-
-            $phone =
-                $rawPhone;
+            $phone = $rawPhone;
         }
 
 
         $this->merge([
-            'phone' =>
-                $phone,
+            'phone' => $phone,
         ]);
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Rules
-    |--------------------------------------------------------------------------
-    */
 
     public function rules(): array
     {
@@ -73,18 +50,22 @@ class RegisterRequest extends FormRequest
                 'max:120',
             ],
 
-
             'phone' => [
                 'required',
                 'string',
                 'regex:/^09\d{9}$/',
-
                 Rule::unique(
                     'users',
                     'phone'
                 ),
             ],
 
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
 
             'terms' => [
                 'required',
@@ -95,12 +76,6 @@ class RegisterRequest extends FormRequest
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Messages
-    |--------------------------------------------------------------------------
-    */
-
     public function messages(): array
     {
         return [
@@ -108,35 +83,26 @@ class RegisterRequest extends FormRequest
             'name.required' =>
                 'نام و نام خانوادگی الزامی است.',
 
-            'name.string' =>
-                'نام و نام خانوادگی معتبر نیست.',
-
-            'name.min' =>
-                'نام و نام خانوادگی حداقل باید ۲ کاراکتر باشد.',
-
-            'name.max' =>
-                'نام و نام خانوادگی نباید بیشتر از ۱۲۰ کاراکتر باشد.',
-
-
             'phone.required' =>
                 'شماره موبایل الزامی است.',
-
-            'phone.string' =>
-                'شماره موبایل معتبر نیست.',
 
             'phone.regex' =>
                 'شماره موبایل معتبر نیست.',
 
             'phone.unique' =>
-                'این شماره موبایل قبلاً ثبت شده است. وارد شوید.',
+                'این شماره قبلاً ثبت شده است.',
 
+            'password.required' =>
+                'رمز عبور الزامی است.',
 
-            'terms.required' =>
-                'پذیرش قوانین الزامی است.',
+            'password.min' =>
+                'رمز عبور باید حداقل ۸ کاراکتر باشد.',
+
+            'password.confirmed' =>
+                'تکرار رمز عبور یکسان نیست.',
 
             'terms.accepted' =>
-                'برای ثبت‌نام باید قوانین و شرایط استفاده را بپذیرید.',
-
+                'پذیرش قوانین الزامی است.',
         ];
     }
 }

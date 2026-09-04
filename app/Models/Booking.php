@@ -13,9 +13,18 @@ class Booking extends Model
     use HasFactory;
 
     protected $fillable = [
-        'salon_id','barber_id','service_id','customer_id',
-        'booking_date','start_time','end_time','price','status','notes',
+        'salon_id',
+        'barber_id',
+        'service_id',
+        'customer_id',
+        'booking_date',
+        'start_time',
+        'end_time',
+        'price',
+        'status',
+        'notes',
     ];
+
 
     protected function casts(): array
     {
@@ -26,9 +35,44 @@ class Booking extends Model
         ];
     }
 
-    public function salon(): BelongsTo { return $this->belongsTo(Salon::class); }
-    public function barber(): BelongsTo { return $this->belongsTo(Barber::class); }
-    public function service(): BelongsTo { return $this->belongsTo(Service::class); }
-    public function customer(): BelongsTo { return $this->belongsTo(User::class, 'customer_id'); }
-    public function review(): HasOne { return $this->hasOne(Review::class); }
+
+    public function salon(): BelongsTo
+    {
+        return $this->belongsTo(
+            Salon::class
+        );
+    }
+
+
+    public function barber(): BelongsTo
+    {
+        return $this->belongsTo(
+            Barber::class
+        );
+    }
+
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(
+            Service::class
+        );
+    }
+
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(
+            User::class,
+            'customer_id'
+        );
+    }
+
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(
+            Review::class
+        );
+    }
 }

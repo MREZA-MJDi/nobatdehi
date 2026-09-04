@@ -17,12 +17,6 @@ use Illuminate\View\View;
 
 class BookingController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Booking Page
-    |--------------------------------------------------------------------------
-    */
-
     public function create(
         Salon $salon
     ): View {
@@ -33,50 +27,31 @@ class BookingController extends Controller
         );
 
 
-        $barbers =
-            $salon
-                ->barbers()
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->orderBy('name')
-                ->get();
+        $barbers = $salon
+            ->barbers()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
 
 
-        $services =
-            $salon
-                ->services()
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get();
+        $services = $salon
+            ->services()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
 
 
         return view(
             'public.booking',
             [
-                'salon' =>
-                    $salon,
-
-                'barbers' =>
-                    $barbers,
-
-                'services' =>
-                    $services,
+                'salon' => $salon,
+                'barbers' => $barbers,
+                'services' => $services,
             ]
         );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Availability
-    |--------------------------------------------------------------------------
-    */
 
     public function availability(
         BookingAvailabilityRequest $request,
@@ -84,47 +59,33 @@ class BookingController extends Controller
         AvailabilityService $availability
     ): JsonResponse {
 
-        $data =
-            $request->validated();
-
-
         abort_unless(
             $salon->is_active,
             404
         );
 
 
-        $barber =
-            $salon
-                ->barbers()
-                ->whereKey(
-                    $data['barber_id']
-                )
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->firstOrFail();
+        $data = $request->validated();
 
 
-        $service =
-            $salon
-                ->services()
-                ->whereKey(
-                    $data['service_id']
-                )
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->firstOrFail();
+        $barber = $salon
+            ->barbers()
+            ->whereKey($data['barber_id'])
+            ->where('is_active', true)
+            ->firstOrFail();
 
 
-        $date =
-            Carbon::createFromFormat(
-                'Y-m-d',
-                $data['booking_date']
-            );
+        $service = $salon
+            ->services()
+            ->whereKey($data['service_id'])
+            ->where('is_active', true)
+            ->firstOrFail();
+
+
+        $date = Carbon::createFromFormat(
+            'Y-m-d',
+            $data['booking_date']
+        );
 
 
         return response()->json([
@@ -139,12 +100,6 @@ class BookingController extends Controller
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Prepare Booking
-    |--------------------------------------------------------------------------
-    */
-
     public function prepare(
         BookingPrepareRequest $request,
         Salon $salon
@@ -156,31 +111,16 @@ class BookingController extends Controller
         );
 
 
-        $data =
-            $request->validated();
+        $data = $request->validated();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Prevent Fake Salon ID
-        |--------------------------------------------------------------------------
-        */
 
         if (
             (int) $data['salon_id'] !==
             (int) $salon->id
         ) {
-
             abort(404);
-
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Save Booking Intent
-        |--------------------------------------------------------------------------
-        */
 
         $request
             ->session()
@@ -190,12 +130,6 @@ class BookingController extends Controller
             );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Guest
-        |--------------------------------------------------------------------------
-        */
-
         if (!$request->user()) {
 
             return redirect()
@@ -204,50 +138,27 @@ class BookingController extends Controller
                     'status',
                     'برای ثبت نهایی نوبت وارد حساب خود شوید.'
                 );
-
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Customer Check
-        |--------------------------------------------------------------------------
-        */
-
         if (
-            !$request
-                ->user()
-                ->isCustomer()
+            !$request->user()->isCustomer()
         ) {
 
             return redirect()
                 ->route('home')
                 ->with(
                     'error',
-                    'این حساب امکان ثبت نوبت مشتری را ندارد.'
+                    'این حساب امکان رزرو مشتری را ندارد.'
                 );
-
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Confirmation
-        |--------------------------------------------------------------------------
-        */
-
-        return redirect()
-            ->route(
-                'customer.bookings.confirm'
-            );
+        return redirect()->route(
+            'customer.bookings.confirm'
+        );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Confirmation Page
-    |--------------------------------------------------------------------------
-    */
 
     public function confirm(
         Request $request
@@ -256,83 +167,40 @@ class BookingController extends Controller
         $pending =
             $request
                 ->session()
-                ->get(
-                    'booking.pending'
-                );
+                ->get('booking.pending');
 
 
-        if (!$pending) {
+        if (
+            !is_array($pending)
+        ) {
 
             return redirect()
-                ->route(
-                    'salons.discover'
-                )
+                ->route('salons.discover')
                 ->with(
                     'error',
                     'اطلاعات رزرو پیدا نشد.'
                 );
-
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Load Public Salon
-        |--------------------------------------------------------------------------
-        */
-
-        $salon =
-            Salon::query()
-                ->whereKey(
-                    $pending['salon_id']
-                )
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->with([
-                    'barbers',
-                    'services',
-                ])
-                ->firstOrFail();
+        $salon = Salon::query()
+            ->whereKey($pending['salon_id'])
+            ->where('is_active', true)
+            ->firstOrFail();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Load Barber
-        |--------------------------------------------------------------------------
-        */
-
-        $barber =
-            $salon
-                ->barbers()
-                ->whereKey(
-                    $pending['barber_id']
-                )
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->firstOrFail();
+        $barber = $salon
+            ->barbers()
+            ->whereKey($pending['barber_id'])
+            ->where('is_active', true)
+            ->firstOrFail();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Load Service
-        |--------------------------------------------------------------------------
-        */
-
-        $service =
-            $salon
-                ->services()
-                ->whereKey(
-                    $pending['service_id']
-                )
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->firstOrFail();
+        $service = $salon
+            ->services()
+            ->whereKey($pending['service_id'])
+            ->where('is_active', true)
+            ->firstOrFail();
 
 
         return view(
@@ -347,12 +215,6 @@ class BookingController extends Controller
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Store Final Booking
-    |--------------------------------------------------------------------------
-    */
-
     public function store(
         BookingRequest $request,
         BookingService $bookingService
@@ -361,34 +223,24 @@ class BookingController extends Controller
         $pending =
             $request
                 ->session()
-                ->get(
-                    'booking.pending'
-                );
+                ->get('booking.pending');
 
 
-        if (!$pending) {
+        if (
+            !is_array($pending)
+        ) {
 
             return redirect()
-                ->route(
-                    'salons.discover'
-                )
+                ->route('salons.discover')
                 ->with(
                     'error',
                     'اطلاعات رزرو پیدا نشد.'
                 );
-
         }
 
 
-        $data =
-            $request->validated();
+        $data = $request->validated();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Prevent Intent Tampering
-        |--------------------------------------------------------------------------
-        */
 
         foreach (
             [
@@ -407,23 +259,15 @@ class BookingController extends Controller
 
                 return redirect()
                     ->route(
-                        'public.salons.booking.create',
-                        $pending['salon_id']
+                        'customer.bookings.confirm'
                     )
                     ->withErrors([
                         'booking' =>
                             'اطلاعات رزرو تغییر کرده است. دوباره انتخاب کنید.',
                     ]);
-
             }
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Create Booking
-        |--------------------------------------------------------------------------
-        */
 
         $booking =
             $bookingService->create(
@@ -432,29 +276,13 @@ class BookingController extends Controller
             );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Clear Pending Intent
-        |--------------------------------------------------------------------------
-        */
-
         $request
             ->session()
-            ->forget(
-                'booking.pending'
-            );
+            ->forget('booking.pending');
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Done
-        |--------------------------------------------------------------------------
-        */
 
         return redirect()
-            ->route(
-                'customer.dashboard'
-            )
+            ->route('customer.dashboard')
             ->with(
                 'success',
                 'نوبت شما با موفقیت ثبت شد.'
