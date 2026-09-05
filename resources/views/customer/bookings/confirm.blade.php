@@ -59,7 +59,7 @@
                     <div>
                         <span>تاریخ</span>
                         <strong>
-                            {{ $pending['booking_date'] }}
+                            {{ jalali_date($pending['booking_date']) }}
                         </strong>
                     </div>
 

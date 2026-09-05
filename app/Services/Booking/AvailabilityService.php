@@ -13,21 +13,18 @@ class AvailabilityService
 {
     private const SLOT_INTERVAL_MINUTES = 15;
 
-
     public function slots(
         Salon $salon,
         Barber $barber,
         Service $service,
         CarbonInterface $date
     ): array {
-
         if (
             $barber->salon_id !== $salon->id ||
             $service->salon_id !== $salon->id
         ) {
             return [];
         }
-
 
         if (
             !$salon->is_active ||
@@ -37,145 +34,176 @@ class AvailabilityService
             return [];
         }
 
-
         /*
-        | 0 = Saturday
-        | 1 = Sunday
+        |--------------------------------------------------------------------------
+        | Persian week
+        |--------------------------------------------------------------------------
+        |
+        | Carbon:
+        | Sunday = 0
+        | Monday = 1
         | ...
-        | 6 = Friday
+        | Saturday = 6
+        |
+        | Application:
+        | Saturday = 0
+        | Sunday = 1
+        | ...
+        | Friday = 6
+        |
         */
 
         $dayOfWeek =
             ($date->dayOfWeek + 1) % 7;
 
+        /*
+        |--------------------------------------------------------------------------
+        | Get ALL working intervals for this day
+        |--------------------------------------------------------------------------
+        */
 
-        $workingHour =
-            $salon
-                ->workingHours()
-                ->where(
-                    'day_of_week',
-                    $dayOfWeek
-                )
-                ->first();
+        $workingHours = $salon
+            ->workingHours()
+            ->where(
+                'day_of_week',
+                $dayOfWeek
+            )
+            ->where(
+                'is_closed',
+                false
+            )
+            ->whereNotNull('start_time')
+            ->whereNotNull('end_time')
+            ->orderBy('sort_order')
+            ->orderBy('start_time')
+            ->get();
 
-
-        if (
-            !$workingHour ||
-            $workingHour->is_closed ||
-            !$workingHour->start_time ||
-            !$workingHour->end_time
-        ) {
+        if ($workingHours->isEmpty()) {
             return [];
         }
 
-
-        $workStart =
-            $date->copy()
-                ->setTimeFromTimeString(
-                    $this->normalizeTime(
-                        $workingHour->start_time
-                    )
-                );
-
-
-        $workEnd =
-            $date->copy()
-                ->setTimeFromTimeString(
-                    $this->normalizeTime(
-                        $workingHour->end_time
-                    )
-                );
-
-
-        if ($workEnd->lte($workStart)) {
-            return [];
-        }
-
+        /*
+        |--------------------------------------------------------------------------
+        | Service duration
+        |--------------------------------------------------------------------------
+        */
 
         $duration = max(
             1,
             (int) $service->duration_minutes
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Existing bookings
+        |--------------------------------------------------------------------------
+        */
 
-        $blockedBookings =
-            $barber
-                ->bookings()
-                ->whereDate(
-                    'booking_date',
-                    $date->toDateString()
-                )
-                ->whereIn(
-                    'status',
-                    [
-                        BookingStatus::PENDING->value,
-                        BookingStatus::CONFIRMED->value,
-                    ]
-                )
-                ->get([
-                    'start_time',
-                    'end_time',
-                ]);
-
+        $blockedBookings = $barber
+            ->bookings()
+            ->whereDate(
+                'booking_date',
+                $date->toDateString()
+            )
+            ->whereIn(
+                'status',
+                [
+                    BookingStatus::PENDING->value,
+                    BookingStatus::CONFIRMED->value,
+                ]
+            )
+            ->get([
+                'start_time',
+                'end_time',
+            ]);
 
         $slots = [];
 
+        /*
+        |--------------------------------------------------------------------------
+        | Generate slots for every working interval
+        |--------------------------------------------------------------------------
+        */
 
-        for (
-            $cursor = $workStart->copy();
-            $cursor
+        foreach ($workingHours as $workingHour) {
+            $workStart = $date
                 ->copy()
-                ->addMinutes($duration)
-                ->lte($workEnd);
-            $cursor->addMinutes(
-                self::SLOT_INTERVAL_MINUTES
-            )
-        ) {
+                ->setTimeFromTimeString(
+                    $this->normalizeTime(
+                        $workingHour->start_time
+                    )
+                );
 
-            $slotStart =
-                $cursor->copy();
+            $workEnd = $date
+                ->copy()
+                ->setTimeFromTimeString(
+                    $this->normalizeTime(
+                        $workingHour->end_time
+                    )
+                );
 
-            $slotEnd =
-                $cursor
-                    ->copy()
-                    ->addMinutes($duration);
-
-
-            if (
-                $date->isToday() &&
-                $slotStart->lte(now())
-            ) {
+            if ($workEnd->lte($workStart)) {
                 continue;
             }
 
+            for (
+                $cursor = $workStart->copy();
 
-            $overlap =
-                $blockedBookings->contains(
-                    function ($booking)
-                    use (
+                $cursor
+                    ->copy()
+                    ->addMinutes($duration)
+                    ->lte($workEnd);
+
+                $cursor->addMinutes(
+                    self::SLOT_INTERVAL_MINUTES
+                )
+            ) {
+                $slotStart = $cursor->copy();
+
+                $slotEnd = $cursor
+                    ->copy()
+                    ->addMinutes($duration);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Don't show past times for today
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $date->isToday() &&
+                    $slotStart->lte(now())
+                ) {
+                    continue;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Check booking overlap
+                |--------------------------------------------------------------------------
+                */
+
+                $overlap = $blockedBookings->contains(
+                    function ($booking) use (
+                        $date,
                         $slotStart,
                         $slotEnd
                     ): bool {
+                        $bookingStart = $date
+                            ->copy()
+                            ->setTimeFromTimeString(
+                                $this->normalizeTime(
+                                    $booking->start_time
+                                )
+                            );
 
-                        $bookingStart =
-                            $slotStart
-                                ->copy()
-                                ->setTimeFromTimeString(
-                                    $this->normalizeTime(
-                                        $booking->start_time
-                                    )
-                                );
-
-
-                        $bookingEnd =
-                            $slotStart
-                                ->copy()
-                                ->setTimeFromTimeString(
-                                    $this->normalizeTime(
-                                        $booking->end_time
-                                    )
-                                );
-
+                        $bookingEnd = $date
+                            ->copy()
+                            ->setTimeFromTimeString(
+                                $this->normalizeTime(
+                                    $booking->end_time
+                                )
+                            );
 
                         return
                             $bookingStart < $slotEnd &&
@@ -183,39 +211,47 @@ class AvailabilityService
                     }
                 );
 
+                $slots[] = [
+                    'start' =>
+                        $slotStart->format('H:i'),
 
-            $slots[] = [
-                'start' =>
-                    $slotStart->format('H:i'),
+                    'end' =>
+                        $slotEnd->format('H:i'),
 
-                'end' =>
-                    $slotEnd->format('H:i'),
+                    'available' =>
+                        !$overlap,
 
-                'available' =>
-                    !$overlap,
-
-                'status' =>
-                    $overlap
-                        ? 'booked'
-                        : 'available',
-            ];
+                    'status' =>
+                        $overlap
+                            ? 'booked'
+                            : 'available',
+                ];
+            }
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Sort final slots by time
+        |--------------------------------------------------------------------------
+        */
+
+        usort(
+            $slots,
+            fn (array $a, array $b) =>
+            strcmp($a['start'], $b['start'])
+        );
 
         return $slots;
     }
 
-
     private function normalizeTime(
         mixed $value
     ): string {
-
         if (
             $value instanceof CarbonInterface
         ) {
             return $value->format('H:i:s');
         }
-
 
         return Carbon::parse(
             (string) $value

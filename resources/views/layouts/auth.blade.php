@@ -61,7 +61,9 @@
 
     @vite([
     'resources/css/app.css',
+    'resources/css/customer.css',
     'resources/js/app.js'
+
     ])
 
 </head>

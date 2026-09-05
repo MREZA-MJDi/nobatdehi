@@ -21,8 +21,11 @@ class WorkingHourController extends Controller
 
         $hours = $salon
             ->workingHours()
+            ->orderBy('day_of_week')
+            ->orderBy('sort_order')
+            ->orderBy('start_time')
             ->get()
-            ->keyBy('day_of_week');
+            ->groupBy('day_of_week');
 
         return view(
             'salon.working-hours.edit',
@@ -51,24 +54,56 @@ class WorkingHourController extends Controller
                 ->workingHours()
                 ->delete();
 
-            foreach ($data['hours'] as $hour) {
-                $isClosed = (bool) $hour['is_closed'];
+            foreach ($data['hours'] as $day) {
+                $dayOfWeek = (int) $day['day_of_week'];
 
-                $salon->workingHours()->create([
-                    'day_of_week' => $hour['day_of_week'],
+                $isClosed = filter_var(
+                    $day['is_closed'],
+                    FILTER_VALIDATE_BOOLEAN
+                );
 
-                    'start_time' => $isClosed
-                        ? null
-                        : $hour['start_time'],
+                /*
+                |--------------------------------------------------------------------------
+                | Closed day
+                |--------------------------------------------------------------------------
+                |
+                | We intentionally keep one DB row for a closed day.
+                | This makes the weekly schedule predictable.
+                |
+                */
 
-                    'end_time' => $isClosed
-                        ? null
-                        : $hour['end_time'],
+                if ($isClosed) {
+                    $salon->workingHours()->create([
+                        'day_of_week' => $dayOfWeek,
+                        'start_time' => null,
+                        'end_time' => null,
+                        'is_closed' => true,
+                        'sort_order' => 0,
+                    ]);
 
-                    'is_closed' => $isClosed,
+                    continue;
+                }
 
-                    'sort_order' => $hour['day_of_week'],
-                ]);
+                /*
+                |--------------------------------------------------------------------------
+                | Open day
+                |--------------------------------------------------------------------------
+                */
+
+                $intervals = $day['intervals'] ?? [];
+
+                foreach (
+                    array_values($intervals)
+                    as $sortOrder => $interval
+                ) {
+                    $salon->workingHours()->create([
+                        'day_of_week' => $dayOfWeek,
+                        'start_time' => $interval['start_time'],
+                        'end_time' => $interval['end_time'],
+                        'is_closed' => false,
+                        'sort_order' => $sortOrder,
+                    ]);
+                }
             }
         });
 
@@ -78,8 +113,19 @@ class WorkingHourController extends Controller
         );
     }
 
-    public function applyDefault(Request $request): RedirectResponse
-    {
+    /*
+    |--------------------------------------------------------------------------
+    | Optional default schedule
+    |--------------------------------------------------------------------------
+    |
+    | This method is kept for compatibility with the existing route.
+    | The new UI applies defaults on the page itself.
+    |
+    */
+
+    public function applyDefault(
+        Request $request
+    ): RedirectResponse {
         $salon = $request
             ->user()
             ->managedSalons()
@@ -87,50 +133,82 @@ class WorkingHourController extends Controller
 
         $defaults = [
             0 => [
-                'start_time' => '09:00',
-                'end_time' => '22:00',
-                'is_closed' => false,
+                [
+                    'start_time' => '09:00',
+                    'end_time' => '22:00',
+                ],
             ],
+
             1 => [
-                'start_time' => '09:00',
-                'end_time' => '22:00',
-                'is_closed' => false,
+                [
+                    'start_time' => '09:00',
+                    'end_time' => '22:00',
+                ],
             ],
+
             2 => [
-                'start_time' => '09:00',
-                'end_time' => '22:00',
-                'is_closed' => false,
+                [
+                    'start_time' => '09:00',
+                    'end_time' => '22:00',
+                ],
             ],
+
             3 => [
-                'start_time' => '09:00',
-                'end_time' => '22:00',
-                'is_closed' => false,
+                [
+                    'start_time' => '09:00',
+                    'end_time' => '22:00',
+                ],
             ],
+
             4 => [
-                'start_time' => '09:00',
-                'end_time' => '22:00',
-                'is_closed' => false,
+                [
+                    'start_time' => '09:00',
+                    'end_time' => '22:00',
+                ],
             ],
+
             5 => [
-                'start_time' => '09:00',
-                'end_time' => '22:00',
-                'is_closed' => false,
+                [
+                    'start_time' => '09:00',
+                    'end_time' => '22:00',
+                ],
             ],
-            6 => [
-                'start_time' => null,
-                'end_time' => null,
-                'is_closed' => true,
-            ],
+
+            6 => [],
         ];
 
-        foreach ($defaults as $day => $data) {
-            $salon->workingHours()->updateOrCreate(
-                [
-                    'day_of_week' => $day,
-                ],
-                $data
-            );
-        }
+        DB::transaction(function () use (
+            $salon,
+            $defaults
+        ) {
+            $salon
+                ->workingHours()
+                ->delete();
+
+            foreach ($defaults as $dayOfWeek => $intervals) {
+                if (empty($intervals)) {
+                    $salon->workingHours()->create([
+                        'day_of_week' => $dayOfWeek,
+                        'start_time' => null,
+                        'end_time' => null,
+                        'is_closed' => true,
+                        'sort_order' => 0,
+                    ]);
+
+                    continue;
+                }
+
+                foreach ($intervals as $sortOrder => $interval) {
+                    $salon->workingHours()->create([
+                        'day_of_week' => $dayOfWeek,
+                        'start_time' => $interval['start_time'],
+                        'end_time' => $interval['end_time'],
+                        'is_closed' => false,
+                        'sort_order' => $sortOrder,
+                    ]);
+                }
+            }
+        });
 
         return back()->with(
             'success',

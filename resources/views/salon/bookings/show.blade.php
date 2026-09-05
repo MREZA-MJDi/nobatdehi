@@ -542,7 +542,7 @@
                             </div>
 
                             <div class="mt-2 text-xs font-bold text-white/65">
-                                {{ $bookingDate }}
+                                {{ jalali_date($bookingDate) }}
                             </div>
 
                         </div>

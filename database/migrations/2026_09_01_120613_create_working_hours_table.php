@@ -16,10 +16,6 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             /*
-            |--------------------------------------------------------------------------
-            | Iranian Week
-            |--------------------------------------------------------------------------
-            |
             | 0 = شنبه
             | 1 = یکشنبه
             | 2 = دوشنبه
@@ -27,9 +23,7 @@ return new class extends Migration
             | 4 = چهارشنبه
             | 5 = پنجشنبه
             | 6 = جمعه
-            |
             */
-
             $table->unsignedTinyInteger('day_of_week');
 
             $table->time('start_time')
@@ -41,14 +35,22 @@ return new class extends Migration
             $table->boolean('is_closed')
                 ->default(false);
 
+            /*
+            | Order of intervals inside a day.
+            |
+            | Example:
+            | 0 => 09:00 - 13:00
+            | 1 => 14:00 - 22:00
+            */
             $table->unsignedSmallInteger('sort_order')
                 ->default(0);
 
             $table->timestamps();
 
-            $table->unique([
+            $table->index([
                 'salon_id',
                 'day_of_week',
+                'sort_order',
             ]);
 
             $table->index([
