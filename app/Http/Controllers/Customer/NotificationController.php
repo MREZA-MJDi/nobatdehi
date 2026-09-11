@@ -10,17 +10,14 @@ use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
-    public function index(
-        Request $request
-    ): View {
-
-        $notifications =
-            $request
-                ->user()
-                ->notifications()
-                ->latest()
-                ->paginate(20);
-
+    public function index(Request $request): View
+    {
+        $notifications = $request
+            ->user()
+            ->notifications()
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
 
         return view(
             'customer.account.notifications',
@@ -33,16 +30,15 @@ class NotificationController extends Controller
         Request $request,
         DatabaseNotification $notification
     ): RedirectResponse {
-
         abort_unless(
             (string) $notification->notifiable_id ===
             (string) $request->user()->id,
             404
         );
 
-
-        $notification->markAsRead();
-
+        if ($notification->read_at === null) {
+            $notification->markAsRead();
+        }
 
         return back();
     }
@@ -51,12 +47,11 @@ class NotificationController extends Controller
     public function readAll(
         Request $request
     ): RedirectResponse {
-
         $request
             ->user()
             ->unreadNotifications
+            ->each
             ->markAsRead();
-
 
         return back()->with(
             'success',

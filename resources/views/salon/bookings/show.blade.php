@@ -18,10 +18,10 @@
             '9' => '۹',
         ];
 
-        $bookingDate = strtr(
-            $booking->booking_date->format('Y/m/d'),
-            $persianDigits
-        );
+$bookingDate = strtr(
+    jalali_date($booking->booking_date),
+    $persianDigits
+);
 
         $startTime = strtr(
             substr($booking->start_time, 0, 5),

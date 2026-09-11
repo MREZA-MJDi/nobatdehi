@@ -17,11 +17,17 @@ class SalonController extends Controller
         );
 
 
+        $salon->loadAvg(
+            'reviews',
+            'rating'
+        );
+
+
         $salon->load([
             'barbers' => function ($query) {
                 $query
                     ->where('is_active', true)
-                    ->latest();
+                    ->orderBy('name');
             },
 
             'services' => function ($query) {
@@ -29,6 +35,13 @@ class SalonController extends Controller
                     ->where('is_active', true)
                     ->orderBy('sort_order')
                     ->orderBy('name');
+            },
+
+            'workingHours' => function ($query) {
+                $query
+                    ->orderBy('day_of_week')
+                    ->orderBy('sort_order')
+                    ->orderBy('start_time');
             },
 
             'portfolioItems' => function ($query) {

@@ -7,10 +7,10 @@
 
 
         <a
-            href="{{ route('home') }}"
+            href="{{ route('brand.intro') }}"
             @class([
                 'mobile-bottom-item',
-                'is-active' => request()->routeIs('home'),
+                'is-active' => request()->routeIs('brand.intro'),
             ])
         >
             <span class="mobile-bottom-icon">
@@ -89,7 +89,7 @@
             @else
 
                 <a
-                    href="{{ route('home') }}"
+                    href="{{ route('brand.intro') }}"
                     class="mobile-bottom-item"
                 >
                     <span class="mobile-bottom-icon">

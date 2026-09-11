@@ -3,6 +3,7 @@
     lang="fa"
     dir="rtl"
     data-theme="light"
+    class="antialiased"
 >
 <head>
 
@@ -50,10 +51,19 @@
         )"
     >
 
+    <meta
+        name="theme-color"
+        content="#6757E8"
+    >
+
+
+    {{-- =========================================================
+        THEME BOOTSTRAP
+        Prevents theme flash before app.js initializes.
+    ========================================================== --}}
 
     <script>
         (() => {
-
             const key = 'nobatdehi_theme';
 
             let saved = null;
@@ -68,18 +78,25 @@
                 saved === 'dark'
                     ? 'dark'
                     : 'light';
-
         })();
     </script>
 
 
+    {{-- =========================================================
+        CORE VITE
+    ========================================================== --}}
+
     @vite([
     'resources/css/app.css',
-    'resources/css/customer.css',
     'resources/js/app.js',
+    'resources/css/customer.css',
     'resources/js/customer.js',
     ])
 
+
+    {{-- =========================================================
+        PAGE-SPECIFIC HEAD
+    ========================================================== --}}
 
     @stack('head')
 
@@ -90,14 +107,19 @@
 
 <div class="customer-app">
 
+    {{-- =========================================================
+        HEADER
+    ========================================================== --}}
+
     <header class="customer-header">
 
         <div class="customer-container">
 
             <div class="customer-header-inner">
 
+                {{-- Brand --}}
                 <a
-                    href="{{ route('home') }}"
+                    href="{{ route('brand.intro') }}"
                     class="customer-brand"
                     aria-label="RM نوبت‌دهی"
                 >
@@ -121,16 +143,20 @@
                 </a>
 
 
+                {{-- =================================================
+                    DESKTOP NAV
+                ================================================== --}}
+
                 <nav
                     class="customer-nav"
                     aria-label="ناوبری اصلی"
                 >
 
                     <a
-                        href="{{ route('home') }}"
+                        href="{{ route('brand.intro') }}"
                         @class([
                             'customer-nav-link',
-                            'is-active' => request()->routeIs('home'),
+                            'is-active' => request()->routeIs('brand.intro'),
                         ])
                     >
                         خانه
@@ -141,7 +167,9 @@
                         href="{{ route('salons.discover') }}"
                         @class([
                             'customer-nav-link',
-                            'is-active' => request()->routeIs('salons.discover'),
+                            'is-active' =>
+                                request()->routeIs('salons.discover')
+                                && !request()->has('type'),
                         ])
                     >
                         کشف
@@ -194,6 +222,10 @@
                 </nav>
 
 
+                {{-- =================================================
+                    HEADER ACTIONS
+                ================================================== --}}
+
                 <div class="customer-header-actions">
 
                     <x-theme-toggle />
@@ -203,14 +235,22 @@
 
                         <a
                             href="{{ route('login') }}"
-                            class="customer-btn customer-btn-ghost customer-btn-sm"
+                            class="
+                                customer-btn
+                                customer-btn-ghost
+                                customer-btn-sm
+                            "
                         >
                             ورود
                         </a>
 
                         <a
                             href="{{ route('register') }}"
-                            class="customer-btn customer-btn-primary customer-btn-sm"
+                            class="
+                                customer-btn
+                                customer-btn-primary
+                                customer-btn-sm
+                            "
                         >
                             ثبت‌نام
                         </a>
@@ -224,7 +264,10 @@
                                 class="customer-header-user"
                             >
 
-                                <span class="customer-header-user-avatar">
+                                <span
+                                    class="customer-header-user-avatar"
+                                    aria-hidden="true"
+                                >
                                     {{
                                         mb_substr(
                                             auth()->user()->name ?: 'ک',
@@ -252,7 +295,11 @@
 
                             <button
                                 type="submit"
-                                class="customer-btn customer-btn-ghost customer-btn-sm"
+                                class="
+                                    customer-btn
+                                    customer-btn-ghost
+                                    customer-btn-sm
+                                "
                             >
                                 خروج
                             </button>
@@ -270,58 +317,108 @@
     </header>
 
 
+    {{-- =========================================================
+        MAIN
+    ========================================================== --}}
+
     <main class="customer-main">
+
+        {{-- =====================================================
+            FLASH: SUCCESS
+        ====================================================== --}}
 
         @if(session('success'))
 
             <div class="customer-container customer-flash-wrap">
 
                 <div
-                    class="customer-flash customer-flash-success"
+                    class="
+                        customer-flash
+                        customer-flash-success
+                    "
                     role="status"
                 >
-                    <span>✓</span>
-                    <span>{{ session('success') }}</span>
+
+                    <span aria-hidden="true">
+                        ✓
+                    </span>
+
+                    <span>
+                        {{ session('success') }}
+                    </span>
+
                 </div>
 
             </div>
 
         @endif
 
+
+        {{-- =====================================================
+            FLASH: ERROR
+        ====================================================== --}}
 
         @if(session('error'))
 
             <div class="customer-container customer-flash-wrap">
 
                 <div
-                    class="customer-flash customer-flash-danger"
+                    class="
+                        customer-flash
+                        customer-flash-danger
+                    "
                     role="alert"
                 >
-                    <span>!</span>
-                    <span>{{ session('error') }}</span>
+
+                    <span aria-hidden="true">
+                        !
+                    </span>
+
+                    <span>
+                        {{ session('error') }}
+                    </span>
+
                 </div>
 
             </div>
 
         @endif
 
+
+        {{-- =====================================================
+            FLASH: STATUS
+        ====================================================== --}}
 
         @if(session('status'))
 
             <div class="customer-container customer-flash-wrap">
 
                 <div
-                    class="customer-flash customer-flash-info"
+                    class="
+                        customer-flash
+                        customer-flash-info
+                    "
                     role="status"
                 >
-                    <span>i</span>
-                    <span>{{ session('status') }}</span>
+
+                    <span aria-hidden="true">
+                        i
+                    </span>
+
+                    <span>
+                        {{ session('status') }}
+                    </span>
+
                 </div>
 
             </div>
 
         @endif
 
+
+        {{-- =====================================================
+            PAGE
+        ====================================================== --}}
 
         <div class="customer-page">
 
@@ -332,11 +429,23 @@
     </main>
 
 
+    {{-- =========================================================
+        FOOTER
+    ========================================================== --}}
+
     <x-customer-footer />
 
 
+    {{-- =========================================================
+        MOBILE NAVIGATION
+    ========================================================== --}}
+
     <x-navigation.mobile-bottom-nav />
 
+
+    {{-- =========================================================
+        PAGE SCRIPTS
+    ========================================================== --}}
 
     @stack('scripts')
 

@@ -7,7 +7,7 @@
             <div>
 
                 <a
-                    href="{{ route('home') }}"
+                    href="{{ route('brand.intro') }}"
                     class="customer-footer-brand"
                 >
                     <span class="customer-brand-mark">

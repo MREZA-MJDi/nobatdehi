@@ -4,45 +4,92 @@
 
 @section('content')
 
-    <div class="card overflow-hidden">
 
-        <div class="p-6 sm:p-7">
+    <div>
 
-            <div class="mb-7">
+        {{-- Header --}}
+        <div class="px-6 pb-2 pt-7 sm:px-8 sm:pt-8">
 
-                <div class="mb-2 text-[10px] font-black tracking-wider text-accent-600">
+            <div class="mb-6 flex items-center justify-between">
+
+                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent-50 text-accent-600">
+                    <svg
+                        width="21"
+                        height="21"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                    >
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                        <path d="m10 17 5-5-5-5" />
+                        <path d="M15 12H3" />
+                    </svg>
+                </div>
+
+                <div class="rounded-full bg-primary-50 px-3 py-1.5 text-[9px] font-black text-content-muted">
+                    ورود امن
+                </div>
+
+            </div>
+
+            <div>
+
+                <div class="mb-2 text-[10px] font-black tracking-[0.18em] text-accent-600">
                     WELCOME BACK
                 </div>
 
-                <h1 class="text-2xl font-black text-content">
+                <h1 class="text-2xl font-black tracking-tight text-content sm:text-3xl">
                     خوش برگشتی 👋
                 </h1>
 
                 <p class="mt-2 text-xs leading-6 text-content-muted">
-                    برای ورود شماره موبایل و رمز عبورت را وارد کن.
+                    برای ورود به حساب کاربری، شماره موبایل و رمز عبورت را وارد کن.
                 </p>
 
             </div>
 
+        </div>
+
+
+        {{-- Form --}}
+        <div class="px-6 pb-6 pt-5 sm:px-8 sm:pb-8">
 
             @if($errors->any())
 
-                <div class="mb-5 rounded-2xl border border-red-100 bg-red-50 p-4">
+                <div class="mb-5 rounded-2xl border border-danger-100 bg-danger-50 p-4">
 
-                    <div class="text-xs font-black text-red-800">
+                    <div class="flex items-center gap-2">
+
+                    <span class="flex h-7 w-7 items-center justify-center rounded-xl bg-white text-danger-600 shadow-sm">
+                        !
+                    </span>
+
+                        <span class="text-xs font-black text-danger-700">
                         ورود انجام نشد
+                    </span>
+
                     </div>
 
-                    <div class="mt-1 space-y-1 text-[10px] leading-6 text-red-700">
+                    <div class="mt-2 space-y-1 text-[10px] leading-6 text-danger-700">
 
                         @foreach($errors->all() as $error)
-
-                            <div>
-                                • {{ $error }}
-                            </div>
-
+                            <div>{{ $error }}</div>
                         @endforeach
 
+                    </div>
+
+                </div>
+
+            @endif
+
+
+            @if(session('status'))
+
+                <div class="mb-5 rounded-2xl border border-green-100 bg-green-50 p-4">
+
+                    <div class="text-xs font-bold leading-6 text-green-700">
+                        {{ session('status') }}
                     </div>
 
                 </div>
@@ -60,20 +107,20 @@
 
 
                 {{-- Phone --}}
-
-                <div class="form-group">
+                <div>
 
                     <label
                         for="phone"
-                        class="form-label"
+                        class="mb-2 block text-xs font-black text-content"
                     >
                         شماره موبایل
                     </label>
 
                     <div class="relative">
 
-                        <span class="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center text-content-muted">
-
+                        <div
+                            class="pointer-events-none absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl bg-primary-50 text-content-muted"
+                        >
                             <svg
                                 width="18"
                                 height="18"
@@ -98,16 +145,13 @@
                                     r="1"
                                 />
                             </svg>
-
-                        </span>
-
+                        </div>
 
                         <input
                             id="phone"
                             type="tel"
                             name="phone"
                             value="{{ old('phone') }}"
-                            class="form-control pr-11 text-left"
                             placeholder="0912 123 4567"
                             inputmode="tel"
                             autocomplete="tel"
@@ -115,14 +159,14 @@
                             maxlength="14"
                             autofocus
                             required
+                            class="w-full rounded-2xl border border-border bg-surface-soft py-3.5 pl-4 pr-14 text-left text-sm font-bold text-content outline-none transition duration-200 placeholder:text-content-faint focus:border-accent-400 focus:bg-white focus:ring-4 focus:ring-accent-500/10"
                         >
 
                     </div>
 
-
                     @error('phone')
 
-                    <div class="form-error">
+                    <div class="mt-2 text-[10px] font-bold text-danger-600">
                         {{ $message }}
                     </div>
 
@@ -132,30 +176,67 @@
 
 
                 {{-- Password --}}
+                <div>
 
-                <div class="form-group">
+                    <div class="mb-2 flex items-center justify-between">
 
-                    <label
-                        for="password"
-                        class="form-label"
-                    >
-                        رمز عبور
-                    </label>
+                        <label
+                            for="password"
+                            class="block text-xs font-black text-content"
+                        >
+                            رمز عبور
+                        </label>
 
-                    <input
-                        id="password"
-                        type="password"
-                        name="password"
-                        class="form-control text-left"
-                        placeholder="حداقل ۸ کاراکتر"
-                        autocomplete="current-password"
-                        dir="ltr"
-                        required
-                    >
+                        <a
+                            href="{{ route('password.request') }}"
+                            class="text-[10px] font-bold text-accent-600 transition hover:text-accent-800"
+                        >
+                            رمز عبور را فراموش کردی؟
+                        </a>
+
+                    </div>
+
+                    <div class="relative">
+
+                        <div
+                            class="pointer-events-none absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl bg-primary-50 text-content-muted"
+                        >
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            >
+                                <rect
+                                    x="5"
+                                    y="11"
+                                    width="14"
+                                    height="10"
+                                    rx="2"
+                                />
+
+                                <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                            </svg>
+                        </div>
+
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            placeholder="رمز عبور خود را وارد کن"
+                            autocomplete="current-password"
+                            dir="ltr"
+                            required
+                            class="w-full rounded-2xl border border-border bg-surface-soft py-3.5 pl-4 pr-14 text-left text-sm font-bold text-content outline-none transition duration-200 placeholder:text-content-faint focus:border-accent-400 focus:bg-white focus:ring-4 focus:ring-accent-500/10"
+                        >
+
+                    </div>
 
                     @error('password')
 
-                    <div class="form-error">
+                    <div class="mt-2 text-[10px] font-bold text-danger-600">
                         {{ $message }}
                     </div>
 
@@ -165,46 +246,81 @@
 
 
                 {{-- Remember --}}
-
-                <label class="flex cursor-pointer items-center gap-2">
+                <label class="flex cursor-pointer items-center gap-2.5">
 
                     <input
                         type="checkbox"
                         name="remember"
                         value="1"
-                        class="h-4 w-4 rounded border-border text-accent-600 focus:ring-accent-500"
                         @checked(old('remember'))
+                    class="h-4 w-4 rounded border-border text-accent-600 focus:ring-accent-500"
                     >
 
-                    <span class="text-xs text-content-soft">
-                        مرا به خاطر بسپار
-                    </span>
+                    <span class="text-xs font-medium text-content-soft">
+                    مرا به خاطر بسپار
+                </span>
 
                 </label>
 
 
+                {{-- Submit --}}
                 <button
                     type="submit"
-                    class="btn btn-accent btn-lg w-full"
+                    class="group flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary-950 px-5 text-sm font-black text-white shadow-lg shadow-primary-950/10 transition duration-200 hover:-translate-y-0.5 hover:bg-primary-900 hover:shadow-xl active:translate-y-0"
                 >
-                    ورود
-                    →
+
+                <span>
+                    ورود به حساب
+                </span>
+
+                    <span class="transition-transform duration-200 group-hover:-translate-x-1">
+                    ←
+                </span>
+
                 </button>
+
+
+                {{-- Security note --}}
+                <div class="flex items-center justify-center gap-2 pt-1 text-[9px] text-content-faint">
+
+                    <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                    >
+                        <rect
+                            x="5"
+                            y="11"
+                            width="14"
+                            height="10"
+                            rx="2"
+                        />
+
+                        <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                    </svg>
+
+                    اطلاعات شما با امنیت کامل نگهداری می‌شود.
+
+                </div>
 
             </form>
 
         </div>
 
 
-        <div class="border-t border-border bg-primary-50 px-6 py-4 text-center">
+        {{-- Register --}}
+        <div class="border-t border-border bg-primary-50/70 px-6 py-5 text-center sm:px-8">
 
-            <span class="text-xs text-content-muted">
-                هنوز حساب نداری؟
-            </span>
+        <span class="text-xs text-content-muted">
+            هنوز حساب نداری؟
+        </span>
 
             <a
                 href="{{ route('register') }}"
-                class="mr-1 text-xs font-black text-accent-600"
+                class="mr-1 text-xs font-black text-accent-600 transition hover:text-accent-800"
             >
                 ثبت‌نام کن
             </a>
@@ -212,5 +328,6 @@
         </div>
 
     </div>
+
 
 @endsection

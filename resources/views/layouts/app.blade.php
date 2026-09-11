@@ -45,7 +45,14 @@
     <script>
         (() => {
             const key = 'nobatdehi_theme';
-            const saved = localStorage.getItem(key);
+
+            let saved = null;
+
+            try {
+                saved = localStorage.getItem(key);
+            } catch (error) {
+                saved = null;
+            }
 
             document.documentElement.dataset.theme =
                 saved === 'dark'
@@ -87,7 +94,7 @@
             {{-- Brand --}}
 
             <a
-                href="{{ route('home') }}"
+                href="{{ route('brand.intro') }}"
                 class="brand"
                 aria-label="صفحه اصلی نوبت‌دهی"
             >
@@ -121,9 +128,9 @@
             >
 
                 <a
-                    href="{{ route('home') }}"
+                    href="{{ route('brand.intro') }}"
                     class="rounded-xl px-3 py-2 text-xs font-bold transition
-                    {{ request()->routeIs('home')
+                    {{ request()->routeIs('brand.intro')
                         ? 'bg-primary-100 text-content'
                         : 'text-content-muted hover:bg-primary-50 hover:text-content'
                     }}"

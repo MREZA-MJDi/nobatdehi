@@ -45,7 +45,14 @@
     <script>
         (() => {
             const key = 'nobatdehi_theme';
-            const saved = localStorage.getItem(key);
+
+            let saved = null;
+
+            try {
+                saved = localStorage.getItem(key);
+            } catch (error) {
+                saved = null;
+            }
 
             document.documentElement.dataset.theme =
                 saved === 'dark'
@@ -151,7 +158,7 @@
 
 
                 <a
-                    href="{{ route('home') }}"
+                    href="{{ route('brand.intro') }}"
                     class="rounded-xl px-3 py-2 text-xs font-bold text-content-muted transition hover:bg-primary-50 hover:text-content"
                 >
                     مشاهده سایت
@@ -341,7 +348,7 @@
 
 
             <a
-                href="{{ route('home') }}"
+                href="{{ route('brand.intro') }}"
                 class="flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[9px] font-bold text-content-muted transition"
             >
 

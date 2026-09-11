@@ -17,14 +17,27 @@ class AvailabilityService
         Salon $salon,
         Barber $barber,
         Service $service,
-        CarbonInterface $date
+        CarbonInterface $date,
+        ?int $ignoreBookingId = null
     ): array {
+        /*
+        |--------------------------------------------------------------------------
+        | Validate relations
+        |--------------------------------------------------------------------------
+        */
+
         if (
-            $barber->salon_id !== $salon->id ||
-            $service->salon_id !== $salon->id
+            (int) $barber->salon_id !== (int) $salon->id ||
+            (int) $service->salon_id !== (int) $salon->id
         ) {
             return [];
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate active entities
+        |--------------------------------------------------------------------------
+        */
 
         if (
             !$salon->is_active ||
@@ -36,42 +49,41 @@ class AvailabilityService
 
         /*
         |--------------------------------------------------------------------------
-        | Persian week
+        | Persian week mapping
         |--------------------------------------------------------------------------
         |
         | Carbon:
-        | Sunday = 0
-        | Monday = 1
-        | ...
-        | Saturday = 6
+        | Sunday    = 0
+        | Monday    = 1
+        | Tuesday   = 2
+        | Wednesday = 3
+        | Thursday  = 4
+        | Friday    = 5
+        | Saturday  = 6
         |
         | Application:
-        | Saturday = 0
-        | Sunday = 1
-        | ...
-        | Friday = 6
+        | Saturday  = 0
+        | Sunday    = 1
+        | Monday    = 2
+        | Tuesday   = 3
+        | Wednesday = 4
+        | Thursday  = 5
+        | Friday    = 6
         |
         */
 
-        $dayOfWeek =
-            ($date->dayOfWeek + 1) % 7;
+        $dayOfWeek = ($date->dayOfWeek + 1) % 7;
 
         /*
         |--------------------------------------------------------------------------
-        | Get ALL working intervals for this day
+        | Get working intervals
         |--------------------------------------------------------------------------
         */
 
         $workingHours = $salon
             ->workingHours()
-            ->where(
-                'day_of_week',
-                $dayOfWeek
-            )
-            ->where(
-                'is_closed',
-                false
-            )
+            ->where('day_of_week', $dayOfWeek)
+            ->where('is_closed', false)
             ->whereNotNull('start_time')
             ->whereNotNull('end_time')
             ->orderBy('sort_order')
@@ -95,6 +107,26 @@ class AvailabilityService
 
         /*
         |--------------------------------------------------------------------------
+        | Blocking booking statuses
+        |--------------------------------------------------------------------------
+        */
+
+        $blockingStatuses = collect(
+            BookingStatus::cases()
+        )
+            ->filter(
+                fn (BookingStatus $status): bool =>
+                $status->blocksAvailability()
+            )
+            ->map(
+                fn (BookingStatus $status): string =>
+                $status->value
+            )
+            ->values()
+            ->all();
+
+        /*
+        |--------------------------------------------------------------------------
         | Existing bookings
         |--------------------------------------------------------------------------
         */
@@ -107,12 +139,15 @@ class AvailabilityService
             )
             ->whereIn(
                 'status',
-                [
-                    BookingStatus::PENDING->value,
-                    BookingStatus::CONFIRMED->value,
-                ]
+                $blockingStatuses
+            )
+            ->when(
+                $ignoreBookingId !== null,
+                fn ($query) =>
+                $query->whereKeyNot($ignoreBookingId)
             )
             ->get([
+                'id',
                 'start_time',
                 'end_time',
             ]);
@@ -121,7 +156,7 @@ class AvailabilityService
 
         /*
         |--------------------------------------------------------------------------
-        | Generate slots for every working interval
+        | Generate slots
         |--------------------------------------------------------------------------
         */
 
@@ -142,9 +177,21 @@ class AvailabilityService
                     )
                 );
 
+            /*
+            |--------------------------------------------------------------------------
+            | Ignore invalid intervals
+            |--------------------------------------------------------------------------
+            */
+
             if ($workEnd->lte($workStart)) {
                 continue;
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Generate 15-minute slots
+            |--------------------------------------------------------------------------
+            */
 
             for (
                 $cursor = $workStart->copy();
@@ -166,7 +213,7 @@ class AvailabilityService
 
                 /*
                 |--------------------------------------------------------------------------
-                | Don't show past times for today
+                | Don't expose past slots for today
                 |--------------------------------------------------------------------------
                 */
 
@@ -179,7 +226,7 @@ class AvailabilityService
 
                 /*
                 |--------------------------------------------------------------------------
-                | Check booking overlap
+                | Detect booking overlap
                 |--------------------------------------------------------------------------
                 */
 
@@ -211,45 +258,55 @@ class AvailabilityService
                     }
                 );
 
+                /*
+                |--------------------------------------------------------------------------
+                | Slot response
+                |--------------------------------------------------------------------------
+                */
+
                 $slots[] = [
-                    'start' =>
-                        $slotStart->format('H:i'),
+                    'start' => $slotStart->format('H:i'),
 
-                    'end' =>
-                        $slotEnd->format('H:i'),
+                    'end' => $slotEnd->format('H:i'),
 
-                    'available' =>
-                        !$overlap,
+                    'available' => !$overlap,
 
-                    'status' =>
-                        $overlap
-                            ? 'booked'
-                            : 'available',
+                    'status' => $overlap
+                        ? 'booked'
+                        : 'available',
+
+                    'label' => $overlap
+                        ? 'رزرو شده'
+                        : 'آزاد',
                 ];
             }
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Sort final slots by time
+        | Sort slots
         |--------------------------------------------------------------------------
         */
 
         usort(
             $slots,
-            fn (array $a, array $b) =>
-            strcmp($a['start'], $b['start'])
+            fn (array $a, array $b): int =>
+            strcmp(
+                $a['start'],
+                $b['start']
+            )
         );
 
         return $slots;
     }
 
+    /**
+     * Normalize database time values.
+     */
     private function normalizeTime(
         mixed $value
     ): string {
-        if (
-            $value instanceof CarbonInterface
-        ) {
+        if ($value instanceof CarbonInterface) {
             return $value->format('H:i:s');
         }
 

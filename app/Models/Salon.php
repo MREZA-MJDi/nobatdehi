@@ -72,6 +72,14 @@ class Salon extends Model
     | Creator
     |--------------------------------------------------------------------------
     */
+    /**
+     * @param $query
+     * @return mixed
+     */
+    public function Active($query)
+    {
+        return $query->where('is_active', true);
+    }
 
     public function creator(): BelongsTo
     {

@@ -11,6 +11,9 @@ export default defineConfig({
 
                 'resources/css/customer.css',
                 'resources/js/customer.js',
+
+                'resources/css/discovery.css',
+                'resources/css/salon.css',
             ],
 
             refresh: true,

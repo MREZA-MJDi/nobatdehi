@@ -42,8 +42,8 @@ class BookingController extends Controller
                 'service',
                 'customer',
             ])
-            ->latest('booking_date')
-            ->latest('start_time')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->paginate(20);
 
 

@@ -184,7 +184,7 @@ class LoginController extends Controller
 
             default =>
             redirect()
-                ->route('home')
+                ->route('brand.intro')
                 ->with(
                     'error',
                     'نقش حساب کاربری معتبر نیست.'

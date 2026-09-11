@@ -21,6 +21,13 @@ class ServiceRequest extends FormRequest
                 'max:150',
             ],
 
+            'image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+
             'description' => [
                 'nullable',
                 'string',

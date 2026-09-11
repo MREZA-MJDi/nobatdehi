@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\SalonController as AdminSalonController;
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 
 use App\Http\Controllers\Customer\BookingController as CustomerBookingController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\Salon\NotificationController as SalonNotificationContro
 use App\Http\Controllers\Salon\PortfolioItemController as SalonPortfolioController;
 use App\Http\Controllers\Salon\ReviewController as SalonReviewController;
 use App\Http\Controllers\Salon\ServiceController as SalonServiceController;
+use App\Http\Controllers\Salon\SettingsController;
 use App\Http\Controllers\Salon\WorkingHourController as SalonWorkingHourController;
 
 use Illuminate\Support\Facades\Route;
@@ -36,11 +38,9 @@ use Illuminate\Support\Facades\Route;
 | PUBLIC
 |--------------------------------------------------------------------------
 */
-
-Route::get(
-    '/',
-    [HomeController::class, 'index']
-)->name('home');
+Route::get('/', function () {
+    return view('brand-intro');
+})->name('brand.intro');
 
 Route::get(
     '/salons/discover',
@@ -122,6 +122,34 @@ Route::middleware('guest')->group(function () {
         '/register/verify/resend',
         [RegisterController::class, 'resend']
     )->name('register.verify.resend');
+
+    Route::get(
+        '/password/forgot',
+        [PasswordResetController::class, 'create']
+    )->name('password.request');
+
+    Route::post(
+        '/password/forgot',
+        [PasswordResetController::class, 'sendOtp']
+    )->middleware('throttle:5,1')
+        ->name('password.email');
+
+    Route::get(
+        '/password/reset',
+        [PasswordResetController::class, 'showReset']
+    )->name('password.reset');
+
+    Route::post(
+        '/password/reset',
+        [PasswordResetController::class, 'reset']
+    )->middleware('throttle:10,1')
+        ->name('password.update');
+
+    Route::post(
+        '/password/reset/resend',
+        [PasswordResetController::class, 'resend']
+    )->middleware('throttle:5,1')
+        ->name('password.reset.resend');
 });
 
 
@@ -201,7 +229,25 @@ Route::middleware('auth')->group(function () {
                 '/bookings',
                 [CustomerBookingController::class, 'store']
             )->name('bookings.store');
+            Route::get(
+                '/bookings/{booking}/edit',
+                [CustomerBookingController::class, 'edit']
+            )->name('bookings.edit');
 
+            Route::put(
+                '/bookings/{booking}',
+                [CustomerBookingController::class, 'update']
+            )->name('bookings.update');
+
+            Route::delete(
+                '/bookings/{booking}',
+                [CustomerBookingController::class, 'cancel']
+            )->name('bookings.cancel');
+
+            Route::get(
+                '/bookings/{booking}/availability',
+                [CustomerBookingController::class, 'editAvailability']
+            )->name('bookings.edit-availability');
 
             /*
             | Reviews
@@ -321,6 +367,15 @@ Route::middleware('auth')->group(function () {
                 '/notifications/read-all',
                 [SalonNotificationController::class, 'readAll']
             )->name('notifications.read-all');
+            Route::get(
+                '/settings',
+                [SettingsController::class, 'edit']
+            )->name('settings.edit');
+
+            Route::put(
+                '/settings',
+                [SettingsController::class, 'update']
+            )->name('settings.update');
         });
 
 
@@ -340,7 +395,7 @@ Route::middleware('auth')->group(function () {
             Route::get(
                 '/',
                 fn () => redirect()->route('admin.dashboard')
-            )->name('home');
+            )->name('brand.intro');
 
             Route::get(
                 '/dashboard',

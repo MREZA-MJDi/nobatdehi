@@ -16,6 +16,7 @@ class Service extends Model
     protected $fillable = [
         'salon_id',
         'name',
+        'image_path',
         'description',
         'duration_minutes',
         'price',

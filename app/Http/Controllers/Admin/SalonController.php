@@ -482,10 +482,10 @@ class SalonController extends Controller
         Salon $salon
     ): View {
         $salon->load('owner');
-
+        $users = User::orderBy('name')->get();
         return view(
             'admin.salons.edit',
-            compact('salon')
+            compact('salon','users')
         );
     }
 

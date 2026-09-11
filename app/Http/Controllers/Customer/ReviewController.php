@@ -25,22 +25,25 @@ class ReviewController extends Controller
                 'service',
                 'review',
             ])
-            ->findOrFail(
-                $booking->id
-            );
-
+            ->findOrFail($booking->id);
 
         abort_unless(
             $booking->status === BookingStatus::COMPLETED,
             404
         );
 
+        if ($booking->review) {
+            return redirect()
+                ->route('customer.dashboard')
+                ->with(
+                    'status',
+                    'برای این نوبت قبلاً نظر ثبت کرده‌اید.'
+                );
+        }
 
         return view(
             'customer.reviews.create',
-            compact(
-                'booking'
-            )
+            compact('booking')
         );
     }
 
@@ -54,11 +57,9 @@ class ReviewController extends Controller
             ->bookings()
             ->with([
                 'salon',
+                'review',
             ])
-            ->findOrFail(
-                $booking->id
-            );
-
+            ->findOrFail($booking->id);
 
         if (
             $booking->status !==
@@ -71,38 +72,38 @@ class ReviewController extends Controller
                 ]);
         }
 
+        if ($booking->review) {
+            return redirect()
+                ->route('customer.dashboard')
+                ->with(
+                    'status',
+                    'برای این نوبت قبلاً نظر ثبت کرده‌اید.'
+                );
+        }
 
         $data = $request->validated();
 
+        $booking->review()->create([
+            'salon_id' =>
+                $booking->salon_id,
 
-        $booking->review()->updateOrCreate(
-            [
-                'booking_id' =>
-                    $booking->id,
-            ],
-            [
-                'salon_id' =>
-                    $booking->salon_id,
+            'customer_id' =>
+                $request->user()->id,
 
-                'customer_id' =>
-                    $request->user()->id,
+            'rating' =>
+                $data['rating'],
 
-                'rating' =>
-                    $data['rating'],
+            'comment' =>
+                filled($data['comment'] ?? null)
+                    ? trim($data['comment'])
+                    : null,
 
-                'comment' =>
-                    $data['comment'] ?? null,
-
-                'is_published' =>
-                    true,
-            ]
-        );
-
+            'is_published' =>
+                true,
+        ]);
 
         return redirect()
-            ->route(
-                'customer.dashboard'
-            )
+            ->route('customer.dashboard')
             ->with(
                 'success',
                 'نظر شما با موفقیت ثبت شد.'

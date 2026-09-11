@@ -15,15 +15,9 @@ class ResetPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'token' => [
+            'code' => [
                 'required',
-                'string',
-            ],
-
-            'email' => [
-                'required',
-                'email',
-                'max:190',
+                'digits:6',
             ],
 
             'password' => [
@@ -37,17 +31,11 @@ class ResetPasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' =>
-                'ایمیل الزامی است.',
+            'code.required' => 'کد تأیید الزامی است.',
+            'code.digits' => 'کد تأیید باید ۶ رقمی باشد.',
 
-            'email.email' =>
-                'ایمیل معتبر نیست.',
-
-            'password.required' =>
-                'رمز عبور الزامی است.',
-
-            'password.confirmed' =>
-                'تکرار رمز عبور یکسان نیست.',
+            'password.required' => 'رمز عبور الزامی است.',
+            'password.confirmed' => 'تکرار رمز عبور یکسان نیست.',
         ];
     }
 }

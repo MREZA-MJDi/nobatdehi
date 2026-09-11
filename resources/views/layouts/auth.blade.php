@@ -3,6 +3,7 @@
 <html
     lang="fa"
     dir="rtl"
+    class="antialiased"
 >
 
 <head>
@@ -19,141 +20,240 @@
         content="{{ csrf_token() }}"
     >
 
-
     <title>
-        @hasSection('title')
-            @yield('title') | نوبت‌دهی
-        @else
-            نوبت‌دهی
-        @endif
+        @yield('title', 'ورود') | نوبت‌دهی
     </title>
-
 
     <meta
         name="description"
         content="@yield(
             'meta_description',
-            'ورود و ثبت‌نام در نوبت‌دهی'
+            'ورود و ثبت‌نام در سامانه نوبت‌دهی'
         )"
     >
 
+    <meta
+        name="theme-color"
+        content="#6757E8"
+    >
 
-    {{-- ============================================================
-        THEME
-    ============================================================= --}}
-
-    <script>
-        (() => {
-            const key = 'nobatdehi_theme';
-            const saved = localStorage.getItem(key);
-
-            document.documentElement.dataset.theme =
-                saved === 'dark'
-                    ? 'dark'
-                    : 'light';
-        })();
-    </script>
-
-
-    {{-- ============================================================
-        ASSETS
-    ============================================================= --}}
+    {{-- =========================================================
+        CORE VITE ASSETS
+    ========================================================== --}}
 
     @vite([
     'resources/css/app.css',
-    'resources/css/customer.css',
-    'resources/js/app.js'
-
+    'resources/js/app.js',
     ])
+
+    {{-- =========================================================
+        PAGE-SPECIFIC HEAD
+    ========================================================== --}}
+
+    @stack('head')
 
 </head>
 
 
-<body>
+<body class="min-h-screen">
 
-<div
-    class="min-h-screen bg-primary-50"
->
+<div class="relative min-h-screen overflow-hidden">
 
+    {{-- =====================================================
+        BACKGROUND DECORATIONS
+    ====================================================== --}}
 
-    {{-- ============================================================
-        AUTH HEADER
-    ============================================================= --}}
+    <div
+        class="
+                pointer-events-none
+                absolute
+                inset-0
+                overflow-hidden
+            "
+        aria-hidden="true"
+    >
 
-    <header class="border-b border-border bg-surface/90 backdrop-blur-xl">
-
-        <div class="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-
-
-            {{-- Brand --}}
-
-            <a
-                href="{{ route('home') }}"
-                class="brand"
-                aria-label="صفحه اصلی"
-            >
-
-                <span class="brand-mark">
-                    ن
-                </span>
-
-
-                <span class="brand-text">
-
-                    <span class="brand-name">
-                        نوبت‌دهی
-                    </span>
-
-                    <span class="brand-caption">
-                        رزرو آسان، تجربه بهتر
-                    </span>
-
-                </span>
-
-            </a>
+        <div
+            class="
+                    absolute
+                    -right-32
+                    -top-32
+                    h-96
+                    w-96
+                    rounded-full
+                    bg-accent-500/10
+                    blur-3xl
+                "
+        ></div>
 
 
-            {{-- Actions --}}
+        <div
+            class="
+                    absolute
+                    -bottom-40
+                    -left-32
+                    h-[28rem]
+                    w-[28rem]
+                    rounded-full
+                    bg-cyan-400/10
+                    blur-3xl
+                "
+        ></div>
 
-            <div class="flex items-center gap-2">
 
-                <x-theme-toggle />
+        <div
+            class="
+                    absolute
+                    left-1/2
+                    top-1/2
+                    h-72
+                    w-72
+                    -translate-x-1/2
+                    -translate-y-1/2
+                    rounded-full
+                    bg-accent-400/5
+                    blur-3xl
+                "
+        ></div>
 
+    </div>
+
+
+    {{-- =====================================================
+        MAIN
+    ====================================================== --}}
+
+    <main
+        class="
+                relative
+                flex
+                min-h-screen
+                items-center
+                justify-center
+                px-4
+                py-8
+                sm:px-6
+            "
+    >
+
+        <div class="w-full max-w-md">
+
+            {{-- =================================================
+                BRAND
+            ================================================== --}}
+
+            <div class="mb-7 text-center">
 
                 <a
-                    href="{{ route('home') }}"
-                    class="btn btn-ghost btn-sm"
+                    href="{{ route('brand.intro') }}"
+                    class="group inline-flex items-center gap-3"
                 >
-                    بازگشت به سایت
+
+                        <span
+                            class="
+                                flex
+                                h-12
+                                w-12
+                                items-center
+                                justify-center
+                                rounded-2xl
+                                bg-primary-950
+                                text-base
+                                font-black
+                                text-white
+                                shadow-lg
+                                transition
+                                duration-200
+                                group-hover:-translate-y-1
+                                group-hover:shadow-xl
+                            "
+                        >
+                            ن
+                        </span>
+
+
+                    <span class="text-right">
+
+                            <span
+                                class="
+                                    block
+                                    text-base
+                                    font-black
+                                    text-content
+                                "
+                            >
+                                نوبت‌دهی
+                            </span>
+
+
+                            <span
+                                class="
+                                    mt-0.5
+                                    block
+                                    text-[10px]
+                                    font-medium
+                                    text-content-muted
+                                "
+                            >
+                                رزرو آسان، تجربه بهتر
+                            </span>
+
+                        </span>
+
                 </a>
 
             </div>
 
-        </div>
 
-    </header>
-
-
-    {{-- ============================================================
-        MAIN
-    ============================================================= --}}
-
-    <main class="flex min-h-[calc(100vh-4rem)] items-start justify-center px-4 py-8 pb-10 sm:items-center sm:py-12">
-
-        <div class="w-full max-w-md">
-
-
-            {{-- ====================================================
-                GLOBAL FLASH
-            ===================================================== --}}
+            {{-- =================================================
+                SUCCESS FLASH
+            ================================================== --}}
 
             @if(session('success'))
 
-                <div class="mb-4">
+                <div
+                    class="
+                            mb-4
+                            flex
+                            items-start
+                            gap-3
+                            rounded-2xl
+                            border
+                            border-success-100
+                            bg-success-50
+                            px-4
+                            py-3
+                            shadow-soft
+                        "
+                    role="status"
+                >
 
                     <div
-                        class="alert alert-success"
-                        role="status"
+                        class="
+                                mt-0.5
+                                flex
+                                h-7
+                                w-7
+                                shrink-0
+                                items-center
+                                justify-center
+                                rounded-xl
+                                bg-success-100
+                                text-success-700
+                            "
+                        aria-hidden="true"
+                    >
+                        ✓
+                    </div>
+
+
+                    <div
+                        class="
+                                text-xs
+                                font-bold
+                                leading-6
+                                text-success-700
+                            "
                     >
                         {{ session('success') }}
                     </div>
@@ -163,15 +263,57 @@
             @endif
 
 
-            @if(session('error'))
+            {{-- =================================================
+                STATUS FLASH
+            ================================================== --}}
 
-                <div class="mb-4">
+            @if(session('status'))
+
+                <div
+                    class="
+                            mb-4
+                            flex
+                            items-start
+                            gap-3
+                            rounded-2xl
+                            border
+                            border-accent-100
+                            bg-accent-50
+                            px-4
+                            py-3
+                            shadow-soft
+                        "
+                    role="status"
+                >
 
                     <div
-                        class="alert alert-danger"
-                        role="alert"
+                        class="
+                                mt-0.5
+                                flex
+                                h-7
+                                w-7
+                                shrink-0
+                                items-center
+                                justify-center
+                                rounded-xl
+                                bg-accent-100
+                                text-accent-700
+                            "
+                        aria-hidden="true"
                     >
-                        {{ session('error') }}
+                        !
+                    </div>
+
+
+                    <div
+                        class="
+                                text-xs
+                                font-bold
+                                leading-6
+                                text-accent-700
+                            "
+                    >
+                        {{ session('status') }}
                     </div>
 
                 </div>
@@ -179,134 +321,68 @@
             @endif
 
 
-            @yield('content')
+            {{-- =================================================
+                PAGE CONTENT
+            ================================================== --}}
+
+            <div
+                class="
+                        overflow-hidden
+                        rounded-[2rem]
+                        border
+                        border-white/80
+                        bg-white/90
+                        shadow-float
+                        backdrop-blur-xl
+                    "
+            >
+
+                @yield('content')
+
+            </div>
+
+
+            {{-- =================================================
+                FOOTER
+            ================================================== --}}
+
+            <div class="mt-6 text-center">
+
+                <div
+                    class="
+                            text-[10px]
+                            font-medium
+                            text-content-faint
+                        "
+                >
+                    © {{ now()->year }} نوبت‌دهی
+                </div>
+
+
+                <div
+                    class="
+                            mt-1
+                            text-[9px]
+                            text-content-faint
+                        "
+                >
+                    رزرو سریع و ساده خدمات موردنظر شما
+                </div>
+
+            </div>
 
         </div>
 
     </main>
 
-
-    {{-- ============================================================
-        TOAST
-    ============================================================= --}}
-
-    <div
-        class="toast-stack"
-        x-data
-        aria-live="polite"
-        aria-atomic="true"
-    >
-
-        <template
-            x-for="item in $store.toast.items"
-            :key="item.id"
-        >
-
-            <div
-                x-cloak
-                x-transition
-                class="toast"
-            >
-
-                <div
-                    class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-                    :class="{
-                        'bg-green-100 text-green-700':
-                            item.type === 'success',
-
-                        'bg-red-100 text-red-700':
-                            item.type === 'danger',
-
-                        'bg-amber-100 text-amber-700':
-                            item.type === 'warning',
-
-                        'bg-blue-100 text-blue-700':
-                            item.type === 'info'
-                    }"
-                >
-
-                    <svg
-                        x-show="item.type === 'success'"
-                        width="15"
-                        height="15"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path d="m5 12 4 4L19 6" />
-                    </svg>
-
-
-                    <svg
-                        x-show="item.type === 'danger'"
-                        width="15"
-                        height="15"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path d="M12 8v4" />
-                        <path d="M12 16h.01" />
-                        <circle cx="12" cy="12" r="9" />
-                    </svg>
-
-
-                    <svg
-                        x-show="item.type === 'warning'"
-                        width="15"
-                        height="15"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path d="M12 8v4" />
-                        <path d="M12 16h.01" />
-                        <path d="m10.3 3.7-8 14A2 2 0 0 0 4 20.7h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z" />
-                    </svg>
-
-
-                    <svg
-                        x-show="item.type === 'info'"
-                        width="15"
-                        height="15"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 10v6" />
-                        <path d="M12 7h.01" />
-                    </svg>
-
-                </div>
-
-
-                <div
-                    class="toast-message"
-                    x-text="item.message"
-                ></div>
-
-
-                <button
-                    type="button"
-                    class="text-content-faint transition hover:text-content"
-                    @click="$store.toast.remove(item.id)"
-                    aria-label="بستن"
-                >
-                    ×
-                </button>
-
-            </div>
-
-        </template>
-
-    </div>
-
 </div>
+
+
+{{-- =========================================================
+    PAGE SCRIPTS
+========================================================== --}}
+
+@stack('scripts')
 
 </body>
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Support\PhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ForgotPasswordRequest extends FormRequest
@@ -11,13 +12,28 @@ class ForgotPasswordRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $rawPhone = (string) $this->input('phone', '');
+
+        try {
+            $phone = PhoneNumber::normalize($rawPhone);
+        } catch (\Throwable) {
+            $phone = $rawPhone;
+        }
+
+        $this->merge([
+            'phone' => $phone,
+        ]);
+    }
+
     public function rules(): array
     {
         return [
-            'email' => [
+            'phone' => [
                 'required',
-                'email',
-                'max:190',
+                'string',
+                'regex:/^09\d{9}$/',
             ],
         ];
     }
@@ -25,11 +41,8 @@ class ForgotPasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' =>
-                'ایمیل الزامی است.',
-
-            'email.email' =>
-                'ایمیل وارد شده معتبر نیست.',
+            'phone.required' => 'شماره موبایل الزامی است.',
+            'phone.regex' => 'شماره موبایل معتبر نیست.',
         ];
     }
 }

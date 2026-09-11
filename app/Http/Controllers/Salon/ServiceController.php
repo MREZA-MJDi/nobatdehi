@@ -7,13 +7,13 @@ use App\Http\Requests\Salon\ServiceRequest;
 use App\Models\Service;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ServiceController extends Controller
 {
-    public function index(
-        Request $request
-    ): View {
+    public function index(Request $request): View
+    {
         $salon = $request
             ->user()
             ->managedSalons()
@@ -34,9 +34,8 @@ class ServiceController extends Controller
         );
     }
 
-    public function create(
-        Request $request
-    ): View {
+    public function create(Request $request): View
+    {
         $salon = $request
             ->user()
             ->managedSalons()
@@ -48,9 +47,8 @@ class ServiceController extends Controller
         );
     }
 
-    public function store(
-        ServiceRequest $request
-    ): RedirectResponse {
+    public function store(ServiceRequest $request): RedirectResponse
+    {
         $salon = $request
             ->user()
             ->managedSalons()
@@ -58,9 +56,35 @@ class ServiceController extends Controller
 
         $data = $request->validated();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Upload service image
+        |--------------------------------------------------------------------------
+        */
+
+        $imagePath = null;
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request
+                ->file('image')
+                ->store(
+                    'salons/services',
+                    'public'
+                );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create service
+        |--------------------------------------------------------------------------
+        */
+
         $salon->services()->create([
             'name' =>
                 $data['name'],
+
+            'image_path' =>
+                $imagePath,
 
             'description' =>
                 $data['description']
@@ -102,6 +126,12 @@ class ServiceController extends Controller
             ->managedSalons()
             ->firstOrFail();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Make sure service belongs to managed salon
+        |--------------------------------------------------------------------------
+        */
+
         $service = $salon
             ->services()
             ->findOrFail(
@@ -126,6 +156,12 @@ class ServiceController extends Controller
             ->managedSalons()
             ->firstOrFail();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Make sure service belongs to managed salon
+        |--------------------------------------------------------------------------
+        */
+
         $service = $salon
             ->services()
             ->findOrFail(
@@ -134,29 +170,68 @@ class ServiceController extends Controller
 
         $data = $request->validated();
 
-        $service->update([
-            'name' =>
-                $data['name'],
+        /*
+        |--------------------------------------------------------------------------
+        | Update service image
+        |--------------------------------------------------------------------------
+        */
 
-            'description' =>
-                $data['description']
-                ?? null,
+        if ($request->hasFile('image')) {
 
-            'duration_minutes' =>
-                $data['duration_minutes'],
+            /*
+             * Delete old image
+             */
+            if (
+                $service->image_path &&
+                Storage::disk('public')->exists(
+                    $service->image_path
+                )
+            ) {
+                Storage::disk('public')->delete(
+                    $service->image_path
+                );
+            }
 
-            'price' =>
-                $data['price'],
+            /*
+             * Store new image
+             */
+            $service->image_path = $request
+                ->file('image')
+                ->store(
+                    'salons/services',
+                    'public'
+                );
+        }
 
-            'sort_order' =>
-                $data['sort_order']
-                ?? 0,
+        /*
+        |--------------------------------------------------------------------------
+        | Update service data
+        |--------------------------------------------------------------------------
+        */
 
-            'is_active' =>
-                $request->boolean(
-                    'is_active'
-                ),
-        ]);
+        $service->name =
+            $data['name'];
+
+        $service->description =
+            $data['description']
+            ?? null;
+
+        $service->duration_minutes =
+            $data['duration_minutes'];
+
+        $service->price =
+            $data['price'];
+
+        $service->sort_order =
+            $data['sort_order']
+            ?? 0;
+
+        $service->is_active =
+            $request->boolean(
+                'is_active'
+            );
+
+        $service->save();
 
         return redirect()
             ->route(
@@ -177,11 +252,40 @@ class ServiceController extends Controller
             ->managedSalons()
             ->firstOrFail();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Make sure service belongs to managed salon
+        |--------------------------------------------------------------------------
+        */
+
         $service = $salon
             ->services()
             ->findOrFail(
                 $service->id
             );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Delete image
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $service->image_path &&
+            Storage::disk('public')->exists(
+                $service->image_path
+            )
+        ) {
+            Storage::disk('public')->delete(
+                $service->image_path
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Delete service
+        |--------------------------------------------------------------------------
+        */
 
         $service->delete();
 

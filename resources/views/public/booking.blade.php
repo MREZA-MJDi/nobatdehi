@@ -1,4 +1,4 @@
-@extends('layouts.customer')
+@extends('layouts.public')
 
 @section('title', 'رزرو نوبت ' . $salon->name)
 
@@ -26,114 +26,167 @@
             ->values();
     @endphp
 
+
     <div
-        class="customer-container booking-page"
+        class="nobat-public nobat-booking"
         x-data="bookingPage()"
         x-init="init()"
     >
 
-        {{-- Header --}}
-        <div class="booking-page-header">
+        <div class="nobat-booking-shell">
 
-            <a
-                href="{{ route('public.salons.show', $salon) }}"
-                class="back-link"
+
+            {{-- =====================================================
+                HEADER
+            ====================================================== --}}
+
+            <header class="np-booking-header">
+
+                <div class="np-booking-header-top">
+
+                    <a
+                        href="{{ route('public.salons.show', $salon) }}"
+                        class="np-back"
+                    >
+                        <span>→</span>
+                        <span>بازگشت به {{ $salon->name }}</span>
+                    </a>
+
+
+                    <span class="np-kicker">
+                    NOBAT / BOOKING
+                </span>
+
+                </div>
+
+
+                <div class="np-booking-header-copy">
+
+                <span class="np-booking-overline">
+                    APPOINTMENT
+                </span>
+
+                    <h1 class="np-display">
+                        نوبتت را
+                        <em>انتخاب کن.</em>
+                    </h1>
+
+                    <p class="np-booking-header-description">
+                        متخصص، خدمت، تاریخ و ساعت مناسب خودت را انتخاب کن.
+                        بقیه‌اش را بسپار به ما.
+                    </p>
+
+                </div>
+
+
+                <div class="np-booking-salon-chip">
+
+                    <span class="np-booking-salon-dot"></span>
+
+                    <span>
+                    {{ $salon->name }}
+                </span>
+
+                </div>
+
+            </header>
+
+
+
+            {{-- =====================================================
+                BOOKING FORM
+            ====================================================== --}}
+
+            <form
+                action="{{ route('public.salons.booking.prepare', $salon) }}"
+                method="POST"
+                class="booking-layout np-booking-layout"
+                @submit="handleSubmit($event)"
             >
-                → بازگشت به سالن
-            </a>
 
-            <span class="section-kicker">
-                BOOK APPOINTMENT
-            </span>
-
-            <h1>
-                رزرو نوبت
-            </h1>
-
-            <p>
-                متخصص، خدمت، تاریخ و ساعت مناسب خودت را انتخاب کن.
-            </p>
-
-        </div>
+                @csrf
 
 
-        <form
-            action="{{ route('public.salons.booking.prepare', $salon) }}"
-            method="POST"
-            class="booking-layout"
-            @submit="handleSubmit($event)"
-        >
+                <input
+                    type="hidden"
+                    name="salon_id"
+                    value="{{ $salon->id }}"
+                >
 
-            @csrf
+                <input
+                    type="hidden"
+                    name="barber_id"
+                    x-model="barberId"
+                >
 
-            <input
-                type="hidden"
-                name="salon_id"
-                value="{{ $salon->id }}"
-            >
+                <input
+                    type="hidden"
+                    name="service_id"
+                    x-model="serviceId"
+                >
 
-            <input
-                type="hidden"
-                name="barber_id"
-                x-model="barberId"
-            >
+                <input
+                    type="hidden"
+                    name="booking_date"
+                    x-model="date"
+                >
 
-            <input
-                type="hidden"
-                name="service_id"
-                x-model="serviceId"
-            >
-
-            <input
-                type="hidden"
-                name="booking_date"
-                x-model="date"
-            >
-
-            <input
-                type="hidden"
-                name="start_time"
-                x-model="time"
-            >
+                <input
+                    type="hidden"
+                    name="start_time"
+                    x-model="time"
+                >
 
 
-            <div class="booking-main">
 
-                {{-- ============================================= --}}
-                {{-- 01 BARBER --}}
-                {{-- ============================================= --}}
+                {{-- =================================================
+                    MAIN
+                ================================================== --}}
 
-                <section class="booking-card">
+                <div class="booking-main np-booking-main">
 
-                    <div class="booking-card-heading">
 
-                        <span>01</span>
+                    {{-- =================================================
+                        01 BARBER
+                    ================================================== --}}
 
-                        <div>
-                            <strong>متخصص</strong>
+                    <section class="booking-card np-step">
 
-                            <small>
-                                چه کسی قرار است خدماتت را انجام دهد؟
-                            </small>
+                        <div class="booking-card-heading np-step-head">
+
+                        <span class="np-step-number">
+                            01
+                        </span>
+
+                            <div>
+
+                                <strong class="np-step-title">
+                                    متخصص
+                                </strong>
+
+                                <small class="np-step-description">
+                                    چه کسی قرار است خدماتت را انجام دهد؟
+                                </small>
+
+                            </div>
+
                         </div>
 
-                    </div>
 
+                        @if($barbers->count())
 
-                    @if($barbers->count())
+                            <div class="booking-choice-grid np-barber-grid">
 
-                        <div class="booking-choice-grid">
+                                @foreach($barbers as $barber)
 
-                            @foreach($barbers as $barber)
+                                    <button
+                                        type="button"
+                                        class="booking-choice np-barber"
+                                        @click="selectBarber('{{ $barber->id }}')"
+                                        :class="String(barberId) === '{{ $barber->id }}' ? 'is-selected' : ''"
+                                    >
 
-                                <button
-                                    type="button"
-                                    class="booking-choice"
-                                    @click="selectBarber('{{ $barber->id }}')"
-                                    :class="String(barberId) === '{{ $barber->id }}' ? 'is-selected' : ''"
-                                >
-
-                                    <span class="booking-choice-avatar">
+                                    <span class="booking-choice-avatar np-avatar">
 
                                         @if($barber->image_path)
 
@@ -152,7 +205,7 @@
                                     </span>
 
 
-                                    <span>
+                                        <span class="np-barber-info">
 
                                         <strong>
                                             {{ $barber->name }}
@@ -164,198 +217,260 @@
 
                                     </span>
 
-                                </button>
 
-                            @endforeach
+                                        <span
+                                            class="np-selection-mark"
+                                            aria-hidden="true"
+                                        >
+                                        ✓
+                                    </span>
+
+                                    </button>
+
+                                @endforeach
+
+                            </div>
+
+                        @else
+
+                            <div class="booking-state booking-state-danger np-state np-state-danger">
+
+                            <span class="np-state-icon">
+                                !
+                            </span>
+
+                                <div class="np-state-content">
+
+                                    <strong>
+                                        متخصصی در دسترس نیست
+                                    </strong>
+
+                                    <small>
+                                        این سالن هنوز متخصص فعالی ثبت نکرده است.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        @endif
+
+                    </section>
+
+
+
+                    {{-- =================================================
+                        02 SERVICE
+                    ================================================== --}}
+
+                    <section class="booking-card np-step">
+
+                        <div class="booking-card-heading np-step-head">
+
+                        <span class="np-step-number">
+                            02
+                        </span>
+
+                            <div>
+
+                                <strong class="np-step-title">
+                                    خدمت
+                                </strong>
+
+                                <small class="np-step-description">
+                                    چیزی که قرار است رزرو کنی
+                                </small>
+
+                            </div>
 
                         </div>
 
-                    @else
 
-                        <div class="booking-state booking-state-danger">
-                            این سالن هنوز متخصص فعالی ثبت نکرده است.
-                        </div>
+                        @if($services->count())
 
-                    @endif
+                            <div class="booking-service-list np-service-list">
 
-                </section>
+                                @foreach($services as $service)
 
-
-                {{-- ============================================= --}}
-                {{-- 02 SERVICE --}}
-                {{-- ============================================= --}}
-
-                <section class="booking-card">
-
-                    <div class="booking-card-heading">
-
-                        <span>02</span>
-
-                        <div>
-                            <strong>خدمت</strong>
-
-                            <small>
-                                چیزی که قرار است رزرو کنی
-                            </small>
-                        </div>
-
-                    </div>
-
-
-                    @if($services->count())
-
-                        <div class="booking-service-list">
-
-                            @foreach($services as $service)
-
-                                <button
-                                    type="button"
-                                    class="booking-service"
-                                    @click="selectService('{{ $service->id }}')"
-                                    :class="String(serviceId) === '{{ $service->id }}' ? 'is-selected' : ''"
-                                >
+                                    <button
+                                        type="button"
+                                        class="booking-service np-service"
+                                        @click="selectService('{{ $service->id }}')"
+                                        :class="String(serviceId) === '{{ $service->id }}' ? 'is-selected' : ''"
+                                    >
 
                                     <span>
 
-                                        <strong>
+                                        <strong class="np-service-name">
                                             {{ $service->name }}
                                         </strong>
 
                                         <small>
-                                            {{ $service->duration_minutes }} دقیقه
+                                            {{ $service->duration_minutes }}
+                                            دقیقه
                                         </small>
 
                                     </span>
 
 
-                                    <strong>
+                                        <span class="np-service-price">
 
-                                        {{ number_format($service->price) }}
+                                        <strong>
+                                            {{ number_format($service->price) }}
+                                        </strong>
 
                                         <small>
                                             تومان
                                         </small>
 
+                                    </span>
+
+                                    </button>
+
+                                @endforeach
+
+                            </div>
+
+                        @else
+
+                            <div class="booking-state booking-state-danger np-state np-state-danger">
+
+                            <span class="np-state-icon">
+                                !
+                            </span>
+
+                                <div class="np-state-content">
+
+                                    <strong>
+                                        خدمتی در دسترس نیست
                                     </strong>
 
-                                </button>
+                                    <small>
+                                        این سالن هنوز خدمتی ثبت نکرده است.
+                                    </small>
 
-                            @endforeach
+                                </div>
+
+                            </div>
+
+                        @endif
+
+                    </section>
+
+
+
+                    {{-- =================================================
+                        03 DATE
+                    ================================================== --}}
+
+                    <section class="booking-card booking-date-card np-step">
+
+                        <div class="booking-card-heading np-step-head">
+
+                        <span class="np-step-number">
+                            03
+                        </span>
+
+                            <div>
+
+                                <strong class="np-step-title">
+                                    تاریخ
+                                </strong>
+
+                                <small class="np-step-description">
+                                    روز موردنظرت را انتخاب کن
+                                </small>
+
+                            </div>
 
                         </div>
 
-                    @else
 
-                        <div class="booking-state booking-state-danger">
-                            این سالن هنوز خدمتی ثبت نکرده است.
-                        </div>
+                        {{-- Selected date --}}
 
-                    @endif
+                        <div class="booking-selected-date np-date-selected">
 
-                </section>
+                            <div>
 
-
-                {{-- ============================================= --}}
-                {{-- 03 DATE --}}
-                {{-- ============================================= --}}
-
-                <section class="booking-card booking-date-card">
-
-                    <div class="booking-card-heading">
-
-                        <span>03</span>
-
-                        <div>
-                            <strong>تاریخ</strong>
-
-                            <small>
-                                روز موردنظرت را انتخاب کن
-                            </small>
-                        </div>
-
-                    </div>
-
-
-                    {{-- Selected date --}}
-                    <div class="booking-selected-date">
-
-                        <div>
-
-                            <span>
+                            <span class="np-date-selected-label">
                                 تاریخ انتخابی
                             </span>
 
-                            <strong x-text="selectedDateLabel">
-                                —
-                            </strong>
-
-                        </div>
-
-                        <button
-                            type="button"
-                            @click="goToday()"
-                        >
-                            امروز
-                        </button>
-
-                    </div>
-
-
-                    {{-- Calendar --}}
-                    <div class="booking-calendar">
-
-                        <div class="booking-calendar-header">
-
-                            <button
-                                type="button"
-                                class="booking-calendar-nav"
-                                @click="previousWeek()"
-                                aria-label="هفته قبل"
-                            >
-                                →
-                            </button>
-
-
-                            <div class="booking-calendar-month">
-
-                                <strong x-text="monthLabel">
+                                <strong x-text="selectedDateLabel">
                                     —
                                 </strong>
-
-                                <small>
-                                    انتخاب روز
-                                </small>
 
                             </div>
 
 
                             <button
                                 type="button"
-                                class="booking-calendar-nav"
-                                @click="nextWeek()"
-                                aria-label="هفته بعد"
+                                class="np-today-button"
+                                @click="goToday()"
                             >
-                                ←
+                                امروز
                             </button>
 
                         </div>
 
 
-                        <div
-                            class="booking-calendar-days"
-                            @touchstart="touchStart($event)"
-                            @touchend="touchEnd($event)"
-                        >
 
-                            <template
-                                x-for="day in calendarDays"
-                                :key="day.gregorian"
-                            >
+                        {{-- Calendar --}}
+
+                        <div class="booking-calendar np-calendar">
+
+                            <div class="booking-calendar-header np-calendar-head">
 
                                 <button
                                     type="button"
-                                    class="booking-calendar-day"
-                                    :class="{
+                                    class="booking-calendar-nav np-calendar-nav"
+                                    @click="previousWeek()"
+                                    aria-label="هفته قبل"
+                                >
+                                    →
+                                </button>
+
+
+                                <div class="booking-calendar-month np-calendar-month">
+
+                                    <strong x-text="monthLabel">
+                                        —
+                                    </strong>
+
+                                    <small>
+                                        انتخاب روز
+                                    </small>
+
+                                </div>
+
+
+                                <button
+                                    type="button"
+                                    class="booking-calendar-nav np-calendar-nav"
+                                    @click="nextWeek()"
+                                    aria-label="هفته بعد"
+                                >
+                                    ←
+                                </button>
+
+                            </div>
+
+
+                            <div
+                                class="booking-calendar-days np-calendar-days"
+                                @touchstart="touchStart($event)"
+                                @touchend="touchEnd($event)"
+                            >
+
+                                <template
+                                    x-for="day in calendarDays"
+                                    :key="day.gregorian"
+                                >
+
+                                    <button
+                                        type="button"
+                                        class="booking-calendar-day np-calendar-day"
+                                        :class="{
                                         'is-selected':
                                             day.gregorian === date,
 
@@ -365,362 +480,433 @@
                                         'is-disabled':
                                             day.disabled
                                     }"
-                                    :disabled="day.disabled"
-                                    @click="selectDate(day.gregorian)"
-                                >
+                                        :disabled="day.disabled"
+                                        @click="selectDate(day.gregorian)"
+                                    >
 
                                     <span
-                                        class="booking-calendar-weekday"
+                                        class="booking-calendar-weekday np-calendar-weekday"
                                         x-text="day.weekday"
                                     ></span>
 
-                                    <strong
-                                        x-text="day.jalaliDay"
-                                    ></strong>
+                                        <strong
+                                            x-text="day.jalaliDay"
+                                        ></strong>
 
-                                    <small
-                                        x-text="day.gregorianDay"
-                                    ></small>
+                                        <small
+                                            x-text="day.gregorianDay"
+                                        ></small>
 
+                                    </button>
+
+                                </template>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+
+                    {{-- =================================================
+                        04 TIME
+                    ================================================== --}}
+
+                    <section class="booking-card booking-time-card np-step">
+
+                        <div class="booking-card-heading np-step-head">
+
+                        <span class="np-step-number">
+                            04
+                        </span>
+
+                            <div>
+
+                                <strong class="np-step-title">
+                                    ساعت
+                                </strong>
+
+                                <small class="np-step-description">
+                                    فقط زمان‌های واقعاً آزاد نمایش داده می‌شوند
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+
+                        {{-- Initial state --}}
+
+                        <div
+                            x-show="!barberId || !serviceId"
+                            x-cloak
+                            class="booking-state np-state"
+                        >
+
+                        <span class="np-state-icon">
+                            04
+                        </span>
+
+                            <div class="np-state-content">
+
+                                <strong>
+                                    هنوز چیزی انتخاب نکردی
+                                </strong>
+
+                                <small>
+                                    ابتدا متخصص و خدمت را انتخاب کن تا زمان‌های آزاد را ببینیم.
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+
+                        {{-- Loading --}}
+
+                        <div
+                            x-show="loading"
+                            x-cloak
+                            class="booking-slot-loading np-loading"
+                        >
+
+                            <div class="booking-skeleton-row np-skeleton-row">
+
+                                <span class="np-skeleton"></span>
+                                <span class="np-skeleton"></span>
+                                <span class="np-skeleton"></span>
+                                <span class="np-skeleton"></span>
+
+                            </div>
+
+
+                            <div class="booking-skeleton-row np-skeleton-row">
+
+                                <span class="np-skeleton"></span>
+                                <span class="np-skeleton"></span>
+                                <span class="np-skeleton"></span>
+                                <span class="np-skeleton"></span>
+
+                            </div>
+
+
+                            <p>
+                                در حال پیدا کردن زمان مناسب...
+                            </p>
+
+                        </div>
+
+
+
+                        {{-- Error --}}
+
+                        <div
+                            x-show="!loading && availabilityError"
+                            x-cloak
+                            class="booking-state booking-state-danger np-state np-state-danger"
+                        >
+
+                        <span class="np-state-icon">
+                            !
+                        </span>
+
+                            <div class="np-state-content">
+
+                                <strong>
+                                    دریافت زمان‌ها انجام نشد.
+                                </strong>
+
+                                <small>
+                                    اتصال را بررسی کن و دوباره تلاش کن.
+                                </small>
+
+
+                                <button
+                                    type="button"
+                                    class="np-button np-button-ghost"
+                                    @click="loadSlots()"
+                                >
+                                    تلاش دوباره
                                 </button>
 
-                            </template>
+                            </div>
 
                         </div>
 
-                    </div>
-
-                </section>
 
 
-                {{-- ============================================= --}}
-                {{-- 04 TIME --}}
-                {{-- ============================================= --}}
+                        {{-- Closed --}}
 
-                <section class="booking-card booking-time-card">
-
-                    <div class="booking-card-heading">
-
-                        <span>04</span>
-
-                        <div>
-
-                            <strong>
-                                ساعت
-                            </strong>
-
-                            <small>
-                                فقط زمان‌های واقعاً آزاد نمایش داده می‌شوند
-                            </small>
-
-                        </div>
-
-                    </div>
-
-
-                    {{-- Nothing selected --}}
-                    <div
-                        x-show="!barberId || !serviceId"
-                        x-cloak
-                        class="booking-state"
-                    >
-                        ابتدا متخصص و خدمت را انتخاب کن.
-                    </div>
-
-
-                    {{-- Loading --}}
-                    <div
-                        x-show="loading"
-                        x-cloak
-                        class="booking-slot-loading"
-                    >
-
-                        <div class="booking-skeleton-row">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-
-                        <div class="booking-skeleton-row">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-
-                        <p>
-                            در حال بررسی زمان‌های آزاد...
-                        </p>
-
-                    </div>
-
-
-                    {{-- Error --}}
-                    <div
-                        x-show="!loading && availabilityError"
-                        x-cloak
-                        class="booking-state booking-state-danger"
-                    >
-                        <strong>
-                            دریافت زمان‌ها انجام نشد.
-                        </strong>
-
-                        <small>
-                            اتصال را بررسی کن و دوباره تلاش کن.
-                        </small>
-
-                        <button
-                            type="button"
-                            class="customer-btn customer-btn-secondary"
-                            @click="loadSlots()"
-                        >
-                            تلاش دوباره
-                        </button>
-                    </div>
-
-
-                    {{-- Closed / no slots --}}
-                    <div
-                        x-show="
+                        <div
+                            x-show="
                             !loading &&
                             !availabilityError &&
                             barberId &&
                             serviceId &&
                             slots.length === 0
                         "
-                        x-cloak
-                        class="booking-state booking-state-closed"
-                    >
+                            x-cloak
+                            class="booking-state booking-state-closed np-state np-state-closed"
+                        >
 
-                        <span class="booking-state-icon">
+                        <span class="booking-state-icon np-state-icon">
                             ×
                         </span>
 
-                        <div>
+                            <div class="np-state-content">
 
-                            <strong>
-                                زمانی برای این روز موجود نیست
-                            </strong>
+                                <strong>
+                                    امروز زمان آزادی نداریم.
+                                </strong>
 
-                            <small>
-                                ممکن است سالن در این روز تعطیل باشد یا تمام زمان‌ها رزرو شده باشند.
-                            </small>
+                                <small>
+                                    ممکن است سالن در این روز تعطیل باشد یا تمام زمان‌ها رزرو شده باشند.
+                                </small>
+
+                            </div>
 
                         </div>
 
-                    </div>
 
 
-                    {{-- Slots --}}
-                    <div
-                        x-show="
+                        {{-- Slots --}}
+
+                        <div
+                            x-show="
                             !loading &&
                             !availabilityError &&
                             slots.length > 0
                         "
-                        x-cloak
-                    >
+                            x-cloak
+                        >
 
-                        <div class="booking-time-grid">
+                            <div class="booking-time-grid np-time-grid">
 
-                            <template
-                                x-for="slot in availableSlots"
-                                :key="slot.start"
-                            >
+                                <template
+                                    x-for="slot in availableSlots"
+                                    :key="slot.start"
+                                >
 
-                                <button
-                                    type="button"
-                                    class="booking-time"
-                                    :class="{
+                                    <button
+                                        type="button"
+                                        class="booking-time np-time"
+                                        :class="{
                                         'is-selected':
                                             time === slot.start
                                     }"
-                                    @click="selectTime(slot.start)"
-                                >
+                                        @click="selectTime(slot.start)"
+                                    >
 
                                     <span
                                         dir="ltr"
                                         x-text="toPersianDigits(slot.start)"
                                     ></span>
 
-                                </button>
+                                    </button>
 
-                            </template>
+                                </template>
+
+                            </div>
+
+
+                            <div
+                                x-show="availableSlots.length === 0"
+                                class="booking-state np-state"
+                                x-cloak
+                            >
+                                برای این روز زمان آزادی باقی نمانده است.
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+
+                    {{-- =================================================
+                        05 NOTES
+                    ================================================== --}}
+
+                    <section class="booking-card np-step">
+
+                        <div class="booking-card-heading np-step-head">
+
+                        <span class="np-step-number">
+                            05
+                        </span>
+
+                            <div>
+
+                                <strong class="np-step-title">
+                                    توضیحات
+                                </strong>
+
+                                <small class="np-step-description">
+                                    اختیاری
+                                </small>
+
+                            </div>
 
                         </div>
 
 
-                        <div
-                            x-show="availableSlots.length === 0"
-                            class="booking-state"
-                            x-cloak
-                        >
-                            برای این روز زمان آزادی باقی نمانده است.
+                        <textarea
+                            name="notes"
+                            class="customer-textarea np-textarea"
+                            maxlength="2000"
+                            placeholder="اگر نکته‌ای هست که متخصص باید بداند، اینجا بنویس..."
+                        >{{ old('notes') }}</textarea>
+
+                    </section>
+
+                </div>
+
+
+
+                {{-- =================================================
+                    SUMMARY / DESKTOP SIDEBAR
+                ================================================== --}}
+
+                <aside class="booking-summary np-summary">
+
+                    <div class="booking-summary-inner np-summary-inner">
+
+
+                        <div class="np-summary-brand">
+
+                        <span class="np-kicker">
+                            NOBAT
+                        </span>
+
+                            <span class="np-summary-live">
+                            <i></i>
+                            آماده رزرو
+                        </span>
+
                         </div>
 
-                    </div>
 
-                </section>
+                        <div class="np-summary-heading">
 
+                        <span>
+                            خلاصه انتخاب
+                        </span>
 
-                {{-- ============================================= --}}
-                {{-- 05 NOTES --}}
-                {{-- ============================================= --}}
-
-                <section class="booking-card">
-
-                    <div class="booking-card-heading">
-
-                        <span>05</span>
-
-                        <div>
-
-                            <strong>
-                                توضیحات
-                            </strong>
-
-                            <small>
-                                اختیاری
-                            </small>
+                            <h2>
+                                تقریباً
+                                <em>آماده‌ای.</em>
+                            </h2>
 
                         </div>
 
-                    </div>
 
 
-                    <textarea
-                        name="notes"
-                        class="customer-textarea"
-                        maxlength="2000"
-                        placeholder="مثلاً: برای رنگ، موی خیلی حساس دارم..."
-                    >{{ old('notes') }}</textarea>
-
-                </section>
-
-            </div>
-
-
-            {{-- ============================================= --}}
-            {{-- SUMMARY --}}
-            {{-- ============================================= --}}
-
-            <aside class="booking-summary">
-
-                <div class="booking-summary-inner">
-
-                    <span class="section-kicker">
-                        YOUR BOOKING
-                    </span>
-
-
-                    <h2>
-                        خلاصه انتخاب
-                    </h2>
-
-
-                    <div class="booking-summary-item">
+                        <div class="booking-summary-item np-summary-item">
 
                         <span>
                             سالن
                         </span>
 
-                        <strong>
-                            {{ $salon->name }}
-                        </strong>
+                            <strong>
+                                {{ $salon->name }}
+                            </strong>
 
-                    </div>
+                        </div>
 
 
-                    <div class="booking-summary-item">
+                        <div class="booking-summary-item np-summary-item">
 
                         <span>
                             متخصص
                         </span>
 
-                        <strong
-                            x-text="selectedBarber?.name || 'انتخاب نشده'"
-                        >
-                            انتخاب نشده
-                        </strong>
+                            <strong
+                                x-text="selectedBarber?.name || 'انتخاب نشده'"
+                            >
+                                انتخاب نشده
+                            </strong>
 
-                    </div>
+                        </div>
 
 
-                    <div class="booking-summary-item">
+                        <div class="booking-summary-item np-summary-item">
 
                         <span>
                             خدمت
                         </span>
 
-                        <strong
-                            x-text="selectedService?.name || 'انتخاب نشده'"
-                        >
-                            انتخاب نشده
-                        </strong>
+                            <strong
+                                x-text="selectedService?.name || 'انتخاب نشده'"
+                            >
+                                انتخاب نشده
+                            </strong>
 
-                    </div>
+                        </div>
 
 
-                    <div class="booking-summary-item">
+                        <div class="booking-summary-item np-summary-item">
 
                         <span>
                             تاریخ
                         </span>
 
-                        <strong
-                            x-text="selectedDateLabel || 'انتخاب نشده'"
-                        >
-                            انتخاب نشده
-                        </strong>
+                            <strong
+                                x-text="selectedDateLabel || 'انتخاب نشده'"
+                            >
+                                انتخاب نشده
+                            </strong>
 
-                    </div>
+                        </div>
 
 
-                    <div class="booking-summary-item">
+                        <div class="booking-summary-item np-summary-item">
 
                         <span>
                             ساعت
                         </span>
 
-                        <strong
-                            dir="ltr"
-                            x-text="time ? toPersianDigits(time) : '--:--'"
+                            <strong
+                                dir="ltr"
+                                x-text="time ? toPersianDigits(time) : '--:--'"
+                            >
+                                --:--
+                            </strong>
+
+                        </div>
+
+
+                        <div
+                            class="booking-summary-item np-summary-item"
+                            x-show="selectedService"
+                            x-cloak
                         >
-                            --:--
-                        </strong>
-
-                    </div>
-
-
-                    <div
-                        class="booking-summary-item"
-                        x-show="selectedService"
-                        x-cloak
-                    >
 
                         <span>
                             مدت
                         </span>
 
-                        <strong
-                            x-text="
+                            <strong
+                                x-text="
                                 selectedService
                                     ? toPersianDigits(selectedService.duration) + ' دقیقه'
                                     : ''
                             "
-                        ></strong>
+                            ></strong>
 
-                    </div>
+                        </div>
 
 
-                    <div class="booking-summary-total">
+
+                        <div class="booking-summary-total np-summary-total">
 
                         <span>
-                            مبلغ
+                            مبلغ نهایی
                         </span>
 
-                        <strong>
+                            <strong>
 
                             <span
                                 x-text="
@@ -732,287 +918,229 @@
                                 ۰
                             </span>
 
-                            تومان
+                                <small>
+                                    تومان
+                                </small>
 
-                        </strong>
-
-                    </div>
-
-
-                    @if($errors->any())
-
-                        <div class="booking-errors">
-
-                            @foreach($errors->all() as $error)
-
-                                <div>
-                                    {{ $error }}
-                                </div>
-
-                            @endforeach
+                            </strong>
 
                         </div>
 
-                    @endif
 
 
-                    <button
-                        type="submit"
-                        class="customer-btn customer-btn-primary customer-btn-lg booking-submit"
-                        :disabled="!canSubmit"
-                    >
+                        @if($errors->any())
+
+                            <div class="booking-errors np-errors">
+
+                                @foreach($errors->all() as $error)
+
+                                    <div>
+                                        {{ $error }}
+                                    </div>
+
+                                @endforeach
+
+                            </div>
+
+                        @endif
+
+
+
+                        <button
+                            type="submit"
+                            class="customer-btn customer-btn-primary customer-btn-lg booking-submit np-submit"
+                            :disabled="!canSubmit"
+                        >
 
                         <span>
                             ادامه و تأیید نوبت
                         </span>
 
-                        <span>
+                            <span>
                             ←
                         </span>
 
-                    </button>
+                        </button>
 
 
-                    <p class="booking-summary-note">
-                        قبل از ثبت نهایی، اطلاعات نوبت دوباره بررسی می‌شود.
-                    </p>
+                        <p class="booking-summary-note np-summary-note">
+                            اطلاعات نوبت قبل از ثبت نهایی بررسی می‌شود.
+                        </p>
 
-                </div>
+                    </div>
 
-            </aside>
+                </aside>
 
 
-            {{-- ============================================= --}}
-            {{-- MOBILE STICKY CTA --}}
-            {{-- ============================================= --}}
 
-            <div class="booking-mobile-cta">
+                {{-- =================================================
+                    MOBILE DOCK
+                ================================================== --}}
 
-                <div>
+                <div class="booking-mobile-cta np-mobile-dock">
+
+                    <div class="np-mobile-dock-info">
 
                     <span>
+
                         <template x-if="time">
+
                             <span>
-                                <span x-text="selectedDateLabel"></span>
+
+                                <span
+                                    x-text="selectedDateLabel"
+                                ></span>
+
                                 ·
+
                                 <b
                                     dir="ltr"
                                     x-text="toPersianDigits(time)"
                                 ></b>
+
                             </span>
+
                         </template>
 
+
                         <template x-if="!time">
+
                             <span>
                                 یک زمان را انتخاب کن
                             </span>
+
                         </template>
+
                     </span>
 
 
-                    <strong
-                        x-text="
+                        <strong
+                            x-text="
                             selectedService
                                 ? formatPrice(selectedService.price) + ' تومان'
                                 : ''
                         "
-                    ></strong>
+                        ></strong>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="customer-btn customer-btn-primary customer-btn-lg"
+                        :disabled="!canSubmit"
+                    >
+                        ادامه
+                        <span>←</span>
+                    </button>
 
                 </div>
 
+            </form>
 
-                <button
-                    type="submit"
-                    class="customer-btn customer-btn-primary customer-btn-lg"
-                    :disabled="!canSubmit"
-                >
-                    ادامه
-                    ←
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
+        </div>
 
 
-    @push('scripts')
+        {{-- =========================================================
+            ALPINE / BOOKING LOGIC
+            Backend / booking logic untouched
+        ========================================================== --}}
 
-        <script>
-            function bookingPage() {
-                return {
+        @push('scripts')
 
-                    barberId: '',
-                    serviceId: '',
+            <script>
+                function bookingPage() {
+                    return {
 
-                    date: '{{ old('booking_date', now()->format('Y-m-d')) }}',
+                        barberId: '',
+                        serviceId: '',
 
-                    time: '',
+                        date: '{{ old('booking_date', now()->format('Y-m-d')) }}',
 
-                    slots: [],
+                        time: '',
 
-                    loading: false,
+                        slots: [],
 
-                    availabilityError: false,
+                        loading: false,
 
-                    weekOffset: 0,
+                        availabilityError: false,
 
-                    touchStartX: 0,
+                        weekOffset: 0,
 
-                    barbers: @js($barberPayload),
+                        touchStartX: 0,
 
-                    services: @js($servicePayload),
+                        barbers: @js($barberPayload),
 
-
-                    init() {
-
-                        this.$nextTick(() => {
-
-                            this.ensureDateNotPast();
-
-                            this.updateCalendar();
-
-                            this.loadSlots();
-
-                        });
-
-                    },
+                        services: @js($servicePayload),
 
 
-                    get selectedBarber() {
+                        init() {
 
-                        return this.barbers.find(
-                            item =>
-                                String(item.id) ===
-                                String(this.barberId)
-                        );
+                            this.$nextTick(() => {
 
-                    },
+                                this.ensureDateNotPast();
 
+                                this.updateCalendar();
 
-                    get selectedService() {
+                                this.loadSlots();
 
-                        return this.services.find(
-                            item =>
-                                String(item.id) ===
-                                String(this.serviceId)
-                        );
+                            });
 
-                    },
+                        },
 
 
-                    get availableSlots() {
+                        get selectedBarber() {
 
-                        return this.slots.filter(
-                            slot => slot.available
-                        );
-
-                    },
-
-
-                    get canSubmit() {
-
-                        return Boolean(
-                            this.barberId &&
-                            this.serviceId &&
-                            this.date &&
-                            this.time
-                        );
-
-                    },
-
-
-                    get selectedDateLabel() {
-
-                        if (!this.date) {
-                            return '';
-                        }
-
-                        const parts =
-                            this.gregorianToJalali(
-                                this.date
+                            return this.barbers.find(
+                                item =>
+                                    String(item.id) ===
+                                    String(this.barberId)
                             );
 
-                        const weekdays = [
-                            'شنبه',
-                            'یکشنبه',
-                            'دوشنبه',
-                            'سه‌شنبه',
-                            'چهارشنبه',
-                            'پنجشنبه',
-                            'جمعه',
-                        ];
+                        },
 
-                        const dateObject =
-                            this.parseDate(
-                                this.date
+
+                        get selectedService() {
+
+                            return this.services.find(
+                                item =>
+                                    String(item.id) ===
+                                    String(this.serviceId)
                             );
 
-                        const weekday =
-                            weekdays[
-                            (dateObject.getDay() + 1) % 7
-                                ];
-
-                        return `${weekday} ${this.toPersianDigits(parts[2])} ${this.jalaliMonthName(parts[1])} ${this.toPersianDigits(parts[0])}`;
-
-                    },
+                        },
 
 
-                    get monthLabel() {
+                        get availableSlots() {
 
-                        if (!this.date) {
-                            return '';
-                        }
-
-                        const parts =
-                            this.gregorianToJalali(
-                                this.date
+                            return this.slots.filter(
+                                slot => slot.available
                             );
 
-                        return `${this.jalaliMonthName(parts[1])} ${this.toPersianDigits(parts[0])}`;
-
-                    },
+                        },
 
 
-                    get calendarDays() {
+                        get canSubmit() {
 
-                        const center =
-                            this.parseDate(
-                                this.date
+                            return Boolean(
+                                this.barberId &&
+                                this.serviceId &&
+                                this.date &&
+                                this.time
                             );
 
-                        center.setDate(
-                            center.getDate() +
-                            (this.weekOffset * 7)
-                        );
+                        },
 
-                        const days = [];
 
-                        for (
-                            let i = -3;
-                            i <= 3;
-                            i++
-                        ) {
+                        get selectedDateLabel() {
 
-                            const date =
-                                new Date(center);
+                            if (!this.date) {
+                                return '';
+                            }
 
-                            date.setDate(
-                                center.getDate() + i
-                            );
-
-                            const iso =
-                                this.formatDate(date);
-
-                            const today =
-                                this.formatDate(
-                                    new Date()
-                                );
-
-                            const jalali =
+                            const parts =
                                 this.gregorianToJalali(
-                                    iso
+                                    this.date
                                 );
 
                             const weekdays = [
@@ -1025,584 +1153,667 @@
                                 'جمعه',
                             ];
 
-                            days.push({
-
-                                gregorian: iso,
-
-                                jalaliDay:
-                                    jalali[2],
-
-                                gregorianDay:
-                                    date.getDate(),
-
-                                weekday:
-                                    weekdays[
-                                        date.getDay() === 6
-                                            ? 0
-                                            : date.getDay() + 1
-                                        ],
-
-                                isToday:
-                                    iso === today,
-
-                                disabled:
-                                    iso < today,
-
-                            });
-
-                        }
-
-                        return days;
-
-                    },
-
-
-                    updateCalendar() {
-
-                        this.$nextTick(() => {});
-
-                    },
-
-
-                    parseDate(value) {
-
-                        const [
-                            year,
-                            month,
-                            day
-                        ] =
-                            value
-                                .split('-')
-                                .map(Number);
-
-                        return new Date(
-                            year,
-                            month - 1,
-                            day
-                        );
-
-                    },
-
-
-                    formatDate(date) {
-
-                        const year =
-                            date.getFullYear();
-
-                        const month =
-                            String(
-                                date.getMonth() + 1
-                            ).padStart(2, '0');
-
-                        const day =
-                            String(
-                                date.getDate()
-                            ).padStart(2, '0');
-
-                        return `${year}-${month}-${day}`;
-
-                    },
-
-
-                    ensureDateNotPast() {
-
-                        const today =
-                            this.formatDate(
-                                new Date()
-                            );
-
-                        if (this.date < today) {
-                            this.date = today;
-                        }
-
-                    },
-
-
-                    selectBarber(id) {
-
-                        this.barberId =
-                            String(id);
-
-                        this.time = '';
-
-                        this.loadSlots();
-
-                    },
-
-
-                    selectService(id) {
-
-                        this.serviceId =
-                            String(id);
-
-                        this.time = '';
-
-                        this.loadSlots();
-
-                    },
-
-
-                    selectDate(date) {
-
-                        this.date = date;
-
-                        this.time = '';
-
-                        this.weekOffset = 0;
-
-                        this.loadSlots();
-
-                    },
-
-
-                    selectTime(time) {
-
-                        this.time = time;
-
-                        this.$nextTick(() => {
-
-                            const selected =
-                                document.querySelector(
-                                    '.booking-time.is-selected'
+                            const dateObject =
+                                this.parseDate(
+                                    this.date
                                 );
 
-                            if (selected) {
+                            const weekday =
+                                weekdays[
+                                (dateObject.getDay() + 1) % 7
+                                    ];
 
-                                selected.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'nearest'
+                            return `${weekday} ${this.toPersianDigits(parts[2])} ${this.jalaliMonthName(parts[1])} ${this.toPersianDigits(parts[0])}`;
+
+                        },
+
+
+                        get monthLabel() {
+
+                            if (!this.date) {
+                                return '';
+                            }
+
+                            const parts =
+                                this.gregorianToJalali(
+                                    this.date
+                                );
+
+                            return `${this.jalaliMonthName(parts[1])} ${this.toPersianDigits(parts[0])}`;
+
+                        },
+
+
+                        get calendarDays() {
+
+                            const center =
+                                this.parseDate(
+                                    this.date
+                                );
+
+                            center.setDate(
+                                center.getDate() +
+                                (this.weekOffset * 7)
+                            );
+
+                            const days = [];
+
+                            for (
+                                let i = -3;
+                                i <= 3;
+                                i++
+                            ) {
+
+                                const date =
+                                    new Date(center);
+
+                                date.setDate(
+                                    center.getDate() + i
+                                );
+
+                                const iso =
+                                    this.formatDate(date);
+
+                                const today =
+                                    this.formatDate(
+                                        new Date()
+                                    );
+
+                                const jalali =
+                                    this.gregorianToJalali(
+                                        iso
+                                    );
+
+                                const weekdays = [
+                                    'شنبه',
+                                    'یکشنبه',
+                                    'دوشنبه',
+                                    'سه‌شنبه',
+                                    'چهارشنبه',
+                                    'پنجشنبه',
+                                    'جمعه',
+                                ];
+
+                                days.push({
+
+                                    gregorian: iso,
+
+                                    jalaliDay:
+                                        jalali[2],
+
+                                    gregorianDay:
+                                        date.getDate(),
+
+                                    weekday:
+                                        weekdays[
+                                            date.getDay() === 6
+                                                ? 0
+                                                : date.getDay() + 1
+                                            ],
+
+                                    isToday:
+                                        iso === today,
+
+                                    disabled:
+                                        iso < today,
+
                                 });
 
                             }
 
-                        });
+                            return days;
 
-                    },
+                        },
 
 
-                    goToday() {
+                        updateCalendar() {
 
-                        this.date =
-                            this.formatDate(
-                                new Date()
-                            );
+                            this.$nextTick(() => {});
 
-                        this.weekOffset = 0;
+                        },
 
-                        this.time = '';
 
-                        this.loadSlots();
+                        parseDate(value) {
 
-                    },
-
-
-                    previousWeek() {
-
-                        if (this.weekOffset <= 0) {
-                            return;
-                        }
-
-                        this.weekOffset--;
-
-                    },
-
-
-                    nextWeek() {
-
-                        this.weekOffset++;
-
-                    },
-
-
-                    touchStart(event) {
-
-                        this.touchStartX =
-                            event.changedTouches[0].screenX;
-
-                    },
-
-
-                    touchEnd(event) {
-
-                        const end =
-                            event.changedTouches[0].screenX;
-
-                        const distance =
-                            end - this.touchStartX;
-
-                        if (Math.abs(distance) < 50) {
-                            return;
-                        }
-
-                        if (distance > 0) {
-                            this.previousWeek();
-                        } else {
-                            this.nextWeek();
-                        }
-
-                    },
-
-
-                    async loadSlots() {
-
-                        if (
-                            !this.barberId ||
-                            !this.serviceId ||
-                            !this.date
-                        ) {
-
-                            this.slots = [];
-
-                            return;
-
-                        }
-
-
-                        this.loading = true;
-
-                        this.availabilityError = false;
-
-                        this.time = '';
-
-
-                        try {
-
-                            const url =
-                                '{{ route('public.salons.booking.availability', $salon) }}' +
-                                '?barber_id=' +
-                                encodeURIComponent(
-                                    this.barberId
-                                ) +
-                                '&service_id=' +
-                                encodeURIComponent(
-                                    this.serviceId
-                                ) +
-                                '&booking_date=' +
-                                encodeURIComponent(
-                                    this.date
-                                );
-
-
-                            const response =
-                                await fetch(
-                                    url,
-                                    {
-                                        headers: {
-                                            'Accept':
-                                                'application/json',
-
-                                            'X-Requested-With':
-                                                'XMLHttpRequest',
-                                        },
-                                    }
-                                );
-
-
-                            if (!response.ok) {
-                                throw new Error(
-                                    'Availability request failed'
-                                );
-                            }
-
-
-                            const data =
-                                await response.json();
-
-
-                            this.slots =
-                                Array.isArray(data.slots)
-                                    ? data.slots
-                                    : [];
-
-
-                        } catch (error) {
-
-                            console.error(
-                                'Booking availability error:',
-                                error
-                            );
-
-                            this.slots = [];
-
-                            this.availabilityError = true;
-
-                        } finally {
-
-                            this.loading = false;
-
-                        }
-
-                    },
-
-
-                    handleSubmit(event) {
-
-                        if (!this.canSubmit) {
-
-                            event.preventDefault();
-
-                            if (!this.barberId) {
-                                this.scrollToSection(1);
-                                return;
-                            }
-
-                            if (!this.serviceId) {
-                                this.scrollToSection(2);
-                                return;
-                            }
-
-                            if (!this.time) {
-                                this.scrollToTime();
-                                return;
-                            }
-
-                        }
-
-                    },
-
-
-                    scrollToSection(number) {
-
-                        const cards =
-                            document.querySelectorAll(
-                                '.booking-main .booking-card'
-                            );
-
-                        const card =
-                            cards[number - 1];
-
-                        if (card) {
-
-                            card.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'center'
-                            });
-
-                        }
-
-                    },
-
-
-                    scrollToTime() {
-
-                        const card =
-                            document.querySelector(
-                                '.booking-time-card'
-                            );
-
-                        if (card) {
-
-                            card.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'center'
-                            });
-
-                        }
-
-                    },
-
-
-                    formatPrice(value) {
-
-                        return new Intl.NumberFormat(
-                            'fa-IR'
-                        ).format(
-                            Number(value || 0)
-                        );
-
-                    },
-
-
-                    toPersianDigits(value) {
-
-                        return String(value)
-                            .replace(
-                                /\d/g,
-                                digit =>
-                                    '۰۱۲۳۴۵۶۷۸۹'[
-                                        digit
-                                        ]
-                            );
-
-                    },
-
-
-                    jalaliMonthName(month) {
-
-                        const months = [
-                            'فروردین',
-                            'اردیبهشت',
-                            'خرداد',
-                            'تیر',
-                            'مرداد',
-                            'شهریور',
-                            'مهر',
-                            'آبان',
-                            'آذر',
-                            'دی',
-                            'بهمن',
-                            'اسفند',
-                        ];
-
-                        return months[
-                        Number(month) - 1
-                            ];
-
-                    },
-
-
-                    gregorianToJalali(gy, gm, gd) {
-
-                        if (
-                            typeof gy === 'string'
-                        ) {
-
-                            const parts =
-                                gy
+                            const [
+                                year,
+                                month,
+                                day
+                            ] =
+                                value
                                     .split('-')
                                     .map(Number);
 
-                            gy = parts[0];
-                            gm = parts[1];
-                            gd = parts[2];
+                            return new Date(
+                                year,
+                                month - 1,
+                                day
+                            );
 
-                        }
+                        },
 
 
-                        const gdm =
-                            [
-                                0,
-                                31,
-                                59,
-                                90,
-                                120,
-                                151,
-                                181,
-                                212,
-                                243,
-                                273,
-                                304,
-                                334
+                        formatDate(date) {
+
+                            const year =
+                                date.getFullYear();
+
+                            const month =
+                                String(
+                                    date.getMonth() + 1
+                                ).padStart(2, '0');
+
+                            const day =
+                                String(
+                                    date.getDate()
+                                ).padStart(2, '0');
+
+                            return `${year}-${month}-${day}`;
+
+                        },
+
+
+                        ensureDateNotPast() {
+
+                            const today =
+                                this.formatDate(
+                                    new Date()
+                                );
+
+                            if (this.date < today) {
+                                this.date = today;
+                            }
+
+                        },
+
+
+                        selectBarber(id) {
+
+                            this.barberId =
+                                String(id);
+
+                            this.time = '';
+
+                            this.loadSlots();
+
+                        },
+
+
+                        selectService(id) {
+
+                            this.serviceId =
+                                String(id);
+
+                            this.time = '';
+
+                            this.loadSlots();
+
+                        },
+
+
+                        selectDate(date) {
+
+                            this.date = date;
+
+                            this.time = '';
+
+                            this.weekOffset = 0;
+
+                            this.loadSlots();
+
+                        },
+
+
+                        selectTime(time) {
+
+                            this.time = time;
+
+                            this.$nextTick(() => {
+
+                                const selected =
+                                    document.querySelector(
+                                        '.booking-time.is-selected'
+                                    );
+
+                                if (selected) {
+
+                                    selected.scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'nearest'
+                                    });
+
+                                }
+
+                            });
+
+                        },
+
+
+                        goToday() {
+
+                            this.date =
+                                this.formatDate(
+                                    new Date()
+                                );
+
+                            this.weekOffset = 0;
+
+                            this.time = '';
+
+                            this.loadSlots();
+
+                        },
+
+
+                        previousWeek() {
+
+                            if (this.weekOffset <= 0) {
+                                return;
+                            }
+
+                            this.weekOffset--;
+
+                        },
+
+
+                        nextWeek() {
+
+                            this.weekOffset++;
+
+                        },
+
+
+                        touchStart(event) {
+
+                            this.touchStartX =
+                                event.changedTouches[0].screenX;
+
+                        },
+
+
+                        touchEnd(event) {
+
+                            const end =
+                                event.changedTouches[0].screenX;
+
+                            const distance =
+                                end - this.touchStartX;
+
+                            if (Math.abs(distance) < 50) {
+                                return;
+                            }
+
+                            if (distance > 0) {
+                                this.previousWeek();
+                            } else {
+                                this.nextWeek();
+                            }
+
+                        },
+
+
+                        async loadSlots() {
+
+                            if (
+                                !this.barberId ||
+                                !this.serviceId ||
+                                !this.date
+                            ) {
+
+                                this.slots = [];
+
+                                return;
+
+                            }
+
+
+                            this.loading = true;
+
+                            this.availabilityError = false;
+
+                            this.time = '';
+
+
+                            try {
+
+                                const url =
+                                    '{{ route('public.salons.booking.availability', $salon) }}' +
+                                    '?barber_id=' +
+                                    encodeURIComponent(
+                                        this.barberId
+                                    ) +
+                                    '&service_id=' +
+                                    encodeURIComponent(
+                                        this.serviceId
+                                    ) +
+                                    '&booking_date=' +
+                                    encodeURIComponent(
+                                        this.date
+                                    );
+
+
+                                const response =
+                                    await fetch(
+                                        url,
+                                        {
+                                            headers: {
+                                                'Accept':
+                                                    'application/json',
+
+                                                'X-Requested-With':
+                                                    'XMLHttpRequest',
+                                            },
+                                        }
+                                    );
+
+
+                                if (!response.ok) {
+                                    throw new Error(
+                                        'Availability request failed'
+                                    );
+                                }
+
+
+                                const data =
+                                    await response.json();
+
+
+                                this.slots =
+                                    Array.isArray(data.slots)
+                                        ? data.slots
+                                        : [];
+
+
+                            } catch (error) {
+
+                                console.error(
+                                    'Booking availability error:',
+                                    error
+                                );
+
+                                this.slots = [];
+
+                                this.availabilityError = true;
+
+                            } finally {
+
+                                this.loading = false;
+
+                            }
+
+                        },
+
+
+                        handleSubmit(event) {
+
+                            if (!this.canSubmit) {
+
+                                event.preventDefault();
+
+                                if (!this.barberId) {
+                                    this.scrollToSection(1);
+                                    return;
+                                }
+
+                                if (!this.serviceId) {
+                                    this.scrollToSection(2);
+                                    return;
+                                }
+
+                                if (!this.time) {
+                                    this.scrollToTime();
+                                    return;
+                                }
+
+                            }
+
+                        },
+
+
+                        scrollToSection(number) {
+
+                            const cards =
+                                document.querySelectorAll(
+                                    '.booking-main .booking-card'
+                                );
+
+                            const card =
+                                cards[number - 1];
+
+                            if (card) {
+
+                                card.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+
+                            }
+
+                        },
+
+
+                        scrollToTime() {
+
+                            const card =
+                                document.querySelector(
+                                    '.booking-time-card'
+                                );
+
+                            if (card) {
+
+                                card.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+
+                            }
+
+                        },
+
+
+                        formatPrice(value) {
+
+                            return new Intl.NumberFormat(
+                                'fa-IR'
+                            ).format(
+                                Number(value || 0)
+                            );
+
+                        },
+
+
+                        toPersianDigits(value) {
+
+                            return String(value)
+                                .replace(
+                                    /\d/g,
+                                    digit =>
+                                        '۰۱۲۳۴۵۶۷۸۹'[
+                                            digit
+                                            ]
+                                );
+
+                        },
+
+
+                        jalaliMonthName(month) {
+
+                            const months = [
+                                'فروردین',
+                                'اردیبهشت',
+                                'خرداد',
+                                'تیر',
+                                'مرداد',
+                                'شهریور',
+                                'مهر',
+                                'آبان',
+                                'آذر',
+                                'دی',
+                                'بهمن',
+                                'اسفند',
                             ];
 
+                            return months[
+                            Number(month) - 1
+                                ];
 
-                        let jy;
-
-                        if (gy > 1600) {
-
-                            jy = 979;
-
-                            gy -= 1600;
-
-                        } else {
-
-                            jy = 0;
-
-                            gy -= 621;
-
-                        }
+                        },
 
 
-                        const gy2 =
-                            gm > 2
-                                ? gy + 1
-                                : gy;
+                        gregorianToJalali(gy, gm, gd) {
+
+                            if (
+                                typeof gy === 'string'
+                            ) {
+
+                                const parts =
+                                    gy
+                                        .split('-')
+                                        .map(Number);
+
+                                gy = parts[0];
+                                gm = parts[1];
+                                gd = parts[2];
+
+                            }
 
 
-                        let days =
-                            (
-                                365 * gy
-                            ) +
-                            Math.floor(
-                                (gy2 + 3) / 4
-                            ) -
-                            Math.floor(
-                                (gy2 + 99) / 100
-                            ) +
-                            Math.floor(
-                                (gy2 + 399) / 400
-                            ) -
-                            80 +
-                            gd +
-                            gdm[gm - 1];
+                            const gdm =
+                                [
+                                    0,
+                                    31,
+                                    59,
+                                    90,
+                                    120,
+                                    151,
+                                    181,
+                                    212,
+                                    243,
+                                    273,
+                                    304,
+                                    334
+                                ];
 
 
-                        jy +=
-                            33 *
-                            Math.floor(
-                                days / 12053
-                            );
+                            let jy;
 
-                        days %= 12053;
+                            if (gy > 1600) {
 
-                        jy +=
-                            4 *
-                            Math.floor(
-                                days / 1461
-                            );
+                                jy = 979;
 
-                        days %= 1461;
+                                gy -= 1600;
+
+                            } else {
+
+                                jy = 0;
+
+                                gy -= 621;
+
+                            }
 
 
-                        if (days > 365) {
+                            const gy2 =
+                                gm > 2
+                                    ? gy + 1
+                                    : gy;
+
+
+                            let days =
+                                (
+                                    365 * gy
+                                ) +
+                                Math.floor(
+                                    (gy2 + 3) / 4
+                                ) -
+                                Math.floor(
+                                    (gy2 + 99) / 100
+                                ) +
+                                Math.floor(
+                                    (gy2 + 399) / 400
+                                ) -
+                                80 +
+                                gd +
+                                gdm[gm - 1];
+
 
                             jy +=
+                                33 *
                                 Math.floor(
-                                    (days - 1) / 365
+                                    days / 12053
                                 );
 
-                            days =
-                                (days - 1) % 365;
+                            days %= 12053;
 
-                        }
-
-
-                        let jm;
-
-                        let jd;
-
-
-                        if (days < 186) {
-
-                            jm =
-                                1 +
+                            jy +=
+                                4 *
                                 Math.floor(
-                                    days / 31
+                                    days / 1461
                                 );
 
-                            jd =
-                                1 +
-                                (days % 31);
-
-                        } else {
-
-                            jm =
-                                7 +
-                                Math.floor(
-                                    (days - 186) / 30
-                                );
-
-                            jd =
-                                1 +
-                                (
-                                    (days - 186) % 30
-                                );
-
-                        }
+                            days %= 1461;
 
 
-                        return [
-                            jy,
-                            jm,
-                            jd
-                        ];
+                            if (days > 365) {
 
-                    },
+                                jy +=
+                                    Math.floor(
+                                        (days - 1) / 365
+                                    );
 
-                };
-            }
-        </script>
+                                days =
+                                    (days - 1) % 365;
 
-    @endpush
+                            }
+
+
+                            let jm;
+
+                            let jd;
+
+
+                            if (days < 186) {
+
+                                jm =
+                                    1 +
+                                    Math.floor(
+                                        days / 31
+                                    );
+
+                                jd =
+                                    1 +
+                                    (days % 31);
+
+                            } else {
+
+                                jm =
+                                    7 +
+                                    Math.floor(
+                                        (days - 186) / 30
+                                    );
+
+                                jd =
+                                    1 +
+                                    (
+                                        (days - 186) % 30
+                                    );
+
+                            }
+
+
+                            return [
+                                jy,
+                                jm,
+                                jd
+                            ];
+
+                        },
+
+                    };
+                }
+            </script>
+
+        @endpush
+
+    </div>
 
 @endsection

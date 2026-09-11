@@ -306,4 +306,154 @@ class BookingService
 
         return $booking;
     }
+
+    public function updateByCustomer(
+        User $customer,
+        Booking $booking,
+        array $data
+    ): Booking {
+        return DB::transaction(
+            function () use (
+                $customer,
+                $booking,
+                $data
+            ) {
+                $booking = Booking::query()
+                    ->lockForUpdate()
+                    ->findOrFail($booking->id);
+
+                if (
+                    (int) $booking->customer_id !==
+                    (int) $customer->id
+                ) {
+                    abort(403);
+                }
+
+                if (
+                    $booking->status !==
+                    BookingStatus::PENDING
+                ) {
+                    throw ValidationException::withMessages([
+                        'booking' =>
+                            'فقط نوبت‌های در انتظار امکان ویرایش دارند.',
+                    ]);
+                }
+
+                if (
+                    (int) $data['salon_id'] !==
+                    (int) $booking->salon_id
+                ) {
+                    throw ValidationException::withMessages([
+                        'salon_id' =>
+                            'امکان تغییر سالن این نوبت وجود ندارد.',
+                    ]);
+                }
+
+                $salon = Salon::query()
+                    ->whereKey($booking->salon_id)
+                    ->where('is_active', true)
+                    ->first();
+
+                if (!$salon) {
+                    throw ValidationException::withMessages([
+                        'salon_id' =>
+                            'سالن انتخاب شده در دسترس نیست.',
+                    ]);
+                }
+
+                $barber = Barber::query()
+                    ->whereKey($data['barber_id'])
+                    ->where('salon_id', $salon->id)
+                    ->where('is_active', true)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$barber) {
+                    throw ValidationException::withMessages([
+                        'barber_id' =>
+                            'آرایشگر انتخاب شده در این سالن در دسترس نیست.',
+                    ]);
+                }
+
+                $service = Service::query()
+                    ->whereKey($data['service_id'])
+                    ->where('salon_id', $salon->id)
+                    ->where('is_active', true)
+                    ->first();
+
+                if (!$service) {
+                    throw ValidationException::withMessages([
+                        'service_id' =>
+                            'خدمت انتخاب شده در این سالن در دسترس نیست.',
+                    ]);
+                }
+
+                $date = Carbon::createFromFormat(
+                    'Y-m-d',
+                    $data['booking_date']
+                );
+
+                if ($date->isBefore(today())) {
+                    throw ValidationException::withMessages([
+                        'booking_date' =>
+                            'امکان انتخاب تاریخ گذشته وجود ندارد.',
+                    ]);
+                }
+
+                $slots = $this->availability->slots(
+                    $salon,
+                    $barber,
+                    $service,
+                    $date,
+                    $booking->id
+                );
+
+                $selected = collect($slots)
+                    ->firstWhere(
+                        'start',
+                        $data['start_time']
+                    );
+
+                if (
+                    !$selected ||
+                    !($selected['available'] ?? false)
+                ) {
+                    throw ValidationException::withMessages([
+                        'start_time' =>
+                            'این زمان دیگر در دسترس نیست.',
+                    ]);
+                }
+
+                $booking->update([
+                    'barber_id' =>
+                        $barber->id,
+
+                    'service_id' =>
+                        $service->id,
+
+                    'booking_date' =>
+                        $date->toDateString(),
+
+                    'start_time' =>
+                        $selected['start'],
+
+                    'end_time' =>
+                        $selected['end'],
+
+                    'price' =>
+                        $service->price,
+
+                    'notes' =>
+                        $data['notes'] ?? null,
+                ]);
+
+                return $booking->fresh([
+                    'salon',
+                    'barber',
+                    'service',
+                    'customer',
+                ]);
+            }
+        );
+    }
 }

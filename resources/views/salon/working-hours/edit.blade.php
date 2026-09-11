@@ -60,9 +60,16 @@
         $oldHours = old('hours');
 
         foreach ($days as $dayNumber => $day) {
+
             $existingRows = $hours->get($dayNumber, collect());
 
+            /*
+             |--------------------------------------------------------------------------
+             | اگر validation error داشتیم، اطلاعات فرم قبلی را نگه می‌داریم
+             |--------------------------------------------------------------------------
+             */
             if (is_array($oldHours) && array_key_exists($dayNumber, $oldHours)) {
+
                 $oldDay = $oldHours[$dayNumber];
 
                 $intervals = [];
@@ -74,21 +81,37 @@
                     ];
                 }
 
+                $isClosed = filter_var(
+                    $oldDay['is_closed'] ?? false,
+                    FILTER_VALIDATE_BOOLEAN
+                );
+
+                /*
+                 * اگر روز تعطیل است، نباید هیچ interval داشته باشد.
+                 */
+                if ($isClosed) {
+                    $intervals = [];
+                }
+
                 $hoursData[$dayNumber] = [
-                    'closed' => filter_var(
-                        $oldDay['is_closed'] ?? false,
-                        FILTER_VALIDATE_BOOLEAN
-                    ),
+                    'closed' => $isClosed,
                     'intervals' => $intervals,
                 ];
 
                 continue;
             }
 
+            /*
+             |--------------------------------------------------------------------------
+             | اطلاعات ذخیره‌شده فعلی
+             |--------------------------------------------------------------------------
+             */
+
             $isClosed = false;
             $intervals = [];
 
             foreach ($existingRows as $row) {
+
                 if ($row->is_closed) {
                     $isClosed = true;
                     continue;
@@ -116,10 +139,17 @@
                 ];
             }
 
+            /*
+             * اگر هیچ رکوردی برای روز وجود ندارد،
+             * روز را باز نشان می‌دهیم تا کاربر بتواند ساعت وارد کند.
+             */
             if ($existingRows->isEmpty()) {
                 $isClosed = false;
             }
 
+            /*
+             * روز تعطیل نباید interval داشته باشد.
+             */
             if ($isClosed) {
                 $intervals = [];
             }
@@ -131,9 +161,11 @@
         }
     @endphp
 
+
     <script>
         function workingHoursPage() {
             return {
+
                 hours: @js($hoursData),
 
                 copyModalOpen: false,
@@ -150,6 +182,15 @@
                     6: false,
                 },
 
+
+                /*
+                 |--------------------------------------------------------------------------
+                 | برنامه پیش‌فرض
+                 |--------------------------------------------------------------------------
+                 | شنبه تا پنجشنبه: 09:00 تا 22:00
+                 | جمعه: تعطیل
+                 |--------------------------------------------------------------------------
+                 */
                 defaultSchedule() {
                     return {
                         0: {
@@ -219,7 +260,14 @@
                     };
                 },
 
+
+                /*
+                 |--------------------------------------------------------------------------
+                 | اعمال برنامه پیش‌فرض
+                 |--------------------------------------------------------------------------
+                 */
                 applyDefault() {
+
                     if (
                         !confirm(
                             'برنامه پیش‌فرض روی ساعات فعلی اعمال شود؟'
@@ -232,14 +280,23 @@
 
                     Object.entries(defaults).forEach(
                         ([day, value]) => {
+
                             this.hours[day] = JSON.parse(
                                 JSON.stringify(value)
                             );
+
                         }
                     );
                 },
 
+
+                /*
+                 |--------------------------------------------------------------------------
+                 | کپی ساعات
+                 |--------------------------------------------------------------------------
+                 */
                 openCopyModal(day) {
+
                     this.copySourceDay = Number(day);
 
                     Object.keys(this.copyTargets).forEach(
@@ -251,25 +308,34 @@
                     this.copyModalOpen = true;
                 },
 
+
                 closeCopyModal() {
+
                     this.copyModalOpen = false;
+
                     this.copySourceDay = null;
                 },
 
+
                 selectWorkingDays() {
+
                     Object.keys(this.copyTargets).forEach(
                         dayNumber => {
+
                             const number = Number(dayNumber);
 
                             this.copyTargets[dayNumber] =
                                 number >= 1 &&
                                 number <= 5 &&
                                 number !== this.copySourceDay;
+
                         }
                     );
                 },
 
+
                 applyCopy() {
+
                     if (this.copySourceDay === null) {
                         return;
                     }
@@ -287,6 +353,7 @@
                         );
 
                     if (!targets.length) {
+
                         alert(
                             'حداقل یک روز را انتخاب کن.'
                         );
@@ -297,21 +364,42 @@
                     const source =
                         this.hours[this.copySourceDay];
 
+                    /*
+                     * اگر روز مبدا تعطیل باشد،
+                     * مقصد هم تعطیل می‌شود و interval ندارد.
+                     */
                     targets.forEach(day => {
+
                         this.hours[day] =
                             JSON.parse(
                                 JSON.stringify(source)
                             );
+
                     });
 
                     this.closeCopyModal();
                 },
 
+
+                /*
+                 |--------------------------------------------------------------------------
+                 | افزودن بازه
+                 |--------------------------------------------------------------------------
+                 */
                 addInterval(day) {
+
                     if (
                         this.hours[day].closed
                     ) {
                         this.hours[day].closed = false;
+                    }
+
+                    if (
+                        !Array.isArray(
+                            this.hours[day].intervals
+                        )
+                    ) {
+                        this.hours[day].intervals = [];
                     }
 
                     this.hours[day].intervals.push({
@@ -320,12 +408,23 @@
                     });
                 },
 
+
+                /*
+                 |--------------------------------------------------------------------------
+                 | حذف بازه
+                 |--------------------------------------------------------------------------
+                 */
                 removeInterval(day, index) {
+
                     this.hours[day].intervals.splice(
                         index,
                         1
                     );
 
+                    /*
+                     * اگر هیچ بازه‌ای باقی نماند،
+                     * روز را تعطیل می‌کنیم.
+                     */
                     if (
                         this.hours[day].intervals.length === 0
                     ) {
@@ -333,13 +432,40 @@
                     }
                 },
 
+
+                /*
+                 |--------------------------------------------------------------------------
+                 | تعطیل کردن روز
+                 |--------------------------------------------------------------------------
+                 */
                 closeDay(day) {
+
                     this.hours[day].closed = true;
+
+                    /*
+                     * خیلی مهم:
+                     * با تعطیل کردن روز، intervalها کاملاً پاک می‌شوند.
+                     */
                     this.hours[day].intervals = [];
                 },
 
+
+                /*
+                 |--------------------------------------------------------------------------
+                 | باز کردن روز
+                 |--------------------------------------------------------------------------
+                 */
                 openDay(day) {
+
                     this.hours[day].closed = false;
+
+                    if (
+                        !Array.isArray(
+                            this.hours[day].intervals
+                        )
+                    ) {
+                        this.hours[day].intervals = [];
+                    }
 
                     if (
                         this.hours[day].intervals.length === 0
@@ -351,15 +477,19 @@
                     }
                 },
 
+
                 hasIntervals(day) {
+
                     return (
                         !this.hours[day].closed &&
+                        Array.isArray(this.hours[day].intervals) &&
                         this.hours[day].intervals.length > 0
                     );
                 }
             };
         }
     </script>
+
 
     <div
         x-data="workingHoursPage()"
@@ -419,6 +549,7 @@
                         </div>
 
                         <div>
+
                             <div class="text-xs font-black text-emerald-800">
                                 ذخیره شد
                             </div>
@@ -426,6 +557,7 @@
                             <div class="mt-1 text-[10px] text-emerald-700">
                                 {{ session('success') }}
                             </div>
+
                         </div>
 
                     </div>
@@ -455,11 +587,15 @@
                 </div>
 
                 <div class="mt-2 space-y-1">
+
                     @foreach($errors->all() as $error)
+
                         <div class="text-[10px] font-bold leading-6 text-red-700">
                             • {{ $error }}
                         </div>
+
                     @endforeach
+
                 </div>
 
             </div>
@@ -473,7 +609,7 @@
             <button
                 type="button"
                 @click="applyDefault()"
-                class="rounded-2xl border border-border bg-white p-4 text-right shadow-soft transition hover:border-accent-200 hover:-translate-y-0.5"
+                class="rounded-2xl border border-border bg-white p-4 text-right shadow-soft transition hover:-translate-y-0.5 hover:border-accent-200"
             >
 
                 <div class="flex items-center gap-3">
@@ -483,6 +619,7 @@
                     </div>
 
                     <div>
+
                         <div class="text-xs font-black text-content">
                             برنامه پیشنهادی
                         </div>
@@ -491,6 +628,7 @@
                             شنبه تا پنجشنبه ۰۹ تا ۲۲
                             · جمعه تعطیل
                         </div>
+
                     </div>
 
                 </div>
@@ -507,6 +645,7 @@
                     </div>
 
                     <div>
+
                         <div class="text-xs font-black text-content">
                             بین دو بازه رزرو نمی‌شود
                         </div>
@@ -514,6 +653,7 @@
                         <div class="mt-1 text-[10px] leading-5 text-content-muted">
                             مثلاً ۰۹ تا ۱۳ و ۱۴ تا ۲۲ یعنی بین ۱۳ تا ۱۴ نوبتی نمایش داده نمی‌شود.
                         </div>
+
                     </div>
 
                 </div>
@@ -610,164 +750,171 @@
                         class="border-t border-border bg-primary-50/60 p-4 sm:p-5"
                     >
 
+                        {{-- فقط یک day_of_week برای هر روز --}}
                         <input
                             type="hidden"
                             name="hours[{{ $dayNumber }}][day_of_week]"
                             value="{{ $dayNumber }}"
                         >
 
+                        {{-- فقط یک is_closed برای هر روز --}}
                         <input
                             type="hidden"
                             name="hours[{{ $dayNumber }}][is_closed]"
-                            value="0"
-                        >
-
-                        <input
-                            type="checkbox"
-                            name="hours[{{ $dayNumber }}][is_closed]"
-                            value="1"
-                            x-model="hours[{{ $dayNumber }}].closed"
-                            class="hidden"
+                            :value="hours[{{ $dayNumber }}].closed ? 1 : 0"
                         >
 
 
                         <div class="space-y-2">
 
-                            <template
-                                x-for="(interval, intervalIndex) in hours[{{ $dayNumber }}].intervals"
-                                :key="intervalIndex"
-                            >
+                            {{--
+                                خیلی مهم:
+                                از x-if استفاده شده تا وقتی روز تعطیل است،
+                                inputهای ساعت اصلاً در DOM وجود نداشته باشند.
+                            --}}
+                            <template x-if="!hours[{{ $dayNumber }}].closed">
 
-                                <div class="flex flex-col gap-2 rounded-2xl border border-border bg-white p-3 sm:flex-row sm:items-end">
+                                <div>
 
-                                    <div class="grid flex-1 grid-cols-2 gap-2">
+                                    <template
+                                        x-for="(interval, intervalIndex) in hours[{{ $dayNumber }}].intervals"
+                                        :key="intervalIndex"
+                                    >
 
-                                        {{-- Start --}}
-                                        <div>
+                                        <div class="mb-2 flex flex-col gap-2 rounded-2xl border border-border bg-white p-3 sm:flex-row sm:items-end">
 
-                                            <label class="mb-1.5 block text-[9px] font-black text-content-muted">
-                                                از
-                                            </label>
+                                            <div class="grid flex-1 grid-cols-2 gap-2">
 
-                                            <select
-                                                :name="`hours[{{ $dayNumber }}][intervals][${intervalIndex}][start_time]`"
-                                                x-model="interval.start"
-                                                class="form-control h-11 text-center"
-                                                dir="rtl"
-                                            >
+                                                {{-- Start --}}
+                                                <div>
 
-                                                <option value="">
-                                                    انتخاب
-                                                </option>
+                                                    <label class="mb-1.5 block text-[9px] font-black text-content-muted">
+                                                        از
+                                                    </label>
 
-                                                @for($hourIndex = 0; $hourIndex < 24; $hourIndex++)
+                                                    <select
+                                                        :name="`hours[{{ $dayNumber }}][intervals][${intervalIndex}][start_time]`"
+                                                        x-model="interval.start"
+                                                        class="form-control h-11 text-center"
+                                                        dir="rtl"
+                                                    >
 
-                                                    @for($minute = 0; $minute < 60; $minute += 15)
-
-                                                        @php
-                                                            $time = sprintf(
-                                                                '%02d:%02d',
-                                                                $hourIndex,
-                                                                $minute
-                                                            );
-
-                                                            $displayTime = strtr(
-                                                                $time,
-                                                                $persianDigits
-                                                            );
-                                                        @endphp
-
-                                                        <option value="{{ $time }}">
-                                                            {{ $displayTime }}
+                                                        <option value="">
+                                                            انتخاب
                                                         </option>
 
-                                                    @endfor
+                                                        @for($hourIndex = 0; $hourIndex < 24; $hourIndex++)
 
-                                                @endfor
+                                                            @for($minute = 0; $minute < 60; $minute += 15)
 
-                                            </select>
+                                                                @php
+                                                                    $time = sprintf(
+                                                                        '%02d:%02d',
+                                                                        $hourIndex,
+                                                                        $minute
+                                                                    );
+
+                                                                    $displayTime = strtr(
+                                                                        $time,
+                                                                        $persianDigits
+                                                                    );
+                                                                @endphp
+
+                                                                <option value="{{ $time }}">
+                                                                    {{ $displayTime }}
+                                                                </option>
+
+                                                            @endfor
+
+                                                        @endfor
+
+                                                    </select>
+
+                                                </div>
+
+
+                                                {{-- End --}}
+                                                <div>
+
+                                                    <label class="mb-1.5 block text-[9px] font-black text-content-muted">
+                                                        تا
+                                                    </label>
+
+                                                    <select
+                                                        :name="`hours[{{ $dayNumber }}][intervals][${intervalIndex}][end_time]`"
+                                                        x-model="interval.end"
+                                                        class="form-control h-11 text-center"
+                                                        dir="rtl"
+                                                    >
+
+                                                        <option value="">
+                                                            انتخاب
+                                                        </option>
+
+                                                        @for($hourIndex = 0; $hourIndex < 24; $hourIndex++)
+
+                                                            @for($minute = 0; $minute < 60; $minute += 15)
+
+                                                                @php
+                                                                    $time = sprintf(
+                                                                        '%02d:%02d',
+                                                                        $hourIndex,
+                                                                        $minute
+                                                                    );
+
+                                                                    $displayTime = strtr(
+                                                                        $time,
+                                                                        $persianDigits
+                                                                    );
+                                                                @endphp
+
+                                                                <option value="{{ $time }}">
+                                                                    {{ $displayTime }}
+                                                                </option>
+
+                                                            @endfor
+
+                                                        @endfor
+
+                                                    </select>
+
+                                                </div>
+
+                                            </div>
+
+
+                                            {{-- Delete --}}
+                                            <button
+                                                type="button"
+                                                @click="
+                                                    removeInterval(
+                                                        {{ $dayNumber }},
+                                                        intervalIndex
+                                                    )
+                                                "
+                                                class="flex h-11 items-center justify-center rounded-xl border border-red-100 bg-red-50 px-4 text-xs font-black text-red-600 transition hover:bg-red-100"
+                                            >
+                                                حذف
+                                            </button>
 
                                         </div>
 
-
-                                        {{-- End --}}
-                                        <div>
-
-                                            <label class="mb-1.5 block text-[9px] font-black text-content-muted">
-                                                تا
-                                            </label>
-
-                                            <select
-                                                :name="`hours[{{ $dayNumber }}][intervals][${intervalIndex}][end_time]`"
-                                                x-model="interval.end"
-                                                class="form-control h-11 text-center"
-                                                dir="rtl"
-                                            >
-
-                                                <option value="">
-                                                    انتخاب
-                                                </option>
-
-                                                @for($hourIndex = 0; $hourIndex < 24; $hourIndex++)
-
-                                                    @for($minute = 0; $minute < 60; $minute += 15)
-
-                                                        @php
-                                                            $time = sprintf(
-                                                                '%02d:%02d',
-                                                                $hourIndex,
-                                                                $minute
-                                                            );
-
-                                                            $displayTime = strtr(
-                                                                $time,
-                                                                $persianDigits
-                                                            );
-                                                        @endphp
-
-                                                        <option value="{{ $time }}">
-                                                            {{ $displayTime }}
-                                                        </option>
-
-                                                    @endfor
-
-                                                @endfor
-
-                                            </select>
-
-                                        </div>
-
-                                    </div>
+                                    </template>
 
 
-                                    {{-- Delete --}}
+                                    {{-- Add interval --}}
                                     <button
                                         type="button"
-                                        @click="
-                                            removeInterval(
-                                                {{ $dayNumber }},
-                                                intervalIndex
-                                            )
-                                        "
-                                        class="flex h-11 items-center justify-center rounded-xl border border-red-100 bg-red-50 px-4 text-xs font-black text-red-600 transition hover:bg-red-100"
+                                        @click="addInterval({{ $dayNumber }})"
+                                        class="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-accent-200 bg-white py-3 text-[10px] font-black text-accent-600 transition hover:bg-accent-50"
                                     >
-                                        حذف
+                                        <span class="text-base">+</span>
+                                        افزودن بازه
                                     </button>
 
                                 </div>
 
                             </template>
-
-
-                            {{-- Add interval --}}
-                            <button
-                                type="button"
-                                @click="addInterval({{ $dayNumber }})"
-                                class="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-accent-200 bg-white py-3 text-[10px] font-black text-accent-600 transition hover:bg-accent-50"
-                            >
-                                <span class="text-base">+</span>
-                                افزودن بازه
-                            </button>
 
                         </div>
 
@@ -795,17 +942,10 @@
                         class="border-t border-border bg-primary-50/50 px-4 py-5 sm:px-5"
                     >
 
-                        <input
-                            type="hidden"
-                            name="hours[{{ $dayNumber }}][day_of_week]"
-                            value="{{ $dayNumber }}"
-                        >
-
-                        <input
-                            type="hidden"
-                            name="hours[{{ $dayNumber }}][is_closed]"
-                            value="1"
-                        >
+                        {{--
+                            اینجا دیگر هیچ input مربوط به day_of_week یا is_closed نداریم.
+                            آن‌ها بالاتر، یک بار برای هر روز تعریف شده‌اند.
+                        --}}
 
                         <div class="flex items-center justify-between gap-4">
 

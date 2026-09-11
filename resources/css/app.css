@@ -1,22 +1,69 @@
 @import "tailwindcss";
 
+
+/* ==========================================================================
+   SOURCES
+   ========================================================================== */
+
 @source "../**/*.blade.php";
 @source "../**/*.js";
+
 @source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
 @source "../../storage/framework/views/*.php";
 
+
+/* ==========================================================================
+   FONT
+   ========================================================================== */
+
 @font-face {
     font-family: "Vazirmatn";
-    src: url("../fonts/webfonts/Vazirmatn[wght].woff2") format("woff2");
+    src:
+        url("../fonts/webfonts/Vazirmatn[wght].woff2")
+        format("woff2");
+
     font-style: normal;
     font-weight: 100 900;
+
     font-display: swap;
+
+    /* Better rendering for variable Persian font */
+    ascent-override: 90%;
+    descent-override: 22%;
+    line-gap-override: 0%;
 }
 
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ==========================================================================
+   DARK VARIANT
+   ========================================================================== */
+
+@custom-variant dark (&:where(
+[data-theme="dark"],
+[data-theme="dark"] *
+));
+
+
+/* ==========================================================================
+   TAILWIND THEME
+   ========================================================================== */
 
 @theme {
-    --font-sans: "Vazirmatn", Tahoma, Arial, sans-serif;
+
+    /* ----------------------------------------------------------------------
+       FONT
+       ---------------------------------------------------------------------- */
+
+    --font-sans:
+        "Vazirmatn",
+        Tahoma,
+        Arial,
+        sans-serif;
+
+
+    /* ----------------------------------------------------------------------
+       PRIMARY
+       ---------------------------------------------------------------------- */
 
     --color-primary-50: #eef2ff;
     --color-primary-100: #e0e7ff;
@@ -30,6 +77,11 @@
     --color-primary-900: #312e81;
     --color-primary-950: #1e1b4b;
 
+
+    /* ----------------------------------------------------------------------
+       ACCENT
+       ---------------------------------------------------------------------- */
+
     --color-accent-50: #f5f3ff;
     --color-accent-100: #ede9fe;
     --color-accent-200: #ddd6fe;
@@ -42,6 +94,11 @@
     --color-accent-900: #4c1d95;
     --color-accent-950: #2e1065;
 
+
+    /* ----------------------------------------------------------------------
+       CYAN
+       ---------------------------------------------------------------------- */
+
     --color-cyan-50: #ecfeff;
     --color-cyan-100: #cffafe;
     --color-cyan-200: #a5f3fc;
@@ -52,6 +109,11 @@
     --color-cyan-700: #0e7490;
     --color-cyan-800: #155e75;
     --color-cyan-900: #164e63;
+
+
+    /* ----------------------------------------------------------------------
+       SUCCESS
+       ---------------------------------------------------------------------- */
 
     --color-success-50: #f0fdf4;
     --color-success-100: #dcfce7;
@@ -64,6 +126,11 @@
     --color-success-800: #166534;
     --color-success-900: #14532d;
 
+
+    /* ----------------------------------------------------------------------
+       WARNING
+       ---------------------------------------------------------------------- */
+
     --color-warning-50: #fffbeb;
     --color-warning-100: #fef3c7;
     --color-warning-200: #fde68a;
@@ -74,6 +141,11 @@
     --color-warning-700: #b45309;
     --color-warning-800: #92400e;
     --color-warning-900: #78350f;
+
+
+    /* ----------------------------------------------------------------------
+       DANGER
+       ---------------------------------------------------------------------- */
 
     --color-danger-50: #fef2f2;
     --color-danger-100: #fee2e2;
@@ -86,6 +158,11 @@
     --color-danger-800: #991b1b;
     --color-danger-900: #7f1d1d;
 
+
+    /* ----------------------------------------------------------------------
+       INFO
+       ---------------------------------------------------------------------- */
+
     --color-info-50: #eff6ff;
     --color-info-100: #dbeafe;
     --color-info-200: #bfdbfe;
@@ -97,27 +174,63 @@
     --color-info-800: #1e40af;
     --color-info-900: #1e3a8a;
 
+
+    /* ----------------------------------------------------------------------
+       SEMANTIC COLORS
+       ----------------------------------------------------------------------
+       These become Tailwind utilities such as:
+       bg-background
+       text-foreground
+       bg-surface
+       bg-card
+       text-content
+       text-content-muted
+       border-border
+       ring-ring
+       ---------------------------------------------------------------------- */
+
+}
+
+
+@theme inline {
+
     --color-background: var(--app-background);
     --color-foreground: var(--app-content);
+    --color-border-strong: var(--app-border-strong);
     --color-card: var(--app-surface);
     --color-card-foreground: var(--app-content);
+
     --color-muted: var(--app-surface-soft);
     --color-muted-foreground: var(--app-content-muted);
+
     --color-border: var(--app-border);
     --color-input: var(--app-border);
+
     --color-primary: var(--app-primary);
     --color-primary-foreground: var(--app-on-primary);
+
     --color-ring: var(--app-ring);
+
     --color-surface: var(--app-surface);
     --color-surface-soft: var(--app-surface-soft);
     --color-surface-raised: var(--app-surface-raised);
+
     --color-content: var(--app-content);
     --color-content-soft: var(--app-content-soft);
     --color-content-muted: var(--app-content-muted);
     --color-content-faint: var(--app-content-faint);
+
     --color-brand-from: var(--app-brand-from);
     --color-brand-via: var(--app-brand-via);
     --color-brand-to: var(--app-brand-to);
+}
+
+
+/* ==========================================================================
+   RADIUS
+   ========================================================================== */
+
+@theme {
 
     --radius-xs: .4rem;
     --radius-sm: .55rem;
@@ -127,124 +240,469 @@
     --radius-2xl: 1.5rem;
     --radius-3xl: 2rem;
 
-    --shadow-soft: 0 4px 18px rgba(30, 41, 59, .04);
-    --shadow-card: 0 16px 38px rgba(30, 41, 59, .08);
-    --shadow-float: 0 24px 60px rgba(30, 41, 59, .14);
-    --shadow-brand: 0 12px 35px rgba(79, 70, 229, .20);
+
+    /* ----------------------------------------------------------------------
+       CONTAINER
+       ---------------------------------------------------------------------- */
 
     --container-2xl: 90rem;
 }
 
+
+/* ==========================================================================
+   LIGHT THEME
+   ========================================================================== */
+
 :root {
+
     color-scheme: light;
+
+
+    /* ----------------------------------------------------------------------
+       Background
+       ---------------------------------------------------------------------- */
+
     --app-background: #f7f8fc;
+
+
+    /* ----------------------------------------------------------------------
+       Surfaces
+       ---------------------------------------------------------------------- */
+
     --app-surface: #ffffff;
     --app-surface-soft: #f1f4f9;
     --app-surface-raised: #ffffff;
+
+
+    /* ----------------------------------------------------------------------
+       Content
+       ---------------------------------------------------------------------- */
+
     --app-content: #111827;
     --app-content-soft: #374151;
     --app-content-muted: #6b7280;
     --app-content-faint: #9ca3af;
+
+
+    /* ----------------------------------------------------------------------
+       Borders
+       ---------------------------------------------------------------------- */
+
     --app-border: #e2e8f0;
     --app-border-strong: #cbd5e1;
+
+
+    /* ----------------------------------------------------------------------
+       Primary
+       ---------------------------------------------------------------------- */
+
     --app-primary: #4f46e5;
     --app-on-primary: #ffffff;
+
+
+    /* ----------------------------------------------------------------------
+       Brand
+       ---------------------------------------------------------------------- */
+
     --app-brand-from: #4f46e5;
     --app-brand-via: #7c3aed;
     --app-brand-to: #06b6d4;
-    --app-ring: rgba(79, 70, 229, .28);
-    --app-selection-bg: rgba(79, 70, 229, .14);
-    --app-overlay: rgba(255,255,255,.82);
+
+
+    /* ----------------------------------------------------------------------
+       Interaction
+       ---------------------------------------------------------------------- */
+
+    --app-ring: rgb(79 70 229 / 28%);
+    --app-selection-bg: rgb(79 70 229 / 14%);
+
+
+    /* ----------------------------------------------------------------------
+       Misc
+       ---------------------------------------------------------------------- */
+
+    --app-overlay: rgb(255 255 255 / 82%);
     --app-scrollbar: #cbd5e1;
 }
 
+
+/* ==========================================================================
+   DARK THEME
+   ========================================================================== */
+
 html[data-theme="dark"] {
+
     color-scheme: dark;
+
+
+    /* ----------------------------------------------------------------------
+       Background
+       ---------------------------------------------------------------------- */
+
     --app-background: #0b1020;
+
+
+    /* ----------------------------------------------------------------------
+       Surfaces
+       ---------------------------------------------------------------------- */
+
     --app-surface: #111827;
     --app-surface-soft: #172033;
     --app-surface-raised: #1d293d;
+
+
+    /* ----------------------------------------------------------------------
+       Content
+       ---------------------------------------------------------------------- */
+
     --app-content: #f8fafc;
     --app-content-soft: #dbe4f0;
     --app-content-muted: #94a3b8;
     --app-content-faint: #64748b;
+
+
+    /* ----------------------------------------------------------------------
+       Borders
+       ---------------------------------------------------------------------- */
+
     --app-border: #263247;
     --app-border-strong: #35445c;
+
+
+    /* ----------------------------------------------------------------------
+       Primary
+       ---------------------------------------------------------------------- */
+
     --app-primary: #818cf8;
     --app-on-primary: #111827;
+
+
+    /* ----------------------------------------------------------------------
+       Brand
+       ---------------------------------------------------------------------- */
+
     --app-brand-from: #818cf8;
     --app-brand-via: #a78bfa;
     --app-brand-to: #22d3ee;
-    --app-ring: rgba(129, 140, 248, .36);
-    --app-selection-bg: rgba(129, 140, 248, .22);
-    --app-overlay: rgba(17,24,39,.84);
+
+
+    /* ----------------------------------------------------------------------
+       Interaction
+       ---------------------------------------------------------------------- */
+
+    --app-ring: rgb(129 140 248 / 36%);
+    --app-selection-bg: rgb(129 140 248 / 22%);
+
+
+    /* ----------------------------------------------------------------------
+       Misc
+       ---------------------------------------------------------------------- */
+
+    --app-overlay: rgb(17 24 39 / 84%);
     --app-scrollbar: #3b4b63;
 }
 
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+
 @layer base {
+
     html {
+
         direction: rtl;
+
         min-height: 100%;
-        background: var(--app-background);
+
+        background:
+            var(--app-background);
+
         scroll-behavior: smooth;
+
         text-rendering: optimizeLegibility;
+
+        font-family:
+            var(--font-sans);
     }
+
 
     body {
+
         min-height: 100vh;
+
         margin: 0;
+
         overflow-x: hidden;
+
         background:
-            radial-gradient(circle at 90% -8%, rgba(79,70,229,.06), transparent 28rem),
-            radial-gradient(circle at 10% 25%, rgba(6,182,212,.04), transparent 24rem),
+            radial-gradient(
+                circle at 90% -8%,
+                rgb(79 70 229 / 6%),
+                transparent 28rem
+            ),
+            radial-gradient(
+                circle at 10% 25%,
+                rgb(6 182 212 / 4%),
+                transparent 24rem
+            ),
             var(--app-background);
-        color: var(--app-content);
-        font-family: var(--font-sans);
-        font-weight: 400;
-        line-height: 1.8;
-        font-synthesis: none;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+
+        color:
+            var(--app-content);
+
+        font-family:
+            var(--font-sans);
+
+        font-size:
+            1rem;
+
+        font-weight:
+            400;
+
+        line-height:
+            1.8;
+
+        font-synthesis:
+            none;
+
+        -webkit-font-smoothing:
+            antialiased;
+
+        -moz-osx-font-smoothing:
+            grayscale;
     }
 
-    *, *::before, *::after { box-sizing: border-box; }
-    [x-cloak] { display: none !important; }
 
-    a { color: inherit; text-decoration: none; }
-    button, input, textarea, select { font: inherit; }
-    button:not(:disabled) { cursor: pointer; }
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
 
-    img, svg, video, canvas {
+
+    [x-cloak] {
+        display: none !important;
+    }
+
+
+    a {
+
+        color: inherit;
+
+        text-decoration: none;
+    }
+
+
+    button,
+    input,
+    textarea,
+    select {
+
+        font: inherit;
+    }
+
+
+    button:not(:disabled) {
+
+        cursor: pointer;
+    }
+
+
+    button:disabled {
+
+        cursor:
+            not-allowed;
+    }
+
+
+    img,
+    svg,
+    video,
+    canvas {
+
         display: block;
+
         max-width: 100%;
     }
 
-    ::selection {
-        background: var(--app-selection-bg);
-        color: var(--app-content);
+
+    img {
+
+        height: auto;
     }
+
+
+    ::selection {
+
+        background:
+            var(--app-selection-bg);
+
+        color:
+            var(--app-content);
+    }
+
 
     :focus-visible {
-        outline: 3px solid var(--app-ring);
-        outline-offset: 3px;
+
+        outline:
+            3px solid var(--app-ring);
+
+        outline-offset:
+            3px;
     }
+
+
+    input::placeholder,
+    textarea::placeholder {
+
+        color:
+            var(--app-content-faint);
+
+        opacity:
+            1;
+    }
+
+
+    input,
+    textarea,
+    select {
+
+        color:
+            var(--app-content);
+    }
+
+
+    textarea {
+
+        resize:
+            vertical;
+    }
+
+
+    option {
+
+        color:
+            #111827;
+
+        background:
+            #ffffff;
+    }
+
 }
+
+
+/* ==========================================================================
+   CUSTOM UTILITIES
+   ========================================================================== */
 
 @layer utilities {
-    .text-balance { text-wrap: balance; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .shadow-soft { box-shadow: var(--shadow-soft); }
-    .shadow-card { box-shadow: var(--shadow-card); }
-    .shadow-float { box-shadow: var(--shadow-float); }
-    .shadow-brand { box-shadow: var(--shadow-brand); }
+
+    .text-balance {
+
+        text-wrap:
+            balance;
+    }
+
+
+    .scrollbar-hide {
+
+        -ms-overflow-style:
+            none;
+
+        scrollbar-width:
+            none;
+    }
+
+
+    .scrollbar-hide::-webkit-scrollbar {
+
+        display:
+            none;
+    }
+
+
+    .shadow-soft {
+
+        box-shadow:
+            0 4px 18px
+            rgb(30 41 59 / 4%);
+    }
+
+
+    .shadow-card {
+
+        box-shadow:
+            0 16px 38px
+            rgb(30 41 59 / 8%);
+    }
+
+
+    .shadow-float {
+
+        box-shadow:
+            0 24px 60px
+            rgb(30 41 59 / 14%);
+    }
+
+
+    .shadow-brand {
+
+        box-shadow:
+            0 12px 35px
+            rgb(79 70 229 / 20%);
+    }
+
 }
 
+
+/* ==========================================================================
+   THEME TRANSITION
+   ========================================================================== */
+
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+
+    transition:
+        background-color .25s ease,
+        border-color .25s ease,
+        color .25s ease,
+        fill .25s ease,
+        stroke .25s ease,
+        box-shadow .25s ease !important;
+}
+
+
+/* ==========================================================================
+   REDUCED MOTION
+   ========================================================================== */
+
 @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
+
+    html {
+
+        scroll-behavior:
+            auto;
     }
+
+
+    *,
+    *::before,
+    *::after {
+
+        animation-duration:
+            .01ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        transition-duration:
+            .01ms !important;
+
+        scroll-behavior:
+            auto !important;
+    }
+
 }
