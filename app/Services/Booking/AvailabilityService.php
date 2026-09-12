@@ -11,8 +11,21 @@ use Carbon\CarbonInterface;
 
 class AvailabilityService
 {
+    /**
+     * Minimum grid interval for booking starts.
+     *
+     * Example:
+     * 10:00
+     * 10:15
+     * 10:30
+     * 10:45
+     */
     private const SLOT_INTERVAL_MINUTES = 15;
 
+    /**
+     * Return all possible booking start times for a barber,
+     * service and date.
+     */
     public function slots(
         Salon $salon,
         Barber $barber,
@@ -49,6 +62,39 @@ class AvailabilityService
 
         /*
         |--------------------------------------------------------------------------
+        | Normalize date
+        |--------------------------------------------------------------------------
+        */
+
+        $date = $date->copy()->startOfDay();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Daily status override
+        |--------------------------------------------------------------------------
+        |
+        | WorkingHours = normal weekly schedule.
+        |
+        | SalonDailyStatus = exception for a specific date.
+        |
+        | If that date is closed, the salon is unavailable completely.
+        |
+        */
+
+        $dailyStatus = $salon
+            ->dailyStatuses()
+            ->whereDate('date', $date->toDateString())
+            ->first();
+
+        if (
+            $dailyStatus &&
+            $dailyStatus->is_closed
+        ) {
+            return [];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | Persian week mapping
         |--------------------------------------------------------------------------
         |
@@ -76,7 +122,7 @@ class AvailabilityService
 
         /*
         |--------------------------------------------------------------------------
-        | Get working intervals
+        | Get weekly working intervals
         |--------------------------------------------------------------------------
         */
 
@@ -109,6 +155,10 @@ class AvailabilityService
         |--------------------------------------------------------------------------
         | Blocking booking statuses
         |--------------------------------------------------------------------------
+        |
+        | Every status that blocks availability comes directly
+        | from the BookingStatus enum.
+        |
         */
 
         $blockingStatuses = collect(
@@ -129,6 +179,11 @@ class AvailabilityService
         |--------------------------------------------------------------------------
         | Existing bookings
         |--------------------------------------------------------------------------
+        |
+        | IMPORTANT:
+        | Manual bookings are stored as CONFIRMED,
+        | so they automatically enter this query and block slots.
+        |
         */
 
         $blockedBookings = $barber
@@ -144,7 +199,11 @@ class AvailabilityService
             ->when(
                 $ignoreBookingId !== null,
                 fn ($query) =>
-                $query->whereKeyNot($ignoreBookingId)
+                $query->where(
+                    'id',
+                    '!=',
+                    $ignoreBookingId
+                )
             )
             ->get([
                 'id',
@@ -156,7 +215,7 @@ class AvailabilityService
 
         /*
         |--------------------------------------------------------------------------
-        | Generate slots
+        | Generate availability
         |--------------------------------------------------------------------------
         */
 
@@ -179,7 +238,7 @@ class AvailabilityService
 
             /*
             |--------------------------------------------------------------------------
-            | Ignore invalid intervals
+            | Invalid interval
             |--------------------------------------------------------------------------
             */
 
@@ -189,7 +248,7 @@ class AvailabilityService
 
             /*
             |--------------------------------------------------------------------------
-            | Generate 15-minute slots
+            | Generate 15-minute start grid
             |--------------------------------------------------------------------------
             */
 
@@ -213,7 +272,7 @@ class AvailabilityService
 
                 /*
                 |--------------------------------------------------------------------------
-                | Don't expose past slots for today
+                | Don't expose past times for today
                 |--------------------------------------------------------------------------
                 */
 
@@ -226,7 +285,7 @@ class AvailabilityService
 
                 /*
                 |--------------------------------------------------------------------------
-                | Detect booking overlap
+                | Detect overlap
                 |--------------------------------------------------------------------------
                 */
 
@@ -260,7 +319,7 @@ class AvailabilityService
 
                 /*
                 |--------------------------------------------------------------------------
-                | Slot response
+                | Add slot
                 |--------------------------------------------------------------------------
                 */
 
@@ -284,7 +343,7 @@ class AvailabilityService
 
         /*
         |--------------------------------------------------------------------------
-        | Sort slots
+        | Sort
         |--------------------------------------------------------------------------
         */
 
@@ -298,6 +357,35 @@ class AvailabilityService
         );
 
         return $slots;
+    }
+
+    /**
+     * Check whether a specific start time is available.
+     */
+    public function isAvailable(
+        Salon $salon,
+        Barber $barber,
+        Service $service,
+        CarbonInterface $date,
+        string $startTime,
+        ?int $ignoreBookingId = null
+    ): bool {
+        $selected = collect(
+            $this->slots(
+                $salon,
+                $barber,
+                $service,
+                $date,
+                $ignoreBookingId
+            )
+        )->firstWhere(
+            'start',
+            $startTime
+        );
+
+        return
+            $selected !== null &&
+            (bool) ($selected['available'] ?? false);
     }
 
     /**

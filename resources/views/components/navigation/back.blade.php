@@ -9,6 +9,9 @@
             inline-flex
             items-center
             gap-2
+            rounded-lg
+            px-1
+            py-1
             text-sm
             font-semibold
             text-content-muted
@@ -18,14 +21,10 @@
             focus-visible:outline-none
             focus-visible:ring-2
             focus-visible:ring-accent-500/30
-            rounded-lg
-            px-1
-            py-1
         ';
     @endphp
 
-    @if($href)
-
+    @if ($href)
         <a
             href="{{ $href }}"
             {{ $attributes->merge(['class' => $classes]) }}
@@ -44,11 +43,10 @@
                 <path d="M5 12h14" />
                 <path d="m13 18 6-6-6-6" />
             </svg>
+
             <span>{{ $label }}</span>
         </a>
-
     @else
-
         <button
             type="button"
             onclick="window.history.back()"
@@ -71,6 +69,5 @@
 
             <span>{{ $label }}</span>
         </button>
-
     @endif
 </div>

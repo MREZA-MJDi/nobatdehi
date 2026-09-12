@@ -41,7 +41,9 @@
 
     @vite([
     'resources/css/app.css',
+    'resources/css/salon.css',
     'resources/js/app.js',
+    'resources/js/customer.js',
     ])
 
     {{-- =========================================================

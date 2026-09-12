@@ -7,17 +7,35 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ForgotPasswordRequest extends FormRequest
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Authorization
+    |--------------------------------------------------------------------------
+    */
+
     public function authorize(): bool
     {
         return true;
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prepare Input
+    |--------------------------------------------------------------------------
+    */
+
     protected function prepareForValidation(): void
     {
-        $rawPhone = (string) $this->input('phone', '');
+        $rawPhone = (string) $this->input(
+            'phone',
+            ''
+        );
 
         try {
-            $phone = PhoneNumber::normalize($rawPhone);
+            $phone = PhoneNumber::normalize(
+                $rawPhone
+            );
         } catch (\Throwable) {
             $phone = $rawPhone;
         }
@@ -26,6 +44,13 @@ class ForgotPasswordRequest extends FormRequest
             'phone' => $phone,
         ]);
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rules
+    |--------------------------------------------------------------------------
+    */
 
     public function rules(): array
     {
@@ -38,11 +63,24 @@ class ForgotPasswordRequest extends FormRequest
         ];
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Messages
+    |--------------------------------------------------------------------------
+    */
+
     public function messages(): array
     {
         return [
-            'phone.required' => 'شماره موبایل الزامی است.',
-            'phone.regex' => 'شماره موبایل معتبر نیست.',
+            'phone.required' =>
+                'شماره موبایل الزامی است.',
+
+            'phone.string' =>
+                'شماره موبایل معتبر نیست.',
+
+            'phone.regex' =>
+                'شماره موبایل معتبر نیست.',
         ];
     }
 }

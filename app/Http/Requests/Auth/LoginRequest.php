@@ -7,31 +7,57 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class LoginRequest extends FormRequest
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Authorization
+    |--------------------------------------------------------------------------
+    */
+
     public function authorize(): bool
     {
         return true;
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prepare Input
+    |--------------------------------------------------------------------------
+    */
+
     protected function prepareForValidation(): void
     {
+        $rawPhone = (string) $this->input(
+            'phone',
+            ''
+        );
+
         try {
-            $this->merge([
-                'phone' => PhoneNumber::normalize(
-                    $this->input('phone', '')
-                ),
-            ]);
+            $phone = PhoneNumber::normalize(
+                $rawPhone
+            );
         } catch (\Throwable) {
-            $this->merge([
-                'phone' => $this->input('phone', ''),
-            ]);
+            $phone = $rawPhone;
         }
+
+        $this->merge([
+            'phone' => $phone,
+        ]);
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rules
+    |--------------------------------------------------------------------------
+    */
 
     public function rules(): array
     {
         return [
             'phone' => [
                 'required',
+                'string',
                 'regex:/^09\d{9}$/',
             ],
 
@@ -47,6 +73,13 @@ class LoginRequest extends FormRequest
             ],
         ];
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Messages
+    |--------------------------------------------------------------------------
+    */
 
     public function messages(): array
     {

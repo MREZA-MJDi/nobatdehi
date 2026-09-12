@@ -1,158 +1,179 @@
-<section class="discover-hero">
-    <div class="discover-container discover-hero-inner">
+<section
+    class="discovery-hero"
+    id="hero"
+>
 
-        {{-- Media --}}
-        <div class="discover-hero-media reveal-item">
+    <div class="discovery-container discovery-hero-inner">
 
-            @php
-                $heroSalon = $featuredSalon ?? $salons->first();
-                $heroImage = $heroSalon?->cover_url;
-            @endphp
+        {{-- CONTENT --}}
+        <div class="discovery-hero-content">
 
-            @if($heroImage)
-                <img
-                    src="{{ $heroImage }}"
-                    alt="{{ $heroSalon?->name ?? 'سالن‌های NOBAT' }}"
-                    fetchpriority="high"
-                    decoding="async"
+            <span class="discovery-eyebrow">
+                کشف کن، انتخاب کن، نوبت بگیر
+            </span>
+
+            <h1 class="discovery-hero-title">
+
+                سالن مناسب
+                <br>
+
+                <span>
+                    خودت را پیدا کن.
+                </span>
+
+            </h1>
+
+            <p class="discovery-hero-description">
+
+                سالن‌ها، متخصص‌ها و خدمات موردنظرت را پیدا کن،
+                مقایسه کن و بدون تماس اضافه نوبت بگیر.
+
+            </p>
+
+
+            {{-- SEARCH --}}
+            <form
+                action="{{ route('salons.discover') }}"
+                method="GET"
+                class="discovery-search-box"
+                role="search"
+            >
+
+                <label class="discovery-search-field">
+
+                    <svg
+                        class="discovery-search-icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                    >
+
+                        <circle
+                            cx="11"
+                            cy="11"
+                            r="6.5"
+                            stroke="currentColor"
+                            stroke-width="1.7"
+                        />
+
+                        <path
+                            d="m16 16 5 5"
+                            stroke="currentColor"
+                            stroke-width="1.7"
+                            stroke-linecap="round"
+                        />
+
+                    </svg>
+
+                    <input
+                        type="search"
+                        name="q"
+                        value="{{ request('q') }}"
+                        placeholder="سالن، خدمت یا متخصص را جستجو کن..."
+                        autocomplete="off"
+                    >
+
+                </label>
+
+
+                <label class="discovery-search-field">
+
+                    <svg
+                        class="discovery-search-icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                    >
+
+                        <path
+                            d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"
+                            stroke="currentColor"
+                            stroke-width="1.7"
+                        />
+
+                        <circle
+                            cx="12"
+                            cy="10"
+                            r="2.5"
+                            stroke="currentColor"
+                            stroke-width="1.7"
+                        />
+
+                    </svg>
+
+                    <input
+                        type="text"
+                        name="city"
+                        value="{{ request('city') }}"
+                        placeholder="شهر یا منطقه"
+                    >
+
+                </label>
+
+
+                <button
+                    type="submit"
+                    class="discovery-search-submit"
                 >
-            @else
-                <div
-                    class="discover-hero-placeholder"
-                    aria-hidden="true"
-                >
-                    <span>NOBAT</span>
-                </div>
-            @endif
+                    جستجو
+                </button>
 
-            <div class="discover-media-label">
-                <span class="discover-media-label-dot"></span>
-                سالن‌ها و متخصص‌های فعال
+            </form>
+
+
+            {{-- QUICK SEARCH --}}
+            <div class="discovery-quick-search">
+
+                <span class="discovery-quick-label">
+                    محبوب:
+                </span>
+
+                @foreach([
+                    'مو',
+                    'ناخن',
+                    'پوست',
+                    'میکاپ',
+                    'اصلاح',
+                    'ماساژ'
+                ] as $item)
+
+                    <a
+                        href="{{ route(
+                            'salons.discover',
+                            ['q' => $item]
+                        ) }}"
+                        class="discovery-quick-link"
+                    >
+                        {{ $item }}
+                    </a>
+
+                @endforeach
+
             </div>
 
         </div>
 
 
-        {{-- Content --}}
-        <div class="discover-hero-content reveal-item">
+        {{-- IMAGE --}}
+        <div class="discovery-hero-media">
 
-            <span class="discover-eyebrow">
-                کشف کن، مقایسه کن، انتخاب کن
-            </span>
-
-            <h1>
-                سالن مناسب تو،
-                <span>همین‌جاست.</span>
-            </h1>
-
-            <p class="discover-hero-description">
-                از بین سالن‌های زنانه و مردانه، لیزر، ناخن، پوست
-                و متخصص‌های شهر بگرد، مقایسه کن و انتخابت را راحت‌تر انجام بده.
-            </p>
-
-
-            {{-- Search --}}
-            <form
-                action="{{ route('salons.discover') }}"
-                method="GET"
-                class="discover-search"
-                role="search"
+            <img
+                src="{{ $heroImage }}"
+                alt="{{ $heroSalon?->name ?? 'NOBAT' }}"
+                fetchpriority="high"
+                decoding="async"
             >
-                <label
-                    for="discover-search-input"
-                    class="sr-only"
-                >
-                    جستجوی سالن، خدمت یا متخصص
-                </label>
 
-                <div class="discover-search-icon" aria-hidden="true">
-                    ⌕
-                </div>
+            <div class="discovery-hero-media-badge">
 
-                <input
-                    id="discover-search-input"
-                    type="search"
-                    name="q"
-                    value="{{ $search ?? request('q') }}"
-                    placeholder="مثلاً لیزر، فید، رنگ مو یا نام سالن..."
-                    autocomplete="off"
-                    enterkeyhint="search"
-                >
+                <span class="discovery-hero-media-badge-dot"></span>
 
-                <button
-                    type="submit"
-                    class="discover-search-button"
-                >
-                    جستجو
-                </button>
-            </form>
-
-
-            {{-- Quick searches --}}
-            <div
-                class="discover-quick-search"
-                aria-label="جستجوهای سریع"
-            >
-                <span>محبوب:</span>
-
-                <a href="{{ route('salons.discover', ['q' => 'کوتاهی']) }}">
-                    کوتاهی
-                </a>
-
-                <a href="{{ route('salons.discover', ['q' => 'فید']) }}">
-                    فید
-                </a>
-
-                <a href="{{ route('salons.discover', ['q' => 'رنگ مو']) }}">
-                    رنگ مو
-                </a>
-
-                <a href="{{ route('salons.discover', ['q' => 'لیزر']) }}">
-                    لیزر
-                </a>
-
-                <a href="{{ route('salons.discover', ['q' => 'ناخن']) }}">
-                    ناخن
-                </a>
-            </div>
-
-
-            {{-- Trust / Stats --}}
-            <div class="discover-trust">
-
-                <div class="discover-trust-item">
-                    <strong>
-                        {{ number_format($stats['salons'] ?? 0) }}
-                    </strong>
-
-                    <span>
-                        سالن فعال
-                    </span>
-                </div>
-
-                <div class="discover-trust-item">
-                    <strong>
-                        {{ number_format($stats['barbers'] ?? 0) }}
-                    </strong>
-
-                    <span>
-                        متخصص
-                    </span>
-                </div>
-
-                <div class="discover-trust-item">
-                    <strong>
-                        {{ number_format($stats['services'] ?? 0) }}
-                    </strong>
-
-                    <span>
-                        خدمت
-                    </span>
-                </div>
+                سالن‌های منتخب NOBAT
 
             </div>
 
         </div>
 
     </div>
+
 </section>

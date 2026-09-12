@@ -13,36 +13,29 @@ class RegisterRequest extends FormRequest
         return true;
     }
 
-
     protected function prepareForValidation(): void
     {
-        $rawPhone =
-            (string) $this->input(
-                'phone',
-                ''
-            );
-
+        $rawPhone = (string) $this->input(
+            'phone',
+            ''
+        );
 
         try {
-            $phone =
-                PhoneNumber::normalize(
-                    $rawPhone
-                );
+            $phone = PhoneNumber::normalize(
+                $rawPhone
+            );
         } catch (\Throwable) {
             $phone = $rawPhone;
         }
-
 
         $this->merge([
             'phone' => $phone,
         ]);
     }
 
-
     public function rules(): array
     {
         return [
-
             'name' => [
                 'required',
                 'string',
@@ -71,15 +64,12 @@ class RegisterRequest extends FormRequest
                 'required',
                 'accepted',
             ],
-
         ];
     }
-
 
     public function messages(): array
     {
         return [
-
             'name.required' =>
                 'نام و نام خانوادگی الزامی است.',
 

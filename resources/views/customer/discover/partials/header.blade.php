@@ -1,54 +1,115 @@
-<header class="discover-header">
-    <div class="discover-container discover-nav">
+<header class="discovery-header">
 
+    <div class="discovery-container discovery-header-inner">
+
+        {{-- LOGO --}}
         <a
             href="{{ route('salons.discover') }}"
-            class="discover-brand"
+            class="discovery-logo"
             aria-label="NOBAT"
         >
-            <span class="discover-brand-mark" aria-hidden="true">N</span>
 
-            <span class="discover-brand-text">
+            <span class="discovery-logo-mark">
+                N
+            </span>
+
+            <span class="discovery-logo-word">
                 NOBAT
             </span>
+
         </a>
 
-        <nav
-            class="discover-nav-links"
-            aria-label="منوی اصلی"
-        >
-            <a href="#services">
-                خدمات
-            </a>
 
-            <a href="#salons">
+        {{-- NAVIGATION --}}
+        <nav
+            class="discovery-nav"
+            aria-label="ناوبری اصلی"
+        >
+
+            <a
+                href="#salons"
+                class="discovery-nav-link"
+            >
                 سالن‌ها
             </a>
 
-            <a href="#stylists">
+            <a
+                href="#services"
+                class="discovery-nav-link"
+            >
+                خدمات
+            </a>
+
+            <a
+                href="#stylists"
+                class="discovery-nav-link"
+            >
                 متخصص‌ها
             </a>
+
+            <a
+                href="#nearby"
+                class="discovery-nav-link"
+            >
+                نزدیک شما
+            </a>
+
         </nav>
 
-        <div class="discover-nav-actions">
+
+        {{-- ACTIONS --}}
+        <div class="discovery-header-actions">
 
             @auth
+
                 <a
-                    href="{{ route('account') }}"
-                    class="discover-account-link"
+                    href="{{ url('/account') }}"
+                    class="discovery-header-link"
                 >
                     حساب من
                 </a>
+
             @else
+
                 <a
                     href="{{ route('login') }}"
-                    class="discover-account-link"
+                    class="discovery-header-link"
                 >
                     ورود
                 </a>
+
             @endauth
+
+            <a
+                href="{{ route('brand.intro') }}"
+                class="discovery-header-button"
+            >
+                ثبت سالن
+            </a>
+
+            <button
+                type="button"
+                class="discovery-mobile-toggle"
+                aria-label="باز کردن منو"
+            >
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M4 7h16M4 12h16M4 17h16"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linecap="round"
+                    />
+                </svg>
+            </button>
 
         </div>
 
     </div>
+
 </header>

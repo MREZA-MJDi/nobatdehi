@@ -2,431 +2,267 @@
 
 namespace App\Http\Controllers\Customer;
 
-use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\BookingAvailabilityRequest;
 use App\Http\Requests\Customer\BookingPrepareRequest;
-use App\Http\Requests\Customer\BookingRequest;
-use App\Models\Booking;
-use App\Models\Salon;
 use App\Services\Booking\AvailabilityService;
 use App\Services\Booking\BookingService;
+use App\Models\Barber;
+use App\Models\Salon;
+use App\Models\Service;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
-    /**
-     * Legacy / dedicated booking page.
-     *
-     * The new public Salon booking flow will primarily use
-     * the booking modal, but this endpoint can remain available.
-     */
-    public function create(Salon $salon): View
-    {
-        abort_unless($salon->is_active, 404);
-
-        $barbers = $salon
-            ->barbers()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
-
-        $services = $salon
-            ->services()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
-
-        return view('public.booking', [
-            'salon' => $salon,
-            'barbers' => $barbers,
-            'services' => $services,
-        ]);
+    public function __construct(
+        private readonly BookingService $bookingService,
+        private readonly AvailabilityService $availabilityService
+    ) {
     }
 
     /**
-     * Return availability for a salon/barber/service/date combination.
+     * Return real availability for the selected
+     * barber, service and date.
+     *
+     * Used by Calendar + Time Picker.
      */
     public function availability(
-        BookingAvailabilityRequest $request,
-        Salon $salon,
-        AvailabilityService $availability
+        BookingAvailabilityRequest $request
     ): JsonResponse {
-        abort_unless($salon->is_active, 404);
-
         $data = $request->validated();
 
-        $barber = $salon
-            ->barbers()
+        /*
+        |--------------------------------------------------------------------------
+        | Salon
+        |--------------------------------------------------------------------------
+        |
+        | We resolve the salon from the selected barber/service
+        | instead of trusting a separate salon_id from the client.
+        |
+        */
+
+        $barber = Barber::query()
             ->whereKey($data['barber_id'])
             ->where('is_active', true)
-            ->firstOrFail();
+            ->first();
 
-        $service = $salon
-            ->services()
-            ->whereKey($data['service_id'])
-            ->where('is_active', true)
-            ->firstOrFail();
-
-        $date = Carbon::createFromFormat(
-            'Y-m-d',
-            $data['booking_date']
-        );
-
-        return response()->json([
-            'slots' => $availability->slots(
-                $salon,
-                $barber,
-                $service,
-                $date
-            ),
-        ]);
-    }
-
-    /**
-     * Store temporary booking data in session.
-     *
-     * This is currently kept for the existing confirmation flow.
-     * The public Salon modal can later use the same validated data
-     * without requiring a separate confirmation page.
-     */
-    public function prepare(
-        BookingPrepareRequest $request,
-        Salon $salon
-    ): RedirectResponse {
-        abort_unless($salon->is_active, 404);
-
-        $data = $request->validated();
-
-        if ((int) $data['salon_id'] !== (int) $salon->id) {
-            abort(404);
-        }
-
-        $request->session()->put(
-            'booking.pending',
-            $data
-        );
-
-        if (!$request->user()) {
-            return redirect()
-                ->route('login')
-                ->with(
-                    'status',
-                    'برای ثبت نهایی نوبت وارد حساب خود شوید.'
-                );
-        }
-
-        if (!$request->user()->isCustomer()) {
-            return redirect()
-                ->route('brand.intro')
-                ->with(
-                    'error',
-                    'این حساب امکان رزرو مشتری را ندارد.'
-                );
-        }
-
-        return redirect()->route(
-            'customer.bookings.confirm'
-        );
-    }
-
-    /**
-     * Existing dedicated confirmation page.
-     */
-    public function confirm(
-        Request $request
-    ): View|RedirectResponse {
-        $pending = $request
-            ->session()
-            ->get('booking.pending');
-
-        if (!is_array($pending)) {
-            return redirect()
-                ->route('salons.discover')
-                ->with(
-                    'error',
-                    'اطلاعات رزرو پیدا نشد.'
-                );
+        if (!$barber) {
+            throw ValidationException::withMessages([
+                'barber_id' =>
+                    'آرایشگر انتخاب شده در دسترس نیست.',
+            ]);
         }
 
         $salon = Salon::query()
-            ->whereKey($pending['salon_id'])
+            ->whereKey($barber->salon_id)
             ->where('is_active', true)
-            ->firstOrFail();
+            ->first();
 
-        $barber = $salon
-            ->barbers()
-            ->whereKey($pending['barber_id'])
-            ->where('is_active', true)
-            ->firstOrFail();
-
-        $service = $salon
-            ->services()
-            ->whereKey($pending['service_id'])
-            ->where('is_active', true)
-            ->firstOrFail();
-
-        return view(
-            'customer.bookings.confirm',
-            compact(
-                'salon',
-                'barber',
-                'service',
-                'pending'
-            )
-        );
-    }
-
-    /**
-     * Store the booking after final validation.
-     */
-    public function store(
-        BookingRequest $request,
-        BookingService $bookingService
-    ): RedirectResponse {
-        $pending = $request
-            ->session()
-            ->get('booking.pending');
-
-        if (!is_array($pending)) {
-            return redirect()
-                ->route('salons.discover')
-                ->with(
-                    'error',
-                    'اطلاعات رزرو پیدا نشد.'
-                );
+        if (!$salon) {
+            throw ValidationException::withMessages([
+                'barber_id' =>
+                    'سالن انتخاب شده در دسترس نیست.',
+            ]);
         }
 
-        $data = $request->validated();
+        /*
+        |--------------------------------------------------------------------------
+        | Service
+        |--------------------------------------------------------------------------
+        */
 
-        foreach (
-            [
-                'salon_id',
-                'barber_id',
-                'service_id',
-                'booking_date',
-                'start_time',
-            ] as $field
-        ) {
-            if (
-                (string) ($data[$field] ?? '') !==
-                (string) ($pending[$field] ?? '')
-            ) {
-                return redirect()
-                    ->route('customer.bookings.confirm')
-                    ->withErrors([
-                        'booking' =>
-                            'اطلاعات رزرو تغییر کرده است. دوباره انتخاب کنید.',
-                    ]);
-            }
-        }
-
-        $booking = $bookingService->create(
-            $request->user(),
-            $data
-        );
-
-        $request
-            ->session()
-            ->forget('booking.pending');
-
-        return redirect()
-            ->route('customer.dashboard')
-            ->with(
-                'success',
-                'نوبت شما با موفقیت ثبت شد.'
-            );
-    }
-
-    /**
-     * Edit a customer's pending booking.
-     */
-    public function edit(
-        Booking $booking
-    ): View {
-        if (
-            (int) $booking->customer_id !==
-            (int) auth()->id()
-        ) {
-            abort(403);
-        }
-
-        abort_unless(
-            $booking->status === BookingStatus::PENDING,
-            404
-        );
-
-        $booking->load([
-            'salon',
-            'barber',
-            'service',
-        ]);
-
-        abort_unless(
-            $booking->salon?->is_active,
-            404
-        );
-
-        $barbers = $booking->salon
-            ->barbers()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
-
-        $services = $booking->salon
-            ->services()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
-
-        return view('customer.bookings.edit', [
-            'booking' => $booking,
-            'salon' => $booking->salon,
-            'barbers' => $barbers,
-            'services' => $services,
-        ]);
-    }
-
-    /**
-     * Update a customer's pending booking.
-     */
-    public function update(
-        BookingRequest $request,
-        Booking $booking,
-        BookingService $bookingService
-    ): RedirectResponse {
-        if (
-            (int) $booking->customer_id !==
-            (int) $request->user()->id
-        ) {
-            abort(403);
-        }
-
-        if (
-            $booking->status !== BookingStatus::PENDING
-        ) {
-            return redirect()
-                ->route('customer.dashboard')
-                ->with(
-                    'error',
-                    'فقط نوبت‌های در انتظار امکان ویرایش دارند.'
-                );
-        }
-
-        $bookingService->updateByCustomer(
-            $request->user(),
-            $booking,
-            $request->validated()
-        );
-
-        return redirect()
-            ->route('customer.dashboard')
-            ->with(
-                'success',
-                'نوبت شما با موفقیت ویرایش شد.'
-            );
-    }
-
-    /**
-     * Cancel a customer's pending booking.
-     */
-    public function cancel(
-        Booking $booking,
-        BookingService $bookingService
-    ): RedirectResponse {
-        if (
-            (int) $booking->customer_id !==
-            (int) auth()->id()
-        ) {
-            abort(403);
-        }
-
-        if (
-            $booking->status !== BookingStatus::PENDING
-        ) {
-            return redirect()
-                ->route('customer.dashboard')
-                ->with(
-                    'error',
-                    'فقط نوبت‌های در انتظار امکان لغو دارند.'
-                );
-        }
-
-        $bookingService->changeStatus(
-            $booking,
-            BookingStatus::CANCELLED
-        );
-
-        return redirect()
-            ->route('customer.dashboard')
-            ->with(
-                'success',
-                'نوبت شما لغو شد.'
-            );
-    }
-
-    /**
-     * Return availability while editing an existing booking.
-     *
-     * The current booking is ignored when calculating conflicts.
-     */
-    public function editAvailability(
-        BookingAvailabilityRequest $request,
-        Booking $booking,
-        AvailabilityService $availability
-    ): JsonResponse {
-        if (
-            (int) $booking->customer_id !==
-            (int) auth()->id()
-        ) {
-            abort(403);
-        }
-
-        abort_unless(
-            $booking->status === BookingStatus::PENDING,
-            404
-        );
-
-        $data = $request->validated();
-
-        $salon = $booking->salon;
-
-        abort_unless(
-            $salon?->is_active,
-            404
-        );
-
-        $barber = $salon
-            ->barbers()
-            ->whereKey($data['barber_id'])
-            ->where('is_active', true)
-            ->firstOrFail();
-
-        $service = $salon
-            ->services()
+        $service = Service::query()
             ->whereKey($data['service_id'])
+            ->where('salon_id', $salon->id)
             ->where('is_active', true)
-            ->firstOrFail();
+            ->first();
+
+        if (!$service) {
+            throw ValidationException::withMessages([
+                'service_id' =>
+                    'خدمت انتخاب شده در این سالن معتبر نیست.',
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Date
+        |--------------------------------------------------------------------------
+        */
 
         $date = Carbon::createFromFormat(
             'Y-m-d',
             $data['booking_date']
+        )->startOfDay();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Availability
+        |--------------------------------------------------------------------------
+        */
+
+        $slots = $this->availabilityService->slots(
+            $salon,
+            $barber,
+            $service,
+            $date
+        );
+
+        $availableSlots = collect($slots)
+            ->where(
+                'available',
+                true
+            )
+            ->values()
+            ->all();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Response
+        |--------------------------------------------------------------------------
+        */
+
+        return response()->json([
+            'success' => true,
+
+            'date' =>
+                $date->toDateString(),
+
+            'salon' => [
+                'id' =>
+                    $salon->id,
+
+                'name' =>
+                    $salon->name,
+            ],
+
+            'barber' => [
+                'id' =>
+                    $barber->id,
+            ],
+
+            'service' => [
+                'id' =>
+                    $service->id,
+
+                'name' =>
+                    $service->name,
+
+                'duration_minutes' =>
+                    (int) $service->duration_minutes,
+
+                'price' =>
+                    $service->price,
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | All generated slots
+            |--------------------------------------------------------------------------
+            */
+
+            'slots' =>
+                $slots,
+
+            /*
+            |--------------------------------------------------------------------------
+            | Only actually available slots
+            |--------------------------------------------------------------------------
+            */
+
+            'available_slots' =>
+                $availableSlots,
+
+            'has_availability' =>
+                !empty($availableSlots),
+        ]);
+    }
+
+    /**
+     * Create customer booking.
+     *
+     * Customer booking starts as PENDING.
+     */
+    public function prepare(
+        BookingPrepareRequest $request
+    ): JsonResponse {
+        $booking = $this->bookingService->create(
+            $request->user(),
+            $request->validated()
         );
 
         return response()->json([
-            'slots' => $availability->slots(
-                $salon,
-                $barber,
-                $service,
-                $date,
-                $booking->id
-            ),
-        ]);
+            'success' => true,
+
+            'message' =>
+                'درخواست نوبت با موفقیت ثبت شد و برای تأیید به سالن ارسال شد.',
+
+            'booking' => [
+                'id' =>
+                    $booking->id,
+
+                'booking_date' =>
+                    $booking->booking_date,
+
+                'start_time' =>
+                    $booking->start_time,
+
+                'end_time' =>
+                    $booking->end_time,
+
+                'status' =>
+                    $booking->status->value,
+
+                'status_label' =>
+                    $booking->status->label(),
+
+                'price' =>
+                    $booking->price,
+
+                'notes' =>
+                    $booking->notes,
+
+                'salon' =>
+                    $booking->salon
+                        ? [
+                        'id' =>
+                            $booking->salon->id,
+
+                        'name' =>
+                            $booking->salon->name,
+                    ]
+                        : null,
+
+                'barber' =>
+                    $booking->barber
+                        ? [
+                        'id' =>
+                            $booking->barber->id,
+
+                        'name' =>
+                            $booking->barber->name
+                            ?? $booking->barber->user?->name,
+                    ]
+                        : null,
+
+                'service' =>
+                    $booking->service
+                        ? [
+                        'id' =>
+                            $booking->service->id,
+
+                        'name' =>
+                            $booking->service->name,
+
+                        'duration_minutes' =>
+                            (int) $booking
+                                ->service
+                                ->duration_minutes,
+                    ]
+                        : null,
+            ],
+        ], 201);
     }
 }

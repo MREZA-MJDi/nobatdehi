@@ -113,7 +113,22 @@ class Salon extends Model
     {
         return 'slug';
     }
-
+    public function dailyStatuses(): HasMany
+    {
+        return $this->hasMany(
+            SalonDailyStatus::class,
+            'salon_id'
+        );
+    }
+    public function posts(): HasMany
+    {
+        return $this->hasMany(
+            Post::class,
+            'salon_id'
+        )
+            ->orderBy('sort_order')
+            ->latest('id');
+    }
     public function services(): HasMany
     {
         return $this->hasMany(
@@ -145,15 +160,6 @@ class Salon extends Model
         );
     }
 
-    public function portfolioItems(): HasMany
-    {
-        return $this->hasMany(
-            PortfolioItem::class,
-            'salon_id'
-        )
-            ->orderBy('sort_order')
-            ->latest('id');
-    }
 
     public function reviews(): HasMany
     {

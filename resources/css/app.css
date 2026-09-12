@@ -706,3 +706,113 @@ html[data-theme="dark"] {
     }
 
 }
+/* ==========================================================================
+   THEME TOGGLE
+   ========================================================================== */
+
+.theme-toggle-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle {
+    appearance: none;
+    -webkit-appearance: none;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+
+    min-height: 2.65rem;
+    padding: .4rem .7rem;
+
+    border: 1px solid var(--app-border);
+    border-radius: .8rem;
+
+    background: var(--app-surface);
+    color: var(--app-content-soft);
+
+    box-shadow:
+        0 1px 2px rgb(15 23 42 / 4%);
+
+    font-family: inherit;
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 1;
+
+    user-select: none;
+
+    transition:
+        background-color .18s ease,
+        border-color .18s ease,
+        color .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--app-surface-soft);
+    border-color: var(--app-border-strong);
+    color: var(--app-content);
+}
+
+.theme-toggle:active {
+    transform: translateY(1px);
+}
+
+.theme-toggle:focus-visible {
+    outline:
+        3px solid var(--app-ring);
+
+    outline-offset:
+        3px;
+}
+
+.theme-toggle-icon {
+    display: grid;
+    place-items: center;
+
+    width: 1.8rem;
+    height: 1.8rem;
+
+    flex: 0 0 1.8rem;
+
+    border-radius: .55rem;
+
+    background: var(--color-primary-50);
+    color: var(--color-accent-600);
+
+    transition:
+        background-color .18s ease,
+        color .18s ease;
+}
+
+html[data-theme="dark"] .theme-toggle-icon {
+    background: rgb(129 140 248 / 14%);
+    color: var(--color-primary-400);
+}
+
+.theme-toggle-icon svg {
+    display: block;
+
+    width: 1rem;
+    height: 1rem;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.theme-toggle-label {
+    display: inline-block;
+
+    font-size: .7rem;
+    font-weight: 800;
+    line-height: 1;
+
+    white-space: nowrap;
+}

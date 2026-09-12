@@ -31,7 +31,6 @@ class RegisterVerifyRequest extends FormRequest
             ''
         );
 
-
         /*
         |--------------------------------------------------------------------------
         | Persian / Arabic digits -> English digits
@@ -65,7 +64,6 @@ class RegisterVerifyRequest extends FormRequest
             ]
         );
 
-
         /*
         |--------------------------------------------------------------------------
         | Remove whitespace
@@ -77,7 +75,6 @@ class RegisterVerifyRequest extends FormRequest
             '',
             $code
         );
-
 
         $this->merge([
             'code' => $code,

@@ -4,7 +4,6 @@
 
 @section('content')
 
-
     <div>
 
         {{-- Header --}}
@@ -12,7 +11,10 @@
 
             <div class="mb-6 flex items-center justify-between">
 
-                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent-50 text-accent-600">
+                <div
+                    class="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent-50 text-accent-600"
+                    aria-hidden="true"
+                >
                     <svg
                         width="21"
                         height="21"
@@ -20,6 +22,8 @@
                         fill="none"
                         stroke="currentColor"
                         stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
                     >
                         <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
                         <path d="m10 17 5-5-5-5" />
@@ -55,26 +59,36 @@
         {{-- Form --}}
         <div class="px-6 pb-6 pt-5 sm:px-8 sm:pb-8">
 
-            @if($errors->any())
+            {{-- Validation errors --}}
+            @if ($errors->any())
 
-                <div class="mb-5 rounded-2xl border border-danger-100 bg-danger-50 p-4">
+                <div
+                    class="mb-5 rounded-2xl border border-danger-100 bg-danger-50 p-4"
+                    role="alert"
+                    aria-live="polite"
+                >
 
                     <div class="flex items-center gap-2">
 
-                    <span class="flex h-7 w-7 items-center justify-center rounded-xl bg-white text-danger-600 shadow-sm">
-                        !
-                    </span>
+                        <span
+                            class="flex h-7 w-7 items-center justify-center rounded-xl bg-white text-danger-600 shadow-sm"
+                            aria-hidden="true"
+                        >
+                            !
+                        </span>
 
                         <span class="text-xs font-black text-danger-700">
-                        ورود انجام نشد
-                    </span>
+                            ورود انجام نشد
+                        </span>
 
                     </div>
 
                     <div class="mt-2 space-y-1 text-[10px] leading-6 text-danger-700">
 
-                        @foreach($errors->all() as $error)
-                            <div>{{ $error }}</div>
+                        @foreach ($errors->all() as $error)
+                            <div>
+                                {{ $error }}
+                            </div>
                         @endforeach
 
                     </div>
@@ -84,14 +98,17 @@
             @endif
 
 
-            @if(session('status'))
+            {{-- Session status --}}
+            @if (session('status'))
 
-                <div class="mb-5 rounded-2xl border border-green-100 bg-green-50 p-4">
-
-                    <div class="text-xs font-bold leading-6 text-green-700">
+                <div
+                    class="mb-5 rounded-2xl border border-success-100 bg-success-50 p-4"
+                    role="status"
+                    aria-live="polite"
+                >
+                    <div class="text-xs font-bold leading-6 text-success-700">
                         {{ session('status') }}
                     </div>
-
                 </div>
 
             @endif
@@ -102,7 +119,6 @@
                 method="POST"
                 class="space-y-5"
             >
-
                 @csrf
 
 
@@ -120,6 +136,7 @@
 
                         <div
                             class="pointer-events-none absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl bg-primary-50 text-content-muted"
+                            aria-hidden="true"
                         >
                             <svg
                                 width="18"
@@ -128,6 +145,8 @@
                                 fill="none"
                                 stroke="currentColor"
                                 stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
                             >
                                 <rect
                                     x="6"
@@ -159,17 +178,15 @@
                             maxlength="14"
                             autofocus
                             required
-                            class="w-full rounded-2xl border border-border bg-surface-soft py-3.5 pl-4 pr-14 text-left text-sm font-bold text-content outline-none transition duration-200 placeholder:text-content-faint focus:border-accent-400 focus:bg-white focus:ring-4 focus:ring-accent-500/10"
+                            class="w-full rounded-2xl border border-border bg-surface-soft py-3.5 pl-4 pr-14 text-left text-sm font-bold text-content outline-none transition duration-200 placeholder:text-content-faint focus:border-accent-400 focus:bg-surface focus:ring-4 focus:ring-accent-500/10"
                         >
 
                     </div>
 
                     @error('phone')
-
                     <div class="mt-2 text-[10px] font-bold text-danger-600">
                         {{ $message }}
                     </div>
-
                     @enderror
 
                 </div>
@@ -200,6 +217,7 @@
 
                         <div
                             class="pointer-events-none absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl bg-primary-50 text-content-muted"
+                            aria-hidden="true"
                         >
                             <svg
                                 width="18"
@@ -208,6 +226,8 @@
                                 fill="none"
                                 stroke="currentColor"
                                 stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
                             >
                                 <rect
                                     x="5"
@@ -229,17 +249,15 @@
                             autocomplete="current-password"
                             dir="ltr"
                             required
-                            class="w-full rounded-2xl border border-border bg-surface-soft py-3.5 pl-4 pr-14 text-left text-sm font-bold text-content outline-none transition duration-200 placeholder:text-content-faint focus:border-accent-400 focus:bg-white focus:ring-4 focus:ring-accent-500/10"
+                            class="w-full rounded-2xl border border-border bg-surface-soft py-3.5 pl-4 pr-14 text-left text-sm font-bold text-content outline-none transition duration-200 placeholder:text-content-faint focus:border-accent-400 focus:bg-surface focus:ring-4 focus:ring-accent-500/10"
                         >
 
                     </div>
 
                     @error('password')
-
                     <div class="mt-2 text-[10px] font-bold text-danger-600">
                         {{ $message }}
                     </div>
-
                     @enderror
 
                 </div>
@@ -257,8 +275,8 @@
                     >
 
                     <span class="text-xs font-medium text-content-soft">
-                    مرا به خاطر بسپار
-                </span>
+                        مرا به خاطر بسپار
+                    </span>
 
                 </label>
 
@@ -268,15 +286,16 @@
                     type="submit"
                     class="group flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary-950 px-5 text-sm font-black text-white shadow-lg shadow-primary-950/10 transition duration-200 hover:-translate-y-0.5 hover:bg-primary-900 hover:shadow-xl active:translate-y-0"
                 >
+                    <span>
+                        ورود به حساب
+                    </span>
 
-                <span>
-                    ورود به حساب
-                </span>
-
-                    <span class="transition-transform duration-200 group-hover:-translate-x-1">
-                    ←
-                </span>
-
+                    <span
+                        class="transition-transform duration-200 group-hover:-translate-x-1"
+                        aria-hidden="true"
+                    >
+                        ←
+                    </span>
                 </button>
 
 
@@ -290,6 +309,9 @@
                         fill="none"
                         stroke="currentColor"
                         stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
                     >
                         <rect
                             x="5"
@@ -302,7 +324,9 @@
                         <path d="M8 11V8a4 4 0 0 1 8 0v3" />
                     </svg>
 
-                    اطلاعات شما با امنیت کامل نگهداری می‌شود.
+                    <span>
+                        اطلاعات شما با امنیت کامل نگهداری می‌شود.
+                    </span>
 
                 </div>
 
@@ -314,9 +338,9 @@
         {{-- Register --}}
         <div class="border-t border-border bg-primary-50/70 px-6 py-5 text-center sm:px-8">
 
-        <span class="text-xs text-content-muted">
-            هنوز حساب نداری؟
-        </span>
+            <span class="text-xs text-content-muted">
+                هنوز حساب نداری؟
+            </span>
 
             <a
                 href="{{ route('register') }}"
@@ -328,6 +352,5 @@
         </div>
 
     </div>
-
 
 @endsection

@@ -6,11 +6,11 @@
 >
 <head>
 
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
+        content="width=device-width, initial-scale=1"
     >
 
     <meta
@@ -18,71 +18,38 @@
         content="{{ csrf_token() }}"
     >
 
-    <meta
-        name="theme-color"
-        content="#6757E8"
-    >
-
     <title>
-        @yield('title', 'NOBAT')
+        @yield('title', 'کشف سالن و خدمات | NOBAT')
     </title>
 
     <meta
         name="description"
-        content="@yield(
-            'description',
-            'NOBAT؛ پیدا کن، مقایسه کن و نوبت بگیر.'
-        )"
+        content="@yield('description', 'سالن‌ها، متخصص‌ها و خدمات موردنظر خودت را در NOBAT پیدا کن.')"
     >
 
-    {{-- =========================================================
-        CORE ASSETS
-    ========================================================== --}}
+    <meta
+        name="theme-color"
+        content="#0b0d0c"
+    >
 
     @vite([
     'resources/css/app.css',
+    'resources/css/discovery.css',
     'resources/js/app.js',
     ])
 
-    {{-- =========================================================
-        PAGE-SPECIFIC STYLES
-    ========================================================== --}}
-
     @stack('styles')
-
-    {{-- =========================================================
-        PAGE-SPECIFIC HEAD
-    ========================================================== --}}
-
     @stack('head')
 
 </head>
 
-
-<body
-    class="
-        min-h-screen
-        bg-background
-        text-content
-        antialiased
-    "
->
-
-{{-- =========================================================
-    MAIN CONTENT
-========================================================== --}}
+<body class="min-h-screen antialiased">
 
 <main>
     @yield('content')
 </main>
 
-
-{{-- =========================================================
-    PAGE-SPECIFIC SCRIPTS
-========================================================== --}}
-
 @stack('scripts')
 
 </body>
-
 </html>

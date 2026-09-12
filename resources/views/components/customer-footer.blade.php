@@ -1,28 +1,33 @@
 <footer class="customer-footer">
-
     <div class="customer-container">
 
         <div class="customer-footer-grid">
 
-            <div>
+            {{-- Brand --}}
+            <div class="customer-footer-column">
 
                 <a
                     href="{{ route('brand.intro') }}"
                     class="customer-footer-brand"
+                    aria-label="نوبت‌دهی"
                 >
-                    <span class="customer-brand-mark">
+                    <span
+                        class="customer-brand-mark"
+                        aria-hidden="true"
+                    >
                         RM
                     </span>
 
-                    <span>
-                        <strong>نوبت‌دهی</strong>
+                    <span class="customer-footer-brand-copy">
+                        <strong>
+                            نوبت‌دهی
+                        </strong>
 
                         <small>
                             پیدا کن. انتخاب کن. نوبت بگیر.
                         </small>
                     </span>
                 </a>
-
 
                 <p class="customer-footer-description">
                     پلتفرم پیدا کردن سالن‌ها، متخصص‌ها و رزرو آنلاین نوبت؛
@@ -32,62 +37,79 @@
             </div>
 
 
-            <div>
+            {{-- Discover --}}
+            <div class="customer-footer-column">
 
-                <h3>
+                <h3 class="customer-footer-title">
                     کشف
                 </h3>
 
-                <div class="customer-footer-links">
-
-                    <a href="{{ route('salons.discover') }}">
+                <nav
+                    class="customer-footer-links"
+                    aria-label="کشف"
+                >
+                    <a
+                        href="{{ route('salons.discover') }}"
+                    >
                         همه سالن‌ها
                     </a>
 
-                    <a href="{{ route('salons.discover', ['type' => 'barber']) }}">
+                    <a
+                        href="{{ route('salons.discover', ['type' => 'barber']) }}"
+                    >
                         آرایشگرها
                     </a>
 
-                    <a href="{{ route('salons.discover', ['sort' => 'rating']) }}">
+                    <a
+                        href="{{ route('salons.discover', ['sort' => 'rating']) }}"
+                    >
                         محبوب‌ترین‌ها
                     </a>
-
-                </div>
+                </nav>
 
             </div>
 
 
-            <div>
+            {{-- For salons --}}
+            <div class="customer-footer-column">
 
-                <h3>
+                <h3 class="customer-footer-title">
                     برای سالن‌ها
                 </h3>
 
-                <div class="customer-footer-links">
-
-                    <a href="{{ route('login') }}">
+                <nav
+                    class="customer-footer-links"
+                    aria-label="برای سالن‌ها"
+                >
+                    <a
+                        href="{{ route('login') }}"
+                    >
                         ورود
                     </a>
 
-                    <a href="{{ route('register') }}">
+                    <a
+                        href="{{ route('register') }}"
+                    >
                         ثبت‌نام
                     </a>
 
-                    <a href="{{ route('salons.discover') }}">
+                    <a
+                        href="{{ route('salons.discover') }}"
+                    >
                         مشاهده بازار
                     </a>
-
-                </div>
+                </nav>
 
             </div>
 
         </div>
 
 
+        {{-- Bottom --}}
         <div class="customer-footer-bottom">
 
             <span>
-                © {{ date('Y') }} RM نوبت‌دهی
+                © {{ now()->year }} RM نوبت‌دهی
             </span>
 
             <span>
@@ -97,5 +119,4 @@
         </div>
 
     </div>
-
 </footer>

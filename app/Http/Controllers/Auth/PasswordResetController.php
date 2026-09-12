@@ -15,12 +15,32 @@ use RuntimeException;
 
 class PasswordResetController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Password Reset
+    |--------------------------------------------------------------------------
+    */
+
     private const PURPOSE = 'password_reset';
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Password Reset Request Page
+    |--------------------------------------------------------------------------
+    */
 
     public function create(): View
     {
         return view('auth.password-forgot');
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Send OTP
+    |--------------------------------------------------------------------------
+    */
 
     public function sendOtp(
         ForgotPasswordRequest $request,
@@ -35,7 +55,8 @@ class PasswordResetController extends Controller
         if (!$user) {
             return back()
                 ->withErrors([
-                    'phone' => 'حسابی با این شماره موبایل پیدا نشد.',
+                    'phone' =>
+                        'حسابی با این شماره موبایل پیدا نشد.',
                 ])
                 ->withInput();
         }
@@ -62,34 +83,68 @@ class PasswordResetController extends Controller
 
         return redirect()
             ->route('password.reset')
-            ->with('status', 'کد تأیید برای شماره موبایل شما ارسال شد.');
+            ->with(
+                'status',
+                'کد تأیید برای شماره موبایل شما ارسال شد.'
+            );
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reset Page
+    |--------------------------------------------------------------------------
+    */
 
     public function showReset(): View|RedirectResponse
     {
-        $pending = session('auth.password_reset');
+        $pending = session(
+            'auth.password_reset'
+        );
 
-        if (!is_array($pending) || empty($pending['phone'])) {
+        if (
+            !is_array($pending) ||
+            empty($pending['phone'])
+        ) {
             return redirect()
                 ->route('password.request');
         }
 
-        return view('auth.password-reset', [
-            'maskedPhone' => $this->maskPhone($pending['phone']),
-        ]);
+        return view(
+            'auth.password-reset',
+            [
+                'maskedPhone' =>
+                    $this->maskPhone(
+                        $pending['phone']
+                    ),
+            ]
+        );
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reset Password
+    |--------------------------------------------------------------------------
+    */
 
     public function reset(
         ResetPasswordRequest $request,
         OtpService $otp
     ): RedirectResponse {
-        $pending = session('auth.password_reset');
+        $pending = session(
+            'auth.password_reset'
+        );
 
-        if (!is_array($pending) || empty($pending['phone'])) {
+        if (
+            !is_array($pending) ||
+            empty($pending['phone'])
+        ) {
             return redirect()
                 ->route('password.request')
                 ->withErrors([
-                    'phone' => 'درخواست تغییر رمز منقضی شده است.',
+                    'phone' =>
+                        'درخواست تغییر رمز منقضی شده است.',
                 ]);
         }
 
@@ -104,7 +159,8 @@ class PasswordResetController extends Controller
         if (!$verified) {
             return back()
                 ->withErrors([
-                    'code' => 'کد تأیید اشتباه یا منقضی شده است.',
+                    'code' =>
+                        'کد تأیید اشتباه یا منقضی شده است.',
                 ])
                 ->withInput();
         }
@@ -114,36 +170,77 @@ class PasswordResetController extends Controller
             ->first();
 
         if (!$user) {
-            session()->forget('auth.password_reset');
+            session()->forget(
+                'auth.password_reset'
+            );
 
             return redirect()
                 ->route('password.request')
                 ->withErrors([
-                    'phone' => 'حساب کاربری پیدا نشد.',
+                    'phone' =>
+                        'حساب کاربری پیدا نشد.',
                 ]);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Update Password
+        |--------------------------------------------------------------------------
+        */
+
         $user->update([
-            'password' => $request->validated('password'),
+            'password' => Hash::make(
+                $request->validated('password')
+            ),
         ]);
 
-        session()->forget('auth.password_reset');
+        /*
+        |--------------------------------------------------------------------------
+        | Clear Reset Session
+        |--------------------------------------------------------------------------
+        */
+
+        session()->forget(
+            'auth.password_reset'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Redirect To Login
+        |--------------------------------------------------------------------------
+        */
 
         return redirect()
             ->route('login')
-            ->with('status', 'رمز عبور با موفقیت تغییر کرد. اکنون می‌توانید وارد شوید.');
+            ->with(
+                'status',
+                'رمز عبور با موفقیت تغییر کرد. اکنون می‌توانید وارد شوید.'
+            );
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Resend OTP
+    |--------------------------------------------------------------------------
+    */
 
     public function resend(
         OtpService $otp
     ): RedirectResponse {
-        $pending = session('auth.password_reset');
+        $pending = session(
+            'auth.password_reset'
+        );
 
-        if (!is_array($pending) || empty($pending['phone'])) {
+        if (
+            !is_array($pending) ||
+            empty($pending['phone'])
+        ) {
             return redirect()
                 ->route('password.request')
                 ->withErrors([
-                    'phone' => 'درخواست تغییر رمز پیدا نشد.',
+                    'phone' =>
+                        'درخواست تغییر رمز پیدا نشد.',
                 ]);
         }
 
@@ -154,20 +251,44 @@ class PasswordResetController extends Controller
                 request()->ip()
             );
         } catch (RuntimeException $e) {
-            return back()->withErrors([
-                'code' => $e->getMessage(),
-            ]);
+            return back()
+                ->withErrors([
+                    'code' =>
+                        $e->getMessage(),
+                ]);
         }
 
-        return back()->with('status', 'کد تأیید جدید ارسال شد.');
+        return back()
+            ->with(
+                'status',
+                'کد تأیید جدید ارسال شد.'
+            );
     }
 
-    private function maskPhone(string $phone): string
-    {
-        $phone = PhoneNumber::normalize($phone);
 
-        return substr($phone, 0, 4)
+    /*
+    |--------------------------------------------------------------------------
+    | Mask Phone
+    |--------------------------------------------------------------------------
+    */
+
+    private function maskPhone(
+        string $phone
+    ): string {
+        $phone =
+            PhoneNumber::normalize(
+                $phone
+            );
+
+        return substr(
+                $phone,
+                0,
+                4
+            )
             . '***'
-            . substr($phone, -4);
+            . substr(
+                $phone,
+                -4
+            );
     }
 }

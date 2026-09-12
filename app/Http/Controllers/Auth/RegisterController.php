@@ -19,105 +19,124 @@ use RuntimeException;
 
 class RegisterController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Register Page
+    |--------------------------------------------------------------------------
+    */
+
     public function create(): View
     {
         return view('auth.register');
     }
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | Start Registration
+    |--------------------------------------------------------------------------
+    */
+
     public function store(
         RegisterRequest $request,
         OtpService $otp
     ): RedirectResponse {
-
         $data = $request->validated();
 
+        $phone = PhoneNumber::normalize(
+            $data['phone']
+        );
 
-        $phone =
-            PhoneNumber::normalize(
-                $data['phone']
-            );
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent Registering an Existing Phone
+        |--------------------------------------------------------------------------
+        */
 
-
-        $request
-            ->session()
-            ->put(
-                'auth.otp',
-                [
-                    'purpose' =>
-                        'register',
-
+        if (
+            User::query()
+                ->where('phone', $phone)
+                ->exists()
+        ) {
+            return back()
+                ->withErrors([
                     'phone' =>
-                        $phone,
+                        'این شماره موبایل قبلاً ثبت شده است. وارد حساب خود شوید.',
+                ])
+                ->withInput();
+        }
 
-                    'name' =>
-                        trim(
-                            $data['name']
-                        ),
+        /*
+        |--------------------------------------------------------------------------
+        | Store Pending Registration
+        |--------------------------------------------------------------------------
+        |
+        | Password is hashed before entering the session.
+        |
+        */
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Hash before storing in session.
-                    |--------------------------------------------------------------------------
-                    */
+        $request->session()->put(
+            'auth.otp',
+            [
+                'purpose' => 'register',
 
-                    'password_hash' =>
-                        Hash::make(
-                            $data['password']
-                        ),
+                'phone' => $phone,
 
-                    'created_at' =>
-                        now()->timestamp,
-                ]
-            );
+                'name' => trim(
+                    $data['name']
+                ),
 
+                'password_hash' => Hash::make(
+                    $data['password']
+                ),
+
+                'created_at' => now()->timestamp,
+            ]
+        );
 
         $request->session()->save();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Send OTP
+        |--------------------------------------------------------------------------
+        */
 
         try {
-
             $otp->send(
                 $phone,
                 'register',
                 $request->ip()
             );
-
         } catch (RuntimeException $e) {
-
-            $request
-                ->session()
-                ->forget(
-                    'auth.otp'
-                );
+            $request->session()->forget(
+                'auth.otp'
+            );
 
             return back()
                 ->withErrors([
-                    'phone' =>
-                        $e->getMessage(),
+                    'phone' => $e->getMessage(),
                 ])
                 ->withInput();
         }
 
-
         return redirect()
-            ->route(
-                'register.verify'
-            );
+            ->route('register.verify');
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Registration Verification Page
+    |--------------------------------------------------------------------------
+    */
 
     public function showVerify(
         Request $request
     ): View|RedirectResponse {
-
-        $pending =
-            $request
-                ->session()
-                ->get(
-                    'auth.otp'
-                );
-
+        $pending = $request
+            ->session()
+            ->get('auth.otp');
 
         if (
             !is_array($pending) ||
@@ -126,48 +145,46 @@ class RegisterController extends Controller
             empty($pending['name']) ||
             empty($pending['password_hash'])
         ) {
-
             return redirect()
-                ->route(
-                    'register'
-                )
+                ->route('register')
                 ->withErrors([
                     'phone' =>
                         'فرآیند ثبت‌نام پیدا نشد.',
                 ]);
         }
 
-
         return view(
             'auth.register-verify',
             [
-                'phone' =>
-                    PhoneNumber::mask(
-                        $pending['phone']
-                    ),
+                'phone' => PhoneNumber::mask(
+                    $pending['phone']
+                ),
             ]
         );
     }
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | Verify Registration OTP
+    |--------------------------------------------------------------------------
+    */
+
     public function verify(
         RegisterVerifyRequest $request,
         OtpService $otp
     ): RedirectResponse {
-
-        $pending =
-            $request
-                ->session()
-                ->get(
-                    'auth.otp'
-                );
-
+        $pending = $request
+            ->session()
+            ->get('auth.otp');
 
         if (
             !is_array($pending) ||
-            ($pending['purpose'] ?? null) !== 'register'
+            ($pending['purpose'] ?? null) !== 'register' ||
+            empty($pending['phone']) ||
+            empty($pending['name']) ||
+            empty($pending['password_hash'])
         ) {
-
             return redirect()
                 ->route('register')
                 ->withErrors([
@@ -176,110 +193,136 @@ class RegisterController extends Controller
                 ]);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Verify OTP
+        |--------------------------------------------------------------------------
+        */
 
-        $verified =
-            $otp->verify(
-                $pending['phone'],
-                'register',
-                $request->validated('code')
-            );
-
+        $verified = $otp->verify(
+            $pending['phone'],
+            'register',
+            $request->validated('code')
+        );
 
         if (!$verified) {
-
             return back()
                 ->withErrors([
                     'code' =>
                         'کد تأیید نادرست یا منقضی شده است.',
-                ]);
+                ])
+                ->withInput();
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Create Customer
+        |--------------------------------------------------------------------------
+        */
 
-        $user =
-            DB::transaction(
-                function () use (
-                    $pending
-                ) {
+        try {
+            $user = DB::transaction(
+                function () use ($pending) {
 
-                    $existing =
-                        User::query()
-                            ->where(
-                                'phone',
-                                $pending['phone']
-                            )
-                            ->lockForUpdate()
-                            ->first();
+                    $existing = User::query()
+                        ->where(
+                            'phone',
+                            $pending['phone']
+                        )
+                        ->lockForUpdate()
+                        ->first();
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | The phone was registered after the OTP was requested.
+                    |--------------------------------------------------------------------------
+                    */
 
                     if ($existing) {
-                        return $existing;
+                        throw new RuntimeException(
+                            'این شماره موبایل قبلاً ثبت شده است.'
+                        );
                     }
 
-
                     return User::create([
-                        'name' =>
-                            $pending['name'],
+                        'name' => $pending['name'],
 
-                        'phone' =>
-                            $pending['phone'],
+                        'phone' => $pending['phone'],
 
-                        'phone_verified_at' =>
-                            now(),
+                        'phone_verified_at' => now(),
 
-                        'role' =>
-                            UserRole::CUSTOMER,
+                        'role' => UserRole::CUSTOMER,
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Already hashed before entering session.
+                        |--------------------------------------------------------------------------
+                        */
 
                         'password' =>
                             $pending['password_hash'],
 
-                        'email_verified_at' =>
-                            null,
+                        'email_verified_at' => null,
                     ]);
                 }
             );
-
-
-        if (
-            $user->role !==
-            UserRole::CUSTOMER
-        ) {
+        } catch (RuntimeException $e) {
+            $request->session()->forget(
+                'auth.otp'
+            );
 
             return redirect()
                 ->route('login')
                 ->withErrors([
-                    'phone' =>
-                        'این شماره متعلق به یک حساب موجود است.',
+                    'phone' => $e->getMessage(),
                 ]);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Pending Booking
+        |--------------------------------------------------------------------------
+        */
 
-        $hasPendingBooking =
-            $request
-                ->session()
-                ->has(
-                    'booking.pending'
-                );
+        $hasPendingBooking = $request
+            ->session()
+            ->has('booking.pending');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Authenticate
+        |--------------------------------------------------------------------------
+        */
 
-        Auth::login(
-            $user
-        );
+        Auth::login($user);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent Session Fixation
+        |--------------------------------------------------------------------------
+        */
 
         $request
             ->session()
             ->regenerate();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Clear Registration Session
+        |--------------------------------------------------------------------------
+        */
 
         $request
             ->session()
-            ->forget(
-                'auth.otp'
-            );
+            ->forget('auth.otp');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Continue Pending Booking
+        |--------------------------------------------------------------------------
+        */
 
         if ($hasPendingBooking) {
-
             return redirect()
                 ->route(
                     'customer.bookings.confirm'
@@ -290,6 +333,11 @@ class RegisterController extends Controller
                 );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Default Redirect
+        |--------------------------------------------------------------------------
+        */
 
         return redirect()
             ->route(
@@ -302,53 +350,46 @@ class RegisterController extends Controller
     }
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | Resend OTP
+    |--------------------------------------------------------------------------
+    */
+
     public function resend(
         Request $request,
         OtpService $otp
     ): RedirectResponse {
-
-        $pending =
-            $request
-                ->session()
-                ->get(
-                    'auth.otp'
-                );
-
+        $pending = $request
+            ->session()
+            ->get('auth.otp');
 
         if (
             !is_array($pending) ||
             ($pending['purpose'] ?? null) !== 'register' ||
             empty($pending['phone'])
         ) {
-
             return redirect()
-                ->route(
-                    'register'
-                );
+                ->route('register');
         }
 
-
         try {
-
             $otp->send(
                 $pending['phone'],
                 'register',
                 $request->ip()
             );
-
         } catch (RuntimeException $e) {
-
             return back()
                 ->withErrors([
-                    'code' =>
-                        $e->getMessage(),
+                    'code' => $e->getMessage(),
                 ]);
         }
 
-
-        return back()->with(
-            'status',
-            'کد جدید ارسال شد.'
-        );
+        return back()
+            ->with(
+                'status',
+                'کد جدید ارسال شد.'
+            );
     }
 }
