@@ -3,301 +3,616 @@
 @section('title', 'ثبت نوبت دستی')
 
 @php
-    $todayIso = now(config('app.timezone'))->toDateString();
+    $todayIso = now(
+        config('app.timezone', 'Asia/Tehran')
+    )->toDateString();
 
-    $servicesData = $services->map(function ($service) {
-        return [
-            'id' => $service->id,
+    $servicesData = $services
+        ->map(fn ($service) => [
+            'id' => (int) $service->id,
             'name' => $service->name,
-            'price' => (float) $service->price,
+            'price' => (int) $service->price,
             'duration' => (int) $service->duration_minutes,
-        ];
-    })->values();
+        ])
+        ->values();
 
-    $barbersData = $barbers->map(function ($barber) {
-        return [
-            'id' => $barber->id,
+    $barbersData = $barbers
+        ->map(fn ($barber) => [
+            'id' => (int) $barber->id,
             'name' => $barber->name,
-        ];
-    })->values();
+        ])
+        ->values();
 
-    $customersData = $customers->map(function ($customer) {
-        return [
-            'id' => $customer->id,
+    $customersData = $customers
+        ->map(fn ($customer) => [
+            'id' => (int) $customer->id,
             'name' => $customer->name,
             'phone' => $customer->phone,
-        ];
-    })->values();
+        ])
+        ->values();
 @endphp
+
 
 @section('content')
 
     <script>
-        window.salonBookingConfig = {
-            todayIso: @js($todayIso),
-            availabilityUrl: @js(route('salon.bookings.availability')),
-            services: @js($servicesData),
-            barbers: @js($barbersData),
-            customers: @js($customersData),
-        };
-
-        function salonBookingPage() {
+        function salonManualBooking() {
             return {
+                todayIso: @js($todayIso),
+
+                customers: @js($customersData),
+                barbers: @js($barbersData),
+                services: @js($servicesData),
+
                 customerId: @js(old('customer_id', '')),
                 barberId: @js(old('barber_id', '')),
                 serviceId: @js(old('service_id', '')),
-                selectedDate: @js(old('booking_date', '')),
+
+                selectedDate: @js(old('booking_date', $todayIso)),
                 selectedTime: @js(old('start_time', '')),
 
                 customerSearch: '',
+                customerOpen: false,
+
+                calendarOpen: false,
+                calendarAnchorIso: '',
+
+                schedule: {
+                    day_name: '',
+                    status: 'not_configured',
+                    intervals: [],
+                },
 
                 slots: [],
                 loadingSlots: false,
                 slotError: '',
+                submitting: false,
+
+                abortController: null,
+
+                weekDays: [
+                    'ش',
+                    'ی',
+                    'د',
+                    'س',
+                    'چ',
+                    'پ',
+                    'ج',
+                ],
+
+                jalaliMonths: [
+                    'فروردین',
+                    'اردیبهشت',
+                    'خرداد',
+                    'تیر',
+                    'مرداد',
+                    'شهریور',
+                    'مهر',
+                    'آبان',
+                    'آذر',
+                    'دی',
+                    'بهمن',
+                    'اسفند',
+                ],
 
                 init() {
-                    if (!this.selectedDate) {
-                        this.selectedDate = window.salonBookingConfig.todayIso;
+                    if (
+                        !this.selectedDate ||
+                        this.selectedDate < this.todayIso
+                    ) {
+                        this.selectedDate =
+                            this.todayIso;
                     }
 
+                    this.initCalendar();
+
                     this.$nextTick(() => {
-                        if (this.barberId && this.serviceId && this.selectedDate) {
+                        if (
+                            this.barberId &&
+                            this.serviceId &&
+                            this.selectedDate
+                        ) {
                             this.loadSlots(true);
                         }
                     });
                 },
 
-                parseIso(value) {
-                    const [year, month, day] = String(value).split('-').map(Number);
+                persianDigits(value) {
+                    return String(value ?? '')
+                        .replace(
+                            /\d/g,
+                            digit => '۰۱۲۳۴۵۶۷۸۹'[digit]
+                        );
+                },
 
-                    if (!year || !month || !day) {
+                parseIso(value) {
+                    const [
+                        year,
+                        month,
+                        day
+                    ] = String(value)
+                        .split('-')
+                        .map(Number);
+
+                    if (
+                        !year ||
+                        !month ||
+                        !day
+                    ) {
                         return null;
                     }
 
-                    return new Date(Date.UTC(year, month - 1, day));
+                    return new Date(
+                        Date.UTC(
+                            year,
+                            month - 1,
+                            day,
+                            12
+                        )
+                    );
                 },
 
                 toIso(date) {
-                    const year = date.getUTCFullYear();
-                    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-                    const day = String(date.getUTCDate()).padStart(2, '0');
-
-                    return `${year}-${month}-${day}`;
+                    return [
+                        date.getUTCFullYear(),
+                        String(
+                            date.getUTCMonth() + 1
+                        ).padStart(2, '0'),
+                        String(
+                            date.getUTCDate()
+                        ).padStart(2, '0'),
+                    ].join('-');
                 },
 
-                persianDate(value) {
-                    if (!value) {
-                        return '';
-                    }
-
-                    const date = this.parseIso(value);
+                addDays(iso, amount) {
+                    const date =
+                        this.parseIso(iso);
 
                     if (!date) {
                         return '';
                     }
 
-                    return new Intl.DateTimeFormat(
-                        'fa-IR-u-ca-persian-nu-latn',
-                        {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            weekday: 'long',
-                            timeZone: 'UTC'
+                    date.setUTCDate(
+                        date.getUTCDate() + amount
+                    );
+
+                    return this.toIso(date);
+                },
+
+                jalaliParts(iso) {
+                    const date =
+                        this.parseIso(iso);
+
+                    if (!date) {
+                        return null;
+                    }
+
+                    const parts =
+                        new Intl.DateTimeFormat(
+                            'fa-IR-u-ca-persian-nu-latn',
+                            {
+                                year: 'numeric',
+                                month: 'numeric',
+                                day: 'numeric',
+                                timeZone: 'UTC',
+                            }
+                        ).formatToParts(date);
+
+                    const result = {};
+
+                    parts.forEach(part => {
+                        if (
+                            ['year', 'month', 'day']
+                                .includes(part.type)
+                        ) {
+                            result[part.type] =
+                                Number(part.value);
                         }
-                    ).format(date);
-                },
-
-                persianDigits(value) {
-                    return String(value ?? '').replace(/\d/g, digit => {
-                        return '۰۱۲۳۴۵۶۷۸۹'[digit];
                     });
+
+                    return result;
                 },
 
-                formatPersianDate(value) {
-                    return this.persianDigits(this.persianDate(value));
+                jalaliWeekday(iso) {
+                    const date =
+                        this.parseIso(iso);
+
+                    if (!date) {
+                        return 0;
+                    }
+
+                    return (
+                        date.getUTCDay() + 1
+                    ) % 7;
                 },
 
-                formatTime(value) {
-                    if (!value) {
+                jalaliDate(iso) {
+                    if (!iso) {
                         return '';
                     }
 
-                    return this.persianDigits(String(value).slice(0, 5));
+                    const parts =
+                        this.jalaliParts(iso);
+
+                    if (!parts) {
+                        return '';
+                    }
+
+                    const weekdays = [
+                        'شنبه',
+                        'یکشنبه',
+                        'دوشنبه',
+                        'سه‌شنبه',
+                        'چهارشنبه',
+                        'پنجشنبه',
+                        'جمعه',
+                    ];
+
+                    return (
+                        `${weekdays[this.jalaliWeekday(iso)]} ` +
+                        `${this.jalaliMonths[parts.month - 1]} ` +
+                        `${this.persianDigits(parts.day)} ` +
+                        `${this.persianDigits(parts.year)}`
+                    );
                 },
 
-                selectDate(event) {
-                    const value = event.target.value;
+                findMonthStart(iso) {
+                    const target =
+                        this.jalaliParts(iso);
 
-                    if (!value) {
-                        this.selectedDate = '';
-                        this.selectedTime = '';
-                        this.slots = [];
+                    if (!target) {
+                        return this.todayIso;
+                    }
+
+                    let cursor = iso;
+
+                    for (let i = 0; i < 370; i++) {
+                        const current =
+                            this.jalaliParts(cursor);
+
+                        if (
+                            current &&
+                            current.year === target.year &&
+                            current.month === target.month &&
+                            current.day === 1
+                        ) {
+                            return cursor;
+                        }
+
+                        cursor =
+                            this.addDays(
+                                cursor,
+                                -1
+                            );
+                    }
+
+                    return iso;
+                },
+
+                initCalendar() {
+                    this.calendarAnchorIso =
+                        this.findMonthStart(
+                            this.selectedDate ||
+                            this.todayIso
+                        );
+                },
+
+                calendarTitle() {
+                    if (!this.calendarAnchorIso) {
+                        return '';
+                    }
+
+                    const parts =
+                        this.jalaliParts(
+                            this.calendarAnchorIso
+                        );
+
+                    return this.jalaliMonths[
+                    parts.month - 1
+                        ];
+                },
+
+                calendarYear() {
+                    if (!this.calendarAnchorIso) {
+                        return '';
+                    }
+
+                    return this.persianDigits(
+                        this.jalaliParts(
+                            this.calendarAnchorIso
+                        ).year
+                    );
+                },
+
+                calendarCells() {
+                    if (!this.calendarAnchorIso) {
+                        return [];
+                    }
+
+                    const first =
+                        this.jalaliParts(
+                            this.calendarAnchorIso
+                        );
+
+                    const offset =
+                        this.jalaliWeekday(
+                            this.calendarAnchorIso
+                        );
+
+                    const cells = [];
+
+                    for (
+                        let i = 0;
+                        i < offset;
+                        i++
+                    ) {
+                        cells.push(null);
+                    }
+
+                    let cursor =
+                        this.calendarAnchorIso;
+
+                    for (
+                        let i = 0;
+                        i < 31;
+                        i++
+                    ) {
+                        const current =
+                            this.jalaliParts(cursor);
+
+                        if (
+                            !current ||
+                            current.year !== first.year ||
+                            current.month !== first.month
+                        ) {
+                            break;
+                        }
+
+                        cells.push({
+                            iso: cursor,
+                            day: current.day,
+
+                            today:
+                                cursor === this.todayIso,
+
+                            selected:
+                                cursor === this.selectedDate,
+
+                            past:
+                                cursor < this.todayIso,
+                        });
+
+                        cursor =
+                            this.addDays(
+                                cursor,
+                                1
+                            );
+                    }
+
+                    return cells;
+                },
+
+                previousMonth() {
+                    const previous =
+                        this.addDays(
+                            this.calendarAnchorIso,
+                            -1
+                        );
+
+                    this.calendarAnchorIso =
+                        this.findMonthStart(
+                            previous
+                        );
+                },
+
+                nextMonth() {
+                    const next =
+                        this.addDays(
+                            this.calendarAnchorIso,
+                            32
+                        );
+
+                    this.calendarAnchorIso =
+                        this.findMonthStart(
+                            next
+                        );
+                },
+
+                openCalendar() {
+                    this.initCalendar();
+
+                    this.calendarOpen = true;
+                },
+
+                selectDate(day) {
+                    if (
+                        !day ||
+                        day.past
+                    ) {
                         return;
                     }
 
-                    this.selectedDate = value;
+                    this.selectedDate =
+                        day.iso;
+
                     this.selectedTime = '';
+
+                    this.calendarOpen = false;
 
                     this.loadSlots();
                 },
 
-                selectBarber(id) {
-                    this.barberId = String(id);
+                goToday() {
+                    this.selectedDate =
+                        this.todayIso;
+
                     this.selectedTime = '';
+
+                    this.initCalendar();
+
+                    this.calendarOpen = false;
+
+                    this.loadSlots();
+                },
+
+                get quickDates() {
+                    return Array.from(
+                        { length: 7 },
+                        (_, index) =>
+                            this.addDays(
+                                this.todayIso,
+                                index
+                            )
+                    );
+                },
+
+                quickDate(iso) {
+                    this.selectedDate = iso;
+                    this.selectedTime = '';
+                    this.loadSlots();
+                },
+
+                dateShort(iso) {
+                    const date =
+                        this.jalaliParts(iso);
+
+                    if (!date) {
+                        return '';
+                    }
+
+                    return (
+                        `${this.persianDigits(date.day)} ` +
+                        `${this.jalaliMonths[date.month - 1].slice(0, 3)}`
+                    );
+                },
+
+                dateWeekday(iso) {
+                    const names = [
+                        'ش',
+                        'ی',
+                        'د',
+                        'س',
+                        'چ',
+                        'پ',
+                        'ج',
+                    ];
+
+                    return names[
+                        this.jalaliWeekday(iso)
+                        ];
+                },
+
+                get filteredCustomers() {
+                    const query =
+                        this.customerSearch
+                            .trim()
+                            .toLowerCase();
+
+                    if (!query) {
+                        return this.customers;
+                    }
+
+                    return this.customers.filter(
+                        customer => {
+                            return (
+                                String(
+                                    customer.name || ''
+                                )
+                                    .toLowerCase()
+                                    .includes(query)
+                                ||
+                                String(
+                                    customer.phone || ''
+                                )
+                                    .toLowerCase()
+                                    .includes(query)
+                            );
+                        }
+                    );
+                },
+
+                get selectedCustomer() {
+                    return this.customers.find(
+                        customer =>
+                            String(customer.id) ===
+                            String(this.customerId)
+                    ) || null;
+                },
+
+                get selectedBarber() {
+                    return this.barbers.find(
+                        barber =>
+                            String(barber.id) ===
+                            String(this.barberId)
+                    ) || null;
+                },
+
+                get selectedService() {
+                    return this.services.find(
+                        service =>
+                            String(service.id) ===
+                            String(this.serviceId)
+                    ) || null;
+                },
+
+                selectCustomer(id) {
+                    this.customerId =
+                        String(id);
+
+                    this.customerOpen = false;
+                },
+
+                selectBarber(id) {
+                    this.barberId =
+                        String(id);
+
+                    this.selectedTime = '';
+
                     this.loadSlots();
                 },
 
                 selectService(id) {
-                    this.serviceId = String(id);
+                    this.serviceId =
+                        String(id);
+
                     this.selectedTime = '';
+
                     this.loadSlots();
                 },
 
-                selectCustomer(id) {
-                    this.customerId = String(id);
+                slotStart(slot) {
+                    return typeof slot === 'string'
+                        ? slot
+                        : slot?.start || '';
                 },
 
-                async loadSlots(restoreOldTime = false) {
-                    if (!this.barberId || !this.serviceId || !this.selectedDate) {
-                        this.slots = [];
-                        this.slotError = '';
-                        return;
-                    }
-
-                    this.loadingSlots = true;
-                    this.slotError = '';
-
-                    if (!restoreOldTime) {
-                        this.selectedTime = '';
-                    }
-
-                    try {
-                        const url = new URL(
-                            window.salonBookingConfig.availabilityUrl,
-                            window.location.origin
-                        );
-
-                        url.searchParams.set('barber_id', this.barberId);
-                        url.searchParams.set('service_id', this.serviceId);
-                        url.searchParams.set('booking_date', this.selectedDate);
-
-                        const response = await fetch(url.toString(), {
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest',
-                            }
-                        });
-
-                        const data = await response.json();
-
-                        if (!response.ok) {
-                            throw new Error(
-                                data.message || 'خطا در دریافت زمان‌های آزاد.'
-                            );
-                        }
-
-                        this.slots = Array.isArray(data.slots)
-                            ? data.slots
-                            : [];
-
-                        if (restoreOldTime && this.selectedTime) {
-                            const exists = this.slots.some(slot => {
-                                const time = typeof slot === 'string'
-                                    ? slot
-                                    : slot.time;
-
-                                return String(time).slice(0, 5) === String(this.selectedTime).slice(0, 5)
-                                    && (typeof slot === 'string' || slot.available !== false);
-                            });
-
-                            if (!exists) {
-                                this.selectedTime = '';
-                            }
-                        }
-                    } catch (error) {
-                        this.slots = [];
-                        this.slotError = error.message || 'خطا در دریافت زمان‌های آزاد.';
-                    } finally {
-                        this.loadingSlots = false;
-                    }
+                slotEnd(slot) {
+                    return typeof slot === 'string'
+                        ? ''
+                        : slot?.end || '';
                 },
 
-                get filteredCustomers() {
-                    const query = this.customerSearch.trim().toLowerCase();
-
-                    if (!query) {
-                        return window.salonBookingConfig.customers;
-                    }
-
-                    return window.salonBookingConfig.customers.filter(customer => {
-                        return String(customer.name || '')
-                                .toLowerCase()
-                                .includes(query)
-                            || String(customer.phone || '')
-                                .toLowerCase()
-                                .includes(query);
-                    });
-                },
-
-                get selectedCustomer() {
-                    return window.salonBookingConfig.customers.find(
-                        customer => String(customer.id) === String(this.customerId)
+                slotAvailable(slot) {
+                    return (
+                        typeof slot === 'string' ||
+                        slot?.available !== false
                     );
                 },
 
-                get selectedBarber() {
-                    return window.salonBookingConfig.barbers.find(
-                        barber => String(barber.id) === String(this.barberId)
-                    );
-                },
-
-                get selectedService() {
-                    return window.salonBookingConfig.services.find(
-                        service => String(service.id) === String(this.serviceId)
-                    );
-                },
-
-                get selectedPrice() {
-                    return this.selectedService?.price || 0;
-                },
-
-                get selectedDuration() {
-                    return this.selectedService?.duration || 0;
-                },
-
-                get selectedSlot() {
-                    return this.slots.find(slot => {
-                        const time = typeof slot === 'string'
-                            ? slot
-                            : slot.time;
-
-                        return String(time).slice(0, 5) === String(this.selectedTime).slice(0, 5);
-                    });
-                },
-
-                get canSubmit() {
-                    return Boolean(
-                        this.customerId &&
-                        this.barberId &&
-                        this.serviceId &&
-                        this.selectedDate &&
-                        this.selectedTime &&
-                        this.selectedSlot &&
-                        (typeof this.selectedSlot === 'string' || this.selectedSlot.available !== false)
-                    );
-                },
-
-                get hasAvailableSlots() {
-                    return this.slots.some(slot => {
-                        return typeof slot === 'string'
-                            || slot.available !== false;
-                    });
-                },
-
-                formatPrice(price) {
+                formatTime(value) {
                     return this.persianDigits(
-                        new Intl.NumberFormat('fa-IR').format(Number(price || 0))
+                        String(value || '')
+                            .slice(0, 5)
+                    );
+                },
+
+                formatPrice(value) {
+                    return (
+                        new Intl.NumberFormat(
+                            'fa-IR'
+                        ).format(
+                            Number(value || 0)
+                        )
                     ) + ' تومان';
                 },
 
@@ -310,724 +625,1509 @@
                         .trim()
                         .split(/\s+/)
                         .slice(0, 2)
-                        .map(part => part.charAt(0))
+                        .map(
+                            part =>
+                                part.charAt(0)
+                        )
                         .join('')
                         .toUpperCase();
-                }
-            }
+                },
+
+                get availableSlots() {
+                    return this.slots.filter(
+                        slot =>
+                            this.slotAvailable(slot)
+                    );
+                },
+
+                get selectedSlot() {
+                    return this.slots.find(
+                        slot =>
+                            this.slotStart(slot)
+                                .slice(0, 5) ===
+                            String(
+                                this.selectedTime
+                            ).slice(0, 5)
+                    ) || null;
+                },
+
+                get canSubmit() {
+                    return Boolean(
+                        this.customerId &&
+                        this.barberId &&
+                        this.serviceId &&
+                        this.selectedDate &&
+                        this.selectedTime &&
+                        this.selectedSlot &&
+                        this.slotAvailable(
+                            this.selectedSlot
+                        )
+                    );
+                },
+
+                async loadSlots(
+                    restoreOldTime = false
+                ) {
+                    if (
+                        !this.barberId ||
+                        !this.serviceId ||
+                        !this.selectedDate
+                    ) {
+                        this.slots = [];
+                        this.schedule = {
+                            day_name: '',
+                            status: 'not_configured',
+                            intervals: [],
+                        };
+                        this.slotError = '';
+                        return;
+                    }
+
+                    if (
+                        this.selectedDate <
+                        this.todayIso
+                    ) {
+                        this.selectedDate =
+                            this.todayIso;
+                    }
+
+                    if (this.abortController) {
+                        this.abortController.abort();
+                    }
+
+                    this.abortController =
+                        new AbortController();
+
+                    this.loadingSlots = true;
+                    this.slotError = '';
+
+                    if (!restoreOldTime) {
+                        this.selectedTime = '';
+                    }
+
+                    try {
+                        const url = new URL(
+                            @js(route('salon.bookings.availability')),
+                            window.location.origin
+                        );
+
+                        url.searchParams.set(
+                            'barber_id',
+                            this.barberId
+                        );
+
+                        url.searchParams.set(
+                            'service_id',
+                            this.serviceId
+                        );
+
+                        url.searchParams.set(
+                            'booking_date',
+                            this.selectedDate
+                        );
+
+                        const response =
+                            await fetch(
+                                url.toString(),
+                                {
+                                    headers: {
+                                        'Accept':
+                                            'application/json',
+
+                                        'X-Requested-With':
+                                            'XMLHttpRequest',
+                                    },
+
+                                    signal:
+                                    this.abortController.signal,
+                                }
+                            );
+
+                        const data =
+                            await response
+                                .json()
+                                .catch(
+                                    () => ({})
+                                );
+
+                        if (!response.ok) {
+                            throw new Error(
+                                data.message ||
+                                'دریافت زمان‌های آزاد ناموفق بود.'
+                            );
+                        }
+
+                        this.schedule =
+                            data.schedule || {
+                                day_name: '',
+                                status:
+                                    'not_configured',
+                                intervals: [],
+                            };
+
+                        this.slots =
+                            Array.isArray(
+                                data.slots
+                            )
+                                ? data.slots
+                                : [];
+
+                        if (
+                            restoreOldTime &&
+                            this.selectedTime
+                        ) {
+                            const exists =
+                                this.slots.some(
+                                    slot =>
+                                        this.slotStart(
+                                            slot
+                                        ).slice(0, 5) ===
+                                        String(
+                                            this.selectedTime
+                                        ).slice(0, 5)
+                                        &&
+                                        this.slotAvailable(
+                                            slot
+                                        )
+                                );
+
+                            if (!exists) {
+                                this.selectedTime = '';
+                            }
+                        }
+
+                    } catch (error) {
+                        if (
+                            error?.name ===
+                            'AbortError'
+                        ) {
+                            return;
+                        }
+
+                        this.slots = [];
+                        this.selectedTime = '';
+
+                        this.slotError =
+                            error?.message ||
+                            'خطا در دریافت زمان‌های آزاد.';
+                    } finally {
+                        this.loadingSlots = false;
+                    }
+                },
+
+                submitForm(event) {
+                    if (!this.canSubmit) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    this.submitting = true;
+                },
+            };
         }
     </script>
 
-    <div class="px-4 py-5 sm:px-6 sm:py-7 lg:px-8" dir="rtl">
-        <div
-            x-data="salonBookingPage()"
-            x-init="init()"
-            class="mx-auto w-full max-w-7xl"
-        >
 
-            {{-- Header --}}
-            <div class="mb-7">
-                <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <a
-                            href="{{ route('salon.bookings.index') }}"
-                            class="mb-4 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-slate-900"
-                        >
-                            <span class="text-lg">→</span>
-                            بازگشت به نوبت‌ها
-                        </a>
+    <div
+        x-data="salonManualBooking()"
+        x-init="init()"
+        dir="rtl"
+        class="mx-auto w-full max-w-7xl px-4 py-6 pb-28 sm:px-6 lg:px-8 lg:py-8"
+    >
 
-                        <div class="flex items-center gap-3">
-                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-xl text-white shadow-lg">
-                                ✦
-                            </div>
 
-                            <div>
-                                <div class="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
-                                    MANUAL BOOKING
-                                </div>
+        {{-- HEADER --}}
+        <header class="mb-6">
 
-                                <h1 class="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
-                                    ثبت نوبت دستی
-                                </h1>
-                            </div>
-                        </div>
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
-                        <p class="mt-3 max-w-2xl text-sm leading-7 text-slate-500">
-                            برای مشتری سالن نوبت ثبت کنید. زمان‌های قابل رزرو بر اساس
-                            آرایشگر، خدمت، ساعات کاری و نوبت‌های موجود نمایش داده می‌شوند.
-                        </p>
+                <div>
+
+                    <a
+                        href="{{ route('salon.bookings.index') }}"
+                        class="mb-4 inline-flex items-center gap-2 text-xs font-bold text-content-muted hover:text-accent-600"
+                    >
+                        ← بازگشت به نوبت‌ها
+                    </a>
+
+                    <div class="text-[10px] font-black tracking-[0.2em] text-accent-600">
+                        MANUAL BOOKING
                     </div>
 
-                    <div class="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm">
-                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                        {{ auth()->user()->name ?? 'سالن' }}
-                    </div>
+                    <h1 class="mt-1 text-2xl font-black text-content sm:text-3xl">
+                        ثبت نوبت دستی
+                    </h1>
+
+                    <p class="mt-2 max-w-2xl text-xs leading-6 text-content-muted sm:text-sm">
+                        برای مشتری سالن نوبت ثبت کنید؛ زمان نهایی از همان availability موتور اصلی سیستم محاسبه می‌شود.
+                    </p>
+
                 </div>
+
             </div>
 
-            {{-- Errors --}}
-            @if ($errors->any())
-                <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
-                    <div class="mb-2 flex items-center gap-2 font-black">
-                        <span>⚠</span>
-                        اطلاعات را بررسی کنید
-                    </div>
+        </header>
 
-                    <ul class="space-y-1 text-sm leading-6">
-                        @foreach ($errors->all() as $error)
-                            <li>• {{ $error }}</li>
-                        @endforeach
-                    </ul>
+
+        {{-- ERRORS --}}
+        @if($errors->any())
+
+            <div class="mb-6 rounded-2xl border border-danger-100 bg-danger-50 p-4">
+
+                <div class="text-xs font-black text-danger-800">
+                    ثبت نوبت انجام نشد
                 </div>
-            @endif
 
-            <form
-                action="{{ route('salon.bookings.store-manual') }}"
-                method="POST"
-            >
-                @csrf
+                <div class="mt-2 space-y-1">
 
-                <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_350px]">
+                    @foreach($errors->all() as $error)
 
-                    {{-- Main --}}
-                    <div class="space-y-6">
+                        <div class="text-[10px] font-bold leading-5 text-danger-700">
+                            • {{ $error }}
+                        </div>
 
-                        {{-- Customer --}}
-                        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                            <div class="border-b border-slate-100 px-5 py-5 sm:px-6">
-                                <div class="flex items-center gap-4">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white">
-                                        ۱
-                                    </div>
+                    @endforeach
 
-                                    <div>
-                                        <div class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                            CUSTOMER
-                                        </div>
-                                        <h2 class="mt-1 text-lg font-black text-slate-950">
-                                            انتخاب مشتری
-                                        </h2>
-                                    </div>
+                </div>
 
-                                    <template x-if="selectedCustomer">
-                                        <div class="mr-auto hidden rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 sm:block">
-                                            انتخاب شده
-                                        </div>
-                                    </template>
+            </div>
+
+        @endif
+
+
+        <form
+            action="{{ route('salon.bookings.store-manual') }}"
+            method="POST"
+            @submit="submitForm($event)"
+        >
+
+            @csrf
+
+            <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+
+
+                {{-- MAIN --}}
+                <main class="space-y-5">
+
+
+                    {{-- CUSTOMER --}}
+                    <section class="rounded-3xl border border-border bg-surface shadow-soft">
+
+                        <div class="border-b border-border p-5">
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-content text-sm font-black text-background">
+                                    ۱
                                 </div>
+
+                                <div>
+
+                                    <div class="text-[10px] font-black tracking-[0.2em] text-content-faint">
+                                        CUSTOMER
+                                    </div>
+
+                                    <h2 class="mt-1 text-base font-black text-content">
+                                        مشتری
+                                    </h2>
+
+                                </div>
+
                             </div>
 
-                            <div class="p-5 sm:p-6">
+                        </div>
+
+
+                        <div class="p-5">
+
+                            @if($customers->count())
+
                                 <div class="relative">
-                                <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                                    ⌕
-                                </span>
 
-                                    <input
-                                        type="text"
-                                        x-model="customerSearch"
-                                        placeholder="جستجوی نام یا شماره موبایل..."
-                                        class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pr-11 pl-4 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100"
+                                    <button
+                                        type="button"
+                                        @click="customerOpen = !customerOpen"
+                                        class="flex min-h-[68px] w-full items-center justify-between rounded-2xl border border-border bg-background px-4 text-right transition hover:border-accent-400"
                                     >
-                                </div>
 
-                                <div
-                                    class="mt-4 max-h-72 space-y-2 overflow-y-auto pr-1"
-                                    x-show="filteredCustomers.length"
-                                >
-                                    <template x-for="customer in filteredCustomers" :key="customer.id">
-                                        <button
-                                            type="button"
-                                            @click="selectCustomer(customer.id)"
-                                            class="group flex w-full items-center gap-3 rounded-2xl border p-3 text-right transition"
-                                            :class="String(customer.id) === String(customerId)
-                                            ? 'border-slate-950 bg-slate-950 text-white shadow-lg'
-                                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'"
-                                        >
-                                            <div
-                                                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-black"
-                                                :class="String(customer.id) === String(customerId)
-                                                ? 'bg-white/15 text-white'
-                                                : 'bg-slate-100 text-slate-700'"
-                                                x-text="initials(customer.name)"
-                                            ></div>
+                                        <div class="flex min-w-0 items-center gap-3">
 
-                                            <div class="min-w-0 flex-1">
+                                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-50 text-sm font-black text-accent-600 dark:bg-accent-900/20">
+                                            <span
+                                                x-text="selectedCustomer ? initials(selectedCustomer.name) : '?'"
+                                            ></span>
+                                            </div>
+
+                                            <div class="min-w-0">
+
+                                                <div class="text-[10px] font-black text-content-faint">
+                                                    مشتری انتخاب‌شده
+                                                </div>
+
                                                 <div
-                                                    class="truncate text-sm font-black"
-                                                    x-text="customer.name"
+                                                    class="mt-1 truncate text-sm font-black text-content"
+                                                    x-text="selectedCustomer?.name || 'انتخاب مشتری'"
                                                 ></div>
 
                                                 <div
-                                                    class="mt-1 text-xs"
-                                                    :class="String(customer.id) === String(customerId)
-                                                    ? 'text-white/60'
-                                                    : 'text-slate-400'"
-                                                    x-text="customer.phone || 'بدون شماره'"
+                                                    x-show="selectedCustomer?.phone"
+                                                    x-cloak
+                                                    class="mt-1 text-[10px] text-content-muted"
+                                                    x-text="selectedCustomer?.phone"
                                                 ></div>
+
                                             </div>
 
-                                            <div
-                                                x-show="String(customer.id) === String(customerId)"
-                                                class="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-xs"
-                                            >
-                                                ✓
-                                            </div>
-                                        </button>
-                                    </template>
-                                </div>
-
-                                <div
-                                    x-show="!filteredCustomers.length"
-                                    class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center"
-                                >
-                                    <div class="text-2xl">⌕</div>
-                                    <div class="mt-2 text-sm font-bold text-slate-700">
-                                        مشتری پیدا نشد
-                                    </div>
-                                    <div class="mt-1 text-xs text-slate-400">
-                                        عبارت جستجو را تغییر دهید.
-                                    </div>
-                                </div>
-
-                                <input
-                                    type="hidden"
-                                    name="customer_id"
-                                    :value="customerId"
-                                >
-                            </div>
-                        </section>
-
-                        {{-- Barber --}}
-                        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                            <div class="border-b border-slate-100 px-5 py-5 sm:px-6">
-                                <div class="flex items-center gap-4">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white">
-                                        ۲
-                                    </div>
-
-                                    <div>
-                                        <div class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                            BARBER
                                         </div>
-                                        <h2 class="mt-1 text-lg font-black text-slate-950">
-                                            انتخاب آرایشگر
-                                        </h2>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div class="p-5 sm:p-6">
-                                @if ($barbers->count())
-                                    <div class="grid gap-3 sm:grid-cols-2">
-                                        @foreach ($barbers as $barber)
-                                            <button
-                                                type="button"
-                                                @click="selectBarber({{ $barber->id }})"
-                                                class="group relative overflow-hidden rounded-2xl border p-3 text-right transition"
-                                                :class="String(barberId) === '{{ $barber->id }}'
-                                                ? 'border-slate-950 bg-slate-950 text-white shadow-lg'
-                                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'"
+                                        <span class="text-content-faint">
+                                        ⌄
+                                    </span>
+
+                                    </button>
+
+
+                                    <div
+                                        x-show="customerOpen"
+                                        x-cloak
+                                        @click.outside="customerOpen = false"
+                                        x-transition
+                                        class="absolute inset-x-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
+                                    >
+
+                                        <div class="p-3">
+
+                                            <input
+                                                type="search"
+                                                x-model="customerSearch"
+                                                placeholder="جستجوی نام یا موبایل..."
+                                                class="h-11 w-full rounded-xl border border-border bg-background px-4 text-xs font-bold text-content outline-none focus:border-accent-500"
                                             >
-                                                <div class="flex items-center gap-3">
-                                                    @if ($barber->image_path)
-                                                        <img
-                                                            src="{{ Storage::url($barber->image_path) }}"
-                                                            alt="{{ $barber->name }}"
-                                                            class="h-14 w-14 shrink-0 rounded-xl object-cover"
-                                                        >
-                                                    @else
-                                                        <div
-                                                            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-lg font-black"
-                                                            :class="String(barberId) === '{{ $barber->id }}'
-                                                            ? 'bg-white/10 text-white'
-                                                            : 'bg-slate-100 text-slate-600'"
-                                                        >
-                                                            {{ mb_substr($barber->name, 0, 1) }}
-                                                        </div>
-                                                    @endif
+
+                                        </div>
+
+                                        <div class="max-h-72 overflow-y-auto p-2">
+
+                                            <template
+                                                x-for="customer in filteredCustomers"
+                                                :key="customer.id"
+                                            >
+
+                                                <button
+                                                    type="button"
+                                                    @click="selectCustomer(customer.id)"
+                                                    class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-right transition hover:bg-background"
+                                                >
+
+                                                    <div
+                                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background-soft text-xs font-black text-content-muted"
+                                                        x-text="initials(customer.name)"
+                                                    ></div>
 
                                                     <div class="min-w-0 flex-1">
-                                                        <div class="truncate text-sm font-black">
-                                                            {{ $barber->name }}
-                                                        </div>
 
                                                         <div
-                                                            class="mt-1 text-xs"
-                                                            :class="String(barberId) === '{{ $barber->id }}'
-                                                            ? 'text-white/60'
-                                                            : 'text-slate-400'"
-                                                        >
-                                                            {{ $barber->is_active ? 'فعال' : 'غیرفعال' }}
-                                                        </div>
+                                                            class="truncate text-xs font-black text-content"
+                                                            x-text="customer.name"
+                                                        ></div>
+
+                                                        <div
+                                                            class="mt-1 text-[10px] text-content-faint"
+                                                            x-text="customer.phone || 'بدون موبایل'"
+                                                        ></div>
+
                                                     </div>
 
-                                                    <div
-                                                        x-show="String(barberId) === '{{ $barber->id }}'"
-                                                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs"
-                                                    >
-                                                        ✓
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
-                                        <div class="text-sm font-black text-slate-700">
-                                            آرایشگری ثبت نشده است
-                                        </div>
-                                        <div class="mt-1 text-xs text-slate-400">
-                                            ابتدا یک آرایشگر فعال اضافه کنید.
-                                        </div>
-                                    </div>
-                                @endif
+                                                </button>
 
-                                <input
-                                    type="hidden"
-                                    name="barber_id"
-                                    :value="barberId"
-                                >
-                            </div>
-                        </section>
+                                            </template>
 
-                        {{-- Service --}}
-                        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                            <div class="border-b border-slate-100 px-5 py-5 sm:px-6">
-                                <div class="flex items-center gap-4">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white">
-                                        ۳
-                                    </div>
-
-                                    <div>
-                                        <div class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                            SERVICE
-                                        </div>
-                                        <h2 class="mt-1 text-lg font-black text-slate-950">
-                                            انتخاب خدمت
-                                        </h2>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="p-5 sm:p-6">
-                                @if ($services->count())
-                                    <div class="space-y-2">
-                                        @foreach ($services as $service)
-                                            <button
-                                                type="button"
-                                                @click="selectService({{ $service->id }})"
-                                                class="flex w-full items-center gap-4 rounded-2xl border p-4 text-right transition"
-                                                :class="String(serviceId) === '{{ $service->id }}'
-                                                ? 'border-slate-950 bg-slate-950 text-white shadow-lg'
-                                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'"
+                                            <div
+                                                x-show="customerSearch && !filteredCustomers.length"
+                                                x-cloak
+                                                class="p-6 text-center text-xs font-bold text-content-muted"
                                             >
-                                                <div
-                                                    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg"
-                                                    :class="String(serviceId) === '{{ $service->id }}'
-                                                    ? 'bg-white/10'
-                                                    : 'bg-slate-100'"
-                                                >
-                                                    ✦
-                                                </div>
+                                                مشتری پیدا نشد.
+                                            </div>
 
-                                                <div class="min-w-0 flex-1">
-                                                    <div class="text-sm font-black">
-                                                        {{ $service->name }}
-                                                    </div>
-
-                                                    <div
-                                                        class="mt-1 text-xs"
-                                                        :class="String(serviceId) === '{{ $service->id }}'
-                                                        ? 'text-white/60'
-                                                        : 'text-slate-400'"
-                                                    >
-                                                        {{ $service->duration_minutes }} دقیقه
-                                                    </div>
-                                                </div>
-
-                                                <div class="text-left">
-                                                    <div class="text-sm font-black">
-                                                        {{ number_format($service->price) }}
-                                                        تومان
-                                                    </div>
-
-                                                    <div
-                                                        x-show="String(serviceId) === '{{ $service->id }}'"
-                                                        class="mt-1 text-[10px] font-bold text-emerald-300"
-                                                    >
-                                                        انتخاب شده
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
-                                        <div class="text-sm font-black text-slate-700">
-                                            خدمتی ثبت نشده است
                                         </div>
-                                    </div>
-                                @endif
 
-                                <input
-                                    type="hidden"
-                                    name="service_id"
-                                    :value="serviceId"
-                                >
-                            </div>
-                        </section>
-
-                        {{-- Date & Time --}}
-                        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                            <div class="border-b border-slate-100 px-5 py-5 sm:px-6">
-                                <div class="flex items-center gap-4">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white">
-                                        ۴
                                     </div>
 
-                                    <div>
-                                        <div class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                            DATE & TIME
-                                        </div>
-                                        <h2 class="mt-1 text-lg font-black text-slate-950">
-                                            تاریخ و ساعت نوبت
-                                        </h2>
-                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="p-5 sm:p-6">
+                            @else
 
-                                {{-- Date Picker --}}
-                                <div>
-                                    <label class="mb-2 block text-sm font-black text-slate-800">
-                                        تاریخ نوبت
-                                    </label>
+                                <div class="rounded-2xl border border-dashed border-border bg-background p-8 text-center">
 
-                                    <div class="relative">
-                                        <input
-                                            type="date"
-                                            min="{{ $todayIso }}"
-                                            x-model="selectedDate"
-                                            @change="selectDate($event)"
-                                            name="booking_date"
-                                            class="h-14 w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100"
-                                        >
+                                    <div class="text-2xl">
+                                        👤
                                     </div>
 
-                                    <template x-if="selectedDate">
-                                        <div class="mt-3 flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3">
-                                            <span class="text-slate-400">◷</span>
+                                    <div class="mt-2 text-xs font-black text-content">
+                                        مشتری‌ای برای این سالن پیدا نشد
+                                    </div>
+
+                                </div>
+
+                            @endif
+
+                            <input
+                                type="hidden"
+                                name="customer_id"
+                                :value="customerId"
+                            >
+
+                        </div>
+
+                    </section>
+
+
+                    {{-- BARBER --}}
+                    <section class="rounded-3xl border border-border bg-surface shadow-soft">
+
+                        <div class="border-b border-border p-5">
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-content text-sm font-black text-background">
+                                    ۲
+                                </div>
+
+                                <div>
+
+                                    <div class="text-[10px] font-black tracking-[0.2em] text-content-faint">
+                                        BARBER
+                                    </div>
+
+                                    <h2 class="mt-1 text-base font-black text-content">
+                                        آرایشگر
+                                    </h2>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="p-5">
+
+                            @if($barbers->count())
+
+                                <div class="grid gap-2 sm:grid-cols-2">
+
+                                    @foreach($barbers as $barber)
+
+                                        <button
+                                            type="button"
+                                            @click="selectBarber({{ $barber->id }})"
+                                            class="flex items-center gap-3 rounded-2xl border p-3 text-right transition"
+                                            :class="String(barberId) === '{{ $barber->id }}'
+                                            ? 'border-content bg-content text-background shadow-lg'
+                                            : 'border-border bg-surface hover:border-content-faint hover:bg-background'"
+                                        >
+
+                                            @if($barber->image_path)
+
+                                                <img
+                                                    src="{{ Storage::url($barber->image_path) }}"
+                                                    alt="{{ $barber->name }}"
+                                                    class="h-12 w-12 shrink-0 rounded-xl object-cover"
+                                                >
+
+                                            @else
+
+                                                <div
+                                                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xs font-black"
+                                                    :class="String(barberId) === '{{ $barber->id }}'
+                                                    ? 'bg-white/10 text-white'
+                                                    : 'bg-background-soft text-content-muted'"
+                                                >
+                                                    {{ mb_substr($barber->name, 0, 1) }}
+                                                </div>
+
+                                            @endif
+
+                                            <div class="min-w-0 flex-1">
+
+                                                <div class="truncate text-xs font-black">
+                                                    {{ $barber->name }}
+                                                </div>
+
+                                                <div class="mt-1 text-[10px] opacity-60">
+                                                    فعال
+                                                </div>
+
+                                            </div>
 
                                             <span
-                                                class="text-sm font-bold text-slate-700"
-                                                x-text="formatPersianDate(selectedDate)"
-                                            ></span>
-                                        </div>
-                                    </template>
+                                                x-show="String(barberId) === '{{ $barber->id }}'"
+                                                x-cloak
+                                                class="text-sm"
+                                            >
+                                            ✓
+                                        </span>
+
+                                        </button>
+
+                                    @endforeach
+
                                 </div>
 
-                                {{-- Time Picker --}}
-                                <div class="mt-6">
-                                    <div class="mb-2 flex items-center justify-between gap-3">
-                                        <label class="block text-sm font-black text-slate-800">
-                                            ساعت نوبت
-                                        </label>
+                            @else
 
-                                        <template x-if="slots.length">
-                                        <span class="text-xs font-bold text-slate-400">
-                                            زمان‌های آزاد
-                                        </span>
-                                        </template>
+                                <div class="rounded-2xl border border-dashed border-border bg-background p-7 text-center text-xs font-bold text-content-muted">
+                                    آرایشگر فعالی ثبت نشده است.
+                                </div>
+
+                            @endif
+
+                            <input
+                                type="hidden"
+                                name="barber_id"
+                                :value="barberId"
+                            >
+
+                        </div>
+
+                    </section>
+
+
+                    {{-- SERVICE --}}
+                    <section class="rounded-3xl border border-border bg-surface shadow-soft">
+
+                        <div class="border-b border-border p-5">
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-content text-sm font-black text-background">
+                                    ۳
+                                </div>
+
+                                <div>
+
+                                    <div class="text-[10px] font-black tracking-[0.2em] text-content-faint">
+                                        SERVICE
                                     </div>
 
-                                    {{-- Missing dependency --}}
-                                    <template x-if="!barberId || !serviceId || !selectedDate">
-                                        <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
-                                            <div class="text-xl">◷</div>
+                                    <h2 class="mt-1 text-base font-black text-content">
+                                        خدمت
+                                    </h2>
 
-                                            <div class="mt-2 text-sm font-black text-slate-700">
-                                                ابتدا آرایشگر، خدمت و تاریخ را انتخاب کنید
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="p-5">
+
+                            @if($services->count())
+
+                                <div class="space-y-2">
+
+                                    @foreach($services as $service)
+
+                                        <button
+                                            type="button"
+                                            @click="selectService({{ $service->id }})"
+                                            class="flex w-full items-center gap-3 rounded-2xl border p-3 text-right transition"
+                                            :class="String(serviceId) === '{{ $service->id }}'
+                                            ? 'border-content bg-content text-background shadow-lg'
+                                            : 'border-border bg-surface hover:border-content-faint hover:bg-background'"
+                                        >
+
+                                            <div
+                                                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+                                                :class="String(serviceId) === '{{ $service->id }}'
+                                                ? 'bg-white/10'
+                                                : 'bg-background-soft'"
+                                            >
+                                                ✦
                                             </div>
 
-                                            <div class="mt-1 text-xs leading-6 text-slate-400">
-                                                سپس ساعت‌های قابل رزرو برای شما نمایش داده می‌شود.
+                                            <div class="min-w-0 flex-1">
+
+                                                <div class="truncate text-xs font-black">
+                                                    {{ $service->name }}
+                                                </div>
+
+                                                <div class="mt-1 text-[10px] opacity-60">
+                                                    {{ $service->duration_minutes }} دقیقه
+                                                </div>
+
                                             </div>
+
+                                            <div class="shrink-0 text-left">
+
+                                                <div class="text-xs font-black">
+                                                    {{ number_format($service->price) }}
+                                                </div>
+
+                                                <div class="text-[9px] opacity-50">
+                                                    تومان
+                                                </div>
+
+                                            </div>
+
+                                        </button>
+
+                                    @endforeach
+
+                                </div>
+
+                            @else
+
+                                <div class="rounded-2xl border border-dashed border-border bg-background p-7 text-center text-xs font-bold text-content-muted">
+                                    خدمت فعالی ثبت نشده است.
+                                </div>
+
+                            @endif
+
+                            <input
+                                type="hidden"
+                                name="service_id"
+                                :value="serviceId"
+                            >
+
+                        </div>
+
+                    </section>
+
+
+                    {{-- DATE / TIME --}}
+                    <section class="rounded-3xl border border-border bg-surface shadow-soft">
+
+                        <div class="border-b border-border p-5">
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-content text-sm font-black text-background">
+                                    ۴
+                                </div>
+
+                                <div>
+
+                                    <div class="text-[10px] font-black tracking-[0.2em] text-content-faint">
+                                        SCHEDULE
+                                    </div>
+
+                                    <h2 class="mt-1 text-base font-black text-content">
+                                        تاریخ و ساعت
+                                    </h2>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="p-5">
+
+
+                            {{-- Persian Date Picker --}}
+                            <div class="relative">
+
+                                <button
+                                    type="button"
+                                    @click="openCalendar()"
+                                    class="flex min-h-[70px] w-full items-center justify-between rounded-2xl border border-border bg-background px-4 text-right transition hover:border-accent-400"
+                                >
+
+                                    <div class="flex items-center gap-3">
+
+                                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-600 dark:bg-accent-900/20">
+                                            ◫
                                         </div>
-                                    </template>
 
-                                    {{-- Loading --}}
-                                    <template x-if="barberId && serviceId && selectedDate && loadingSlots">
-                                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-7 text-center">
-                                            <div class="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-slate-200 border-t-slate-900"></div>
+                                        <div>
 
-                                            <div class="mt-3 text-sm font-bold text-slate-500">
-                                                در حال دریافت زمان‌های آزاد...
+                                            <div class="text-[10px] font-black text-content-faint">
+                                                تاریخ نوبت
                                             </div>
-                                        </div>
-                                    </template>
 
-                                    {{-- Error --}}
-                                    <template x-if="slotError && !loadingSlots">
-                                        <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold leading-6 text-red-700">
-                                            <div class="flex items-start gap-2">
-                                                <span>⚠</span>
-                                                <span x-text="slotError"></span>
+                                            <div
+                                                class="mt-1 text-sm font-black text-content"
+                                                x-text="jalaliDate(selectedDate)"
+                                            ></div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <span class="text-content-faint">
+                                    ⌄
+                                </span>
+
+                                </button>
+
+
+                                <div
+                                    x-show="calendarOpen"
+                                    x-cloak
+                                    @click.outside="calendarOpen = false"
+                                    x-transition
+                                    class="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl"
+                                >
+
+                                    <div class="border-b border-border p-4">
+
+                                        <div class="flex items-center justify-between">
+
+                                            <button
+                                                type="button"
+                                                @click="previousMonth()"
+                                                class="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background text-content"
+                                            >
+                                                →
+                                            </button>
+
+                                            <div class="text-center">
+
+                                                <div
+                                                    class="text-sm font-black text-content"
+                                                    x-text="calendarTitle()"
+                                                ></div>
+
+                                                <div
+                                                    class="mt-1 text-[10px] text-content-faint"
+                                                    x-text="calendarYear()"
+                                                ></div>
+
                                             </div>
-                                        </div>
-                                    </template>
 
-                                    {{-- Available times --}}
-                                    <template x-if="!loadingSlots && !slotError && barberId && serviceId && selectedDate && hasAvailableSlots">
-                                        <div class="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-                                            <template x-for="(slot, index) in slots" :key="index">
-                                                <template x-if="typeof slot === 'string' || slot.available !== false">
+                                            <button
+                                                type="button"
+                                                @click="nextMonth()"
+                                                class="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background text-content"
+                                            >
+                                                ←
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="grid grid-cols-7 gap-1 px-3 pt-3">
+
+                                        <template
+                                            x-for="day in weekDays"
+                                            :key="day"
+                                        >
+
+                                            <div
+                                                class="py-2 text-center text-[10px] font-black text-content-faint"
+                                                x-text="day"
+                                            ></div>
+
+                                        </template>
+
+                                    </div>
+
+
+                                    <div class="grid grid-cols-7 gap-1 p-3">
+
+                                        <template
+                                            x-for="(day, index) in calendarCells()"
+                                            :key="index"
+                                        >
+
+                                            <div class="aspect-square">
+
+                                                <template x-if="day">
+
                                                     <button
                                                         type="button"
-                                                        @click="selectedTime = typeof slot === 'string' ? slot : slot.time"
-                                                        class="h-12 rounded-xl border text-sm font-black transition"
-                                                        :class="String(selectedTime).slice(0, 5) === String(typeof slot === 'string' ? slot : slot.time).slice(0, 5)
-                                                        ? 'border-slate-950 bg-slate-950 text-white shadow-md'
-                                                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'"
-                                                        x-text="formatTime(typeof slot === 'string' ? slot : slot.time)"
-                                                    ></button>
+                                                        :disabled="day.past"
+                                                        @click="selectDate(day)"
+                                                        class="flex h-full w-full items-center justify-center rounded-xl text-xs font-black transition"
+                                                        :class="
+                                                        day.past
+                                                            ? 'cursor-not-allowed text-content-faint/20'
+                                                            : day.selected
+                                                                ? 'bg-accent-600 text-white shadow-lg'
+                                                                : day.today
+                                                                    ? 'bg-accent-50 text-accent-700 dark:bg-accent-900/20 dark:text-accent-300'
+                                                                    : 'text-content hover:bg-background'
+                                                    "
+                                                    >
+                                                    <span
+                                                        x-text="persianDigits(day.day)"
+                                                    ></span>
+                                                    </button>
+
                                                 </template>
-                                            </template>
-                                        </div>
-                                    </template>
 
-                                    {{-- No slots --}}
-                                    <template x-if="!loadingSlots && !slotError && barberId && serviceId && selectedDate && !hasAvailableSlots">
-                                        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
-                                            <div class="text-xl">◷</div>
-
-                                            <div class="mt-2 text-sm font-black text-amber-800">
-                                                برای این تاریخ زمان آزادی وجود ندارد
                                             </div>
 
-                                            <div class="mt-1 text-xs leading-6 text-amber-700/70">
-                                                تاریخ دیگری را انتخاب کنید یا آرایشگر دیگری را امتحان کنید.
-                                            </div>
-                                        </div>
-                                    </template>
+                                        </template>
 
-                                    <input
-                                        type="hidden"
-                                        name="start_time"
-                                        :value="selectedTime"
-                                    >
+                                    </div>
+
+
+                                    <div class="border-t border-border p-3">
+
+                                        <button
+                                            type="button"
+                                            @click="goToday()"
+                                            class="w-full rounded-xl bg-background py-3 text-xs font-black text-content transition hover:bg-accent-50"
+                                        >
+                                            انتخاب امروز
+                                        </button>
+
+                                    </div>
+
                                 </div>
-                            </div>
-                        </section>
 
-                        {{-- Notes --}}
-                        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                            <div class="border-b border-slate-100 px-5 py-5 sm:px-6">
-                                <div class="flex items-center gap-4">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-sm font-black text-slate-700">
+                            </div>
+
+
+                            <input
+                                type="hidden"
+                                name="booking_date"
+                                :value="selectedDate"
+                            >
+
+
+                            {{-- Quick dates --}}
+                            <div class="mt-4 flex min-w-0 gap-2 overflow-x-auto pb-1">
+
+                                <template
+                                    x-for="date in quickDates"
+                                    :key="date"
+                                >
+
+                                    <button
+                                        type="button"
+                                        @click="quickDate(date)"
+                                        class="min-w-[76px] rounded-xl border px-3 py-3 text-center transition"
+                                        :class="String(selectedDate) === String(date)
+                                        ? 'border-content bg-content text-background'
+                                        : 'border-border bg-background text-content'"
+                                    >
+
+                                        <div
+                                            class="text-[10px] font-black"
+                                            x-text="dateWeekday(date)"
+                                        ></div>
+
+                                        <div
+                                            class="mt-1 text-[10px] font-bold"
+                                            x-text="dateShort(date)"
+                                        ></div>
+
+                                    </button>
+
+                                </template>
+
+                            </div>
+
+
+                            {{-- Working Hours --}}
+                            <template x-if="schedule.status === 'open'">
+
+                                <div class="mt-5 rounded-2xl border border-border bg-background p-4">
+
+                                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+                                        <div>
+
+                                            <div class="text-[9px] font-black tracking-[0.16em] text-content-faint">
+                                                SALON HOURS
+                                            </div>
+
+                                            <div class="mt-1 text-xs font-black text-content">
+                                                ساعات کاری
+                                                <span
+                                                    class="text-accent-600"
+                                                    x-text="schedule.day_name"
+                                                ></span>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="flex flex-wrap gap-2">
+
+                                            <template
+                                                x-for="(range, index) in schedule.intervals"
+                                                :key="index"
+                                            >
+
+                                            <span class="rounded-xl border border-border bg-surface px-3 py-2 text-[10px] font-black text-content">
+
+                                                <span
+                                                    x-text="formatTime(range.start)"
+                                                ></span>
+
+                                                <span class="mx-1 text-content-faint">
+                                                    تا
+                                                </span>
+
+                                                <span
+                                                    x-text="formatTime(range.end)"
+                                                ></span>
+
+                                            </span>
+
+                                            </template>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </template>
+
+
+                            <template x-if="schedule.status === 'closed'">
+
+                                <div class="mt-5 rounded-2xl border border-danger-200 bg-danger-50 p-4 dark:border-danger-800/40 dark:bg-danger-900/10">
+
+                                    <div class="flex items-start gap-3">
+
+                                        <div class="text-lg">
+                                            ◷
+                                        </div>
+
+                                        <div>
+
+                                            <div class="text-xs font-black text-danger-700 dark:text-danger-300">
+                                                سالن در این روز تعطیل است
+                                            </div>
+
+                                            <div class="mt-1 text-[10px] leading-5 text-danger-600/70">
+                                                <span x-text="schedule.day_name"></span>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </template>
+
+
+                            <template x-if="schedule.status === 'not_configured'">
+
+                                <div class="mt-5 rounded-2xl border border-warning-200 bg-warning-50 p-4 dark:border-warning-800/40 dark:bg-warning-900/10">
+
+                                    <div class="flex items-start gap-3">
+
+                                        <div class="text-lg">
+                                            ⚠
+                                        </div>
+
+                                        <div>
+
+                                            <div class="text-xs font-black text-warning-800 dark:text-warning-300">
+                                                ساعت کاری این روز تنظیم نشده است
+                                            </div>
+
+                                            <div class="mt-1 text-[10px] leading-5 text-warning-700/70">
+                                                برنامه کاری
+                                                <span
+                                                    class="font-black"
+                                                    x-text="schedule.day_name"
+                                                ></span>
+                                                تنظیم نشده است.
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </template>
+
+
+                            {{-- Slots --}}
+                            <div class="mt-6">
+
+                                <div class="flex items-end justify-between gap-3">
+
+                                    <div>
+
+                                        <div class="text-sm font-black text-content">
+                                            زمان قابل رزرو
+                                        </div>
+
+                                        <div class="mt-1 text-[10px] text-content-muted">
+                                            بر اساس خدمت و مدت آن
+                                        </div>
+
+                                    </div>
+
+                                    <div
+                                        x-show="availableSlots.length"
+                                        x-cloak
+                                        class="rounded-full bg-success-50 px-3 py-1.5 text-[10px] font-black text-success-700"
+                                    >
+                                        <span x-text="persianDigits(availableSlots.length)"></span>
+                                        زمان آزاد
+                                    </div>
+
+                                </div>
+
+
+                                <template x-if="!barberId || !serviceId">
+
+                                    <div class="mt-4 rounded-2xl border border-dashed border-border bg-background p-7 text-center">
+
+                                        <div class="text-xl">
+                                            ◷
+                                        </div>
+
+                                        <div class="mt-2 text-xs font-black text-content">
+                                            ابتدا آرایشگر و خدمت را انتخاب کنید.
+                                        </div>
+
+                                    </div>
+
+                                </template>
+
+
+                                <template x-if="loadingSlots">
+
+                                    <div class="mt-4 rounded-2xl border border-border bg-background p-8 text-center">
+
+                                        <div class="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-border border-t-content"></div>
+
+                                        <div class="mt-3 text-xs font-bold text-content-muted">
+                                            در حال محاسبه availability...
+                                        </div>
+
+                                    </div>
+
+                                </template>
+
+
+                                <template x-if="slotError && !loadingSlots">
+
+                                    <div class="mt-4 rounded-2xl border border-danger-200 bg-danger-50 p-4">
+
+                                        <div class="text-xs font-black text-danger-700">
+                                            خطا در دریافت زمان‌ها
+                                        </div>
+
+                                        <div
+                                            class="mt-1 text-[10px] leading-5 text-danger-600"
+                                            x-text="slotError"
+                                        ></div>
+
+                                        <button
+                                            type="button"
+                                            @click="loadSlots()"
+                                            class="mt-3 rounded-xl bg-surface px-4 py-2 text-[10px] font-black text-content"
+                                        >
+                                            تلاش دوباره
+                                        </button>
+
+                                    </div>
+
+                                </template>
+
+
+                                <template
+                                    x-if="
+                                    !loadingSlots &&
+                                    !slotError &&
+                                    barberId &&
+                                    serviceId &&
+                                    schedule.status === 'open' &&
+                                    availableSlots.length
+                                "
+                                >
+
+                                    <div class="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+
+                                        <template
+                                            x-for="slot in slots"
+                                            :key="slotStart(slot)"
+                                        >
+
+                                            <button
+                                                type="button"
+                                                x-show="slotAvailable(slot)"
+                                                @click="selectedTime = slotStart(slot)"
+                                                class="rounded-xl border px-2 py-3 text-center transition"
+                                                :class="
+                                                selectedTime.slice(0,5) === slotStart(slot).slice(0,5)
+                                                    ? 'border-content bg-content text-background shadow-lg'
+                                                    : 'border-border bg-background text-content hover:border-content-faint'
+                                            "
+                                            >
+
+                                                <div
+                                                    class="text-sm font-black"
+                                                    x-text="formatTime(slotStart(slot))"
+                                                ></div>
+
+                                                <div
+                                                    class="mt-1 text-[9px] opacity-50"
+                                                    x-text="slotEnd(slot) ? 'تا ' + formatTime(slotEnd(slot)) : ''"
+                                                ></div>
+
+                                            </button>
+
+                                        </template>
+
+                                    </div>
+
+                                </template>
+
+
+                                <template
+                                    x-if="
+                                    !loadingSlots &&
+                                    !slotError &&
+                                    barberId &&
+                                    serviceId &&
+                                    schedule.status === 'open' &&
+                                    !availableSlots.length
+                                "
+                                >
+
+                                    <div class="mt-4 rounded-2xl border border-warning-200 bg-warning-50 p-5 text-center">
+
+                                        <div class="text-xs font-black text-warning-800">
+                                            زمان آزادی باقی نمانده است
+                                        </div>
+
+                                        <div class="mt-1 text-[10px] text-warning-700/70">
+                                            ممکن است تمام ظرفیت‌ها رزرو شده باشند.
+                                        </div>
+
+                                    </div>
+
+                                </template>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    {{-- NOTES --}}
+                    <section class="rounded-3xl border border-border bg-surface shadow-soft">
+
+                        <div class="border-b border-border p-5">
+
+                            <div class="flex items-center justify-between">
+
+                                <div class="flex items-center gap-3">
+
+                                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-background-soft text-sm font-black text-content-muted">
                                         ۵
                                     </div>
 
                                     <div>
-                                        <div class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+
+                                        <div class="text-[10px] font-black tracking-[0.2em] text-content-faint">
                                             NOTES
                                         </div>
-                                        <h2 class="mt-1 text-lg font-black text-slate-950">
+
+                                        <h2 class="mt-1 text-base font-black text-content">
                                             توضیحات
                                         </h2>
+
                                     </div>
 
-                                    <span class="mr-auto text-xs font-bold text-slate-400">
-                                    اختیاری
-                                </span>
                                 </div>
+
+                                <span class="rounded-full bg-background px-3 py-1.5 text-[10px] font-black text-content-faint">
+                                اختیاری
+                            </span>
+
                             </div>
 
-                            <div class="p-5 sm:p-6">
-                            <textarea
-                                name="notes"
-                                rows="5"
-                                placeholder="مثلاً: مشتری درخواست کرده ریش هم مرتب شود..."
-                                class="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-7 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100"
-                            >{{ old('notes') }}</textarea>
+                        </div>
+
+
+                        <div class="p-5">
+
+                        <textarea
+                            name="notes"
+                            rows="4"
+                            maxlength="2000"
+                            placeholder="مثلاً مشتری درخواست کرده..."
+                            class="w-full resize-none rounded-2xl border border-border bg-background p-4 text-xs leading-7 text-content outline-none placeholder:text-content-faint focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10"
+                        >{{ old('notes') }}</textarea>
+
+                        </div>
+
+                    </section>
+
+                </main>
+
+
+                {{-- SUMMARY --}}
+                <aside class="xl:sticky xl:top-6 xl:h-fit">
+
+                    <section class="overflow-hidden rounded-3xl border border-border bg-surface shadow-card">
+
+                        <div class="bg-content p-5 text-background">
+
+                            <div class="text-[10px] font-black tracking-[0.2em] opacity-50">
+                                BOOKING SUMMARY
                             </div>
-                        </section>
+
+                            <h2 class="mt-1 text-lg font-black">
+                                خلاصه نوبت
+                            </h2>
+
+                        </div>
+
+
+                        <div class="space-y-3 p-5">
+
+                            <div class="rounded-2xl bg-background p-4">
+
+                                <div class="text-[9px] text-content-faint">
+                                    مشتری
+                                </div>
+
+                                <div
+                                    class="mt-1 text-sm font-black text-content"
+                                    x-text="selectedCustomer?.name || 'انتخاب نشده'"
+                                ></div>
+
+                                <div
+                                    x-show="selectedCustomer?.phone"
+                                    x-cloak
+                                    class="mt-1 text-[10px] text-content-muted"
+                                    x-text="selectedCustomer?.phone"
+                                ></div>
+
+                            </div>
+
+
+                            <div class="rounded-2xl border border-border p-4">
+
+                                <div class="text-[9px] text-content-faint">
+                                    آرایشگر
+                                </div>
+
+                                <div
+                                    class="mt-1 text-sm font-black text-content"
+                                    x-text="selectedBarber?.name || 'انتخاب نشده'"
+                                ></div>
+
+                            </div>
+
+
+                            <div class="rounded-2xl border border-border p-4">
+
+                                <div class="text-[9px] text-content-faint">
+                                    خدمت
+                                </div>
+
+                                <div
+                                    class="mt-1 text-sm font-black text-content"
+                                    x-text="selectedService?.name || 'انتخاب نشده'"
+                                ></div>
+
+                                <div
+                                    x-show="selectedService"
+                                    x-cloak
+                                    class="mt-1 text-[10px] text-content-muted"
+                                    x-text="selectedService ? persianDigits(selectedService.duration) + ' دقیقه' : ''"
+                                ></div>
+
+                            </div>
+
+
+                            <div class="rounded-2xl border border-border p-4">
+
+                                <div class="text-[9px] text-content-faint">
+                                    تاریخ
+                                </div>
+
+                                <div
+                                    class="mt-1 text-sm font-black text-content"
+                                    x-text="jalaliDate(selectedDate)"
+                                ></div>
+
+                            </div>
+
+
+                            <div class="rounded-2xl border border-border p-4">
+
+                                <div class="text-[9px] text-content-faint">
+                                    ساعت
+                                </div>
+
+                                <div
+                                    class="mt-1 text-sm font-black text-content"
+                                    x-text="selectedTime ? formatTime(selectedTime) : 'انتخاب نشده'"
+                                ></div>
+
+                                <div
+                                    x-show="selectedSlot?.end"
+                                    x-cloak
+                                    class="mt-1 text-[10px] text-content-faint"
+                                    x-text="selectedSlot?.end ? 'پایان خدمت: ' + formatTime(selectedSlot.end) : ''"
+                                ></div>
+
+                            </div>
+
+
+                            <div class="rounded-2xl bg-content p-4 text-background">
+
+                                <div class="flex items-center justify-between gap-4">
+
+                                <span class="text-[10px] font-bold opacity-50">
+                                    مبلغ
+                                </span>
+
+                                    <span
+                                        class="text-base font-black"
+                                        x-text="selectedService ? formatPrice(selectedService.price) : '—'"
+                                    ></span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                class="rounded-2xl border p-4"
+                                :class="
+                                canSubmit
+                                    ? 'border-success-200 bg-success-50'
+                                    : 'border-border bg-background'
+                            "
+                            >
+
+                                <div class="flex items-start gap-3">
+
+                                    <div
+                                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-black"
+                                        :class="
+                                        canSubmit
+                                            ? 'bg-success-100 text-success-700'
+                                            : 'bg-background-soft text-content-faint'
+                                    "
+                                        x-text="canSubmit ? '✓' : '…'"
+                                    ></div>
+
+                                    <div>
+
+                                        <div
+                                            class="text-xs font-black"
+                                            :class="
+                                            canSubmit
+                                                ? 'text-success-700'
+                                                : 'text-content'
+                                        "
+                                            x-text="canSubmit ? 'آماده ثبت نهایی' : 'اطلاعات ناقص است'"
+                                        ></div>
+
+                                        <div
+                                            class="mt-1 text-[10px] leading-5"
+                                            :class="
+                                            canSubmit
+                                                ? 'text-success-700/70'
+                                                : 'text-content-faint'
+                                        "
+                                            x-text="
+                                            canSubmit
+                                                ? 'این نوبت به صورت تأییدشده ثبت می‌شود.'
+                                                : 'مشتری، آرایشگر، خدمت، تاریخ و ساعت را کامل کنید.'
+                                        "
+                                        ></div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="submit"
+                                :disabled="!canSubmit || submitting"
+                                class="flex h-14 w-full items-center justify-center rounded-2xl text-sm font-black transition"
+                                :class="
+                                canSubmit && !submitting
+                                    ? 'bg-accent-600 text-white shadow-lg shadow-accent-600/20 hover:-translate-y-0.5 hover:bg-accent-700'
+                                    : 'cursor-not-allowed bg-background-soft text-content-faint'
+                            "
+                            >
+                            <span
+                                x-text="submitting ? 'در حال ثبت...' : 'ثبت و تأیید نوبت'"
+                            ></span>
+                            </button>
+
+                            <div class="pb-1 text-center text-[9px] leading-5 text-content-faint">
+                                ثبت دستی بدون مرحله تأیید مجدد انجام می‌شود.
+                            </div>
+
+                        </div>
+
+                    </section>
+
+                </aside>
+
+            </div>
+
+
+            {{-- MOBILE ACTION --}}
+            <div class="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 p-3 backdrop-blur-xl xl:hidden">
+
+                <div class="mx-auto flex max-w-3xl items-center gap-3">
+
+                    <div class="min-w-0 flex-1">
+
+                        <div
+                            class="truncate text-xs font-black text-content"
+                            x-text="selectedService?.name || 'ثبت نوبت دستی'"
+                        ></div>
+
+                        <div class="mt-1 text-[10px] text-content-faint">
+
+                        <span
+                            x-text="selectedTime ? formatTime(selectedTime) : 'ساعت انتخاب نشده'"
+                        ></span>
+
+                            ·
+
+                            <span
+                                x-text="selectedService ? formatPrice(selectedService.price) : 'مبلغ نامشخص'"
+                            ></span>
+
+                        </div>
 
                     </div>
 
-                    {{-- Summary --}}
-                    <aside class="lg:sticky lg:top-6 lg:h-fit">
-                        <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/40">
-
-                            <div class="bg-slate-950 px-5 py-6 text-white">
-                                <div class="text-[10px] font-black uppercase tracking-[0.22em] text-white/40">
-                                    BOOKING SUMMARY
-                                </div>
-
-                                <div class="mt-1 text-xl font-black">
-                                    خلاصه نوبت
-                                </div>
-
-                                <div class="mt-4 flex items-center gap-2">
-                                    <div
-                                        class="h-2 w-2 rounded-full"
-                                        :class="canSubmit ? 'bg-emerald-400' : 'bg-amber-400'"
-                                    ></div>
-
-                                    <span
-                                        class="text-xs font-bold text-white/60"
-                                        x-text="canSubmit ? 'اطلاعات کامل است' : 'در انتظار تکمیل اطلاعات'"
-                                    ></span>
-                                </div>
-                            </div>
-
-                            <div class="space-y-3 p-5">
-
-                                {{-- Customer --}}
-                                <div class="rounded-2xl bg-slate-50 p-4">
-                                    <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                        مشتری
-                                    </div>
-
-                                    <div
-                                        class="mt-2 text-sm font-black text-slate-900"
-                                        x-text="selectedCustomer?.name || 'انتخاب نشده'"
-                                    ></div>
-
-                                    <template x-if="selectedCustomer?.phone">
-                                        <div
-                                            class="mt-1 text-xs text-slate-400"
-                                            x-text="selectedCustomer.phone"
-                                        ></div>
-                                    </template>
-                                </div>
-
-                                {{-- Barber --}}
-                                <div class="flex items-center justify-between rounded-2xl border border-slate-100 p-4">
-                                    <div>
-                                        <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                            آرایشگر
-                                        </div>
-
-                                        <div
-                                            class="mt-1 text-sm font-black text-slate-900"
-                                            x-text="selectedBarber?.name || 'انتخاب نشده'"
-                                        ></div>
-                                    </div>
-
-                                    <span class="text-lg">✦</span>
-                                </div>
-
-                                {{-- Service --}}
-                                <div class="flex items-center justify-between rounded-2xl border border-slate-100 p-4">
-                                    <div>
-                                        <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                            خدمت
-                                        </div>
-
-                                        <div
-                                            class="mt-1 text-sm font-black text-slate-900"
-                                            x-text="selectedService?.name || 'انتخاب نشده'"
-                                        ></div>
-                                    </div>
-
-                                    <div
-                                        class="text-left text-xs font-bold text-slate-400"
-                                        x-text="selectedDuration ? persianDigits(selectedDuration) + ' دقیقه' : '—'"
-                                    ></div>
-                                </div>
-
-                                {{-- Date --}}
-                                <div class="flex items-center justify-between rounded-2xl border border-slate-100 p-4">
-                                    <div>
-                                        <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                            تاریخ
-                                        </div>
-
-                                        <div
-                                            class="mt-1 text-sm font-black text-slate-900"
-                                            x-text="selectedDate ? formatPersianDate(selectedDate) : 'انتخاب نشده'"
-                                        ></div>
-                                    </div>
-
-                                    <span class="text-lg">◫</span>
-                                </div>
-
-                                {{-- Time --}}
-                                <div class="flex items-center justify-between rounded-2xl border border-slate-100 p-4">
-                                    <div>
-                                        <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                            ساعت
-                                        </div>
-
-                                        <div
-                                            class="mt-1 text-sm font-black text-slate-900"
-                                            x-text="selectedTime ? formatTime(selectedTime) : 'انتخاب نشده'"
-                                        ></div>
-                                    </div>
-
-                                    <span class="text-lg">◷</span>
-                                </div>
-
-                                {{-- Price --}}
-                                <div class="mt-2 rounded-2xl bg-slate-950 p-4 text-white">
-                                    <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-white/50">
-                                        مبلغ نوبت
-                                    </span>
-
-                                        <span
-                                            class="text-lg font-black"
-                                            x-text="selectedPrice ? formatPrice(selectedPrice) : '—'"
-                                        ></span>
-                                    </div>
-                                </div>
-
-                                {{-- Status --}}
-                                <div class="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
-                                    <div class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-xs text-emerald-700">
-                                        ✓
-                                    </div>
-
-                                    <div>
-                                        <div class="text-xs font-black text-emerald-800">
-                                            نوبت دستی تأییدشده
-                                        </div>
-
-                                        <div class="mt-0.5 text-[10px] font-medium text-emerald-700/70">
-                                            پس از ثبت، نوبت در لیست نوبت‌های سالن قرار می‌گیرد.
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Submit --}}
-                                <button
-                                    type="submit"
-                                    :disabled="!canSubmit"
-                                    class="mt-2 flex h-14 w-full items-center justify-center gap-2 rounded-2xl text-sm font-black transition"
-                                    :class="canSubmit
-                                    ? 'bg-slate-950 text-white shadow-lg shadow-slate-900/15 hover:-translate-y-0.5 hover:bg-slate-800'
-                                    : 'cursor-not-allowed bg-slate-100 text-slate-400'"
-                                >
-                                    <span>ثبت نوبت</span>
-                                    <span class="text-lg">←</span>
-                                </button>
-
-                                <div
-                                    x-show="!canSubmit"
-                                    class="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-center text-[11px] font-bold leading-6 text-amber-700"
-                                >
-                                    برای ثبت نوبت، مشتری، آرایشگر، خدمت، تاریخ و ساعت را انتخاب کنید.
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
+                    <button
+                        type="submit"
+                        :disabled="!canSubmit || submitting"
+                        class="h-12 shrink-0 rounded-xl px-5 text-xs font-black transition"
+                        :class="
+                        canSubmit && !submitting
+                            ? 'bg-accent-600 text-white'
+                            : 'cursor-not-allowed bg-background-soft text-content-faint'
+                    "
+                    >
+                    <span
+                        x-text="submitting ? 'در حال ثبت...' : 'ثبت نوبت'"
+                    ></span>
+                    </button>
 
                 </div>
-            </form>
-        </div>
+
+            </div>
+
+        </form>
+
     </div>
 
 @endsection

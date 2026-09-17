@@ -19,68 +19,172 @@ use Illuminate\View\View;
 
 class BookingController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Booking List
-    |--------------------------------------------------------------------------
-    */
-
-    public function index(
-        Request $request
-    ): View {
-
+    public function index(Request $request): View
+    {
         $salon = $request
             ->user()
             ->managedSalons()
             ->firstOrFail();
 
+        $status = $request->string('status')->toString();
+        $search = trim($request->string('q')->toString());
+        $date = $request->string('date')->toString();
 
-        $bookings = $salon
+        $query = $salon
             ->bookings()
             ->with([
-                'barber',
-                'service',
-                'customer',
-            ])
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->paginate(20);
+                'customer:id,name,phone',
+                'barber:id,name',
+                'service:id,name,duration_minutes,price',
+            ]);
 
+        if (
+            in_array(
+                $status,
+                array_map(
+                    fn (BookingStatus $item) => $item->value,
+                    BookingStatus::cases()
+                ),
+                true
+            )
+        ) {
+            $query->where(
+                'status',
+                $status
+            );
+        }
+
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query
+                    ->whereHas(
+                        'customer',
+                        function ($customerQuery) use ($search) {
+                            $customerQuery
+                                ->where('name', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
+                        }
+                    )
+                    ->orWhereHas(
+                        'service',
+                        function ($serviceQuery) use ($search) {
+                            $serviceQuery->where(
+                                'name',
+                                'like',
+                                "%{$search}%"
+                            );
+                        }
+                    )
+                    ->orWhereHas(
+                        'barber',
+                        function ($barberQuery) use ($search) {
+                            $barberQuery->where(
+                                'name',
+                                'like',
+                                "%{$search}%"
+                            );
+                        }
+                    );
+            });
+        }
+
+        if (
+            preg_match(
+                '/^\d{4}-\d{2}-\d{2}$/',
+                $date
+            )
+        ) {
+            $query->whereDate(
+                'booking_date',
+                $date
+            );
+        }
+
+        $bookings = $query
+            ->orderByDesc('booking_date')
+            ->orderBy('start_time')
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
+
+        $stats = [
+            'all' => $salon->bookings()->count(),
+
+            'pending' => $salon
+                ->bookings()
+                ->where(
+                    'status',
+                    BookingStatus::PENDING
+                )
+                ->count(),
+
+            'confirmed' => $salon
+                ->bookings()
+                ->where(
+                    'status',
+                    BookingStatus::CONFIRMED
+                )
+                ->count(),
+
+            'completed' => $salon
+                ->bookings()
+                ->where(
+                    'status',
+                    BookingStatus::COMPLETED
+                )
+                ->count(),
+
+            'cancelled' => $salon
+                ->bookings()
+                ->where(
+                    'status',
+                    BookingStatus::CANCELLED
+                )
+                ->count(),
+        ];
+
+        $today = now(config('app.timezone'));
+
+        $todayBookingsCount = $salon
+            ->bookings()
+            ->whereDate(
+                'booking_date',
+                $today->toDateString()
+            )
+            ->whereIn(
+                'status',
+                [
+                    BookingStatus::PENDING,
+                    BookingStatus::CONFIRMED,
+                ]
+            )
+            ->count();
 
         return view(
             'salon.bookings.index',
             compact(
                 'salon',
-                'bookings'
+                'bookings',
+                'stats',
+                'todayBookingsCount',
+                'status',
+                'search',
+                'date'
             )
         );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Manual Booking Page
-    |--------------------------------------------------------------------------
-    |
-    | Only customers who have a relationship with this salon
-    | through an existing booking are shown.
-    |
-    */
-    public function create(
-        Request $request
-    ): View {
-
+    public function create(Request $request): View
+    {
         $salon = $request
             ->user()
             ->managedSalons()
             ->firstOrFail();
 
-
         $unreadNotifications = $request
             ->user()
             ->unreadNotifications()
             ->count();
-
 
         $barbers = $salon
             ->barbers()
@@ -91,7 +195,6 @@ class BookingController extends Controller
             ->orderBy('name')
             ->get();
 
-
         $services = $salon
             ->services()
             ->where(
@@ -101,7 +204,6 @@ class BookingController extends Controller
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
-
 
         $customers = User::query()
             ->where(
@@ -126,7 +228,6 @@ class BookingController extends Controller
             ->unique('id')
             ->values();
 
-
         return view(
             'salon.bookings.create',
             compact(
@@ -139,210 +240,253 @@ class BookingController extends Controller
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Manual Booking Availability
-    |--------------------------------------------------------------------------
-    */
-
     public function availability(
         BookingAvailabilityRequest $request,
         AvailabilityService $availability
     ): JsonResponse {
-
-        /*
-        |--------------------------------------------------------------------------
-        | Current Salon
-        |--------------------------------------------------------------------------
-        */
-
         $salon = $request
             ->user()
             ->managedSalons()
             ->firstOrFail();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validated Data
-        |--------------------------------------------------------------------------
-        */
-
-        $data =
-            $request->validated();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Barber Belongs To Current Salon
-        |--------------------------------------------------------------------------
-        */
+        $data = $request->validated();
 
         $barber = $salon
             ->barbers()
-            ->whereKey(
-                $data['barber_id']
-            )
+            ->whereKey($data['barber_id'])
             ->where(
                 'is_active',
                 true
             )
-            ->firstOrFail();
+            ->first();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Service Belongs To Current Salon
-        |--------------------------------------------------------------------------
-        */
+        if (!$barber) {
+            return response()->json([
+                'ok' => false,
+                'message' =>
+                    'آرایشگر انتخاب شده برای این سالن معتبر نیست.',
+            ], 422);
+        }
 
         $service = $salon
             ->services()
-            ->whereKey(
-                $data['service_id']
-            )
+            ->whereKey($data['service_id'])
             ->where(
                 'is_active',
                 true
             )
-            ->firstOrFail();
+            ->first();
 
+        if (!$service) {
+            return response()->json([
+                'ok' => false,
+                'message' =>
+                    'خدمت انتخاب شده برای این سالن معتبر نیست.',
+            ], 422);
+        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Date
-        |--------------------------------------------------------------------------
-        */
+        $timezone = config(
+            'app.timezone',
+            'Asia/Tehran'
+        );
 
-        $date =
-            Carbon::createFromFormat(
+        try {
+            $date = Carbon::createFromFormat(
                 'Y-m-d',
-                $data['booking_date']
-            );
+                $data['booking_date'],
+                $timezone
+            )->startOfDay();
+        } catch (\Throwable) {
+            return response()->json([
+                'ok' => false,
+                'message' =>
+                    'تاریخ انتخاب شده معتبر نیست.',
+            ], 422);
+        }
 
+        if (
+            $date->lt(
+                now($timezone)->startOfDay()
+            )
+        ) {
+            return response()->json([
+                'ok' => false,
+                'message' =>
+                    'امکان انتخاب تاریخ گذشته وجود ندارد.',
+            ], 422);
+        }
+
+        $dayOfWeek = (
+                $date->dayOfWeek + 1
+            ) % 7;
+
+        $dayNames = [
+            0 => 'شنبه',
+            1 => 'یکشنبه',
+            2 => 'دوشنبه',
+            3 => 'سه‌شنبه',
+            4 => 'چهارشنبه',
+            5 => 'پنجشنبه',
+            6 => 'جمعه',
+        ];
+
+        $dayRows = $salon
+            ->workingHours()
+            ->where(
+                'day_of_week',
+                $dayOfWeek
+            )
+            ->orderBy('sort_order')
+            ->orderBy('start_time')
+            ->get();
+
+        $dailyStatus = $salon
+            ->dailyStatuses()
+            ->whereDate(
+                'date',
+                $date->toDateString()
+            )
+            ->first();
+
+        $isDailyClosed =
+            $dailyStatus &&
+            (bool) $dailyStatus->is_closed;
+
+        $isWeeklyClosed = $dayRows->contains(
+            fn ($row) =>
+            (bool) $row->is_closed
+        );
+
+        $workingHours = $dayRows
+            ->filter(
+                fn ($row) =>
+                    !$row->is_closed &&
+                    $row->start_time &&
+                    $row->end_time
+            )
+            ->map(function ($row) {
+                return [
+                    'start' => substr(
+                        (string) $row->start_time,
+                        0,
+                        5
+                    ),
+                    'end' => substr(
+                        (string) $row->end_time,
+                        0,
+                        5
+                    ),
+                ];
+            })
+            ->values()
+            ->all();
+
+        if (
+            $isDailyClosed ||
+            $isWeeklyClosed
+        ) {
+            $scheduleStatus = 'closed';
+        } elseif (
+            empty($workingHours)
+        ) {
+            $scheduleStatus = 'not_configured';
+        } else {
+            $scheduleStatus = 'open';
+        }
 
         /*
         |--------------------------------------------------------------------------
-        | Availability
+        | IMPORTANT
         |--------------------------------------------------------------------------
+        | We deliberately use the same availability engine as customer booking.
         */
 
-        $slots =
-            $availability->slots(
-                $salon,
-                $barber,
-                $service,
-                $date
-            );
-
+        $slots = $availability->slots(
+            $salon,
+            $barber,
+            $service,
+            $date
+        );
 
         return response()->json([
-            'slots' => $slots,
+            'ok' => true,
+
+            'date' =>
+                $date->toDateString(),
+
+            'schedule' => [
+                'day_of_week' =>
+                    $dayOfWeek,
+
+                'day_name' =>
+                    $dayNames[$dayOfWeek],
+
+                'status' =>
+                    $scheduleStatus,
+
+                'is_closed' =>
+                    $isDailyClosed ||
+                    $isWeeklyClosed,
+
+                'intervals' =>
+                    $workingHours,
+            ],
+
+            'working_hours' =>
+                $workingHours,
+
+            'slots' =>
+                $slots,
         ]);
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Store Manual Booking
-    |--------------------------------------------------------------------------
-    */
 
     public function storeManual(
         ManualBookingRequest $request,
         BookingService $bookingService
     ): RedirectResponse {
-
-        /*
-        |--------------------------------------------------------------------------
-        | Current Salon
-        |--------------------------------------------------------------------------
-        */
-
         $salon = $request
             ->user()
             ->managedSalons()
             ->firstOrFail();
 
+        $data = $request->validated();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validated Request
-        |--------------------------------------------------------------------------
-        */
-
-        $data =
-            $request->validated();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Customer Security Check
-        |--------------------------------------------------------------------------
-        |
-        | The selected customer MUST belong to this salon's customer base.
-        |
-        */
-
-        $customer =
-            User::query()
-                ->whereKey(
-                    $data['customer_id']
-                )
-                ->where(
-                    'role',
-                    'customer'
-                )
-                ->whereHas(
-                    'bookings',
-                    function ($query) use ($salon) {
-
-                        $query->where(
-                            'salon_id',
-                            $salon->id
-                        );
-
-                    }
-                )
-                ->first();
-
+        $customer = User::query()
+            ->whereKey(
+                $data['customer_id']
+            )
+            ->where(
+                'role',
+                'customer'
+            )
+            ->whereHas(
+                'bookings',
+                function ($query) use ($salon) {
+                    $query->where(
+                        'salon_id',
+                        $salon->id
+                    );
+                }
+            )
+            ->first();
 
         if (!$customer) {
-
             return back()
                 ->withErrors([
                     'customer_id' =>
-                        'این مشتری مربوط به این سالن نیست.',
+                        'این مشتری متعلق به مشتریان این سالن نیست.',
                 ])
                 ->withInput();
-
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Create Confirmed Manual Booking
-        |--------------------------------------------------------------------------
-        */
-
-        $booking =
-            $bookingService->create(
-                $customer,
-                [
-                    ...$data,
-
-                    'salon_id' =>
-                        $salon->id,
-                ],
-                BookingStatus::CONFIRMED
-            );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Redirect
-        |--------------------------------------------------------------------------
-        */
+        $bookingService->createManual(
+            $request->user(),
+            [
+                ...$data,
+                'salon_id' => $salon->id,
+                'customer' => $customer,
+            ]
+        );
 
         return redirect()
             ->route(
@@ -350,53 +494,29 @@ class BookingController extends Controller
             )
             ->with(
                 'success',
-                'نوبت دستی برای مشتری با موفقیت ثبت و تأیید شد.'
+                'نوبت دستی با موفقیت ثبت و تأیید شد.'
             );
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Booking Details
-    |--------------------------------------------------------------------------
-    */
 
     public function show(
         Request $request,
         Booking $booking
     ): View {
-
-        /*
-        |--------------------------------------------------------------------------
-        | Current Salon
-        |--------------------------------------------------------------------------
-        */
-
         $salon = $request
             ->user()
             ->managedSalons()
             ->firstOrFail();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Security:
-        | Booking must belong to current salon
-        |--------------------------------------------------------------------------
-        */
-
-        $booking =
-            $salon
-                ->bookings()
-                ->with([
-                    'barber',
-                    'service',
-                    'customer',
-                ])
-                ->findOrFail(
-                    $booking->id
-                );
-
+        $booking = $salon
+            ->bookings()
+            ->with([
+                'customer',
+                'barber',
+                'service',
+            ])
+            ->findOrFail(
+                $booking->id
+            );
 
         return view(
             'salon.bookings.show',
@@ -407,83 +527,53 @@ class BookingController extends Controller
         );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Update Booking Status
-    |--------------------------------------------------------------------------
-    */
-
     public function updateStatus(
         BookingStatusRequest $request,
         Booking $booking,
         BookingService $bookingService
     ): RedirectResponse {
-
-        /*
-        |--------------------------------------------------------------------------
-        | Current Salon
-        |--------------------------------------------------------------------------
-        */
-
         $salon = $request
             ->user()
             ->managedSalons()
             ->firstOrFail();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Security:
-        | Booking must belong to current salon
-        |--------------------------------------------------------------------------
-        */
-
-        $booking =
-            $salon
-                ->bookings()
-                ->findOrFail(
-                    $booking->id
-                );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | New Status
-        |--------------------------------------------------------------------------
-        */
-
-        $status =
-            BookingStatus::from(
-                $request->validated(
-                    'status'
-                )
+        $booking = $salon
+            ->bookings()
+            ->with([
+                'customer',
+                'barber',
+                'service',
+            ])
+            ->findOrFail(
+                $booking->id
             );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Change Status
-        |--------------------------------------------------------------------------
-        */
+        $status = BookingStatus::from(
+            $request->validated('status')
+        );
 
         $bookingService->changeStatus(
             $booking,
             $status
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Redirect
-        |--------------------------------------------------------------------------
-        */
-
-        return back()
+        return redirect()
+            ->route(
+                'salon.bookings.show',
+                $booking
+            )
             ->with(
                 'success',
-                'وضعیت نوبت با موفقیت تغییر کرد و مشتری مطلع شد.'
+                match ($status) {
+                    BookingStatus::CONFIRMED =>
+                    'نوبت با موفقیت تأیید شد.',
+
+                    BookingStatus::COMPLETED =>
+                    'نوبت به‌عنوان تکمیل‌شده ثبت شد.',
+
+                    BookingStatus::CANCELLED =>
+                    'نوبت با موفقیت لغو شد.',
+                }
             );
     }
 }
-

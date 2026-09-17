@@ -1291,7 +1291,307 @@ Alpine.data(
         },
     })
 )
+jalaliParts(iso) {
+    const date = new Date(
+        `${iso}T12:00:00Z`
+    );
 
+    const parts = new Intl.DateTimeFormat(
+        'fa-IR-u-ca-persian-nu-latn',
+        {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            timeZone: 'UTC',
+        }
+    ).formatToParts(date);
+
+    const result = {};
+
+    parts.forEach(part => {
+        if (
+            part.type === 'year' ||
+            part.type === 'month' ||
+            part.type === 'day'
+        ) {
+            result[part.type] = Number(
+                part.value
+            );
+        }
+    });
+
+    return result;
+},
+
+jalaliWeekday(iso) {
+    const date = new Date(
+        `${iso}T12:00:00Z`
+    );
+
+    /*
+     * JS:
+     * Sunday = 0
+     *
+     * App:
+     * Saturday = 0
+     */
+
+    return (
+        date.getUTCDay() + 1
+    ) % 7;
+},
+
+addGregorianDays(iso, amount) {
+    const date = new Date(
+        `${iso}T12:00:00Z`
+    );
+
+    date.setUTCDate(
+        date.getUTCDate() + amount
+    );
+
+    const year =
+        date.getUTCFullYear();
+
+    const month = String(
+        date.getUTCMonth() + 1
+    ).padStart(2, '0');
+
+    const day = String(
+        date.getUTCDate()
+    ).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+},
+
+findJalaliMonthStart(iso) {
+    const target = this.jalaliParts(iso);
+
+    let cursor = iso;
+
+    for (let i = 0; i < 370; i++) {
+        const current =
+            this.jalaliParts(cursor);
+
+        if (
+            current.year === target.year &&
+            current.month === target.month &&
+            current.day === 1
+        ) {
+            return cursor;
+        }
+
+        cursor =
+            this.addGregorianDays(
+                cursor,
+                -1
+            );
+    }
+
+    return iso;
+},
+
+initCalendar() {
+    const iso =
+        this.selectedDate ||
+        this.todayIso;
+
+    this.calendarFirstIso =
+        this.findJalaliMonthStart(
+            iso
+        );
+},
+
+calendarTitle() {
+    if (!this.calendarFirstIso) {
+        return '';
+    }
+
+    const parts =
+        this.jalaliParts(
+            this.calendarFirstIso
+        );
+
+    return this.jalaliMonths[
+    parts.month - 1
+        ];
+},
+
+calendarYear() {
+    if (!this.calendarFirstIso) {
+        return '';
+    }
+
+    return this.persianDigits(
+        this.jalaliParts(
+            this.calendarFirstIso
+        ).year
+    );
+},
+
+calendarCells() {
+    if (!this.calendarFirstIso) {
+        return [];
+    }
+
+    const first =
+        this.jalaliParts(
+            this.calendarFirstIso
+        );
+
+    const offset =
+        this.jalaliWeekday(
+            this.calendarFirstIso
+        );
+
+    const cells = [];
+
+    for (let i = 0; i < offset; i++) {
+        cells.push(null);
+    }
+
+    let cursor =
+        this.calendarFirstIso;
+
+    for (let i = 0; i < 31; i++) {
+        const current =
+            this.jalaliParts(cursor);
+
+        if (
+            current.year !== first.year ||
+            current.month !== first.month
+        ) {
+            break;
+        }
+
+        cells.push({
+            iso: cursor,
+
+            year: current.year,
+
+            month: current.month,
+
+            day: current.day,
+
+            today:
+                cursor === this.todayIso,
+
+            selected:
+                cursor === this.selectedDate,
+
+            past:
+                cursor < this.todayIso,
+        });
+
+        cursor =
+            this.addGregorianDays(
+                cursor,
+                1
+            );
+    }
+
+    return cells;
+},
+
+openCalendar() {
+    if (!this.calendarFirstIso) {
+        this.initCalendar();
+    }
+
+    this.calendarOpen = true;
+},
+
+selectJalaliDate(day) {
+    if (!day || day.past) {
+        return;
+    }
+
+    this.selectedDate =
+        day.iso;
+
+    this.selectedTime = '';
+
+    this.calendarOpen = false;
+
+    this.loadSlots();
+},
+
+nextJalaliMonth() {
+    if (!this.calendarFirstIso) {
+        this.initCalendar();
+    }
+
+    let cursor =
+        this.addGregorianDays(
+            this.calendarFirstIso,
+            32
+        );
+
+    this.calendarFirstIso =
+        this.findJalaliMonthStart(
+            cursor
+        );
+},
+
+previousJalaliMonth() {
+    if (!this.calendarFirstIso) {
+        this.initCalendar();
+    }
+
+    let cursor =
+        this.addGregorianDays(
+            this.calendarFirstIso,
+            -1
+        );
+
+    this.calendarFirstIso =
+        this.findJalaliMonthStart(
+            cursor
+        );
+},
+
+goToToday() {
+    this.selectedDate =
+        this.todayIso;
+
+    this.selectedTime = '';
+
+    this.initCalendar();
+
+    this.calendarOpen = false;
+
+    this.loadSlots();
+},
+
+jalaliDate(value) {
+    if (!value) {
+        return '';
+    }
+
+    const date =
+        this.jalaliParts(value);
+
+    if (!date) {
+        return '';
+    }
+
+    const weekdays = [
+        'شنبه',
+        'یکشنبه',
+        'دوشنبه',
+        'سه‌شنبه',
+        'چهارشنبه',
+        'پنجشنبه',
+        'جمعه',
+    ];
+
+    return (
+        `${weekdays[this.jalaliWeekday(value)]} ` +
+        `${this.jalaliMonths[date.month - 1]} ` +
+        `${this.persianDigits(date.day)} ` +
+        `${this.persianDigits(date.year)}`
+    );
+},
 /* =========================================================
  | Global Alpine boot
  ========================================================= */

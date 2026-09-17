@@ -2,719 +2,751 @@
 
 @section('title', 'جزئیات نوبت')
 
+@php
+    use App\Enums\BookingStatus;
+    use Carbon\Carbon;
+
+    $status = $booking->status instanceof BookingStatus
+        ? $booking->status->value
+        : (string) $booking->status;
+
+    $statusMeta = [
+        BookingStatus::PENDING->value => [
+            'label' => 'در انتظار تأیید',
+            'description' => 'این نوبت هنوز توسط سالن تأیید نشده است.',
+            'class' => 'bg-amber-50 text-amber-800 border-amber-200',
+            'dot' => 'bg-amber-500',
+        ],
+
+        BookingStatus::CONFIRMED->value => [
+            'label' => 'تأیید شده',
+            'description' => 'نوبت توسط سالن تأیید شده و زمان آن رزرو است.',
+            'class' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+            'dot' => 'bg-emerald-500',
+        ],
+
+        BookingStatus::COMPLETED->value => [
+            'label' => 'تکمیل شده',
+            'description' => 'این نوبت با موفقیت انجام شده است.',
+            'class' => 'bg-slate-100 text-slate-800 border-slate-200',
+            'dot' => 'bg-slate-500',
+        ],
+
+        BookingStatus::CANCELLED->value => [
+            'label' => 'لغو شده',
+            'description' => 'این نوبت لغو شده و دیگر قابل تغییر نیست.',
+            'class' => 'bg-red-50 text-red-800 border-red-200',
+            'dot' => 'bg-red-500',
+        ],
+    ];
+
+    $meta = $statusMeta[$status] ?? [
+        'label' => $status,
+        'description' => '',
+        'class' => 'bg-slate-100 text-slate-800 border-slate-200',
+        'dot' => 'bg-slate-500',
+    ];
+
+    $bookingDate = $booking->booking_date;
+
+    $startTime = substr(
+        (string) $booking->start_time,
+        0,
+        5
+    );
+
+    $endTime = substr(
+        (string) $booking->end_time,
+        0,
+        5
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Completion availability
+    |--------------------------------------------------------------------------
+    */
+    $bookingEndDateTime = null;
+
+    try {
+        $bookingEndDateTime = Carbon::parse(
+            $bookingDate->format('Y-m-d') . ' ' . $endTime,
+            config('app.timezone')
+        );
+    } catch (\Throwable $e) {
+        $bookingEndDateTime = null;
+    }
+
+    $canCompleteNow =
+        $status === BookingStatus::CONFIRMED->value
+        && (
+            !$bookingEndDateTime
+            || now(config('app.timezone'))->gte($bookingEndDateTime)
+        );
+@endphp
+
 @section('content')
 
-    @php
-        $persianDigits = [
-            '0' => '۰',
-            '1' => '۱',
-            '2' => '۲',
-            '3' => '۳',
-            '4' => '۴',
-            '5' => '۵',
-            '6' => '۶',
-            '7' => '۷',
-            '8' => '۸',
-            '9' => '۹',
-        ];
+    <div
+        class="min-h-full bg-slate-50"
+        dir="rtl"
+    >
 
-$bookingDate = strtr(
-    jalali_date($booking->booking_date),
-    $persianDigits
-);
-
-        $startTime = strtr(
-            substr($booking->start_time, 0, 5),
-            $persianDigits
-        );
-
-        $endTime = strtr(
-            substr($booking->end_time, 0, 5),
-            $persianDigits
-        );
-
-        $price = strtr(
-            number_format($booking->price),
-            $persianDigits
-        );
-
-        $duration = $booking->service?->duration_minutes;
-
-        $durationText = $duration
-            ? strtr((string) $duration, $persianDigits) . ' دقیقه'
-            : '—';
-
-        $status = $booking->status;
-
-        $statusMeta = match ($status) {
-            \App\Enums\BookingStatus::PENDING => [
-                'label' => 'در انتظار',
-                'description' => 'این نوبت هنوز توسط سالن تأیید نشده است.',
-                'class' => 'bg-warning-50 text-warning-700',
-                'dot' => 'bg-warning-500',
-            ],
-
-            \App\Enums\BookingStatus::CONFIRMED => [
-                'label' => 'تأیید شده',
-                'description' => 'نوبت توسط سالن تأیید شده است.',
-                'class' => 'bg-success-50 text-success-700',
-                'dot' => 'bg-success-500',
-            ],
-
-            \App\Enums\BookingStatus::COMPLETED => [
-                'label' => 'تکمیل شده',
-                'description' => 'این خدمت انجام شده است.',
-                'class' => 'bg-accent-50 text-accent-700',
-                'dot' => 'bg-accent-600',
-            ],
-
-            \App\Enums\BookingStatus::CANCELLED => [
-                'label' => 'لغو شده',
-                'description' => 'این نوبت دیگر قابل اجرا نیست.',
-                'class' => 'bg-danger-50 text-danger-700',
-                'dot' => 'bg-danger-500',
-            ],
-        };
-
-        $allowedStatuses = match ($status) {
-            \App\Enums\BookingStatus::PENDING => [
-                \App\Enums\BookingStatus::CONFIRMED,
-                \App\Enums\BookingStatus::CANCELLED,
-            ],
-
-            \App\Enums\BookingStatus::CONFIRMED => [
-                \App\Enums\BookingStatus::COMPLETED,
-                \App\Enums\BookingStatus::CANCELLED,
-            ],
-
-            \App\Enums\BookingStatus::COMPLETED,
-            \App\Enums\BookingStatus::CANCELLED => [],
-        };
-
-        $statusActionMeta = [
-            \App\Enums\BookingStatus::CONFIRMED->value => [
-                'title' => 'تأیید نوبت',
-                'description' => 'نوبت را برای مشتری قطعی کنید.',
-                'class' => 'bg-success-50 text-success-700 border-success-100',
-            ],
-
-            \App\Enums\BookingStatus::COMPLETED->value => [
-                'title' => 'ثبت به‌عنوان تکمیل‌شده',
-                'description' => 'پس از انجام خدمت، نوبت را تکمیل کنید.',
-                'class' => 'bg-accent-50 text-accent-700 border-accent-100',
-            ],
-
-            \App\Enums\BookingStatus::CANCELLED->value => [
-                'title' => 'لغو نوبت',
-                'description' => 'این نوبت را لغو کنید.',
-                'class' => 'bg-danger-50 text-danger-700 border-danger-100',
-            ],
-        ];
-    @endphp
+        <div class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
 
 
-    <div class="mx-auto w-full max-w-6xl px-4 py-6 pb-28 sm:px-6 lg:px-8">
-
-
-        {{-- ============================================================
-            HEADER
-        ============================================================= --}}
-
-        <div class="mb-6">
-
-            <a
-                href="{{ route('salon.bookings.index') }}"
-                class="mb-4 inline-flex items-center gap-2 text-xs font-bold text-content-muted transition hover:text-accent-600"
-            >
-                ← بازگشت به نوبت‌ها
-            </a>
-
-
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-
-                <div>
-
-                    <div class="mb-2 text-[10px] font-black tracking-[0.18em] text-accent-600">
-                        BOOKING DETAILS
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-3">
-
-                        <h1 class="text-2xl font-black text-content sm:text-3xl">
-                            جزئیات نوبت
-                        </h1>
-
-                        <span class="rounded-xl bg-primary-100 px-3 py-1.5 text-[10px] font-black text-content-soft">
-                            #{{ strtr((string) $booking->id, $persianDigits) }}
-                        </span>
-
-                    </div>
-
-                    <p class="mt-2 max-w-2xl text-xs leading-6 text-content-muted">
-                        اطلاعات کامل این نوبت و اقدام‌های قابل انجام را از همین صفحه مدیریت کنید.
-                    </p>
-
-                </div>
-
+            {{-- ============================================================
+                 HEADER
+            ============================================================= --}}
+            <div class="mb-7">
 
                 <a
                     href="{{ route('salon.bookings.index') }}"
-                    class="btn btn-secondary w-full sm:w-auto"
+                    class="mb-4 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-slate-900"
                 >
-                    همه نوبت‌ها
+                    <span class="text-lg">→</span>
+                    بازگشت به نوبت‌ها
                 </a>
 
-            </div>
 
-        </div>
+                <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
 
+                    <div>
 
-        {{-- ============================================================
-            STATUS HERO
-        ============================================================= --}}
+                        <div class="flex items-center gap-4">
 
-        <section class="mb-5 overflow-hidden rounded-3xl border border-border bg-surface shadow-card">
-
-            <div class="border-b border-border bg-primary-50/70 p-5 sm:p-6">
-
-                <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-
-
-                    <div class="flex items-center gap-4">
-
-                        <div
-                            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl {{ $statusMeta['class'] }}"
-                        >
-
-                            <span class="relative flex h-3 w-3">
-
-                                <span
-                                    class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-50 {{ $statusMeta['dot'] }}"
-                                ></span>
-
-                                <span
-                                    class="relative inline-flex h-3 w-3 rounded-full {{ $statusMeta['dot'] }}"
-                                ></span>
-
-                            </span>
-
-                        </div>
-
-
-                        <div>
-
-                            <div class="text-[10px] font-bold text-content-muted">
-                                وضعیت نوبت
+                            <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-xl text-white shadow-lg">
+                                #{{ $booking->id }}
                             </div>
 
-                            <div class="mt-1 text-lg font-black text-content">
-                                {{ $statusMeta['label'] }}
-                            </div>
+                            <div>
 
-                            <div class="mt-1 text-[10px] leading-5 text-content-muted">
-                                {{ $statusMeta['description'] }}
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:min-w-[360px]">
-
-                        <div class="rounded-2xl bg-white p-3 shadow-soft">
-
-                            <div class="text-[9px] text-content-muted">
-                                تاریخ
-                            </div>
-
-                            <div class="mt-1 text-xs font-black text-content">
-                                {{ $bookingDate }}
-                            </div>
-
-                        </div>
-
-
-                        <div class="rounded-2xl bg-white p-3 shadow-soft">
-
-                            <div class="text-[9px] text-content-muted">
-                                ساعت
-                            </div>
-
-                            <div
-                                class="mt-1 text-xs font-black text-content"
-                                dir="ltr"
-                            >
-                                {{ $startTime }}
-                                –
-                                {{ $endTime }}
-                            </div>
-
-                        </div>
-
-
-                        <div class="col-span-2 rounded-2xl bg-white p-3 shadow-soft sm:col-span-1">
-
-                            <div class="text-[9px] text-content-muted">
-                                مبلغ
-                            </div>
-
-                            <div class="mt-1 text-xs font-black text-content">
-                                {{ $price }}
-                                تومان
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            {{-- Quick facts --}}
-
-            <div class="grid gap-px bg-border sm:grid-cols-3">
-
-                <div class="bg-surface p-4">
-
-                    <div class="text-[9px] font-bold text-content-muted">
-                        مشتری
-                    </div>
-
-                    <div class="mt-1 truncate text-xs font-black text-content">
-                        {{ $booking->customer?->name ?? 'مشتری' }}
-                    </div>
-
-                </div>
-
-
-                <div class="bg-surface p-4">
-
-                    <div class="text-[9px] font-bold text-content-muted">
-                        آرایشگر
-                    </div>
-
-                    <div class="mt-1 truncate text-xs font-black text-content">
-                        {{ $booking->barber?->name ?? '—' }}
-                    </div>
-
-                </div>
-
-
-                <div class="bg-surface p-4">
-
-                    <div class="text-[9px] font-bold text-content-muted">
-                        خدمت
-                    </div>
-
-                    <div class="mt-1 truncate text-xs font-black text-content">
-                        {{ $booking->service?->name ?? '—' }}
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-
-
-            {{-- ========================================================
-                MAIN INFO
-            ========================================================= --}}
-
-            <div class="space-y-5">
-
-
-                {{-- CUSTOMER --}}
-
-                <section class="rounded-3xl border border-border bg-surface p-5 shadow-soft sm:p-6">
-
-                    <div class="mb-5 flex items-center justify-between">
-
-                        <div>
-
-                            <div class="text-[10px] font-black tracking-wider text-accent-600">
-                                CUSTOMER
-                            </div>
-
-                            <h2 class="mt-1 text-base font-black text-content">
-                                اطلاعات مشتری
-                            </h2>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="flex items-center gap-4">
-
-                        <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent-50 text-lg font-black text-accent-700">
-
-                            {{ mb_substr(
-                                $booking->customer?->name ?? 'م',
-                                0,
-                                1
-                            ) }}
-
-                        </div>
-
-
-                        <div class="min-w-0">
-
-                            <div class="text-sm font-black text-content">
-
-                                {{ $booking->customer?->name ?? 'مشتری' }}
-
-                            </div>
-
-
-                            @if($booking->customer?->phone)
-
-                                <div class="mt-1 flex items-center gap-2">
-
-                                    <span class="text-[10px] text-content-muted">
-                                        موبایل
-                                    </span>
-
-                                    <span
-                                        class="text-xs font-bold text-content-soft"
-                                        dir="ltr"
-                                    >
-                                        {{ $booking->customer->phone }}
-                                    </span>
-
+                                <div class="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">
+                                    BOOKING DETAILS
                                 </div>
 
-                            @endif
-
-                        </div>
-
-                    </div>
-
-                </section>
-
-
-                {{-- SERVICE --}}
-
-                <section class="rounded-3xl border border-border bg-surface p-5 shadow-soft sm:p-6">
-
-                    <div class="mb-5">
-
-                        <div class="text-[10px] font-black tracking-wider text-accent-600">
-                            SERVICE
-                        </div>
-
-                        <h2 class="mt-1 text-base font-black text-content">
-                            اطلاعات خدمت
-                        </h2>
-
-                    </div>
-
-
-                    <div class="rounded-2xl bg-primary-50 p-4">
-
-                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-                            <div class="min-w-0">
-
-                                <div class="text-sm font-black text-content">
-                                    {{ $booking->service?->name ?? 'خدمت' }}
-                                </div>
-
-                                <div class="mt-1 text-[10px] text-content-muted">
-                                    ارائه توسط
-                                    {{ $booking->barber?->name ?? 'آرایشگر' }}
-                                </div>
-
-                            </div>
-
-
-                            <div class="flex shrink-0 gap-2">
-
-                                <div class="rounded-xl bg-white px-3 py-2 text-center shadow-soft">
-
-                                    <div class="text-[9px] text-content-muted">
-                                        مدت
-                                    </div>
-
-                                    <div class="mt-0.5 text-xs font-black text-content">
-                                        {{ $durationText }}
-                                    </div>
-
-                                </div>
-
-
-                                <div class="rounded-xl bg-white px-3 py-2 text-center shadow-soft">
-
-                                    <div class="text-[9px] text-content-muted">
-                                        مبلغ
-                                    </div>
-
-                                    <div class="mt-0.5 text-xs font-black text-content">
-
-                                        {{ $price }}
-
-                                        <span class="text-[9px] font-bold text-content-muted">
-                                            تومان
-                                        </span>
-
-                                    </div>
-
-                                </div>
+                                <h1 class="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+                                    جزئیات نوبت
+                                </h1>
 
                             </div>
 
                         </div>
 
-                    </div>
-
-                </section>
-
-
-                {{-- NOTES --}}
-
-                @if($booking->notes)
-
-                    <section class="rounded-3xl border border-border bg-surface p-5 shadow-soft sm:p-6">
-
-                        <div class="mb-4">
-
-                            <div class="text-[10px] font-black tracking-wider text-accent-600">
-                                NOTES
-                            </div>
-
-                            <h2 class="mt-1 text-base font-black text-content">
-                                توضیحات نوبت
-                            </h2>
-
-                        </div>
-
-
-                        <div class="rounded-2xl border border-border bg-primary-50 p-4 text-xs leading-7 text-content">
-
-                            {{ $booking->notes }}
-
-                        </div>
-
-                    </section>
-
-                @endif
-
-
-                {{-- TIME --}}
-
-                <section class="rounded-3xl border border-border bg-surface p-5 shadow-soft sm:p-6">
-
-                    <div class="mb-5">
-
-                        <div class="text-[10px] font-black tracking-wider text-accent-600">
-                            APPOINTMENT
-                        </div>
-
-                        <h2 class="mt-1 text-base font-black text-content">
-                            زمان نوبت
-                        </h2>
-
-                    </div>
-
-
-                    <div class="relative rounded-2xl bg-primary-950 p-5 text-white overflow-hidden">
-
-                        <div class="absolute -left-10 -top-10 h-28 w-28 rounded-full bg-accent-600/20 blur-2xl"></div>
-
-                        <div class="relative">
-
-                            <div class="text-[10px] text-white/55">
-                                زمان رزرو
-                            </div>
-
-                            <div class="mt-2 text-2xl font-black" dir="ltr">
-                                {{ $startTime }}
-                                <span class="mx-1 text-white/40">
-                                    –
-                                </span>
-                                {{ $endTime }}
-                            </div>
-
-                            <div class="mt-2 text-xs font-bold text-white/65">
-                                {{ jalali_date($bookingDate) }}
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </section>
-
-            </div>
-
-
-            {{-- ========================================================
-                ACTION SIDEBAR
-            ========================================================= --}}
-
-            <aside class="lg:sticky lg:top-6 lg:h-fit">
-
-                <section class="rounded-3xl border border-border bg-surface p-5 shadow-card">
-
-                    <div class="mb-5">
-
-                        <div class="text-[10px] font-black tracking-wider text-accent-600">
-                            ACTIONS
-                        </div>
-
-                        <h2 class="mt-1 text-base font-black text-content">
-                            مدیریت نوبت
-                        </h2>
-
-                        <p class="mt-1 text-[10px] leading-5 text-content-muted">
-                            فقط اقدام‌هایی که برای وضعیت فعلی مجاز هستند نمایش داده می‌شوند.
+                        <p class="mt-3 text-sm leading-7 text-slate-500">
+                            اطلاعات کامل مشتری، خدمت، زمان‌بندی و وضعیت این نوبت.
                         </p>
 
                     </div>
 
 
-                    @if(count($allowedStatuses))
+                    <div class="inline-flex w-fit items-center gap-2 rounded-full border px-4 py-2 text-xs font-black {{ $meta['class'] }}">
 
-                        <div class="space-y-3">
+                        <span class="h-2 w-2 rounded-full {{ $meta['dot'] }}"></span>
 
-                            @foreach($allowedStatuses as $nextStatus)
+                        {{ $meta['label'] }}
 
-                                @php
-                                    $action = $statusActionMeta[
-                                        $nextStatus->value
-                                    ];
-                                @endphp
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {{-- ============================================================
+                 FLASH
+            ============================================================= --}}
+            @if (session('success'))
+
+                <div class="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-emerald-800">
+
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                        ✓
+                    </div>
+
+                    <div class="text-sm font-bold leading-6">
+                        {{ session('success') }}
+                    </div>
+
+                </div>
+
+            @endif
+
+
+            @if (session('error'))
+
+                <div class="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-red-800">
+
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100">
+                        !
+                    </div>
+
+                    <div class="text-sm font-bold leading-6">
+                        {{ session('error') }}
+                    </div>
+
+                </div>
+
+            @endif
+
+
+            {{-- ============================================================
+                 STATUS BANNER
+            ============================================================= --}}
+            <div class="mb-6 rounded-3xl border px-5 py-5 {{ $meta['class'] }}">
+
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div>
+
+                        <div class="flex items-center gap-2">
+
+                            <span class="h-2.5 w-2.5 rounded-full {{ $meta['dot'] }}"></span>
+
+                            <span class="text-sm font-black">
+                            {{ $meta['label'] }}
+                        </span>
+
+                        </div>
+
+                        <p class="mt-2 text-xs leading-6 opacity-75">
+                            {{ $meta['description'] }}
+                        </p>
+
+                    </div>
+
+
+                    <div class="text-left">
+
+                        <div class="text-[10px] font-black opacity-50">
+                            شماره نوبت
+                        </div>
+
+                        <div class="mt-1 text-lg font-black">
+                            #{{ $booking->id }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {{-- ============================================================
+                 MAIN GRID
+            ============================================================= --}}
+            <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+
+
+                {{-- ========================================================
+                     MAIN INFORMATION
+                ========================================================= --}}
+                <div class="space-y-6">
+
+
+                    {{-- CUSTOMER --}}
+                    <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+
+                        <div class="border-b border-slate-100 px-5 py-5 sm:px-6">
+
+                            <div class="flex items-center gap-4">
+
+                                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white">
+                                    ۱
+                                </div>
+
+                                <div>
+
+                                    <div class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                        CUSTOMER
+                                    </div>
+
+                                    <h2 class="mt-1 text-lg font-black text-slate-950">
+                                        اطلاعات مشتری
+                                    </h2>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="p-5 sm:p-6">
+
+                            <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
+
+                                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-slate-950 text-xl font-black text-white">
+                                    {{ mb_substr($booking->customer?->name ?? '؟', 0, 1) }}
+                                </div>
+
+
+                                <div class="min-w-0 flex-1">
+
+                                    <div class="text-lg font-black text-slate-950">
+                                        {{ $booking->customer?->name ?? 'مشتری حذف شده' }}
+                                    </div>
+
+                                    @if ($booking->customer?->phone)
+
+                                        <div class="mt-1 text-sm text-slate-400">
+                                            {{ $booking->customer->phone }}
+                                        </div>
+
+                                    @endif
+
+                                </div>
+
+
+                                @if ($booking->customer?->phone)
+
+                                    <a
+                                        href="tel:{{ $booking->customer->phone }}"
+                                        class="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 px-4 text-sm font-black text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                                    >
+                                        تماس با مشتری
+                                    </a>
+
+                                @endif
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    {{-- SERVICE --}}
+                    <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+
+                        <div class="border-b border-slate-100 px-5 py-5 sm:px-6">
+
+                            <div class="flex items-center gap-4">
+
+                                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white">
+                                    ۲
+                                </div>
+
+                                <div>
+
+                                    <div class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                        SERVICE
+                                    </div>
+
+                                    <h2 class="mt-1 text-lg font-black text-slate-950">
+                                        اطلاعات خدمت
+                                    </h2>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
+
+                            {{-- Service --}}
+                            <div class="rounded-2xl bg-slate-50 p-4">
+
+                                <div class="text-[10px] font-black text-slate-400">
+                                    خدمت
+                                </div>
+
+                                <div class="mt-2 text-sm font-black text-slate-950">
+                                    {{ $booking->service?->name ?? 'خدمت حذف شده' }}
+                                </div>
+
+                            </div>
+
+
+                            {{-- Barber --}}
+                            <div class="rounded-2xl bg-slate-50 p-4">
+
+                                <div class="text-[10px] font-black text-slate-400">
+                                    آرایشگر
+                                </div>
+
+                                <div class="mt-2 text-sm font-black text-slate-950">
+                                    {{ $booking->barber?->name ?? 'آرایشگر حذف شده' }}
+                                </div>
+
+                            </div>
+
+
+                            {{-- Price --}}
+                            <div class="rounded-2xl bg-slate-50 p-4">
+
+                                <div class="text-[10px] font-black text-slate-400">
+                                    مبلغ
+                                </div>
+
+                                <div class="mt-2 text-sm font-black text-slate-950">
+                                    {{ number_format((int) $booking->price) }}
+                                    تومان
+                                </div>
+
+                            </div>
+
+
+                            {{-- Date --}}
+                            <div class="rounded-2xl bg-slate-50 p-4">
+
+                                <div class="text-[10px] font-black text-slate-400">
+                                    تاریخ
+                                </div>
+
+                                <div class="mt-2 text-sm font-black text-slate-950">
+                                    {{ jalali_date($bookingDate) }}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    {{-- APPOINTMENT --}}
+                    <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+
+                        <div class="border-b border-slate-100 px-5 py-5 sm:px-6">
+
+                            <div class="flex items-center gap-4">
+
+                                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white">
+                                    ۳
+                                </div>
+
+                                <div>
+
+                                    <div class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                        APPOINTMENT
+                                    </div>
+
+                                    <h2 class="mt-1 text-lg font-black text-slate-950">
+                                        زمان نوبت
+                                    </h2>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="grid gap-3 p-5 sm:grid-cols-3 sm:p-6">
+
+                            <div class="rounded-2xl bg-slate-950 p-5 text-white">
+
+                                <div class="text-[10px] font-black text-white/40">
+                                    تاریخ
+                                </div>
+
+                                <div class="mt-2 text-base font-black">
+                                    {{ jalali_date($bookingDate) }}
+                                </div>
+
+                            </div>
+
+
+                            <div class="rounded-2xl bg-slate-50 p-5">
+
+                                <div class="text-[10px] font-black text-slate-400">
+                                    شروع
+                                </div>
+
+                                <div class="mt-2 text-xl font-black text-slate-950">
+                                    {{ $startTime }}
+                                </div>
+
+                            </div>
+
+
+                            <div class="rounded-2xl bg-slate-50 p-5">
+
+                                <div class="text-[10px] font-black text-slate-400">
+                                    پایان
+                                </div>
+
+                                <div class="mt-2 text-xl font-black text-slate-950">
+                                    {{ $endTime }}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    {{-- NOTES --}}
+                    @if ($booking->notes)
+
+                        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+
+                            <div class="border-b border-slate-100 px-5 py-5 sm:px-6">
+
+                                <div class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                    NOTES
+                                </div>
+
+                                <h2 class="mt-1 text-lg font-black text-slate-950">
+                                    توضیحات نوبت
+                                </h2>
+
+                            </div>
+
+                            <div class="p-5 sm:p-6">
+
+                                <div class="rounded-2xl bg-slate-50 p-4 text-sm leading-8 text-slate-700">
+                                    {{ $booking->notes }}
+                                </div>
+
+                            </div>
+
+                        </section>
+
+                    @endif
+
+                </div>
+
+
+                {{-- ========================================================
+                     SIDEBAR ACTIONS
+                ========================================================= --}}
+                <aside class="lg:sticky lg:top-6 lg:h-fit">
+
+                    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/40">
+
+
+                        {{-- Summary header --}}
+                        <div class="bg-slate-950 px-5 py-6 text-white">
+
+                            <div class="text-[10px] font-black uppercase tracking-[0.22em] text-white/40">
+                                BOOKING ACTIONS
+                            </div>
+
+                            <div class="mt-1 text-xl font-black">
+                                مدیریت نوبت
+                            </div>
+
+                        </div>
+
+
+                        <div class="space-y-3 p-5">
+
+
+                            {{-- =================================================
+                                 PENDING
+                            ================================================== --}}
+                            @if ($status === BookingStatus::PENDING->value)
+
+                                <div class="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+
+                                    <div class="text-xs font-black text-amber-800">
+                                        این نوبت در انتظار تأیید است.
+                                    </div>
+
+                                    <div class="mt-1 text-[11px] leading-6 text-amber-700/70">
+                                        می‌توانید آن را تأیید یا لغو کنید.
+                                    </div>
+
+                                </div>
 
 
                                 <form
-                                    action="{{ route(
-                                        'salon.bookings.status',
-                                        $booking
-                                    ) }}"
+                                    action="{{ route('salon.bookings.status', $booking) }}"
                                     method="POST"
                                 >
-
                                     @csrf
-
                                     @method('PATCH')
 
+                                    <input
+                                        type="hidden"
+                                        name="status"
+                                        value="{{ BookingStatus::CONFIRMED->value }}"
+                                    >
 
                                     <button
                                         type="submit"
-                                        name="status"
-                                        value="{{ $nextStatus->value }}"
-                                        class="group w-full rounded-2xl border p-4 text-right transition hover:-translate-y-0.5 hover:shadow-soft {{ $action['class'] }}"
+                                        class="flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/15 transition hover:bg-emerald-700"
                                     >
-
-                                        <div class="flex items-center justify-between gap-4">
-
-                                            <div class="min-w-0">
-
-                                                <div class="text-xs font-black">
-                                                    {{ $action['title'] }}
-                                                </div>
-
-                                                <div class="mt-1 text-[10px] leading-5 opacity-75">
-                                                    {{ $action['description'] }}
-                                                </div>
-
-                                            </div>
-
-
-                                            <span class="shrink-0 text-lg font-black transition group-hover:-translate-x-1">
-                                                ←
-                                            </span>
-
-                                        </div>
-
+                                        <span>✓</span>
+                                        تأیید نوبت
                                     </button>
 
                                 </form>
 
-                            @endforeach
+
+                                <form
+                                    action="{{ route('salon.bookings.status', $booking) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('آیا از لغو این نوبت مطمئن هستید؟');"
+                                >
+                                    @csrf
+                                    @method('PATCH')
+
+                                    <input
+                                        type="hidden"
+                                        name="status"
+                                        value="{{ BookingStatus::CANCELLED->value }}"
+                                    >
+
+                                    <button
+                                        type="submit"
+                                        class="flex h-13 w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-black text-red-700 transition hover:bg-red-100"
+                                    >
+                                        <span>×</span>
+                                        لغو نوبت
+                                    </button>
+
+                                </form>
+
+
+                                {{-- =================================================
+                                     CONFIRMED
+                                ================================================== --}}
+                            @elseif ($status === BookingStatus::CONFIRMED->value)
+
+                                <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+
+                                    <div class="text-xs font-black text-emerald-800">
+                                        نوبت تأیید شده است.
+                                    </div>
+
+                                    <div class="mt-1 text-[11px] leading-6 text-emerald-700/70">
+                                        پس از پایان زمان خدمت می‌توانید آن را تکمیل کنید.
+                                    </div>
+
+                                </div>
+
+
+                                @if ($canCompleteNow)
+
+                                    <form
+                                        action="{{ route('salon.bookings.status', $booking) }}"
+                                        method="POST"
+                                    >
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <input
+                                            type="hidden"
+                                            name="status"
+                                            value="{{ BookingStatus::COMPLETED->value }}"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition hover:bg-slate-800"
+                                        >
+                                            <span>✓</span>
+                                            تکمیل نوبت
+                                        </button>
+
+                                    </form>
+
+                                @else
+
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-center">
+
+                                        <div class="text-xs font-black text-slate-600">
+                                            هنوز زمان تکمیل نوبت نرسیده
+                                        </div>
+
+                                        <div class="mt-1 text-[11px] leading-6 text-slate-400">
+                                            بعد از ساعت پایان خدمت، گزینه تکمیل فعال می‌شود.
+                                        </div>
+
+                                    </div>
+
+                                @endif
+
+
+                                <form
+                                    action="{{ route('salon.bookings.status', $booking) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('آیا از لغو این نوبت مطمئن هستید؟');"
+                                >
+                                    @csrf
+                                    @method('PATCH')
+
+                                    <input
+                                        type="hidden"
+                                        name="status"
+                                        value="{{ BookingStatus::CANCELLED->value }}"
+                                    >
+
+                                    <button
+                                        type="submit"
+                                        class="flex h-13 w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-black text-red-700 transition hover:bg-red-100"
+                                    >
+                                        <span>×</span>
+                                        لغو نوبت
+                                    </button>
+
+                                </form>
+
+
+                                {{-- =================================================
+                                     FINAL STATUS
+                                ================================================== --}}
+                            @else
+
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center">
+
+                                    @if ($status === BookingStatus::COMPLETED->value)
+
+                                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-lg text-white">
+                                            ✓
+                                        </div>
+
+                                        <div class="mt-3 text-sm font-black text-slate-900">
+                                            این نوبت تکمیل شده است
+                                        </div>
+
+                                        <div class="mt-1 text-xs leading-6 text-slate-400">
+                                            وضعیت نوبت نهایی شده و دیگر قابل تغییر نیست.
+                                        </div>
+
+                                    @elseif ($status === BookingStatus::CANCELLED->value)
+
+                                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-lg text-red-700">
+                                            ×
+                                        </div>
+
+                                        <div class="mt-3 text-sm font-black text-slate-900">
+                                            این نوبت لغو شده است
+                                        </div>
+
+                                        <div class="mt-1 text-xs leading-6 text-slate-400">
+                                            وضعیت نوبت نهایی شده و دیگر قابل تغییر نیست.
+                                        </div>
+
+                                    @endif
+
+                                </div>
+
+                            @endif
+
+
+                            {{-- Back --}}
+                            <a
+                                href="{{ route('salon.bookings.index') }}"
+                                class="flex h-12 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm font-black text-slate-700 transition hover:bg-slate-50"
+                            >
+                                بازگشت به لیست
+                            </a>
 
                         </div>
 
-                    @else
-
-                        <div class="rounded-2xl bg-primary-50 p-5 text-center">
-
-                            <div class="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-content-soft shadow-soft">
-                                ✓
-                            </div>
-
-                            <div class="mt-3 text-xs font-black text-content">
-                                این نوبت نهایی شده است
-                            </div>
-
-                            <div class="mt-1 text-[10px] leading-5 text-content-muted">
-                                برای وضعیت فعلی اقدام دیگری تعریف نشده است.
-                            </div>
-
-                        </div>
-
-                    @endif
-
-
-                    <div class="my-5 h-px bg-border"></div>
-
-
-                    <a
-                        href="{{ route('salon.bookings.index') }}"
-                        class="flex w-full items-center justify-center rounded-2xl border border-border bg-white px-4 py-3 text-xs font-black text-content transition hover:border-accent-200 hover:bg-primary-50"
-                    >
-                        بازگشت به لیست نوبت‌ها
-                    </a>
-
-                </section>
-
-
-                {{-- BOOKING META --}}
-
-                <section class="mt-4 rounded-3xl border border-border bg-primary-50 p-5">
-
-                    <div class="text-[10px] font-black text-content-faint">
-                        اطلاعات ثبت
                     </div>
 
-                    <div class="mt-3 space-y-3">
+                </aside>
 
-                        <div class="flex items-center justify-between gap-3">
-
-                            <span class="text-[10px] text-content-muted">
-                                شناسه نوبت
-                            </span>
-
-                            <span class="text-[10px] font-black text-content">
-                                #{{ $booking->id }}
-                            </span>
-
-                        </div>
-
-
-                        <div class="flex items-center justify-between gap-3">
-
-                            <span class="text-[10px] text-content-muted">
-                                وضعیت
-                            </span>
-
-                            <span class="text-[10px] font-black text-content">
-                                {{ $statusMeta['label'] }}
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </section>
-
-            </aside>
+            </div>
 
         </div>
 
