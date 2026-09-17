@@ -19,12 +19,13 @@
                 زیبایی، استایل و مراقبت · برای هر سلیقه
             </p>
 
-            <h1 class="discover-hero-title">
+            <h1 class="discover-hero-title" style="font-size: clamp(2.85rem, 6.6vw, 5.15rem);">
                 جای بعدیِ تو، همین‌جاست.
             </h1>
 
             <p class="discover-hero-description">
                 سالن، متخصص یا خدمات موردنظرت را پیدا کن و مستقیم برای نوبت اقدام کن.
+                برای هر استایل، هر سلیقه و هر آدمی.
             </p>
 
             <form
@@ -32,6 +33,7 @@
                 method="GET"
                 class="discover-hero-search"
                 role="search"
+                aria-label="جستجوی سالن و خدمات"
             >
                 <label class="discover-hero-search-field discover-hero-search-main">
                     <span class="discover-hero-search-icon" aria-hidden="true">
@@ -45,8 +47,9 @@
                         type="search"
                         name="q"
                         value="{{ $filters['q'] }}"
-                        placeholder="سالن، خدمت یا متخصص..."
+                        placeholder="سالن، خدمت یا متخصص را جستجو کن..."
                         autocomplete="off"
+                        enterkeyhint="search"
                     >
                 </label>
 
@@ -78,14 +81,7 @@
 
             <div class="discover-hero-popular" aria-label="جستجوهای محبوب">
                 <span>محبوب اینجا:</span>
-                @foreach([
-                    'مو',
-                    'ناخن',
-                    'پوست',
-                    'میکاپ',
-                    'اصلاح',
-                    'ماساژ',
-                ] as $item)
+                @foreach(['مو', 'ناخن', 'پوست', 'میکاپ', 'اصلاح', 'ماساژ'] as $item)
                     <a href="{{ route('salons.discover', ['q' => $item]) }}#results">
                         {{ $item }}
                     </a>
@@ -95,11 +91,12 @@
 
         @if($heroSalon)
             <a
-                href="{{ route('salons.show', $heroSalon) }}"
+                href="{{ route('public.salons.show', $heroSalon) }}"
                 class="discover-hero-feature"
+                aria-label="مشاهده {{ $heroSalon->name }}"
             >
                 <span class="discover-hero-feature-meta">
-                    انتخاب NOBAT
+                    <span>انتخاب NOBAT</span>
                     <span aria-hidden="true">↙</span>
                 </span>
                 <strong>{{ $heroSalon->name }}</strong>
@@ -110,6 +107,7 @@
         <a href="#results" class="discover-hero-scroll" aria-label="مشاهده نتایج">
             <span>کشف کن</span>
             <span class="discover-hero-scroll-line" aria-hidden="true"></span>
+            <span aria-hidden="true">↓</span>
         </a>
     </div>
 </section>
