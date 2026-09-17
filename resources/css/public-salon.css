@@ -1,0 +1,32 @@
+@import "./salon.css";
+
+/* Public Salon-only refinements. Owner workspace styles never need this skin. */
+
+.salon-page {
+    --radius-xl: 26px;
+    --radius-lg: 20px;
+    --radius-md: 15px;
+    --radius-sm: 11px;
+}
+
+.salon-page .salon-section,
+.salon-page .salon-hero,
+.salon-page .salon-booking {
+    scroll-margin-top: 6rem;
+}
+
+.salon-page :where(button, a, input, textarea, select):focus-visible {
+    outline: 2px solid var(--diamond-2);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .salon-page *,
+    .salon-page *::before,
+    .salon-page *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
