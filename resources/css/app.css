@@ -1,0 +1,113 @@
+@import "./admin.css";
+
+/*
+ * Shared application skin.
+ * admin.css contains the Tailwind/runtime foundation that originally lived
+ * under the old app.css contract. This entrypoint restores the semantic name
+ * used by the layouts while applying the production visual language on top.
+ */
+
+:root {
+    --app-background: #f5f4f1;
+    --app-surface: #ffffff;
+    --app-surface-soft: #efede8;
+    --app-surface-raised: #ffffff;
+
+    --app-content: #18181b;
+    --app-content-soft: #3f3f46;
+    --app-content-muted: #71717a;
+    --app-content-faint: #a1a1aa;
+
+    --app-border: #e4e1da;
+    --app-border-strong: #d2cdc2;
+
+    --app-primary: #27272a;
+    --app-primary-hover: #18181b;
+    --app-on-primary: #ffffff;
+
+    --app-accent: #9b7b4f;
+    --app-accent-hover: #7f623c;
+    --app-on-accent: #ffffff;
+
+    --app-success: #25815a;
+    --app-warning: #a56b16;
+    --app-danger: #bd3f3f;
+    --app-info: #486b88;
+
+    --app-control-bg: #ffffff;
+    --app-control-border: #ddd9d0;
+    --app-control-border-hover: #c9c2b5;
+    --app-control-border-focus: #9b7b4f;
+    --app-control-placeholder: #a1a1aa;
+
+    --app-ring: rgb(155 123 79 / 24%);
+
+    --app-brand-from: #1f1f22;
+    --app-brand-via: #9b7b4f;
+    --app-brand-to: #c4aa7f;
+
+    --app-selection-bg: rgb(155 123 79 / 16%);
+
+    --app-shadow-sm: 0 1px 2px rgb(24 24 27 / 4%);
+    --app-shadow-md: 0 10px 28px rgb(24 24 27 / 7%);
+    --app-shadow-lg: 0 22px 54px rgb(24 24 27 / 10%);
+    --app-shadow-float: 0 28px 70px rgb(24 24 27 / 13%);
+
+    --app-radius-xs: .3rem;
+    --app-radius-sm: .45rem;
+    --app-radius-md: .65rem;
+    --app-radius-lg: .85rem;
+    --app-radius-xl: 1rem;
+    --app-radius-2xl: 1.25rem;
+    --app-radius-3xl: 1.5rem;
+
+    --color-primary-50: #f3f2ef;
+    --color-primary-100: #e9e7e1;
+    --color-primary-200: #d8d4ca;
+    --color-primary-300: #c3beb1;
+    --color-primary-400: #a7a094;
+    --color-primary-500: #857f76;
+    --color-primary-600: #5d5953;
+    --color-primary-700: #46423e;
+    --color-primary-800: #35322f;
+    --color-primary-900: #292726;
+    --color-primary-950: #1b1a19;
+
+    --color-accent-50: #f8f3ea;
+    --color-accent-100: #efe5d4;
+    --color-accent-200: #e4d5bb;
+    --color-accent-300: #d4bd98;
+    --color-accent-400: #c0a476;
+    --color-accent-500: #a9895c;
+    --color-accent-600: #9b7b4f;
+    --color-accent-700: #7f623c;
+    --color-accent-800: #634b30;
+    --color-accent-900: #4d3926;
+    --color-accent-950: #30241a;
+
+    --radius-xs: .3rem;
+    --radius-sm: .45rem;
+    --radius-md: .65rem;
+    --radius-lg: .85rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.25rem;
+    --radius-3xl: 1.5rem;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        background: var(--app-background);
+    }
+
+    body {
+        background: var(--app-background);
+        color: var(--app-content);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+}
