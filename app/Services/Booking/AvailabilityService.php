@@ -12,9 +12,73 @@ use Carbon\CarbonInterface;
 class AvailabilityService
 {
     /**
-     * Minimum grid interval for booking starts.
+     * Return the salon schedule for a concrete date.
+     *
+     * WorkingHour = weekly recurring schedule.
+     * SalonDailyStatus = date-specific exception.
      */
-    private const SLOT_INTERVAL_MINUTES = 15;
+    public function schedule(
+        Salon $salon,
+        CarbonInterface $date
+    ): array {
+        $date = $date->copy()->startOfDay();
+        $dayOfWeek = ($date->dayOfWeek + 1) % 7;
+
+        $dayNames = [
+            0 => 'شنبه',
+            1 => 'یکشنبه',
+            2 => 'دوشنبه',
+            3 => 'سه‌شنبه',
+            4 => 'چهارشنبه',
+            5 => 'پنجشنبه',
+            6 => 'جمعه',
+        ];
+
+        $dailyStatus = $salon
+            ->dailyStatuses()
+            ->whereDate('date', $date->toDateString())
+            ->first();
+
+        $dayRows = $salon
+            ->workingHours()
+            ->where('day_of_week', $dayOfWeek)
+            ->orderBy('sort_order')
+            ->orderBy('start_time')
+            ->get();
+
+        $isDailyClosed = (bool) ($dailyStatus?->is_closed ?? false);
+        $isWeeklyClosed = $dayRows->contains(
+            fn ($row): bool => (bool) $row->is_closed
+        );
+
+        $intervals = $dayRows
+            ->filter(
+                fn ($row): bool =>
+                    !$row->is_closed &&
+                    $row->start_time &&
+                    $row->end_time
+            )
+            ->map(
+                fn ($row): array => [
+                    'start' => substr($this->normalizeTime($row->start_time), 0, 5),
+                    'end' => substr($this->normalizeTime($row->end_time), 0, 5),
+                ]
+            )
+            ->values()
+            ->all();
+
+        $status = ($isDailyClosed || $isWeeklyClosed)
+            ? 'closed'
+            : (empty($intervals) ? 'not_configured' : 'open');
+
+        return [
+            'day_of_week' => $dayOfWeek,
+            'day_name' => $dayNames[$dayOfWeek],
+            'status' => $status,
+            'is_closed' => $status === 'closed',
+            'intervals' => $intervals,
+        ];
+    }
 
     /**
      * Return all possible booking start times for a barber,
@@ -46,33 +110,17 @@ class AvailabilityService
         }
 
         $date = $date->copy()->startOfDay();
+        $schedule = $this->schedule($salon, $date);
 
-        $dailyStatus = $salon
-            ->dailyStatuses()
-            ->whereDate('date', $date->toDateString())
-            ->first();
-
-        if ($dailyStatus && $dailyStatus->is_closed) {
-            return [];
-        }
-
-        $dayOfWeek = ($date->dayOfWeek + 1) % 7;
-
-        $workingHours = $salon
-            ->workingHours()
-            ->where('day_of_week', $dayOfWeek)
-            ->where('is_closed', false)
-            ->whereNotNull('start_time')
-            ->whereNotNull('end_time')
-            ->orderBy('sort_order')
-            ->orderBy('start_time')
-            ->get();
-
-        if ($workingHours->isEmpty()) {
+        if ($schedule['status'] !== 'open') {
             return [];
         }
 
         $duration = max(1, (int) $service->duration_minutes);
+        $slotInterval = max(
+            1,
+            (int) config('booking.slot_interval_minutes', 15)
+        );
 
         $blockingStatuses = collect(BookingStatus::cases())
             ->filter(
@@ -92,6 +140,7 @@ class AvailabilityService
                 $ignoreBookingId !== null,
                 fn ($query) => $query->where('id', '!=', $ignoreBookingId)
             )
+            ->orderBy('start_time')
             ->get(['id', 'start_time', 'end_time']);
 
         $pendingBookings = $barber
@@ -108,14 +157,14 @@ class AvailabilityService
 
         $slots = [];
 
-        foreach ($workingHours as $workingHour) {
+        foreach ($schedule['intervals'] as $interval) {
             $workStart = $date
                 ->copy()
-                ->setTimeFromTimeString($this->normalizeTime($workingHour->start_time));
+                ->setTimeFromTimeString($interval['start']);
 
             $workEnd = $date
                 ->copy()
-                ->setTimeFromTimeString($this->normalizeTime($workingHour->end_time));
+                ->setTimeFromTimeString($interval['end']);
 
             if ($workEnd->lte($workStart)) {
                 continue;
@@ -124,23 +173,34 @@ class AvailabilityService
             for (
                 $cursor = $workStart->copy();
                 $cursor->copy()->addMinutes($duration)->lte($workEnd);
-                $cursor->addMinutes(self::SLOT_INTERVAL_MINUTES)
+                $cursor->addMinutes($slotInterval)
             ) {
                 $slotStart = $cursor->copy();
                 $slotEnd = $cursor->copy()->addMinutes($duration);
 
-                if ($date->isToday() && $slotStart->lte(now()) ) {
+                if (
+                    $date->isToday() &&
+                    $slotStart->lte(now($date->getTimezone()))
+                ) {
                     continue;
                 }
 
-                $overlaps = function ($booking) use ($date, $slotStart, $slotEnd): bool {
+                $overlaps = function ($booking) use (
+                    $date,
+                    $slotStart,
+                    $slotEnd
+                ): bool {
                     $bookingStart = $date
                         ->copy()
-                        ->setTimeFromTimeString($this->normalizeTime($booking->start_time));
+                        ->setTimeFromTimeString(
+                            $this->normalizeTime($booking->start_time)
+                        );
 
                     $bookingEnd = $date
                         ->copy()
-                        ->setTimeFromTimeString($this->normalizeTime($booking->end_time));
+                        ->setTimeFromTimeString(
+                            $this->normalizeTime($booking->end_time)
+                        );
 
                     return $bookingStart < $slotEnd && $bookingEnd > $slotStart;
                 };
@@ -157,18 +217,16 @@ class AvailabilityService
                     ? 'confirmed'
                     : ($pendingCount > 0 ? 'pending' : 'available');
 
-                $label = match ($status) {
-                    'confirmed' => 'تأیید شده',
-                    'pending' => 'در انتظار تأیید',
-                    default => 'آزاد',
-                };
-
                 $slots[] = [
                     'start' => $slotStart->format('H:i'),
                     'end' => $slotEnd->format('H:i'),
                     'available' => !$confirmedOverlap,
                     'status' => $status,
-                    'label' => $label,
+                    'label' => match ($status) {
+                        'confirmed' => 'تأیید شده',
+                        'pending' => 'در انتظار تأیید',
+                        default => 'آزاد',
+                    },
                     'pending_count' => $pendingCount,
                     'oldest_pending_at' => $oldestPending?->created_at?->toIso8601String(),
                 ];
@@ -183,10 +241,6 @@ class AvailabilityService
         return $slots;
     }
 
-    /**
-     * Check whether a specific start time can accept another booking request.
-     * Pending requests intentionally remain selectable; only confirmed bookings block.
-     */
     public function isAvailable(
         Salon $salon,
         Barber $barber,
@@ -208,9 +262,6 @@ class AvailabilityService
         return $selected !== null && (bool) ($selected['available'] ?? false);
     }
 
-    /**
-     * Normalize database time values.
-     */
     private function normalizeTime(mixed $value): string
     {
         if ($value instanceof CarbonInterface) {
