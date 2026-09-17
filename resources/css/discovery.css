@@ -1,22 +1,30 @@
 @import "./customer.css";
 
 /* ========================================================================== 
-   NOBAT DISCOVER — Editorial production skin
+   NOBAT DISCOVER — Search-first editorial experience
    ========================================================================== */
 
 .discover-page {
-    --discover-bg: #f5f4f1;
-    --discover-surface: #ffffff;
-    --discover-ink: #171717;
-    --discover-muted: #77736c;
-    --discover-line: #dfdcd5;
-    --discover-accent: #9b7b4f;
-    --discover-dark: #101011;
+    --discover-bg: #f6f3ef;
+    --discover-surface: #fffdf9;
+    --discover-ink: #171616;
+    --discover-muted: #746f6b;
+    --discover-line: #ded8d2;
+    --discover-accent: #c67f70;
+    --discover-accent-strong: #b76555;
+    --discover-accent-soft: #ead8d2;
+    --discover-dark: #0d0f10;
+    --discover-dark-soft: #16191a;
 
     min-height: 100vh;
     overflow: clip;
     background: var(--discover-bg);
     color: var(--discover-ink);
+}
+
+.discover-shell {
+    min-height: 100vh;
+    background: var(--discover-bg);
 }
 
 .discover-page,
@@ -36,8 +44,194 @@
     margin-inline: auto;
 }
 
+/* --------------------------------------------------------------------------
+   Desktop navigation
+   -------------------------------------------------------------------------- */
+
+.discover-navbar {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 100;
+    padding: .9rem 1rem;
+    color: #fff;
+    pointer-events: none;
+}
+
+.discover-navbar-inner {
+    width: min(100%, 92rem);
+    min-height: 4rem;
+    margin-inline: auto;
+    padding: .55rem .6rem .55rem .7rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid rgb(255 255 255 / 13%);
+    border-radius: 1.25rem;
+    background: rgb(10 11 12 / 58%);
+    box-shadow: 0 1rem 3rem rgb(0 0 0 / 12%);
+    backdrop-filter: blur(22px) saturate(1.1);
+    pointer-events: auto;
+}
+
+.discover-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: .7rem;
+    min-width: max-content;
+    color: #fff;
+}
+
+.discover-brand:hover {
+    color: #fff;
+}
+
+.discover-brand-mark {
+    display: grid;
+    width: 2.25rem;
+    height: 2.25rem;
+    place-items: center;
+    border: 1px solid rgb(255 255 255 / 24%);
+    border-radius: .75rem;
+    background: rgb(255 255 255 / 9%);
+    font-size: .86rem;
+    font-weight: 950;
+    letter-spacing: .08em;
+}
+
+.discover-brand-copy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+}
+
+.discover-brand-copy strong {
+    font-size: .86rem;
+    letter-spacing: .16em;
+}
+
+.discover-brand-copy small {
+    margin-top: .33rem;
+    color: rgb(255 255 255 / 52%);
+    font-size: .56rem;
+    font-weight: 600;
+    letter-spacing: .01em;
+}
+
+.discover-desktop-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(.3rem, 1vw, 1.15rem);
+}
+
+.discover-desktop-nav a,
+.discover-navbar-ghost {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.45rem;
+    padding-inline: .7rem;
+    color: rgb(255 255 255 / 72%);
+    font-size: .71rem;
+    font-weight: 800;
+    white-space: nowrap;
+    transition: color .18s ease, background-color .18s ease;
+}
+
+.discover-desktop-nav a::after {
+    content: "";
+    position: absolute;
+    right: .7rem;
+    bottom: .25rem;
+    left: .7rem;
+    height: 1px;
+    transform: scaleX(0);
+    transform-origin: center;
+    background: var(--discover-accent);
+    transition: transform .18s ease;
+}
+
+.discover-desktop-nav a:hover,
+.discover-desktop-nav a.is-active,
+.discover-navbar-ghost:hover {
+    color: #fff;
+}
+
+.discover-desktop-nav a:hover::after,
+.discover-desktop-nav a.is-active::after {
+    transform: scaleX(1);
+}
+
+.discover-navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    min-width: max-content;
+}
+
+.discover-navbar-ghost {
+    border-radius: .75rem;
+}
+
+.discover-navbar-cta {
+    display: inline-flex;
+    min-height: 2.45rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1rem;
+    border: 1px solid rgb(255 255 255 / 16%);
+    border-radius: .75rem;
+    background: #f2eee9;
+    color: #111;
+    font-size: .7rem;
+    font-weight: 900;
+    transition: transform .18s ease, background-color .18s ease;
+}
+
+.discover-navbar-cta:hover {
+    color: #111;
+    background: #fff;
+    transform: translateY(-1px);
+}
+
+.discover-account-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 800;
+}
+
+.discover-account-link:hover {
+    color: #fff;
+}
+
+.discover-account-avatar {
+    display: grid;
+    width: 2.25rem;
+    height: 2.25rem;
+    place-items: center;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 9%);
+}
+
+/* --------------------------------------------------------------------------
+   Mobile navigation
+   -------------------------------------------------------------------------- */
+
+.discover-mobile-nav {
+    display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Shared editorial language
+   -------------------------------------------------------------------------- */
+
 .discover-page .discover-kicker {
-    color: var(--discover-accent);
+    color: var(--discover-accent-strong);
     font-size: .68rem;
     font-weight: 900;
     letter-spacing: .18em;
@@ -57,81 +251,134 @@
 }
 
 /* --------------------------------------------------------------------------
-   Hero
+   Hero — full viewport / search first
    -------------------------------------------------------------------------- */
 
 .discover-page .discover-hero {
-    min-height: calc(100svh - 4.5rem);
+    position: relative;
+    min-height: 100svh;
     display: flex;
-    align-items: stretch;
-    background: var(--discover-bg);
+    align-items: center;
+    overflow: hidden;
+    background: var(--discover-dark);
+    color: #fff;
 }
 
-.discover-page .discover-hero-grid {
+.discover-page .discover-hero-backdrop,
+.discover-page .discover-hero-grain {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.discover-page .discover-hero-backdrop {
+    background-image:
+        linear-gradient(180deg, rgb(4 5 6 / 34%) 0%, rgb(4 5 6 / 14%) 30%, rgb(4 5 6 / 72%) 100%),
+        linear-gradient(90deg, rgb(4 5 6 / 18%) 0%, rgb(4 5 6 / 30%) 42%, rgb(4 5 6 / 48%) 100%),
+        var(--discover-hero-image);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    transform: scale(1.015);
+    filter: saturate(.76) contrast(1.06);
+}
+
+.discover-page .discover-hero-grain {
+    opacity: .12;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+    mix-blend-mode: soft-light;
+}
+
+.discover-page .discover-hero-inner {
+    position: relative;
+    z-index: 1;
+    min-height: 100svh;
     display: grid;
-    grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
-    min-height: calc(100svh - 4.5rem);
-    width: min(100% - 2rem, 84rem);
-    margin-inline: auto;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    padding: 8rem 0 6rem;
 }
 
 .discover-page .discover-hero-content {
-    order: 2;
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    justify-content: center;
-    padding: clamp(3.5rem, 7vw, 7.5rem) clamp(1rem, 5vw, 5rem) clamp(3.5rem, 6vw, 6rem) 0;
+    width: min(100%, 58rem);
+    margin-inline: auto;
+    text-align: center;
+}
+
+.discover-page .discover-hero-eyebrow {
+    margin: 0;
+    color: rgb(255 255 255 / 66%);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
 }
 
 .discover-page .discover-hero-title {
-    max-width: 11ch;
-    margin: .9rem 0 0;
-    font-size: clamp(3.1rem, 7vw, 6.6rem);
-    font-weight: 900;
-    line-height: .96;
+    max-width: 12ch;
+    margin: .9rem auto 0;
+    font-size: clamp(3.15rem, 8vw, 6.15rem);
+    font-weight: 850;
+    line-height: .98;
     letter-spacing: -.055em;
-}
-
-.discover-page .discover-hero-title span {
-    display: block;
-    color: var(--discover-muted);
-    font-weight: 500;
+    text-wrap: balance;
 }
 
 .discover-page .discover-hero-description {
-    max-width: 36rem;
-    margin: 1.6rem 0 0;
-    color: var(--discover-muted);
-    font-size: clamp(.9rem, 1.3vw, 1.06rem);
-    line-height: 2;
+    max-width: 42rem;
+    margin: 1.35rem auto 0;
+    color: rgb(255 255 255 / 72%);
+    font-size: clamp(.86rem, 1.6vw, 1.02rem);
+    font-weight: 500;
+    line-height: 1.95;
 }
 
 .discover-page .discover-hero-search {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(12rem, .55fr) auto;
-    gap: 0;
-    max-width: 52rem;
-    margin-top: 2rem;
-    overflow: hidden;
-    border: 1px solid #cbc7bf;
-    border-radius: 1rem;
-    background: var(--discover-surface);
-    box-shadow: 0 20px 50px rgb(24 24 27 / 8%);
+    grid-template-columns: minmax(0, 1.4fr) minmax(11rem, .65fr) auto;
+    align-items: stretch;
+    width: min(100%, 58rem);
+    margin: 2.1rem auto 0;
+    padding: .35rem;
+    gap: .35rem;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: 1.2rem;
+    background: rgb(9 10 11 / 62%);
+    box-shadow: 0 1.6rem 5rem rgb(0 0 0 / 26%);
+    backdrop-filter: blur(20px) saturate(1.2);
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.discover-page .discover-search-focused .discover-hero-search {
+    border-color: rgb(255 255 255 / 38%);
+    box-shadow: 0 1.6rem 5rem rgb(0 0 0 / 34%), 0 0 0 .2rem rgb(198 127 112 / 12%);
 }
 
 .discover-page .discover-hero-search-field {
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: .7rem;
-    padding: .7rem 1rem;
-    border-inline-start: 1px solid var(--discover-line);
+    gap: .75rem;
+    padding: .9rem 1rem;
+    border-radius: .9rem;
+    background: rgb(255 255 255 / 8%);
 }
 
-.discover-page .discover-hero-search-field > span {
-    color: var(--discover-muted);
-    font-size: 1rem;
+.discover-page .discover-hero-search-icon {
+    display: grid;
+    width: 1.2rem;
+    flex: 0 0 1.2rem;
+    place-items: center;
+    color: rgb(255 255 255 / 54%);
+}
+
+.discover-page .discover-hero-search-icon svg {
+    width: 1.05rem;
+    height: 1.05rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .discover-page .discover-hero-search-field input {
@@ -140,117 +387,122 @@
     border: 0;
     outline: 0;
     background: transparent;
-    color: var(--discover-ink);
-    font-size: .78rem;
+    color: #fff;
+    font-size: .8rem;
     font-weight: 700;
 }
 
 .discover-page .discover-hero-search-field input::placeholder {
-    color: #9d9a94;
+    color: rgb(255 255 255 / 46%);
 }
 
 .discover-page .discover-hero-search-button {
-    min-width: 7.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .55rem;
+    min-width: 8.8rem;
+    padding-inline: 1.15rem;
     border: 0;
-    border-radius: 0;
-    background: var(--discover-dark);
-    color: #fff;
-    font-size: .75rem;
-    font-weight: 900;
-    transition: background-color .18s ease;
+    border-radius: .9rem;
+    background: #f1e9e2;
+    color: #171515;
+    font-size: .76rem;
+    font-weight: 950;
+    transition: transform .18s ease, background-color .18s ease;
 }
 
 .discover-page .discover-hero-search-button:hover {
-    background: #27272a;
+    background: #fff;
+    transform: translateY(-1px);
+}
+
+.discover-page .discover-hero-search-button > span {
+    font-size: .9rem;
 }
 
 .discover-page .discover-hero-popular {
     display: flex;
     flex-wrap: wrap;
-    gap: .55rem 1rem;
-    margin-top: 1.15rem;
-    color: var(--discover-muted);
-    font-size: .72rem;
+    align-items: center;
+    justify-content: center;
+    gap: .55rem .8rem;
+    margin-top: 1rem;
+    color: rgb(255 255 255 / 52%);
+    font-size: .66rem;
     font-weight: 700;
 }
 
 .discover-page .discover-hero-popular > span {
-    color: var(--discover-ink);
+    color: rgb(255 255 255 / 70%);
     font-weight: 900;
 }
 
 .discover-page .discover-hero-popular a {
-    position: relative;
-    color: var(--discover-muted);
+    padding: .25rem .15rem;
+    color: rgb(255 255 255 / 61%);
+    transition: color .18s ease;
 }
 
 .discover-page .discover-hero-popular a:hover {
-    color: var(--discover-accent);
-}
-
-.discover-page .discover-hero-results-link {
-    display: inline-flex;
-    align-items: center;
-    gap: .55rem;
-    width: fit-content;
-    margin-top: 2rem;
-    color: var(--discover-ink);
-    font-size: .72rem;
-    font-weight: 900;
-}
-
-.discover-page .discover-hero-results-link:hover {
-    color: var(--discover-accent);
-}
-
-.discover-page .discover-hero-media {
-    order: 1;
-    position: relative;
-    min-height: 100%;
-    overflow: hidden;
-    background: #141414;
-}
-
-.discover-page .discover-hero-media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: saturate(.72) contrast(1.04);
-}
-
-.discover-page .discover-hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgb(10 10 10 / 4%), rgb(10 10 10 / 52%));
-}
-
-.discover-page .discover-hero-card {
-    position: absolute;
-    right: 1.5rem;
-    bottom: 1.5rem;
-    left: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: .35rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgb(255 255 255 / 28%);
     color: #fff;
 }
 
-.discover-page .discover-hero-card-label {
-    color: rgb(255 255 255 / 68%);
+.discover-page .discover-hero-feature {
+    position: absolute;
+    right: 0;
+    bottom: 6.5rem;
+    display: flex;
+    min-width: min(20rem, 38vw);
+    flex-direction: column;
+    gap: .35rem;
+    padding: .9rem 1rem 0;
+    border-top: 1px solid rgb(255 255 255 / 24%);
+    color: #fff;
+}
+
+.discover-page .discover-hero-feature:hover {
+    color: #fff;
+}
+
+.discover-page .discover-hero-feature-meta {
+    display: flex;
+    justify-content: space-between;
+    color: rgb(255 255 255 / 52%);
+    font-size: .6rem;
+    font-weight: 800;
+}
+
+.discover-page .discover-hero-feature strong {
+    font-size: .98rem;
+    font-weight: 900;
+}
+
+.discover-page .discover-hero-feature > span:last-child {
+    color: rgb(255 255 255 / 56%);
+    font-size: .64rem;
+}
+
+.discover-page .discover-hero-scroll {
+    position: absolute;
+    bottom: 5.8rem;
+    left: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: .65rem;
+    color: rgb(255 255 255 / 56%);
     font-size: .62rem;
     font-weight: 800;
 }
 
-.discover-page .discover-hero-card strong {
-    font-size: 1.1rem;
-    font-weight: 900;
+.discover-page .discover-hero-scroll:hover {
+    color: #fff;
 }
 
-.discover-page .discover-hero-card > span:last-child {
-    color: rgb(255 255 255 / 66%);
-    font-size: .68rem;
+.discover-page .discover-hero-scroll-line {
+    width: 3rem;
+    height: 1px;
+    background: rgb(255 255 255 / 38%);
 }
 
 /* --------------------------------------------------------------------------
@@ -258,7 +510,8 @@
    -------------------------------------------------------------------------- */
 
 .discover-page .discover-results {
-    padding: clamp(4rem, 7vw, 7rem) 0;
+    padding: clamp(4.5rem, 8vw, 7rem) 0;
+    background: var(--discover-bg);
 }
 
 .discover-page .discover-results__filter {
@@ -275,9 +528,9 @@
 
 .discover-page .discover-results input,
 .discover-page .discover-results select {
-    border-radius: .7rem !important;
-    background: #fbfaf8 !important;
-    border-color: #d6d2ca !important;
+    border-radius: .75rem !important;
+    background: var(--discover-surface) !important;
+    border-color: var(--discover-line) !important;
 }
 
 .discover-page .discover-result-card,
@@ -297,14 +550,14 @@
 .discover-page .discover-stylist-card:hover,
 .discover-page .discover-nearby-card:hover {
     transform: translateY(-3px);
-    border-color: #c7bba9 !important;
-    box-shadow: 0 18px 44px rgb(24 24 27 / 8%) !important;
+    border-color: rgb(198 127 112 / 48%) !important;
+    box-shadow: 0 1.2rem 3rem rgb(34 29 28 / 7%) !important;
 }
 
 .discover-page .discover-result-button,
 .discover-page .discover-section-link,
 .discover-page .discover-primary-button {
-    border-radius: .7rem !important;
+    border-radius: .75rem !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -323,7 +576,8 @@
     min-height: 32rem;
     overflow: hidden;
     border: 1px solid var(--discover-line);
-    background: #e7e5df;
+    border-radius: 1.2rem;
+    background: #e8e4df;
 }
 
 .discover-page .discover-nearby-map iframe {
@@ -331,7 +585,7 @@
     height: 100%;
     min-height: 32rem;
     border: 0;
-    filter: saturate(.74) contrast(.98);
+    filter: saturate(.78) contrast(.98);
 }
 
 .discover-page .discover-nearby-map-credit {
@@ -339,8 +593,9 @@
     right: .7rem;
     bottom: .7rem;
     padding: .25rem .45rem;
+    border-radius: .4rem;
     background: rgb(255 255 255 / 86%);
-    color: #66625a;
+    color: #66615c;
     font-size: .55rem;
     font-weight: 700;
 }
@@ -361,14 +616,14 @@
 .discover-page .discover-stylists,
 .discover-page .discover-stats,
 .discover-page .discover-owner-cta {
-    padding-block: clamp(4rem, 7vw, 7rem) !important;
+    padding-block: clamp(4.25rem, 8vw, 7rem) !important;
 }
 
 .discover-page .discover-section-heading h2,
 .discover-page .discover-results h2 {
-    font-size: clamp(2rem, 4vw, 3.6rem) !important;
+    font-size: clamp(1.95rem, 4.6vw, 3.5rem) !important;
     line-height: 1.1 !important;
-    letter-spacing: -.04em !important;
+    letter-spacing: -.045em !important;
 }
 
 .discover-page .discover-section-heading p,
@@ -381,7 +636,7 @@
 }
 
 .discover-page .discover-section-soft {
-    background: #eeece7 !important;
+    background: #eee9e4 !important;
 }
 
 .discover-page .discover-nearby-info {
@@ -423,82 +678,218 @@
     .discover-page .discover-result-card,
     .discover-page .discover-salon-card,
     .discover-page .discover-service-card,
-    .discover-page .discover-stylist-card {
+    .discover-page .discover-stylist-card,
+    .discover-page .discover-hero-backdrop {
         opacity: 1;
         transform: none;
         transition: none;
     }
 }
 
-@media (max-width: 900px) {
-    .discover-page .discover-hero,
-    .discover-page .discover-hero-grid {
-        min-height: auto;
+@media (max-width: 960px) {
+    .discover-desktop-nav {
+        gap: .1rem;
     }
 
-    .discover-page .discover-hero-grid {
+    .discover-desktop-nav a,
+    .discover-navbar-ghost {
+        padding-inline: .5rem;
+    }
+
+    .discover-page .discover-hero-feature {
+        right: 1rem;
+        min-width: 16rem;
+    }
+
+    .discover-page .discover-hero-scroll {
+        left: 1rem;
+    }
+}
+
+@media (max-width: 780px) {
+    .discover-navbar {
+        display: none;
+    }
+
+    .discover-mobile-nav {
+        position: fixed;
+        right: .55rem;
+        bottom: max(.55rem, env(safe-area-inset-bottom));
+        left: .55rem;
+        z-index: 120;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: end;
+        gap: .25rem;
+        padding: .45rem;
+        border: 1px solid rgb(255 255 255 / 12%);
+        border-radius: 1.35rem;
+        background: rgb(13 14 15 / 88%);
+        box-shadow: 0 1.2rem 3rem rgb(0 0 0 / 25%);
+        backdrop-filter: blur(22px) saturate(1.2);
+    }
+
+    .discover-mobile-item,
+    .discover-mobile-main-action {
         display: flex;
+        min-width: 0;
+        min-height: 3.2rem;
         flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .22rem;
+        border-radius: 1rem;
+        color: rgb(255 255 255 / 53%);
+        font-size: .55rem;
+        font-weight: 800;
+        transition: color .18s ease, background-color .18s ease, transform .18s ease;
     }
 
-    .discover-page .discover-hero-media {
-        order: 1;
-        min-height: min(70svh, 40rem);
+    .discover-mobile-item:hover,
+    .discover-mobile-item.is-active {
+        color: #fff;
+        background: rgb(255 255 255 / 7%);
+    }
+
+    .discover-mobile-main-action {
+        min-height: 3.75rem;
+        margin-top: -.85rem;
+        border: 1px solid rgb(255 255 255 / 12%);
+        background: #f1e9e2;
+        color: #161313;
+        box-shadow: 0 .7rem 1.5rem rgb(0 0 0 / 20%);
+    }
+
+    .discover-mobile-main-action:hover {
+        color: #161313;
+        background: #fff;
+        transform: translateY(-1px);
+    }
+
+    .discover-mobile-icon,
+    .discover-mobile-main-icon {
+        display: grid;
+        place-items: center;
+    }
+
+    .discover-mobile-icon svg,
+    .discover-mobile-main-icon svg {
+        width: 1.08rem;
+        height: 1.08rem;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .discover-mobile-main-icon svg {
+        width: 1.2rem;
+        height: 1.2rem;
+    }
+
+    .discover-page .discover-container {
+        width: min(100% - 1.1rem, 84rem);
+    }
+
+    .discover-page .discover-hero-inner {
+        min-height: 100svh;
+        padding: 7rem 0 6.5rem;
     }
 
     .discover-page .discover-hero-content {
-        order: 2;
-        padding: 3rem 0 4rem;
+        width: min(100%, 44rem);
     }
 
     .discover-page .discover-hero-title {
-        max-width: none;
+        max-width: 10ch;
         font-size: clamp(3rem, 13vw, 5rem);
     }
 
     .discover-page .discover-hero-search {
         grid-template-columns: 1fr;
-        border-radius: .85rem;
-    }
-
-    .discover-page .discover-hero-search-field {
-        border-inline-start: 0;
-        border-bottom: 1px solid var(--discover-line);
+        width: min(100%, 38rem);
+        gap: .35rem;
     }
 
     .discover-page .discover-hero-search-button {
-        min-height: 3.2rem;
+        min-height: 3.35rem;
+    }
+
+    .discover-page .discover-hero-feature {
+        right: 0;
+        bottom: 5.6rem;
+        min-width: 13rem;
+    }
+
+    .discover-page .discover-hero-scroll {
+        right: 0;
+        bottom: 5.6rem;
+        left: auto;
     }
 
     .discover-page .discover-nearby-layout {
         grid-template-columns: 1fr;
     }
-}
-
-@media (max-width: 640px) {
-    .discover-page .discover-container,
-    .discover-page .discover-hero-grid {
-        width: min(100% - 1rem, 84rem);
-    }
-
-    .discover-page .discover-hero-media {
-        min-height: 28rem;
-    }
-
-    .discover-page .discover-hero-card {
-        right: 1rem;
-        bottom: 1rem;
-        left: 1rem;
-    }
-
-    .discover-page .discover-section-heading,
-    .discover-page .discover-section-heading-inline {
-        align-items: flex-start;
-        flex-direction: column;
-    }
 
     .discover-page .discover-nearby-map,
     .discover-page .discover-nearby-map iframe {
         min-height: 24rem;
+    }
+
+    .discover-page main {
+        padding-bottom: 5.25rem;
+    }
+}
+
+@media (max-width: 520px) {
+    .discover-page .discover-hero-inner {
+        padding: 6.75rem 0 6rem;
+    }
+
+    .discover-page .discover-hero-eyebrow {
+        font-size: .63rem;
+    }
+
+    .discover-page .discover-hero-title {
+        max-width: 9ch;
+        margin-top: .75rem;
+        font-size: clamp(2.8rem, 14vw, 4.2rem);
+    }
+
+    .discover-page .discover-hero-description {
+        max-width: 22rem;
+        font-size: .8rem;
+        line-height: 1.9;
+    }
+
+    .discover-page .discover-hero-search-field {
+        min-height: 3.15rem;
+    }
+
+    .discover-page .discover-hero-feature {
+        position: static;
+        width: min(100%, 20rem);
+        margin: 2rem auto 0;
+        text-align: center;
+    }
+
+    .discover-page .discover-hero-feature-meta {
+        justify-content: center;
+        gap: .55rem;
+    }
+
+    .discover-page .discover-hero-scroll {
+        right: 50%;
+        bottom: 5.3rem;
+        transform: translateX(50%);
+    }
+
+    .discover-page .discover-hero-scroll-line {
+        display: none;
+    }
+
+    .discover-page .discover-hero-popular {
+        gap: .45rem .65rem;
     }
 }
