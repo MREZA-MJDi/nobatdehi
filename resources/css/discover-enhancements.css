@@ -233,3 +233,420 @@
         transform: none !important;
     }
 }
+
+/* ==========================================================
+   DISCOVER HERO — SEARCH + FEATURES + QUICK RESULTS
+   ========================================================== */
+
+.discover-page .discover-hero-modern {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(1.75rem, 4vw, 4.5rem) clamp(2.5rem, 5vw, 5rem);
+    background:
+        radial-gradient(900px 520px at 100% 0%, rgb(198 127 112 / 8%), transparent 72%),
+        linear-gradient(180deg, #fbf8f4 0%, #f4f0ea 100%);
+}
+
+.discover-page .discover-hero-modern-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.02fr) minmax(420px, .98fr);
+    gap: clamp(2rem, 5vw, 5.5rem);
+    align-items: center;
+}
+
+.discover-page .discover-hero-modern-content {
+    min-width: 0;
+}
+
+.discover-page .discover-hero-modern-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding-inline: .8rem;
+    border: 1px solid #d8d0c8;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 72%);
+    color: #706963;
+    font-size: .62rem;
+    font-weight: 900;
+    letter-spacing: .13em;
+}
+
+.discover-page .discover-hero-modern-title {
+    max-width: 13ch;
+    margin-top: 1rem;
+    color: #181716;
+    font-size: clamp(2.45rem, 5vw, 5.3rem);
+    font-weight: 950;
+    line-height: 1.02;
+    letter-spacing: -.045em;
+}
+
+.discover-page .discover-hero-modern-description {
+    max-width: 38rem;
+    margin-top: 1rem;
+    color: #6d6863;
+    font-size: .88rem;
+    font-weight: 650;
+    line-height: 2;
+}
+
+.discover-page .discover-hero-modern-search {
+    margin-top: clamp(1.3rem, 3vw, 2rem);
+    padding: .45rem;
+    border: 1px solid #d5cdc5;
+    border-radius: 1.35rem;
+    background: rgb(255 255 255 / 90%);
+    box-shadow: 0 22px 70px rgb(57 45 37 / 8%);
+}
+
+.discover-page .discover-hero-modern-search .discover-hero-search-field {
+    min-height: 3.6rem;
+    border-color: #e1dbd4;
+    background: #f8f5f1;
+}
+
+.discover-page .discover-hero-modern-search .discover-hero-search-button {
+    min-height: 3.6rem;
+    border-radius: 1rem;
+}
+
+.discover-page .discover-hero-features {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .65rem;
+    margin-top: 1rem;
+}
+
+.discover-page .discover-hero-feature-item {
+    min-width: 0;
+    padding: .8rem .85rem;
+    border: 1px solid #ded7d0;
+    border-radius: 1rem;
+    background: rgb(255 255 255 / 72%);
+}
+
+.discover-page .discover-hero-feature-item strong {
+    display: block;
+    overflow: hidden;
+    color: #24211f;
+    font-size: .66rem;
+    font-weight: 950;
+    line-height: 1.6;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.discover-page .discover-hero-feature-item span {
+    display: block;
+    margin-top: .25rem;
+    overflow: hidden;
+    color: #817a73;
+    font-size: .55rem;
+    font-weight: 650;
+    line-height: 1.8;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.discover-page .discover-hero-results-preview {
+    margin-top: 1.15rem;
+    padding-top: 1rem;
+    border-top: 1px solid #d8d0c8;
+}
+
+.discover-page .discover-hero-results-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: .7rem;
+}
+
+.discover-page .discover-hero-results-heading > div {
+    display: flex;
+    align-items: baseline;
+    gap: .55rem;
+    min-width: 0;
+}
+
+.discover-page .discover-hero-results-heading span {
+    color: #706963;
+    font-size: .62rem;
+    font-weight: 800;
+}
+
+.discover-page .discover-hero-results-heading strong {
+    color: #181716;
+    font-size: .78rem;
+    font-weight: 950;
+}
+
+.discover-page .discover-hero-results-heading a {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: .35rem;
+    color: #6f5149;
+    font-size: .6rem;
+    font-weight: 900;
+}
+
+.discover-page .discover-hero-results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .65rem;
+}
+
+.discover-page .discover-hero-result-card {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: .7rem;
+    min-width: 0;
+    padding: .55rem;
+    border: 1px solid #ddd6cf;
+    border-radius: 1rem;
+    background: rgb(255 255 255 / 78%);
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.discover-page .discover-hero-result-card:hover {
+    border-color: #c9bdb3;
+    transform: translateY(-2px);
+    box-shadow: 0 14px 35px rgb(57 45 37 / 8%);
+}
+
+.discover-page .discover-hero-result-media {
+    display: block;
+    width: 4.5rem;
+    height: 4.5rem;
+    overflow: hidden;
+    border-radius: .78rem;
+    background: #ece7e1;
+}
+
+.discover-page .discover-hero-result-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.discover-page .discover-hero-result-media > span {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    color: #8b7269;
+    font-size: 1.1rem;
+    font-weight: 950;
+}
+
+.discover-page .discover-hero-result-body {
+    min-width: 0;
+    align-self: center;
+}
+
+.discover-page .discover-hero-result-name {
+    display: block;
+    overflow: hidden;
+    color: #211e1c;
+    font-size: .67rem;
+    font-weight: 950;
+    line-height: 1.7;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.discover-page .discover-hero-result-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem .5rem;
+    margin-top: .3rem;
+    color: #857d76;
+    font-size: .53rem;
+    font-weight: 700;
+    line-height: 1.7;
+}
+
+.discover-page .discover-hero-result-meta span:first-child {
+    color: #79564d;
+}
+
+.discover-page .discover-hero-modern-visual {
+    position: relative;
+    min-height: clamp(430px, 54vw, 670px);
+    overflow: hidden;
+    border-radius: clamp(1.5rem, 3vw, 2.5rem);
+    background: #171717;
+    box-shadow: 0 34px 90px rgb(34 27 22 / 12%);
+}
+
+.discover-page .discover-hero-modern-slider,
+.discover-page .discover-hero-modern-slide {
+    position: absolute;
+    inset: 0;
+}
+
+.discover-page .discover-hero-modern-slide {
+    display: block;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(1.035);
+    transition:
+        opacity .9s cubic-bezier(.22,.61,.36,1),
+        transform 4s cubic-bezier(.22,.61,.36,1),
+        visibility 0s linear .9s;
+}
+
+.discover-page .discover-hero-modern-slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    transition:
+        opacity .9s cubic-bezier(.22,.61,.36,1),
+        transform 4s cubic-bezier(.22,.61,.36,1),
+        visibility 0s linear 0s;
+}
+
+.discover-page .discover-hero-modern-slide::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent 60%, rgb(0 0 0 / 15%) 100%);
+}
+
+.discover-page .discover-hero-modern-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.discover-page .discover-hero-modern-counter {
+    position: absolute;
+    right: 1.2rem;
+    bottom: 1.2rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .45rem .65rem;
+    border: 1px solid rgb(255 255 255 / 16%);
+    border-radius: 999px;
+    background: rgb(0 0 0 / 22%);
+    color: #fff;
+    font-family: Arial, sans-serif;
+    font-size: .55rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    backdrop-filter: blur(12px);
+}
+
+.discover-page .discover-hero-modern-counter i {
+    width: 1.15rem;
+    height: 1px;
+    background: rgb(255 255 255 / 52%);
+}
+
+@media (max-width: 1100px) {
+    .discover-page .discover-hero-modern-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(360px, .82fr);
+        gap: 2rem;
+    }
+
+    .discover-page .discover-hero-features {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .discover-page .discover-hero-modern-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .discover-page .discover-hero-modern-visual {
+        min-height: min(68svh, 520px);
+        order: -1;
+    }
+}
+
+@media (max-width: 600px) {
+    .discover-page .discover-hero-modern {
+        padding-top: 1.25rem;
+    }
+
+    .discover-page .discover-hero-modern-title {
+        max-width: 10ch;
+        font-size: clamp(2.35rem, 12vw, 3.8rem);
+    }
+
+    .discover-page .discover-hero-modern-description {
+        font-size: .8rem;
+    }
+
+    .discover-page .discover-hero-modern-search {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: .45rem;
+        padding: .45rem;
+    }
+
+    .discover-page .discover-hero-modern-search .discover-hero-search-field,
+    .discover-page .discover-hero-modern-search .discover-hero-search-button {
+        min-height: 3.35rem;
+    }
+
+    .discover-page .discover-hero-features {
+        gap: .5rem;
+    }
+
+    .discover-page .discover-hero-feature-item {
+        padding: .7rem;
+    }
+
+    .discover-page .discover-hero-feature-item span {
+        display: none;
+    }
+
+    .discover-page .discover-hero-results-preview {
+        margin-top: .9rem;
+    }
+
+    .discover-page .discover-hero-results-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .discover-page .discover-hero-result-card {
+        grid-template-columns: 3.7rem minmax(0, 1fr);
+    }
+
+    .discover-page .discover-hero-result-card:nth-child(3) {
+        display: none;
+    }
+
+    .discover-page .discover-hero-result-media {
+        width: 3.7rem;
+        height: 3.7rem;
+    }
+
+    .discover-page .discover-hero-result-meta span:nth-child(n + 2) {
+        display: none;
+    }
+
+    .discover-page .discover-hero-modern-visual {
+        min-height: min(62svh, 430px);
+        border-radius: 1.35rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .discover-page .discover-hero-modern-slide,
+    .discover-page .discover-hero-modern-slide.is-active,
+    .discover-page .discover-hero-result-card {
+        transition: none !important;
+        transform: none !important;
+    }
+}
