@@ -3,13 +3,68 @@
         $heroSalon?->district,
         $heroSalon?->city,
     ])->filter()->implode('، ');
+
+    $heroSlides = collect([$featuredSalon ?? null])
+        ->merge($popularSalons ?? collect())
+        ->filter()
+        ->unique('id')
+        ->take(5)
+        ->values()
+        ->map(function ($salon) use ($resolveImage, $heroImage) {
+            $image =
+                ($salon->cover_url ?? null)
+                ?: $resolveImage($salon->cover_path ?? null)
+                ?: $resolveImage($salon->logo_path ?? null)
+                ?: $heroImage;
+
+            return [
+                'id' => $salon->id,
+                'name' => $salon->name,
+                'location' => collect([
+                    $salon->district,
+                    $salon->city,
+                ])->filter()->implode('، ') ?: 'سالن منتخب امروز',
+                'image' => $image,
+                'url' => route('public.salons.show', $salon),
+            ];
+        });
 @endphp
 
 <section
     class="discover-hero"
     id="hero"
-    style="--discover-hero-image: url('{{ $heroImage }}');"
+    data-discover-hero-slider
+    aria-label="سالن‌های منتخب NOBAT"
 >
+    <div class="discover-hero-slides" aria-hidden="true">
+        @forelse($heroSlides as $index => $slide)
+            <div
+                class="discover-hero-slide{{ $index === 0 ? ' is-active' : '' }}"
+                data-discover-hero-slide
+                data-hero-name="{{ $slide['name'] }}"
+                data-hero-location="{{ $slide['location'] }}"
+                data-hero-url="{{ $slide['url'] }}"
+            >
+                <img
+                    src="{{ $slide['image'] }}"
+                    alt=""
+                    @if($index === 0) fetchpriority="high" @endif
+                    loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                    decoding="async"
+                >
+            </div>
+        @empty
+            <div class="discover-hero-slide is-active">
+                <img
+                    src="{{ $heroImage }}"
+                    alt=""
+                    fetchpriority="high"
+                    decoding="async"
+                >
+            </div>
+        @endforelse
+    </div>
+
     <div class="discover-hero-backdrop" aria-hidden="true"></div>
     <div class="discover-hero-grain" aria-hidden="true"></div>
 
@@ -42,12 +97,13 @@
                             <path d="m16 16 4.5 4.5" />
                         </svg>
                     </span>
-                    <span class="sr-only">جستجو</span>
+                    <span class="sr-only">جستجوی سالن، خدمت یا متخصص</span>
                     <input
                         type="search"
                         name="q"
                         value="{{ $filters['q'] }}"
                         placeholder="سالن، خدمت یا متخصص را جستجو کن..."
+                        aria-label="سالن، خدمت یا متخصص"
                         autocomplete="off"
                         enterkeyhint="search"
                     >
@@ -66,6 +122,7 @@
                         name="city"
                         value="{{ $filters['city'] }}"
                         placeholder="شهر یا منطقه"
+                        aria-label="شهر یا منطقه"
                         autocomplete="address-level2"
                     >
                 </label>
@@ -74,7 +131,7 @@
                     type="submit"
                     class="discover-hero-search-button"
                 >
-                    جستجو
+                    <span>جستجو</span>
                     <span aria-hidden="true">←</span>
                 </button>
             </form>
@@ -89,20 +146,26 @@
             </div>
         </div>
 
-        @if($heroSalon)
-            <a
-                href="{{ route('public.salons.show', $heroSalon) }}"
-                class="discover-hero-feature"
-                aria-label="مشاهده {{ $heroSalon->name }}"
-            >
-                <span class="discover-hero-feature-meta">
-                    <span>انتخاب NOBAT</span>
-                    <span aria-hidden="true">↙</span>
-                </span>
-                <strong>{{ $heroSalon->name }}</strong>
-                <span>{{ $heroLocation ?: 'سالن منتخب امروز' }}</span>
-            </a>
-        @endif
+        @php
+            $initialHero = $heroSlides->first();
+            $initialHeroName = $initialHero['name'] ?? ($heroSalon?->name ?? 'NOBAT');
+            $initialHeroLocation = $initialHero['location'] ?? ($heroLocation ?: 'سالن منتخب امروز');
+            $initialHeroUrl = $initialHero['url'] ?? ($heroSalon ? route('public.salons.show', $heroSalon) : route('salons.discover'));
+        @endphp
+
+        <a
+            href="{{ $initialHeroUrl }}"
+            class="discover-hero-feature"
+            data-discover-hero-feature
+            aria-label="مشاهده {{ $initialHeroName }}"
+        >
+            <span class="discover-hero-feature-meta">
+                <span>انتخاب NOBAT</span>
+                <span aria-hidden="true">↙</span>
+            </span>
+            <strong data-discover-hero-name>{{ $initialHeroName }}</strong>
+            <span data-discover-hero-location>{{ $initialHeroLocation }}</span>
+        </a>
 
         <a href="#results" class="discover-hero-scroll" aria-label="مشاهده نتایج">
             <span>کشف کن</span>
