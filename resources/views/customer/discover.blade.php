@@ -1,4 +1,6 @@
-@extends('layouts.discovery')
+@extends('layouts.public')
+
+@section('discover_page', '1')
 
 @section('title', 'کشف سالن و رزرو نوبت')
 
@@ -11,7 +13,6 @@
 
 @php
     use Illuminate\Support\Facades\Storage;
-    use Illuminate\Support\Str;
 
     $resolveImage = function ($path) {
         if (! $path) {
@@ -57,7 +58,6 @@
         @include('customer.discover.sections.hero')
 
         @include('customer.discover.sections.results')
-
         @include('customer.discover.sections.services')
         @include('customer.discover.sections.popular-salons')
         @include('customer.discover.sections.featured')
