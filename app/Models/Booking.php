@@ -4,9 +4,9 @@ namespace App\Models;
 
 use App\Enums\BookingStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
@@ -45,6 +45,63 @@ class Booking extends Model
             'confirmed_at' => 'datetime',
             'priority_overridden' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Booking $booking): void {
+            if ($booking->commission_rate === null) {
+                $booking->commission_rate = (float) config(
+                    'booking.commission.rate',
+                    10
+                );
+            }
+
+            if ($booking->commission_amount === null) {
+                $booking->commission_amount = self::calculateCommissionAmount(
+                    (int) $booking->price,
+                    (float) $booking->commission_rate
+                );
+            }
+
+            if ($booking->commission_recipient === null) {
+                $booking->commission_recipient = (string) config(
+                    'booking.commission.recipient',
+                    'salon'
+                );
+            }
+
+            if ($booking->commission_status === null) {
+                $booking->commission_status = (string) config(
+                    'booking.commission.status',
+                    'pending'
+                );
+            }
+        });
+
+        static::updating(function (Booking $booking): void {
+            if (!$booking->isDirty('price')) {
+                return;
+            }
+
+            if ($booking->status === BookingStatus::CONFIRMED) {
+                return;
+            }
+
+            $booking->commission_amount = self::calculateCommissionAmount(
+                (int) $booking->price,
+                (float) $booking->commission_rate
+            );
+        });
+    }
+
+    private static function calculateCommissionAmount(
+        int $price,
+        float $rate
+    ): int {
+        return (int) round(
+            max(0, $price) * max(0, $rate) / 100
+        );
     }
 
     public function salon(): BelongsTo
