@@ -54,6 +54,103 @@
     });
 
     /* ----------------------------------------------------------------------
+       Hero salon cover slider
+       ---------------------------------------------------------------------- */
+
+    const heroSlider = page.querySelector(
+        '[data-discover-hero-slider]'
+    );
+
+    if (heroSlider) {
+        const heroSlides = Array.from(
+            heroSlider.querySelectorAll('[data-hero-slide]')
+        );
+
+        if (heroSlides.length > 1) {
+            let activeIndex = 0;
+            let heroTimer = null;
+
+            const showHeroSlide = (index) => {
+                activeIndex = index;
+
+                heroSlides.forEach((slide, slideIndex) => {
+                    slide.classList.toggle(
+                        'is-active',
+                        slideIndex === index
+                    );
+                });
+            };
+
+            const startHeroSlider = () => {
+                if (
+                    prefersReducedMotion ||
+                    heroTimer ||
+                    heroSlides.length <= 1
+                ) {
+                    return;
+                }
+
+                heroTimer = window.setInterval(() => {
+                    showHeroSlide(
+                        (activeIndex + 1) % heroSlides.length
+                    );
+                }, 4000);
+            };
+
+            const stopHeroSlider = () => {
+                if (!heroTimer) {
+                    return;
+                }
+
+                window.clearInterval(heroTimer);
+                heroTimer = null;
+            };
+
+            showHeroSlide(0);
+            startHeroSlider();
+
+            heroSlider.addEventListener(
+                'mouseenter',
+                stopHeroSlider
+            );
+
+            heroSlider.addEventListener(
+                'mouseleave',
+                startHeroSlider
+            );
+
+            heroSlider.addEventListener(
+                'focusin',
+                stopHeroSlider
+            );
+
+            heroSlider.addEventListener(
+                'focusout',
+                (event) => {
+                    if (
+                        !heroSlider.contains(
+                            event.relatedTarget
+                        )
+                    ) {
+                        startHeroSlider();
+                    }
+                }
+            );
+
+            document.addEventListener(
+                'visibilitychange',
+                () => {
+                    if (document.hidden) {
+                        stopHeroSlider();
+                    } else {
+                        startHeroSlider();
+                    }
+                }
+            );
+        }
+    }
+
+    /* ----------------------------------------------------------------------
        Location / nearby
        ---------------------------------------------------------------------- */
 
