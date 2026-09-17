@@ -18,9 +18,19 @@ class BookingStatusRequest extends FormRequest
         return [
             'status' => [
                 'required',
-                Rule::enum(
-                    BookingStatus::class
-                ),
+                Rule::enum(BookingStatus::class),
+            ],
+
+            'override_priority' => [
+                'nullable',
+                'boolean',
+            ],
+
+            'priority_override_reason' => [
+                'nullable',
+                'string',
+                'max:1000',
+                'required_if:override_priority,1',
             ],
         ];
     }
@@ -28,11 +38,17 @@ class BookingStatusRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'status.required' =>
-                'وضعیت نوبت الزامی است.',
+            'status.required' => 'وضعیت نوبت الزامی است.',
 
-            'status.enum' =>
-                'وضعیت انتخاب شده معتبر نیست.',
+            'status.enum' => 'وضعیت انتخاب شده معتبر نیست.',
+
+            'override_priority.boolean' => 'مقدار تغییر اولویت معتبر نیست.',
+
+            'priority_override_reason.string' => 'دلیل تغییر اولویت معتبر نیست.',
+
+            'priority_override_reason.max' => 'دلیل تغییر اولویت نباید بیشتر از ۱۰۰۰ کاراکتر باشد.',
+
+            'priority_override_reason.required_if' => 'برای تغییر اولویت، وارد کردن دلیل الزامی است.',
         ];
     }
 }
