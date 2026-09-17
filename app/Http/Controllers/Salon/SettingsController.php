@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Salon;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Salon\UpdateSalonSettingsRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -11,25 +12,47 @@ use Illuminate\View\View;
 
 class SettingsController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Display Salon Settings
-    |--------------------------------------------------------------------------
-    */
-
-    public function edit(): View
+    public function edit(): View|JsonResponse
     {
         $salon = auth()
             ->user()
             ->managedSalons()
-            ->with([
-                'workingHours',
-            ])
+            ->with(['workingHours'])
             ->firstOrFail();
 
         $workingHours = $salon
             ->workingHours
             ->groupBy('day_of_week');
+
+        if (request()->expectsJson()) {
+            $schedule = [];
+
+            for ($day = 0; $day <= 6; $day++) {
+                $rows = $workingHours->get($day, collect());
+                $closed = $rows->isEmpty()
+                    || $rows->contains(fn ($row): bool => (bool) $row->is_closed);
+
+                $intervals = $rows
+                    ->filter(fn ($row): bool => !$row->is_closed && $row->start_time && $row->end_time)
+                    ->map(fn ($row): array => [
+                        'start' => substr((string) $row->start_time, 0, 5),
+                        'end' => substr((string) $row->end_time, 0, 5),
+                    ])
+                    ->values()
+                    ->all();
+
+                $schedule[$day] = [
+                    'configured' => $rows->isNotEmpty(),
+                    'closed' => $closed,
+                    'intervals' => $intervals,
+                ];
+            }
+
+            return response()->json([
+                'ok' => true,
+                'schedule' => $schedule,
+            ]);
+        }
 
         return view(
             'salon.settings.edit',
@@ -40,13 +63,6 @@ class SettingsController extends Controller
         );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Update Salon Settings
-    |--------------------------------------------------------------------------
-    */
-
     public function update(
         UpdateSalonSettingsRequest $request
     ): RedirectResponse {
@@ -56,384 +72,116 @@ class SettingsController extends Controller
             ->firstOrFail();
 
         $data = $request->validated();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Existing Files
-        |--------------------------------------------------------------------------
-        */
-
         $oldLogoPath = $salon->logo_path;
         $oldCoverPath = $salon->cover_path;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | New Files
-        |--------------------------------------------------------------------------
-        */
-
         $newLogoPath = null;
         $newCoverPath = null;
 
-
         try {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Store New Logo
-            |--------------------------------------------------------------------------
-            */
-
             if ($request->hasFile('logo')) {
                 $newLogoPath = $request
                     ->file('logo')
-                    ->store(
-                        'salons/logos',
-                        'public'
-                    );
+                    ->store('salons/logos', 'public');
             }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Store New Cover
-            |--------------------------------------------------------------------------
-            */
 
             if ($request->hasFile('cover')) {
                 $newCoverPath = $request
                     ->file('cover')
-                    ->store(
-                        'salons/covers',
-                        'public'
-                    );
+                    ->store('salons/covers', 'public');
             }
 
+            DB::transaction(function () use (
+                $request,
+                $salon,
+                $data,
+                $newLogoPath,
+                $newCoverPath
+            ): void {
+                $salonData = [
+                    'name' => $data['name'],
+                    'description' => $data['description'] ?? null,
+                    'phone' => $data['phone'] ?? null,
+                    'email' => $data['email'] ?? null,
+                    'primary_color' => $data['primary_color'] ?? $salon->primary_color ?? '#6757E8',
+                    'secondary_color' => $data['secondary_color'] ?? $salon->secondary_color ?? '#37B8C8',
+                    'province' => $data['province'] ?? null,
+                    'city' => $data['city'] ?? null,
+                    'district' => $data['district'] ?? null,
+                    'address' => $data['address'] ?? null,
+                    'latitude' => $data['latitude'] ?? null,
+                    'longitude' => $data['longitude'] ?? null,
+                ];
 
-            /*
-            |--------------------------------------------------------------------------
-            | Database Transaction
-            |--------------------------------------------------------------------------
-            */
-
-            DB::transaction(
-                function () use (
-                    $request,
-                    $salon,
-                    $data,
-                    $newLogoPath,
-                    $newCoverPath
-                ): void {
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Salon Information
-                    |--------------------------------------------------------------------------
-                    */
-
-                    $salonData = [
-                        'name' =>
-                            $data['name'],
-
-                        'description' =>
-                            $data['description'] ?? null,
-
-                        'phone' =>
-                            $data['phone'] ?? null,
-
-                        'email' =>
-                            $data['email'] ?? null,
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Preserve existing colors when fields are omitted.
-                        |--------------------------------------------------------------------------
-                        */
-
-                        'primary_color' =>
-                            $data['primary_color']
-                            ?? $salon->primary_color
-                            ?? '#6757E8',
-
-                        'secondary_color' =>
-                            $data['secondary_color']
-                            ?? $salon->secondary_color
-                            ?? '#37B8C8',
-
-                        'province' =>
-                            $data['province'] ?? null,
-
-                        'city' =>
-                            $data['city'] ?? null,
-
-                        'district' =>
-                            $data['district'] ?? null,
-
-                        'address' =>
-                            $data['address'] ?? null,
-
-                        'latitude' =>
-                            $data['latitude'] ?? null,
-
-                        'longitude' =>
-                            $data['longitude'] ?? null,
-                    ];
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Logo
-                    |--------------------------------------------------------------------------
-                    |
-                    | New file has priority over remove_logo.
-                    |
-                    */
-
-                    if ($newLogoPath) {
-
-                        $salonData['logo_path'] =
-                            $newLogoPath;
-
-                    } elseif (
-                        $request->boolean(
-                            'remove_logo'
-                        )
-                    ) {
-
-                        $salonData['logo_path'] =
-                            null;
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Cover
-                    |--------------------------------------------------------------------------
-                    |
-                    | New file has priority over remove_cover.
-                    |
-                    */
-
-                    if ($newCoverPath) {
-
-                        $salonData['cover_path'] =
-                            $newCoverPath;
-
-                    } elseif (
-                        $request->boolean(
-                            'remove_cover'
-                        )
-                    ) {
-
-                        $salonData['cover_path'] =
-                            null;
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Update Salon
-                    |--------------------------------------------------------------------------
-                    */
-
-                    $salon->update(
-                        $salonData
-                    );
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Working Hours
-                    |--------------------------------------------------------------------------
-                    */
-
-                    $workingHours =
-                        $data['working_hours']
-                        ?? [];
-
-                    $this->replaceWorkingHours(
-                        $salon,
-                        $workingHours
-                    );
+                if ($newLogoPath) {
+                    $salonData['logo_path'] = $newLogoPath;
+                } elseif ($request->boolean('remove_logo')) {
+                    $salonData['logo_path'] = null;
                 }
-            );
 
+                if ($newCoverPath) {
+                    $salonData['cover_path'] = $newCoverPath;
+                } elseif ($request->boolean('remove_cover')) {
+                    $salonData['cover_path'] = null;
+                }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Delete Old Logo
-            |--------------------------------------------------------------------------
-            */
+                $salon->update($salonData);
 
-            $logoWasReplaced =
-                $newLogoPath !== null;
+                $workingHours = $data['working_hours'] ?? [];
+                $this->replaceWorkingHours($salon, $workingHours);
+            });
 
-            $logoWasRemoved =
-                $request->boolean(
-                    'remove_logo'
-                ) &&
-                !$logoWasReplaced;
+            $logoWasReplaced = $newLogoPath !== null;
+            $logoWasRemoved = $request->boolean('remove_logo') && !$logoWasReplaced;
 
             if (
                 $oldLogoPath &&
-                (
-                    $logoWasReplaced ||
-                    $logoWasRemoved
-                )
+                ($logoWasReplaced || $logoWasRemoved)
             ) {
-                Storage::disk('public')
-                    ->delete(
-                        $oldLogoPath
-                    );
+                Storage::disk('public')->delete($oldLogoPath);
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Delete Old Cover
-            |--------------------------------------------------------------------------
-            */
-
-            $coverWasReplaced =
-                $newCoverPath !== null;
-
-            $coverWasRemoved =
-                $request->boolean(
-                    'remove_cover'
-                ) &&
-                !$coverWasReplaced;
+            $coverWasReplaced = $newCoverPath !== null;
+            $coverWasRemoved = $request->boolean('remove_cover') && !$coverWasReplaced;
 
             if (
                 $oldCoverPath &&
-                (
-                    $coverWasReplaced ||
-                    $coverWasRemoved
-                )
+                ($coverWasReplaced || $coverWasRemoved)
             ) {
-                Storage::disk('public')
-                    ->delete(
-                        $oldCoverPath
-                    );
+                Storage::disk('public')->delete($oldCoverPath);
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Success
-            |--------------------------------------------------------------------------
-            */
-
             return redirect()
-                ->route(
-                    'salon.settings.edit'
-                )
-                ->with(
-                    'success',
-                    'تنظیمات سالن با موفقیت ذخیره شد.'
-                );
-
+                ->route('salon.settings.edit')
+                ->with('success', 'تنظیمات سالن با موفقیت ذخیره شد.');
         } catch (\Throwable $e) {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Cleanup New Files
-            |--------------------------------------------------------------------------
-            */
-
             if ($newLogoPath) {
-                Storage::disk('public')
-                    ->delete(
-                        $newLogoPath
-                    );
+                Storage::disk('public')->delete($newLogoPath);
             }
 
             if ($newCoverPath) {
-                Storage::disk('public')
-                    ->delete(
-                        $newCoverPath
-                    );
+                Storage::disk('public')->delete($newCoverPath);
             }
 
             throw $e;
         }
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Replace Working Hours
-    |--------------------------------------------------------------------------
-    */
-
     private function replaceWorkingHours(
         $salon,
         array $workingHours
     ): void {
-        /*
-        |--------------------------------------------------------------------------
-        | Current UI sends:
-        |
-        | working_hours[day][start_time]
-        | working_hours[day][end_time]
-        | working_hours[day][is_closed]
-        |
-        | But this method also accepts:
-        |
-        | working_hours[day][interval][start_time]
-        | working_hours[day][interval][end_time]
-        | working_hours[day][interval][is_closed]
-        |--------------------------------------------------------------------------
-        */
-
         $salon
             ->workingHours()
             ->delete();
 
-
-        foreach (
-            $workingHours as $dayOfWeek => $dayData
-        ) {
-
+        foreach ($workingHours as $dayOfWeek => $dayData) {
             $dayOfWeek = (int) $dayOfWeek;
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Ignore invalid weekday indexes.
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                $dayOfWeek < 0 ||
-                $dayOfWeek > 6
-            ) {
+            if ($dayOfWeek < 0 || $dayOfWeek > 6) {
                 continue;
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Flat structure
-            |--------------------------------------------------------------------------
-            |
-            | Example:
-            |
-            | [
-            |     0 => [
-            |         'start_time' => '09:00',
-            |         'end_time' => '21:00',
-            |         'is_closed' => false,
-            |     ]
-            | ]
-            |
-            */
-
-            if (
-                $this->isWorkingHourRow(
-                    $dayData
-                )
-            ) {
+            if ($this->isWorkingHourRow($dayData)) {
                 $this->createWorkingHour(
                     $salon,
                     $dayOfWeek,
@@ -444,22 +192,11 @@ class SettingsController extends Controller
                 continue;
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Nested structure
-            |--------------------------------------------------------------------------
-            */
-
             if (!is_array($dayData)) {
                 continue;
             }
 
-
-            foreach (
-                $dayData as $sortOrder => $interval
-            ) {
-
+            foreach ($dayData as $sortOrder => $interval) {
                 if (!is_array($interval)) {
                     continue;
                 }
@@ -474,13 +211,6 @@ class SettingsController extends Controller
         }
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Detect Flat Working Hour Row
-    |--------------------------------------------------------------------------
-    */
-
     private function isWorkingHourRow(
         mixed $value
     ): bool {
@@ -489,27 +219,11 @@ class SettingsController extends Controller
         }
 
         return (
-            array_key_exists(
-                'start_time',
-                $value
-            ) ||
-            array_key_exists(
-                'end_time',
-                $value
-            ) ||
-            array_key_exists(
-                'is_closed',
-                $value
-            )
+            array_key_exists('start_time', $value) ||
+            array_key_exists('end_time', $value) ||
+            array_key_exists('is_closed', $value)
         );
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Create Working Hour
-    |--------------------------------------------------------------------------
-    */
 
     private function createWorkingHour(
         $salon,
@@ -517,36 +231,11 @@ class SettingsController extends Controller
         int $sortOrder,
         array $interval
     ): void {
-
-        $isClosed =
-            !empty(
-                $interval['is_closed']
-                ?? false
-            );
-
-        $startTime =
-            $interval['start_time']
-            ?? null;
-
-        $endTime =
-            $interval['end_time']
-            ?? null;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Closed Day
-        |--------------------------------------------------------------------------
-        */
+        $isClosed = !empty($interval['is_closed'] ?? false);
+        $startTime = $interval['start_time'] ?? null;
+        $endTime = $interval['end_time'] ?? null;
 
         if ($isClosed) {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Only one closed row is needed for a day.
-            |--------------------------------------------------------------------------
-            */
-
             if ($sortOrder !== 0) {
                 return;
             }
@@ -554,63 +243,28 @@ class SettingsController extends Controller
             $salon
                 ->workingHours()
                 ->create([
-                    'day_of_week' =>
-                        $dayOfWeek,
-
-                    'start_time' =>
-                        null,
-
-                    'end_time' =>
-                        null,
-
-                    'is_closed' =>
-                        true,
-
-                    'sort_order' =>
-                        0,
+                    'day_of_week' => $dayOfWeek,
+                    'start_time' => null,
+                    'end_time' => null,
+                    'is_closed' => true,
+                    'sort_order' => 0,
                 ]);
 
             return;
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Empty Interval
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            empty($startTime) ||
-            empty($endTime)
-        ) {
+        if (empty($startTime) || empty($endTime)) {
             return;
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Open Interval
-        |--------------------------------------------------------------------------
-        */
 
         $salon
             ->workingHours()
             ->create([
-                'day_of_week' =>
-                    $dayOfWeek,
-
-                'start_time' =>
-                    $startTime,
-
-                'end_time' =>
-                    $endTime,
-
-                'is_closed' =>
-                    false,
-
-                'sort_order' =>
-                    $sortOrder,
+                'day_of_week' => $dayOfWeek,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'is_closed' => false,
+                'sort_order' => $sortOrder,
             ]);
     }
 }
