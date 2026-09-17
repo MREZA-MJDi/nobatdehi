@@ -13,10 +13,6 @@
     @vite('resources/css/discovery.css')
 @endpush
 
-@push('scripts')
-    @vite('resources/js/discover.js')
-@endpush
-
 @php
     use Illuminate\Support\Facades\Storage;
     use Illuminate\Support\Str;
