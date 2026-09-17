@@ -19,12 +19,10 @@
 
     <meta
         name="theme-color"
-        content="@hasSection('discover_page') #0d0f10 @else #0b0c0d @endif"
+        content="@if(request()->routeIs('salons.discover')) #0d0f10 @else #0b0c0d @endif"
     >
 
-    <title>
-        @yield('title', 'NOBAT')
-    </title>
+    <title>@yield('title', 'NOBAT')</title>
 
     @hasSection('description')
         <meta
@@ -48,17 +46,24 @@
         href="@yield('canonical', url()->current())"
     >
 
-    @hasSection('discover_page')
+    @if(request()->routeIs('salons.discover'))
         @vite([
             'resources/css/app.css',
             'resources/css/discovery.css',
             'resources/js/app.js',
             'resources/js/discover.js',
         ])
+    @elseif(request()->routeIs('public.salons.booking.create'))
+        @vite([
+            'resources/css/app.css',
+            'resources/css/customer.css',
+            'resources/js/app.js',
+            'resources/js/customer.js',
+        ])
     @else
         @vite([
             'resources/css/app.css',
-            'resources/css/public-salon.css',
+            'resources/css/salon.css',
             'resources/js/app.js',
             'resources/js/customer.js',
         ])
@@ -68,8 +73,8 @@
     @stack('head')
 </head>
 
-<body class="min-h-screen bg-black text-white antialiased">
-    @hasSection('discover_page')
+<body class="min-h-screen antialiased">
+    @if(request()->routeIs('salons.discover'))
         <div class="discover-shell">
             @include('public.navigation')
 
@@ -79,6 +84,10 @@
 
             @include('public.mobile-navigation')
         </div>
+    @elseif(request()->routeIs('public.salons.booking.create'))
+        <main class="public-booking-shell">
+            @yield('content')
+        </main>
     @else
         <main>
             @yield('content')
