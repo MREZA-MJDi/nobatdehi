@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Salon;
 
 use App\Enums\PostType;
+use App\Models\Post;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,12 +14,64 @@ class PostRequest extends FormRequest
         return $this->user()?->isSalonOwner() === true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | Auto detect basic type when JS is unavailable
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !$this->input('type')
+            && $this->hasFile('media')
+        ) {
+            $file = $this->file('media');
+
+            $mime = strtolower(
+                (string) $file->getMimeType()
+            );
+
+            $extension = strtolower(
+                $file->getClientOriginalExtension()
+            );
+
+            $type = null;
+
+            if (
+                $mime === 'image/gif'
+                || $extension === 'gif'
+            ) {
+                $type = PostType::GIF->value;
+            } elseif (
+                str_starts_with(
+                    $mime,
+                    'image/'
+                )
+            ) {
+                $type = PostType::PHOTO->value;
+            } elseif (
+                str_starts_with(
+                    $mime,
+                    'video/'
+                )
+            ) {
+                $type = PostType::VIDEO->value;
+            }
+
+            if ($type) {
+                $this->merge([
+                    'type' => $type,
+                ]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         $isCreate = $this->isMethod('POST');
 
         return [
-
             /*
             |--------------------------------------------------------------------------
             | Performer
@@ -37,7 +90,6 @@ class PostRequest extends FormRequest
                 'required_if:performed_by_owner,false',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
             | Service
@@ -50,7 +102,6 @@ class PostRequest extends FormRequest
                 'exists:services,id',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
             | Type
@@ -58,10 +109,9 @@ class PostRequest extends FormRequest
             */
 
             'type' => [
-                'required',
+                'nullable',
                 Rule::enum(PostType::class),
             ],
-
 
             /*
             |--------------------------------------------------------------------------
@@ -70,15 +120,16 @@ class PostRequest extends FormRequest
             */
 
             'media' => [
-                $isCreate ? 'required' : 'nullable',
+                $isCreate
+                    ? 'required'
+                    : 'nullable',
 
                 'file',
 
-                'max:10240',
+                'max:51200',
 
                 'mimes:jpg,jpeg,png,webp,gif,mp4,webm,mov',
             ],
-
 
             /*
             |--------------------------------------------------------------------------
@@ -88,14 +139,10 @@ class PostRequest extends FormRequest
 
             'thumbnail' => [
                 'nullable',
-
                 'file',
-
                 'max:5120',
-
                 'mimes:jpg,jpeg,png,webp',
             ],
-
 
             /*
             |--------------------------------------------------------------------------
@@ -115,7 +162,6 @@ class PostRequest extends FormRequest
                 'max:5000',
             ],
 
-
             /*
             |--------------------------------------------------------------------------
             | Visibility
@@ -126,7 +172,6 @@ class PostRequest extends FormRequest
                 'nullable',
                 'boolean',
             ],
-
 
             /*
             |--------------------------------------------------------------------------
@@ -143,70 +188,146 @@ class PostRequest extends FormRequest
         ];
     }
 
+    public function withValidator(
+        $validator
+    ): void {
+        $validator->after(
+            function ($validator) {
 
-    /**
-     * Validate media based on selected post type.
-     */
-    public function withValidator($validator): void
-    {
-        $validator->after(function ($validator) {
-
-            $type = $this->input('type');
-
-            $media = $this->file('media');
-
-            if (!$media) {
-                return;
-            }
-
-            $extension = strtolower(
-                $media->getClientOriginalExtension()
-            );
-
-            $allowed = match ($type) {
-
-                PostType::PHOTO->value => [
-                    'jpg',
-                    'jpeg',
-                    'png',
-                    'webp',
-                ],
-
-                PostType::GIF->value => [
-                    'gif',
-                ],
-
-                PostType::VIDEO->value,
-                PostType::REEL->value => [
-                    'mp4',
-                    'webm',
-                    'mov',
-                ],
-
-                default => [],
-            };
-
-            if (
-                $allowed &&
-                !in_array(
-                    $extension,
-                    $allowed,
-                    true
-                )
-            ) {
-                $validator->errors()->add(
-                    'media',
-                    'فرمت فایل با نوع محتوای انتخاب‌شده مطابقت ندارد.'
+                $media = $this->file(
+                    'media'
                 );
-            }
-        });
-    }
 
+                $selectedType = $this->input(
+                    'type'
+                );
+
+                /*
+                |--------------------------------------------------------------------------
+                | No new file on update
+                |--------------------------------------------------------------------------
+                */
+
+                if (!$media) {
+
+                    $post = $this->route(
+                        'post'
+                    );
+
+                    if (
+                        $post instanceof Post
+                        && $selectedType
+                    ) {
+                        $currentType =
+                            $post->type instanceof PostType
+                                ? $post->type->value
+                                : (string) $post->type;
+
+                        if (
+                            $currentType !== $selectedType
+                        ) {
+                            $validator->errors()->add(
+                                'media',
+                                'برای تغییر نوع رسانه باید فایل جدیدی انتخاب کنید.'
+                            );
+                        }
+                    }
+
+                    return;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Actual file detection
+                |--------------------------------------------------------------------------
+                */
+
+                $mime = strtolower(
+                    (string) $media->getMimeType()
+                );
+
+                $extension = strtolower(
+                    $media->getClientOriginalExtension()
+                );
+
+                $isGif =
+                    $mime === 'image/gif'
+                    || $extension === 'gif';
+
+                $isImage =
+                    str_starts_with(
+                        $mime,
+                        'image/'
+                    )
+                    && !$isGif;
+
+                $isVideo =
+                    str_starts_with(
+                        $mime,
+                        'video/'
+                    );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Image
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $selectedType === PostType::PHOTO->value
+                    && !$isImage
+                ) {
+                    $validator->errors()->add(
+                        'media',
+                        'برای نوع عکس باید یک فایل تصویری معمولی انتخاب کنید.'
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | GIF
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $selectedType === PostType::GIF->value
+                    && !$isGif
+                ) {
+                    $validator->errors()->add(
+                        'media',
+                        'برای GIF باید فایل GIF انتخاب کنید.'
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Video / Reel
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    in_array(
+                        $selectedType,
+                        [
+                            PostType::VIDEO->value,
+                            PostType::REEL->value,
+                        ],
+                        true
+                    )
+                    && !$isVideo
+                ) {
+                    $validator->errors()->add(
+                        'media',
+                        'برای ویدیو یا ریلز باید فایل ویدیویی انتخاب کنید.'
+                    );
+                }
+            }
+        );
+    }
 
     public function messages(): array
     {
         return [
-
             'performed_by_owner.required' =>
                 'انجام‌دهنده پست را مشخص کنید.',
 
@@ -222,11 +343,8 @@ class PostRequest extends FormRequest
             'service_id.exists' =>
                 'خدمت انتخاب‌شده معتبر نیست.',
 
-            'type.required' =>
-                'نوع پست را انتخاب کنید.',
-
             'type.enum' =>
-                'نوع پست معتبر نیست.',
+                'نوع رسانه معتبر نیست.',
 
             'media.required' =>
                 'فایل رسانه را انتخاب کنید.',
@@ -235,7 +353,7 @@ class PostRequest extends FormRequest
                 'فایل رسانه معتبر نیست.',
 
             'media.max' =>
-                'حجم فایل رسانه نباید بیشتر از ۱۰ مگابایت باشد.',
+                'حجم فایل رسانه نباید بیشتر از ۵۰ مگابایت باشد.',
 
             'media.mimes' =>
                 'فرمت فایل رسانه مجاز نیست.',

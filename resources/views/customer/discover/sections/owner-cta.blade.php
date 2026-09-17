@@ -1,33 +1,35 @@
-<section class="discovery-section">
+<section class="discover-section">
 
-    <div class="discovery-container">
+    <div class="discover-container">
 
-        <div class="discovery-owner-cta">
+        <div class="discover-owner-cta">
 
-            <div class="discovery-owner-content">
+            <div>
 
-                <span class="discovery-owner-eyebrow">
-                    FOR SALON OWNERS
+                <span class="discover-kicker">
+                    برای صاحبان سالن
                 </span>
 
-                <h2 class="discovery-owner-title">
+                <h2>
                     صاحب سالن هستی؟
                 </h2>
 
-                <p class="discovery-owner-description">
-                    سالن خودت را به NOBAT اضافه کن و کاری کن
-                    مشتری‌های جدید راحت‌تر تو را پیدا کنند.
+                <p>
+                    NOBAT کمک می‌کند سالن تو راحت‌تر پیدا شود
+                    و مشتری‌ها مسیر رزرو ساده‌تری داشته باشند.
                 </p>
 
             </div>
 
 
             <a
-                href="{{ route('brand.intro') }}"
-                class="discovery-owner-button"
+                href="{{ route('login') }}"
+                class="discover-primary-button"
             >
-                ثبت سالن
-                ←
+                شروع کار
+                <span aria-hidden="true">
+                    ←
+                </span>
             </a>
 
         </div>

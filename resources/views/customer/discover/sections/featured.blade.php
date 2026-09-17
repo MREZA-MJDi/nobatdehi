@@ -1,36 +1,45 @@
 @if($featuredSalon)
 
-    <section class="discovery-section">
+    @php
+        $featuredImage =
+            ($featuredSalon->cover_url ?? null)
+            ?: $resolveImage(
+                $featuredSalon->cover_path ?? null
+            )
+            ?: $resolveImage(
+                $featuredSalon->logo_path ?? null
+            );
 
-        <div class="discovery-container">
+        $featuredRating = (float) (
+            $featuredSalon->reviews_avg_rating ?? 0
+        );
 
-            <div class="discovery-featured-card">
+        $featuredLocation = collect([
+            $featuredSalon->district,
+            $featuredSalon->city,
+            $featuredSalon->province,
+        ])->filter()->implode('، ');
+    @endphp
 
-                <div class="discovery-featured-image">
+    <section class="discover-section">
 
-                    @if($featuredSalon->cover_url ?? null)
+        <div class="discover-container">
+
+            <div class="discover-featured">
+
+                <div class="discover-featured-media">
+
+                    @if($featuredImage)
 
                         <img
-                            src="{{ $featuredSalon->cover_url }}"
-                            alt="{{ $featuredSalon->name }}"
-                            loading="lazy"
-                        >
-
-                    @elseif($featuredSalon->cover_path)
-
-                        <img
-                            src="{{ $resolveImage(
-                            $featuredSalon->cover_path
-                        ) }}"
+                            src="{{ $featuredImage }}"
                             alt="{{ $featuredSalon->name }}"
                             loading="lazy"
                         >
 
                     @else
 
-                        <div
-                            class="discovery-salon-image-fallback"
-                        >
+                        <div class="discover-salon-fallback">
                             NOBAT
                         </div>
 
@@ -39,75 +48,58 @@
                 </div>
 
 
-                <div class="discovery-featured-content">
+                <div class="discover-featured-content">
 
-                <span class="discovery-featured-kicker">
-                    NOBAT SELECTED
-                </span>
+                    <span class="discover-kicker">
+                        NOBAT SELECTED
+                    </span>
 
-                    <h3>
+                    <h2>
                         {{ $featuredSalon->name }}
-                    </h3>
+                    </h2>
 
+                    <div class="discover-featured-meta">
 
-                    <div class="discovery-featured-meta">
+                        @if($featuredRating > 0)
 
-                    <span class="discovery-featured-meta-item">
-                        ★
-
-                        {{
-                            isset($featuredSalon->rating)
-                                ? number_format(
-                                    (float) $featuredSalon->rating,
+                            <span>
+                                ★
+                                {{ number_format(
+                                    $featuredRating,
                                     1
-                                )
-                                : '—'
-                        }}
-                    </span>
+                                ) }}
+                            </span>
 
+                        @endif
 
-                        <span class="discovery-featured-meta-item">
-                        📍
-
-                        {{
-                            collect([
-                                $featuredSalon->district,
-                                $featuredSalon->city,
-                                $featuredSalon->province,
-                            ])
-                            ->filter()
-                            ->implode('، ')
-                            ?: 'ایران'
-                        }}
-                    </span>
+                        <span>
+                            {{ $featuredLocation ?: 'ایران' }}
+                        </span>
 
                     </div>
 
-
                     <p>
-
-                        {{
-                            \Illuminate\Support\Str::limit(
-                                strip_tags(
-                                    $featuredSalon->description
-                                    ?: 'یکی از سالن‌های منتخب NOBAT برای تجربه‌ای متفاوت.'
-                                ),
-                                220
-                            )
-                        }}
-
+                        {{ Str::limit(
+                            strip_tags(
+                                $featuredSalon->description
+                                ?: 'یکی از سالن‌های منتخب NOBAT.'
+                            ),
+                            220
+                        ) }}
                     </p>
 
 
                     <a
                         href="{{ route(
-                        'public.salons.show',
-                        $featuredSalon
-                    ) }}"
-                        class="discovery-featured-button"
+                            'public.salons.show',
+                            $featuredSalon
+                        ) }}"
+                        class="discover-primary-button"
                     >
                         مشاهده و رزرو
-                        <span>←</span>
+                        <span aria-hidden="true">
+                            ←
+                        </span>
                     </a>
 
                 </div>

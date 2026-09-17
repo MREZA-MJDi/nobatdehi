@@ -1,38 +1,31 @@
 <section
-    class="discovery-section"
+    class="discover-section"
     id="stylists"
 >
 
-    <div class="discovery-container">
+    <div class="discover-container">
 
-        <div class="discovery-section-header">
+        <div class="discover-section-heading">
 
-            <div class="discovery-section-heading">
+            <span class="discover-kicker">
+                متخصص‌ها
+            </span>
 
-                <span class="discovery-section-eyebrow">
-                    متخصص‌ها
-                </span>
+            <h2>
+                متخصص مناسب خودت را پیدا کن
+            </h2>
 
-                <h2 class="discovery-section-title">
-                    متخصص مورد علاقه‌ات را پیدا کن
-                </h2>
-
-                <p class="discovery-section-description">
-                    متخصص مناسب خودت را پیدا کن و وارد سالن شو.
-                </p>
-
-            </div>
+            <p>
+                تخصص، تجربه و سالن هر متخصص را قبل از رزرو ببین.
+            </p>
 
         </div>
 
 
-        <div class="discovery-stylists-grid">
+        <div class="discover-stylist-grid">
 
             @forelse(
-                $salons
-                    ->flatMap->barbers
-                    ->take(8)
-                as $barber
+                $stylists as $barber
             )
 
                 <a
@@ -40,10 +33,10 @@
                         'public.salons.show',
                         $barber->salon
                     ) }}"
-                    class="discovery-stylist-card"
+                    class="discover-stylist-card"
                 >
 
-                    <div class="discovery-stylist-image">
+                    <div class="discover-stylist-media">
 
                         @if($barber->image_path)
 
@@ -57,9 +50,7 @@
 
                         @else
 
-                            <div
-                                class="discovery-stylist-placeholder"
-                            >
+                            <div class="discover-stylist-placeholder">
                                 {{ mb_substr(
                                     trim($barber->name),
                                     0,
@@ -72,34 +63,30 @@
                     </div>
 
 
-                    <div class="discovery-stylist-body">
+                    <div class="discover-stylist-body">
 
-                        <h3 class="discovery-stylist-name">
+                        <span>
+                            متخصص
+                        </span>
+
+                        <h3>
                             {{ $barber->name }}
                         </h3>
 
-                        <div class="discovery-stylist-role">
-                            {{
-                                $barber->specialty
+                        <p>
+                            {{ $barber->specialty
                                 ?: 'متخصص زیبایی'
                             }}
-                        </div>
+                        </p>
 
-                        <div class="discovery-stylist-location">
+                        <small>
                             {{ $barber->salon?->name }}
-                        </div>
+                        </small>
 
 
-                        <div class="discovery-stylist-bottom">
-
-                            <span class="discovery-stylist-rating">
-                                ★ متخصص
-                            </span>
-
-                            <span class="discovery-stylist-button">
-                                پروفایل ←
-                            </span>
-
+                        <div class="discover-stylist-footer">
+                            مشاهده سالن
+                            ←
                         </div>
 
                     </div>
@@ -108,7 +95,7 @@
 
             @empty
 
-                <div class="discovery-empty">
+                <div class="discover-empty-inline">
                     هنوز متخصصی برای نمایش وجود ندارد.
                 </div>
 

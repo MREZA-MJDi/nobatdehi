@@ -2,44 +2,177 @@
 
 @section('title', $salon->name . ' | رزرو نوبت آنلاین')
 
-@push('styles')
-    <link rel="stylesheet" href="{{ asset('css/salon.css') }}">
-@endpush
+@section(
+    'meta_description',
+    Str::limit(
+        $salon->description
+            ?: 'پروفایل ' . $salon->name . '؛ خدمات، نمونه‌کارها، تیم و رزرو نوبت آنلاین.',
+        155
+    )
+)
 
 @section('content')
 
     @php
+        use App\Enums\PostType;
+        use Illuminate\Support\Facades\Storage;
+
         $barbers = $salon->barbers ?? collect();
         $services = $salon->services ?? collect();
         $posts = $salon->posts ?? collect();
         $reviews = $salon->reviews ?? collect();
+        $relatedSalons = $relatedSalons ?? collect();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Media URL
+        |--------------------------------------------------------------------------
+        */
+
+        $resolveMediaUrl = function (?string $path): ?string {
+            if (!$path) {
+                return null;
+            }
+
+            if (
+                str_starts_with($path, 'http://') ||
+                str_starts_with($path, 'https://') ||
+                str_starts_with($path, '/')
+            ) {
+                return $path;
+            }
+
+            return Storage::disk('public')->url($path);
+        };
+
+        /*
+        |--------------------------------------------------------------------------
+        | Initial
+        |--------------------------------------------------------------------------
+        */
+
+        $getInitial = function (?string $name): string {
+            return mb_substr(
+                trim($name ?: 'ن'),
+                0,
+                1
+            );
+        };
+
+        /*
+        |--------------------------------------------------------------------------
+        | Post type normalization
+        |--------------------------------------------------------------------------
+        |
+        | Backward compatibility:
+        | old "photo" -> current enum value "image"
+        |
+        */
+
+        $normalizePostType = function ($post): string {
+            $type = $post->type instanceof PostType
+                ? $post->type->value
+                : (string) ($post->type ?? '');
+
+            if ($type === 'photo') {
+                return 'image';
+            }
+
+            return $type ?: 'image';
+        };
+
+        /*
+        |--------------------------------------------------------------------------
+        | Post counts
+        |--------------------------------------------------------------------------
+        */
+
+        $postTypeCounts = [
+            'all' => $postsCount,
+            'reel' => 0,
+            'video' => 0,
+            'image' => 0,
+            'gif' => 0,
+        ];
+
+        foreach ($posts as $post) {
+            $postType = $normalizePostType($post);
+
+            if (isset($postTypeCounts[$postType])) {
+                $postTypeCounts[$postType]++;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Rating
+        |--------------------------------------------------------------------------
+        */
+
+        $rating = $salon->reviews_avg_rating;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Today's hours
+        |--------------------------------------------------------------------------
+        */
 
         $todayDow = (now()->dayOfWeek + 1) % 7;
 
         $todayHours = ($salon->workingHours ?? collect())
             ->where('day_of_week', $todayDow)
-            ->where('is_closed', false);
+            ->where('is_closed', false)
+            ->values();
 
         $isOpenToday = $todayHours->isNotEmpty();
 
-        $postsCountValue = $postsCount ?? $posts->count();
-        $reviewsCountValue = $reviewsCount ?? $reviews->count();
-        $barbersCountValue = $barbersCount ?? $barbers->count();
-        $servicesCountValue = $servicesCount ?? $services->count();
+        $isOpenNow = false;
 
-        $rating = $salon->reviews_avg_rating ?? 5;
+        if ($isOpenToday) {
+            $nowTime = now();
 
-        $resolveMediaUrl = function (?string $path): ?string {
-            return $path
-                ? asset('storage/' . ltrim($path, '/'))
-                : null;
-        };
+            foreach ($todayHours as $todayHour) {
+                $start = now()->setTimeFromTimeString(
+                    substr((string) $todayHour->start_time, 0, 8)
+                );
 
-        $getInitial = function (?string $name): string {
-            return mb_substr(trim($name ?: 'م'), 0, 1);
-        };
+                $end = now()->setTimeFromTimeString(
+                    substr((string) $todayHour->end_time, 0, 8)
+                );
+
+                if ($end->lessThan($start)) {
+                    $end->addDay();
+                }
+
+                if ($nowTime->betweenIncluded($start, $end)) {
+                    $isOpenNow = true;
+                    break;
+                }
+            }
+        }
+
+        $statusText = $isOpenNow
+            ? 'الان باز است'
+            : ($isOpenToday ? 'امروز باز است' : 'امروز تعطیل');
+
+        $bookingEnabled =
+            $barbers->isNotEmpty() &&
+            $services->isNotEmpty();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Today's hour text
+        |--------------------------------------------------------------------------
+        */
+
+        $todayHoursText = $todayHours
+            ->map(function ($hour) {
+                return substr((string) $hour->start_time, 0, 5)
+                    . ' تا '
+                    . substr((string) $hour->end_time, 0, 5);
+            })
+            ->join('  •  ');
     @endphp
-
 
     <div
         class="salon-page"
@@ -51,11 +184,14 @@
         data-availability-url="{{ route('public.salons.booking.availability', $salon) }}"
         data-prepare-url="{{ route('public.salons.booking.prepare', $salon) }}"
         data-csrf="{{ csrf_token() }}"
+        data-booking-enabled="{{ $bookingEnabled ? '1' : '0' }}"
+        dir="rtl"
     >
 
-        {{-- =========================================================
+        {{-- ==========================================================
             TOPBAR
-        ========================================================== --}}
+        =========================================================== --}}
+
         <header class="topbar">
             <div class="topbar-in">
 
@@ -64,17 +200,22 @@
                     class="back-home"
                     aria-label="بازگشت به کشف سالن‌ها"
                 >
-                    <span>←</span>
-                    <span>کشف سالن‌ها</span>
+                    <span class="back-icon">←</span>
+                    <span class="back-label">کشف سالن‌ها</span>
                 </a>
 
 
                 <a
                     href="{{ url('/') }}"
                     class="brand"
+                    aria-label="NOBAT"
                 >
-                    <span class="dot">✦</span>
-                    <span>{{ $salon->name }}</span>
+                    <span class="brand-mark">N</span>
+
+                    <span class="brand-copy">
+                        <strong>NOBAT</strong>
+                        <small>{{ $salon->name }}</small>
+                    </span>
                 </a>
 
 
@@ -82,52 +223,62 @@
                     class="topnav"
                     aria-label="منوی سالن"
                 >
-
                     @if($posts->isNotEmpty())
-                        <a href="#gallery">
-                            گالری
-                        </a>
+                        <a href="#gallery">گالری</a>
                     @endif
 
                     @if($services->isNotEmpty())
-                        <a href="#services">
-                            خدمات
-                        </a>
+                        <a href="#services">خدمات</a>
                     @endif
 
                     @if($barbers->isNotEmpty())
-                        <a href="#team">
-                            تیم
-                        </a>
+                        <a href="#team">تیم</a>
                     @endif
 
-                    <a href="#location">
-                        آدرس
-                    </a>
+                    <a href="#location">موقعیت</a>
 
-                    <a href="#about">
-                        درباره ما
-                    </a>
+                    <a href="#about">درباره</a>
 
-                    <button
-                        type="button"
-                        class="btn-diamond"
-                        data-open-booking
-                    >
-                        رزرو نوبت
-                    </button>
-
+                    @if($bookingEnabled)
+                        <button
+                            type="button"
+                            class="btn-diamond btn-top-book"
+                            data-open-booking
+                        >
+                            رزرو نوبت
+                        </button>
+                    @endif
                 </nav>
 
+            </div>
+
+
+            <div class="mobile-anchor-bar">
+                @if($posts->isNotEmpty())
+                    <a href="#gallery">گالری</a>
+                @endif
+
+                @if($services->isNotEmpty())
+                    <a href="#services">خدمات</a>
+                @endif
+
+                @if($barbers->isNotEmpty())
+                    <a href="#team">تیم</a>
+                @endif
+
+                <a href="#location">موقعیت</a>
+
+                <a href="#about">درباره</a>
             </div>
         </header>
 
 
         <main class="wrap">
 
-            {{-- =====================================================
+            {{-- =======================================================
                 HERO
-            ====================================================== --}}
+            ======================================================== --}}
+
             <section class="hero reveal">
 
                 <div class="cover">
@@ -138,26 +289,48 @@
                             src="{{ $resolveMediaUrl($salon->cover_path) }}"
                             alt="{{ $salon->name }}"
                             loading="eager"
+                            fetchpriority="high"
                         >
+
+                    @else
+
+                        <div class="cover-fallback">
+                            <span>NOBAT</span>
+                            <small>{{ $salon->name }}</small>
+                        </div>
 
                     @endif
 
 
-                    <div class="cover-badge">
+                    <div class="cover-shade"></div>
 
-                        <span class="pulse-dot {{ $isOpenToday ? '' : 'is-closed' }}"></span>
+                    <div class="cover-topline">
+                        <span class="cover-label">
+                            SALON PROFILE
+                        </span>
 
-                        {{ $isOpenToday ? 'الان باز است' : 'امروز تعطیل' }}
-
+                        <span class="cover-location">
+                            {{ collect([
+                                $salon->district,
+                                $salon->city
+                            ])->filter()->implode('، ') ?: 'ایران' }}
+                        </span>
                     </div>
 
+
+                    <div class="cover-status">
+                        <span
+                            class="pulse-dot {{ $isOpenNow ? '' : 'is-closed' }}"
+                        ></span>
+
+                        {{ $statusText }}
+                    </div>
                 </div>
 
 
                 <div class="profile-bar">
 
                     <div class="avatar">
-
                         @if($salon->logo_path)
 
                             <img
@@ -173,7 +346,6 @@
                             </span>
 
                         @endif
-
                     </div>
 
 
@@ -185,61 +357,57 @@
                                 {{ $salon->name }}
                             </h1>
 
-                            <span class="verified">
-                                ✓
+                            <span class="verified verified-live">
+                                <span></span>
+                                فعال
                             </span>
 
                         </div>
 
 
-                        <div class="tagline">
-
-                            {{ Str::limit(
-                                $salon->description ?: 'سالن تخصصی مو و استایل',
-                                100
-                            ) }}
-
-                        </div>
+                        <p class="tagline">
+                            {{
+                                Str::limit(
+                                    $salon->description
+                                        ?: 'سالن تخصصی زیبایی، مو و استایل',
+                                    130
+                                )
+                            }}
+                        </p>
 
 
                         <div class="stats">
 
                             <div class="stat">
-
                                 <b>
-                                    {{ number_format($postsCountValue) }}
+                                    {{ number_format($postsCount) }}
                                 </b>
-
-                                <span>
-                                    نمونه‌کار
-                                </span>
-
+                                <span>نمونه‌کار</span>
                             </div>
-
 
                             <div class="stat">
-
                                 <b>
-                                    {{ number_format($reviewsCountValue) }}
+                                    {{ number_format($servicesCount) }}
                                 </b>
-
-                                <span>
-                                    نظر ثبت‌شده
-                                </span>
-
+                                <span>خدمت</span>
                             </div>
 
+                            <div class="stat">
+                                <b>
+                                    {{ number_format($barbersCount) }}
+                                </b>
+                                <span>متخصص</span>
+                            </div>
 
                             <div class="stat rate">
-
                                 <b>
-                                    ★ {{ number_format($rating, 1) }}
+                                    @if($rating !== null)
+                                        ★ {{ number_format($rating, 1) }}
+                                    @else
+                                        —
+                                    @endif
                                 </b>
-
-                                <span>
-                                    امتیاز مشتریان
-                                </span>
-
+                                <span>امتیاز</span>
                             </div>
 
                         </div>
@@ -249,14 +417,17 @@
 
                     <div class="profile-actions">
 
-                        <button
-                            type="button"
-                            class="btn-diamond"
-                            data-open-booking
-                        >
-                            رزرو نوبت
-                        </button>
+                        @if($bookingEnabled)
 
+                            <button
+                                type="button"
+                                class="btn-diamond"
+                                data-open-booking
+                            >
+                                رزرو نوبت
+                            </button>
+
+                        @endif
 
                         <button
                             type="button"
@@ -271,33 +442,77 @@
                 </div>
 
 
-                @if($salon->description)
+                <div class="hero-bottom">
 
-                    <p class="bio">
-                        {{ $salon->description }}
-                    </p>
+                    <div class="hero-bio">
+                        @if($salon->description)
+                            {{ $salon->description }}
+                        @else
+                            فضای حرفه‌ای، تیم متخصص و خدمات زیبایی با امکان
+                            نوبت‌دهی آنلاین.
+                        @endif
+                    </div>
 
-                @endif
+
+                    <div class="hero-meta">
+
+                        <span>
+                            <i>⌖</i>
+                            {{
+                                collect([
+                                    $salon->district,
+                                    $salon->city,
+                                    $salon->province
+                                ])->filter()->implode('، ')
+                                ?: 'موقعیت ثبت نشده'
+                            }}
+                        </span>
+
+                        <span>
+                            <i>◷</i>
+                            {{
+                                $todayHoursText
+                                    ?: 'امروز ساعات کاری ثبت نشده'
+                            }}
+                        </span>
+
+                    </div>
+
+                </div>
 
 
                 <div class="chips">
 
-                    <span class="chip diamond">
-                        ✦ {{ $barbersCountValue }} آرایشگر
+                    <span class="chip accent">
+                        ✦ سالن فعال
                     </span>
 
                     <span class="chip">
-                        {{ $servicesCountValue }} خدمت
+                        {{ number_format($barbersCount) }} متخصص
                     </span>
 
-                    @if($isOpenToday)
+                    <span class="chip">
+                        {{ number_format($servicesCount) }} خدمت
+                    </span>
+
+                    @if($isOpenNow)
+
+                        <span class="chip success">
+                            الان باز است
+                        </span>
+
+                    @elseif($isOpenToday)
+
                         <span class="chip">
                             امروز باز است
                         </span>
+
                     @else
-                        <span class="chip">
+
+                        <span class="chip danger">
                             امروز تعطیل
                         </span>
+
                     @endif
 
                 </div>
@@ -305,86 +520,117 @@
             </section>
 
 
-            {{-- =====================================================
+            {{-- =======================================================
                 BOOKING CTA
-            ====================================================== --}}
-            <section class="booking-cta reveal">
+            ======================================================== --}}
 
-                <div class="bk-text">
+            @if($bookingEnabled)
 
-                    <div class="eyebrow">
-                        <span>◆</span>
-                        نوبت‌دهی آنلاین
+                <section class="booking-cta reveal">
+
+                    <div class="booking-cta-glow"></div>
+
+                    <div class="bk-text">
+
+                        <div class="eyebrow">
+                            <span>◆</span>
+                            نوبت‌دهی آنلاین
+                        </div>
+
+                        <h2>
+                            وقتت را همین حالا انتخاب کن
+                        </h2>
+
+                        <p>
+                            خدمت و متخصص را انتخاب کن، زمان‌های خالی را ببین
+                            و بدون تماس تلفنی نوبتت را ثبت کن.
+                        </p>
+
                     </div>
 
-                    <h2>
-                        وقتت رو همین حالا رزرو کن
-                    </h2>
 
-                    <p>
-                        آرایشگر و خدمت موردنظرت رو انتخاب کن،
-                        ساعت‌های خالی رو ببین و نوبتت رو آنلاین ثبت کن.
-                    </p>
+                    <div class="bk-side">
 
-                </div>
+                        <button
+                            type="button"
+                            class="btn-book"
+                            data-open-booking
+                        >
+                            <span class="btn-book-icon">◷</span>
 
+                            <span>
+                                انتخاب زمان و رزرو
+                            </span>
 
-                <div class="bk-side">
+                            <span class="btn-arrow">
+                                ←
+                            </span>
+                        </button>
 
-                    <button
-                        type="button"
-                        class="btn-book"
-                        data-open-booking
-                    >
-                        <span>📅</span>
-                        انتخاب زمان و رزرو
-                    </button>
+                        <div class="hint">
+                            مشاهده ظرفیت‌های واقعی سالن
+                        </div>
 
-                    <div class="hint">
-                        سریع، آنلاین و بدون تماس
                     </div>
 
-                </div>
+                </section>
 
-            </section>
-
-
+            @endif
 
 
-
-            {{-- =====================================================
+            {{-- =======================================================
                 GALLERY
-            ====================================================== --}}
+            ======================================================== --}}
+
             @if($posts->isNotEmpty())
 
                 <section
-                    class="section reveal"
+                    class="section reveal gallery-section"
                     id="gallery"
                 >
 
-                    <div class="sec-head">
+                    <div class="section-topline">
 
-                        <h3>
-                            گالری سالن
-                        </h3>
+                        <div>
 
-                        <div class="line"></div>
+                            <span class="section-kicker">
+                                01 — WORK
+                            </span>
 
-                        <span class="count">
-                            {{ number_format($postsCountValue) }} پست
-                        </span>
+                            <h2>
+                                نمونه‌کارها
+                            </h2>
+
+                            <p>
+                                بخشی از کارهای اخیر {{ $salon->name }}
+                            </p>
+
+                        </div>
+
+
+                        <div class="section-count">
+                            {{ number_format($postsCount) }}
+                            محتوا
+                        </div>
 
                     </div>
 
 
-                    <div class="tabs">
+                    <div
+                        class="tabs"
+                        role="tablist"
+                        aria-label="فیلتر نمونه‌کارها"
+                    >
 
                         <button
                             type="button"
                             class="tab active"
                             data-filter="all"
+                            role="tab"
+                            aria-selected="true"
                         >
                             همه
+                            <span>{{ number_format($postsCount) }}</span>
                         </button>
 
 
@@ -392,8 +638,11 @@
                             type="button"
                             class="tab"
                             data-filter="reel"
+                            role="tab"
+                            aria-selected="false"
                         >
-                            🎬 ریلز
+                            ریلز
+                            <span>{{ number_format($postTypeCounts['reel']) }}</span>
                         </button>
 
 
@@ -401,17 +650,23 @@
                             type="button"
                             class="tab"
                             data-filter="video"
+                            role="tab"
+                            aria-selected="false"
                         >
-                            ▶ ویدیو
+                            ویدیو
+                            <span>{{ number_format($postTypeCounts['video']) }}</span>
                         </button>
 
 
                         <button
                             type="button"
                             class="tab"
-                            data-filter="photo"
+                            data-filter="image"
+                            role="tab"
+                            aria-selected="false"
                         >
-                            🖼 عکس
+                            عکس
+                            <span>{{ number_format($postTypeCounts['image']) }}</span>
                         </button>
 
 
@@ -419,8 +674,11 @@
                             type="button"
                             class="tab"
                             data-filter="gif"
+                            role="tab"
+                            aria-selected="false"
                         >
-                            ✨ گیف
+                            GIF
+                            <span>{{ number_format($postTypeCounts['gif']) }}</span>
                         </button>
 
                     </div>
@@ -431,12 +689,10 @@
                         id="galleryGrid"
                     >
 
-                        @foreach($posts->take(12) as $post)
+                        @foreach($posts as $index => $post)
 
                             @php
-                                $type = $post->type instanceof \App\Enums\PostType
-                                    ? $post->type->value
-                                    : ($post->type ?: 'photo');
+                                $type = $normalizePostType($post);
 
                                 $mediaUrl = $resolveMediaUrl(
                                     $post->media_path
@@ -449,15 +705,33 @@
                                 $typeLabel = match ($type) {
                                     'reel' => 'ریلز',
                                     'video' => 'ویدیو',
-                                    'gif' => 'گیف',
+                                    'gif' => 'GIF',
                                     default => 'عکس',
                                 };
+
+                                $mediaMeta =
+                                    $post->barber?->name
+                                    ?: $post->service?->name
+                                    ?: $post->title
+                                    ?: 'نمونه‌کار سالن';
                             @endphp
 
 
                             <article
-                                class="tile"
+                                class="
+                                    tile
+                                    tile-{{ min($index + 1, 6) }}
+                                    "
+                                data-gallery-item
                                 data-type="{{ $type }}"
+                                data-src="{{ $mediaUrl }}"
+                                data-poster="{{ $thumbnailUrl }}"
+                                data-title="{{ $post->title ?: 'نمونه‌کار ' . $salon->name }}"
+                                data-caption="{{ $post->caption ?: '' }}"
+                                data-meta="{{ $mediaMeta }}"
+                                tabindex="0"
+                                role="button"
+                                aria-label="مشاهده {{ $typeLabel }}"
                             >
 
                                 <div class="media">
@@ -466,7 +740,7 @@
                                         $mediaUrl &&
                                         in_array(
                                             $type,
-                                            ['photo', 'gif'],
+                                            ['image', 'gif'],
                                             true
                                         )
                                     )
@@ -494,7 +768,9 @@
                                             @endif
                                             muted
                                             playsinline
-                                            preload="metadata"
+                                            loop
+                                            preload="none"
+                                            aria-label="{{ $post->title ?: $typeLabel }}"
                                         ></video>
 
                                     @else
@@ -508,41 +784,42 @@
                                 </div>
 
 
-                                <div class="ov"></div>
+                                <div class="tile-gradient"></div>
 
 
-                                <span class="badge-type {{ $type }}">
-                                    {{ $typeLabel }}
-                                </span>
+                                <div class="tile-top">
 
+                                    <span class="badge-type {{ $type }}">
+                                        {{ $typeLabel }}
+                                    </span>
 
-                                @if(in_array($type, ['video', 'reel'], true))
+                                    @if(
+                                        in_array(
+                                            $type,
+                                            ['video', 'reel'],
+                                            true
+                                        )
+                                    )
 
-                                    <div class="play">
-                                        ▶
-                                    </div>
-
-                                @endif
-
-
-                                <div class="meta">
-
-                                    @if($post->barber)
-
-                                        <span class="views">
-                                            ✂ {{ $post->barber->name }}
+                                        <span class="tile-play">
+                                            ▶
                                         </span>
 
-                                    @elseif($post->service)
+                                    @endif
 
-                                        <span class="views">
-                                            ✦ {{ $post->service->name }}
-                                        </span>
+                                </div>
 
-                                    @elseif($post->title)
 
-                                        <span class="views">
-                                            {{ $post->title }}
+                                <div class="tile-bottom">
+
+                                    <strong>
+                                        {{ $mediaMeta }}
+                                    </strong>
+
+                                    @if($post->caption)
+
+                                        <span>
+                                            {{ Str::limit($post->caption, 65) }}
                                         </span>
 
                                     @endif
@@ -555,12 +832,34 @@
 
                     </div>
 
+
+                    <div
+                        class="gallery-empty"
+                        id="galleryEmpty"
+                        hidden
+                    >
+                        <div class="gallery-empty-icon">
+                            ✦
+                        </div>
+
+                        <strong>
+                            محتوایی در این دسته وجود ندارد
+                        </strong>
+
+                        <span>
+                            یک دسته دیگر را امتحان کن.
+                        </span>
+                    </div>
+
                 </section>
 
             @endif
-            {{-- =====================================================
+
+
+            {{-- =======================================================
                 SERVICES
-            ====================================================== --}}
+            ======================================================== --}}
+
             @if($services->isNotEmpty())
 
                 <section
@@ -568,17 +867,28 @@
                     id="services"
                 >
 
-                    <div class="sec-head">
+                    <div class="section-topline">
 
-                        <h3>
-                            خدمات سالن
-                        </h3>
+                        <div>
 
-                        <div class="line"></div>
+                            <span class="section-kicker">
+                                02 — SERVICES
+                            </span>
 
-                        <span class="count">
-                            {{ number_format($servicesCountValue) }} خدمت
-                        </span>
+                            <h2>
+                                خدمات سالن
+                            </h2>
+
+                            <p>
+                                خدماتی که می‌توانی همین حالا برایشان نوبت بگیری.
+                            </p>
+
+                        </div>
+
+                        <div class="section-count">
+                            {{ number_format($servicesCount) }}
+                            خدمت
+                        </div>
 
                     </div>
 
@@ -609,11 +919,17 @@
 
                                     @else
 
-                                        <div class="service-empty">
-                                            ✦
+                                        <div class="service-media-fallback">
+                                            <span>✦</span>
                                         </div>
 
                                     @endif
+
+                                    <div class="service-media-overlay"></div>
+
+                                    <span class="service-number">
+                                        {{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}
+                                    </span>
 
                                 </div>
 
@@ -627,51 +943,57 @@
 
                                     @if($service->description)
 
-                                        <div class="service-description">
-
-                                            {{ Str::limit(
-                                                $service->description,
-                                                110
-                                            ) }}
-
-                                        </div>
+                                        <p class="service-description">
+                                            {{ Str::limit($service->description, 105) }}
+                                        </p>
 
                                     @endif
 
 
                                     <div class="service-info">
 
-                                        <div class="service-price">
+                                        <strong class="service-price">
 
-                                            @if($service->price)
+                                            @if(
+                                                $service->price !== null &&
+                                                (float) $service->price > 0
+                                            )
                                                 {{ number_format($service->price) }}
-                                                تومان
+                                                <small>تومان</small>
                                             @else
                                                 توافقی
                                             @endif
 
-                                        </div>
+                                        </strong>
 
 
-                                        <div class="service-duration">
-
+                                        <span class="service-duration">
+                                            ◷
                                             {{ $service->duration_minutes }}
                                             دقیقه
-
-                                        </div>
+                                        </span>
 
                                     </div>
 
 
-                                    <button
-                                        type="button"
-                                        class="service-book"
-                                        data-open-booking
-                                        data-service-id="{{ $service->id }}"
-                                    >
-                                        انتخاب این خدمت
-                                        <span>←</span>
-                                    </button>
+                                    @if($bookingEnabled)
+
+                                        <button
+                                            type="button"
+                                            class="service-book"
+                                            data-open-booking
+                                            data-service-id="{{ $service->id }}"
+                                        >
+                                            <span>
+                                                انتخاب این خدمت
+                                            </span>
+
+                                            <span>
+                                                ←
+                                            </span>
+                                        </button>
+
+                                    @endif
 
                                 </div>
 
@@ -685,27 +1007,67 @@
 
             @endif
 
-            {{-- =====================================================
+
+            {{-- =======================================================
                 REVIEWS
-            ====================================================== --}}
-            @if($reviews->isNotEmpty())
+            ======================================================== --}}
 
-                <section class="section reveal">
+            <section class="section reveal reviews-section">
 
-                    <div class="sec-head">
+                <div class="section-topline">
 
-                        <h3>
-                            نظر مشتریان
-                        </h3>
+                    <div>
 
-                        <div class="line"></div>
-
-                        <span class="count">
-                            {{ number_format($reviewsCountValue) }} نظر
+                        <span class="section-kicker">
+                            03 — REVIEWS
                         </span>
+
+                        <h2>
+                            تجربه مشتریان
+                        </h2>
+
+                        <p>
+                            نظرهایی که مشتریان درباره این سالن ثبت کرده‌اند.
+                        </p>
 
                     </div>
 
+
+                    <div class="rating-summary">
+
+                        <div class="rating-score">
+
+                            @if($rating !== null)
+                                {{ number_format($rating, 1) }}
+                            @else
+                                —
+                            @endif
+
+                        </div>
+
+                        <div>
+
+                            <div class="rating-stars">
+                                @if($rating !== null)
+                                    ★★★★★
+                                @else
+                                    ☆☆☆☆☆
+                                @endif
+                            </div>
+
+                            <span>
+                                {{ number_format($reviewsCount) }}
+                                نظر منتشرشده
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                @if($reviews->isNotEmpty())
 
                     <div class="comments">
 
@@ -751,21 +1113,20 @@
                                     </div>
 
 
-                                    <div>
+                                    <div class="c-identity">
 
-                                        <div class="c-name">
+                                        <strong class="c-name">
                                             {{ $customer?->name ?? 'مشتری' }}
-                                        </div>
+                                        </strong>
 
-                                        <div class="c-date">
+                                        <span class="c-date">
                                             {{ $review->created_at?->diffForHumans() }}
-                                        </div>
+                                        </span>
 
                                     </div>
 
 
                                     <div class="c-stars">
-
                                         <span>
                                             {{ str_repeat('★', $ratingValue) }}
                                         </span>
@@ -773,7 +1134,6 @@
                                         <span class="muted-stars">
                                             {{ str_repeat('★', 5 - $ratingValue) }}
                                         </span>
-
                                     </div>
 
                                 </div>
@@ -803,14 +1163,21 @@
 
                     </div>
 
-                </section>
+                @else
 
-            @endif
+                    <div class="section-empty">
+                        هنوز نظری برای نمایش ثبت نشده است.
+                    </div>
+
+                @endif
+
+            </section>
 
 
-            {{-- =====================================================
+            {{-- =======================================================
                 TEAM
-            ====================================================== --}}
+            ======================================================== --}}
+
             @if($barbers->isNotEmpty())
 
                 <section
@@ -818,17 +1185,28 @@
                     id="team"
                 >
 
-                    <div class="sec-head">
+                    <div class="section-topline">
 
-                        <h3>
-                            تیم آرایشگران
-                        </h3>
+                        <div>
 
-                        <div class="line"></div>
+                            <span class="section-kicker">
+                                04 — TEAM
+                            </span>
 
-                        <span class="count">
-                            {{ number_format($barbersCountValue) }} متخصص
-                        </span>
+                            <h2>
+                                تیم سالن
+                            </h2>
+
+                            <p>
+                                متخصصانی که می‌توانی برای رزرو انتخابشان کنی.
+                            </p>
+
+                        </div>
+
+                        <div class="section-count">
+                            {{ number_format($barbersCount) }}
+                            متخصص
+                        </div>
 
                     </div>
 
@@ -840,13 +1218,16 @@
                             @php
                                 $barberReviews = $reviews->filter(
                                     fn ($review) =>
-                                        ($review->booking?->barber_id ?? null)
-                                        === $barber->id
+                                        (int) ($review->booking?->barber_id ?? 0)
+                                        === (int) $barber->id
                                 );
 
                                 $barberRating = $barberReviews->isNotEmpty()
-                                    ? round($barberReviews->avg('rating'), 1)
-                                    : 5;
+                                    ? round(
+                                        (float) $barberReviews->avg('rating'),
+                                        1
+                                    )
+                                    : null;
 
                                 $barberImage = $barber->image_path
                                     ? $resolveMediaUrl($barber->image_path)
@@ -855,6 +1236,8 @@
 
 
                             <article class="tcard">
+
+                                <div class="tcard-glow"></div>
 
                                 <div class="t-head">
 
@@ -877,24 +1260,28 @@
                                     </div>
 
 
-                                    <div>
+                                    <div class="t-identity">
 
-                                        <div class="t-name">
+                                        <strong class="t-name">
                                             {{ $barber->name }}
-                                        </div>
+                                        </strong>
 
-                                        <div class="t-role">
-                                            {{ $barber->specialty ?: 'آرایشگر' }}
-                                        </div>
+                                        <span class="t-role">
+                                            {{ $barber->specialty ?: 'آرایشگر و متخصص زیبایی' }}
+                                        </span>
 
                                     </div>
 
 
                                     <div class="t-rating">
 
-                                        <b>
-                                            {{ number_format($barberRating, 1) }}
-                                        </b>
+                                        <strong>
+                                            @if($barberRating !== null)
+                                                {{ number_format($barberRating, 1) }}
+                                            @else
+                                                —
+                                            @endif
+                                        </strong>
 
                                         <span>
                                             {{ number_format($barberReviews->count()) }}
@@ -909,28 +1296,28 @@
                                 @if($barber->bio)
 
                                     <p class="t-bio">
-                                        {{ Str::limit(
-                                            $barber->bio,
-                                            130
-                                        ) }}
+                                        {{ Str::limit($barber->bio, 145) }}
                                     </p>
 
                                 @endif
 
 
-                                <div class="t-foot">
+                                @if($bookingEnabled)
 
-                                    <button
-                                        type="button"
-                                        class="btn-diamond"
-                                        data-open-booking
-                                        data-barber-id="{{ $barber->id }}"
-                                    >
-                                        رزرو با
-                                        {{ Str::before($barber->name, ' ') ?: $barber->name }}
-                                    </button>
+                                    <div class="t-foot">
 
-                                </div>
+                                        <button
+                                            type="button"
+                                            class="btn-diamond"
+                                            data-open-booking
+                                            data-barber-id="{{ $barber->id }}"
+                                        >
+                                            رزرو با {{ $barber->name }}
+                                        </button>
+
+                                    </div>
+
+                                @endif
 
                             </article>
 
@@ -943,28 +1330,38 @@
             @endif
 
 
-            {{-- =====================================================
-                LOCATION + ABOUT
-            ====================================================== --}}
+            {{-- =======================================================
+                LOCATION
+            ======================================================== --}}
+
             <section
                 class="section reveal"
                 id="location"
             >
 
-                <div class="sec-head">
+                <div class="section-topline">
 
-                    <h3>
-                        آدرس و درباره ما
-                    </h3>
+                    <div>
 
-                    <div class="line"></div>
+                        <span class="section-kicker">
+                            05 — LOCATION
+                        </span>
+
+                        <h2>
+                            موقعیت و اطلاعات سالن
+                        </h2>
+
+                        <p>
+                            آدرس، ساعات و اطلاعاتی که قبل از مراجعه لازم داری.
+                        </p>
+
+                    </div>
 
                 </div>
 
 
                 <div class="bottom-grid">
 
-                    {{-- MAP --}}
                     <div class="map-card">
 
                         @if($mapsEmbedUrl)
@@ -982,9 +1379,9 @@
 
                                 <div class="map-addr">
 
-                                    <b>
+                                    <strong>
                                         {{ $salon->name }}
-                                    </b>
+                                    </strong>
 
                                     @if($fullAddress)
 
@@ -1015,7 +1412,13 @@
                         @else
 
                             <div class="map-empty">
-                                موقعیت مکانی ثبت نشده
+                                <span>⌖</span>
+                                <strong>
+                                    موقعیت ثبت نشده
+                                </strong>
+                                <small>
+                                    این سالن هنوز موقعیت مکانی دقیقی ثبت نکرده است.
+                                </small>
                             </div>
 
                         @endif
@@ -1023,16 +1426,14 @@
                     </div>
 
 
-                    {{-- ABOUT --}}
                     <div
                         class="about-card"
                         id="about"
                     >
 
-                        <div class="sub">
-                            درباره ما
-                        </div>
-
+                        <span class="about-kicker">
+                            ABOUT THE SALON
+                        </span>
 
                         <h3>
                             {{ $salon->name }}
@@ -1040,30 +1441,41 @@
 
 
                         <p>
-                            {{ $salon->description ?: 'ما به وقت تو احترام می‌ذاریم، به سلیقه‌ت گوش می‌دیم و با ابزار و محصولات حرفه‌ای کار می‌کنیم.' }}
+                            {{ $salon->description ?: 'برای این سالن هنوز توضیحی ثبت نشده است.' }}
                         </p>
 
 
                         <div class="feat">
 
                             <div>
-                                <i>✂️</i>
-                                تجهیزات استریل
+                                <i>✦</i>
+                                <span>
+                                    {{ number_format($postsCount) }}
+                                    نمونه‌کار
+                                </span>
                             </div>
 
                             <div>
-                                <i>⏱</i>
-                                وقت‌شناسی دقیق
+                                <i>✂</i>
+                                <span>
+                                    {{ number_format($barbersCount) }}
+                                    متخصص
+                                </span>
                             </div>
 
                             <div>
-                                <i>💎</i>
-                                محصولات اورجینال
+                                <i>◫</i>
+                                <span>
+                                    {{ number_format($servicesCount) }}
+                                    خدمت
+                                </span>
                             </div>
 
                             <div>
-                                <i>🅿️</i>
-                                پارکینگ
+                                <i>◷</i>
+                                <span>
+                                    {{ $isOpenToday ? 'امروز فعال' : 'امروز تعطیل' }}
+                                </span>
                             </div>
 
                         </div>
@@ -1071,32 +1483,33 @@
 
                         <div class="hours">
 
-                            <span class="hours-today">
+                            <div>
 
-                                @if($todayHours->isNotEmpty())
+                                <span class="hours-label">
+                                    ساعات امروز
+                                </span>
 
-                                    امروز:
-                                    {{ $todayHours
-                                        ->pluck('start_time')
-                                        ->map(fn ($time) => substr($time, 0, 5))
-                                        ->join(' | ')
-                                    }}
+                                <strong>
+                                    {{ $todayHoursText ?: 'تعطیل' }}
+                                </strong>
 
-                                @else
-
-                                    امروز: تعطیل
-
-                                @endif
-
-                            </span>
+                            </div>
 
 
-                            <span class="open {{ $isOpenToday ? '' : 'is-closed' }}">
+                            <span
+                                class="
+                                    open
+                                    {{ $isOpenNow ? '' : 'is-closed' }}
+                                    "
+                            >
+                                <span
+                                    class="
+                                        pulse-dot
+                                        {{ $isOpenNow ? '' : 'is-closed' }}
+                                        "
+                                ></span>
 
-                                <span class="pulse-dot {{ $isOpenToday ? '' : 'is-closed' }}"></span>
-
-                                {{ $isOpenToday ? 'الان باز' : 'بسته' }}
-
+                                {{ $isOpenNow ? 'الان باز' : 'بسته' }}
                             </span>
 
                         </div>
@@ -1108,20 +1521,31 @@
             </section>
 
 
-            {{-- =====================================================
-                RELATED SALONS
-            ====================================================== --}}
+            {{-- =======================================================
+                RELATED
+            ======================================================== --}}
+
             @if($relatedSalons->isNotEmpty())
 
                 <section class="section reveal">
 
-                    <div class="sec-head">
+                    <div class="section-topline">
 
-                        <h3>
-                            سالن‌های مشابه
-                        </h3>
+                        <div>
 
-                        <div class="line"></div>
+                            <span class="section-kicker">
+                                06 — DISCOVER
+                            </span>
+
+                            <h2>
+                                سالن‌های مشابه
+                            </h2>
+
+                            <p>
+                                چند گزینه دیگر در همین محدوده.
+                            </p>
+
+                        </div>
 
                     </div>
 
@@ -1163,29 +1587,37 @@
                                 </div>
 
 
-                                <div class="related-name">
-                                    {{ $related->name }}
-                                </div>
+                                <div class="related-body">
+
+                                    <strong class="related-name">
+                                        {{ $related->name }}
+                                    </strong>
 
 
-                                <div class="related-meta">
-
-                                    <span>
-                                        ★ {{ number_format(
-                                            $related->reviews_avg_rating ?? 5,
-                                            1
-                                        ) }}
-                                    </span>
-
-
-                                    @if(($related->services_count ?? 0) > 0)
+                                    <div class="related-meta">
 
                                         <span>
-                                            {{ $related->services_count }}
+                                            @if($related->reviews_avg_rating !== null)
+                                                ★
+                                                {{ number_format(
+                                                    $related->reviews_avg_rating,
+                                                    1
+                                                ) }}
+                                            @else
+                                                بدون امتیاز
+                                            @endif
+                                        </span>
+
+
+                                        <span>
+                                            {{
+                                                $related->services_count
+                                                ?? 0
+                                            }}
                                             خدمت
                                         </span>
 
-                                    @endif
+                                    </div>
 
                                 </div>
 
@@ -1205,334 +1637,431 @@
         </main>
 
 
-        {{-- =========================================================
+        {{-- ==========================================================
             MOBILE BOOKING
-        ========================================================== --}}
-        <div class="float-book">
+        =========================================================== --}}
 
-            <button
-                type="button"
-                data-open-booking
-            >
-                📅 رزرو نوبت
-            </button>
+        @if($bookingEnabled)
 
-        </div>
-
-
-        {{-- =========================================================
-            BOOKING MODAL
-        ========================================================== --}}
-        <div
-            class="modal-back"
-            id="bookingModal"
-            aria-hidden="true"
-        >
-
-            <div class="modal">
+            <div class="float-book">
 
                 <button
                     type="button"
-                    class="modal-close"
-                    data-close-booking
+                    data-open-booking
+                >
+                    <span>
+                        ◷
+                    </span>
+
+                    رزرو نوبت
+
+                    <small>
+                        انتخاب زمان
+                    </small>
+                </button>
+
+            </div>
+
+        @endif
+
+
+        {{-- ==========================================================
+            GALLERY LIGHTBOX
+        =========================================================== --}}
+
+        <div
+            class="media-lightbox"
+            id="mediaLightbox"
+            aria-hidden="true"
+            hidden
+        >
+
+            <div class="lightbox-backdrop"></div>
+
+            <div
+                class="lightbox-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-label="مشاهده رسانه"
+            >
+
+                <button
+                    type="button"
+                    class="lightbox-close"
+                    id="lightboxClose"
                     aria-label="بستن"
                 >
                     ✕
                 </button>
 
 
-                <div id="modalMain">
-
-                    <div class="m-head">
-
-                        <div class="eyebrow">
-                            ◆ رزرو نوبت
-                        </div>
-
-                        <h2>
-                            زمانت رو انتخاب کن
-                        </h2>
-
-                        <p>
-                            آرایشگر و خدمت رو انتخاب کن،
-                            بعد تقویم زنده سالن رو ببین.
-                        </p>
-
-                    </div>
+                <button
+                    type="button"
+                    class="lightbox-nav prev"
+                    id="lightboxPrev"
+                    aria-label="رسانه قبلی"
+                >
+                    ‹
+                </button>
 
 
-                    <div class="m-filters">
-
-                        <label class="field">
-
-                            <span>
-                                آرایشگر
-                            </span>
-
-                            <select id="filterBarber">
-
-                                @foreach($barbers as $barber)
-
-                                    <option value="{{ $barber->id }}">
-                                        {{ $barber->name }}
-
-                                        @if($barber->specialty)
-                                            — {{ $barber->specialty }}
-                                        @endif
-                                    </option>
-
-                                @endforeach
-
-                            </select>
-
-                        </label>
+                <div class="lightbox-media" id="lightboxMedia"></div>
 
 
-                        <label class="field">
-
-                            <span>
-                                خدمت
-                            </span>
-
-                            <select id="filterService">
-
-                                @foreach($services as $service)
-
-                                    <option value="{{ $service->id }}">
-                                        {{ $service->name }}
-
-                                        ({{ $service->duration_minutes }} دقیقه
-
-                                        @if($service->price)
-                                            — {{ number_format($service->price) }} تومان
-                                        @endif
-
-                                        )
-                                    </option>
-
-                                @endforeach
-
-                            </select>
-
-                        </label>
-
-                    </div>
+                <button
+                    type="button"
+                    class="lightbox-nav next"
+                    id="lightboxNext"
+                    aria-label="رسانه بعدی"
+                >
+                    ›
+                </button>
 
 
-                    <div class="m-grid">
+                <div class="lightbox-info">
 
-                        <div>
+                    <span
+                        class="lightbox-type"
+                        id="lightboxType"
+                    >
+                    </span>
 
-                            <div class="cal-head">
+                    <strong
+                        id="lightboxTitle"
+                    >
+                    </strong>
 
-                                <b id="calTitle">
-                                    —
-                                </b>
+                    <span
+                        id="lightboxMeta"
+                    >
+                    </span>
 
-                                <div class="cal-nav">
+                    <p
+                        id="lightboxCaption"
+                    >
+                    </p>
 
-                                    <button
-                                        type="button"
-                                        data-cal-shift="1"
-                                        aria-label="ماه بعد"
-                                    >
-                                        ‹
-                                    </button>
+                </div>
 
-                                    <button
-                                        type="button"
-                                        data-cal-shift="-1"
-                                        aria-label="ماه قبل"
-                                    >
-                                        ›
-                                    </button>
+            </div>
+        </div>
 
-                                </div>
 
+        {{-- ==========================================================
+            BOOKING MODAL
+        =========================================================== --}}
+
+        @if($bookingEnabled)
+
+            <div
+                class="modal-back"
+                id="bookingModal"
+                aria-hidden="true"
+            >
+
+                <div class="modal">
+
+                    <button
+                        type="button"
+                        class="modal-close"
+                        data-close-booking
+                        aria-label="بستن"
+                    >
+                        ✕
+                    </button>
+
+
+                    <div id="modalMain">
+
+                        <div class="m-head">
+
+                            <div class="eyebrow">
+                                ◆ رزرو نوبت
                             </div>
 
+                            <h2>
+                                زمانت را انتخاب کن
+                            </h2>
 
-                            <div class="cal-week">
-
-                                <span>ش</span>
-                                <span>ی</span>
-                                <span>د</span>
-                                <span>س</span>
-                                <span>چ</span>
-                                <span>پ</span>
-                                <span>ج</span>
-
-                            </div>
-
-
-                            <div
-                                class="cal-days"
-                                id="calDays"
-                            ></div>
-
-
-                            <div class="legend">
-
-                                <i>
-                                    <span class="sq selected"></span>
-                                    انتخاب‌شده
-                                </i>
-
-                                <i>
-                                    <span class="sq available"></span>
-                                    موجود
-                                </i>
-
-                                <i>
-                                    <span class="sq past"></span>
-                                    گذشته
-                                </i>
-
-                            </div>
+                            <p>
+                                متخصص و خدمت را انتخاب کن، سپس یکی از
+                                زمان‌های آزاد را بردار.
+                            </p>
 
                         </div>
 
 
-                        <div>
+                        <div class="m-filters">
 
-                            <div class="slots-title">
+                            <label class="field">
 
                                 <span>
-                                    ساعت‌های خالی
+                                    متخصص
                                 </span>
 
-                                <small id="slotDate">
-                                    — یک روز انتخاب کن
-                                </small>
+                                <select id="filterBarber">
 
-                            </div>
+                                    @foreach($barbers as $barber)
 
+                                        <option
+                                            value="{{ $barber->id }}"
+                                        >
+                                            {{ $barber->name }}
 
-                            <div
-                                class="slots"
-                                id="slots"
-                            >
-                                <div class="slots-msg">
-                                    اول از تقویم یک روز انتخاب کن
-                                </div>
-                            </div>
+                                            @if($barber->specialty)
+                                                — {{ $barber->specialty }}
+                                            @endif
+                                        </option>
 
-                        </div>
+                                    @endforeach
 
-                    </div>
+                                </select>
 
-
-                    <div class="m-foot">
-
-                        <div class="m-summary">
-
-                            <div class="row">
-
-                                <span>
-                                    آرایشگر
-                                </span>
-
-                                <b id="sumBarber">
-                                    —
-                                </b>
-
-                            </div>
+                            </label>
 
 
-                            <div class="row">
+                            <label class="field">
 
                                 <span>
                                     خدمت
                                 </span>
 
-                                <b id="sumService">
-                                    —
-                                </b>
+                                <select id="filterService">
+
+                                    @foreach($services as $service)
+
+                                        <option
+                                            value="{{ $service->id }}"
+                                        >
+                                            {{ $service->name }}
+
+                                            —
+                                            {{ $service->duration_minutes }}
+                                            دقیقه
+
+                                            @if(
+                                                $service->price !== null &&
+                                                (float) $service->price > 0
+                                            )
+                                                —
+                                                {{ number_format($service->price) }}
+                                                تومان
+                                            @endif
+
+                                        </option>
+
+                                    @endforeach
+
+                                </select>
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="m-grid">
+
+                            <div>
+
+                                <div class="cal-head">
+
+                                    <div>
+                                        <small>
+                                            تقویم
+                                        </small>
+
+                                        <b id="calTitle">
+                                            —
+                                        </b>
+                                    </div>
+
+
+                                    <div class="cal-nav">
+
+                                        <button
+                                            type="button"
+                                            data-cal-shift="-1"
+                                            aria-label="ماه قبل"
+                                        >
+                                            ›
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            data-cal-shift="1"
+                                            aria-label="ماه بعد"
+                                        >
+                                            ‹
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="cal-week">
+
+                                    <span>ش</span>
+                                    <span>ی</span>
+                                    <span>د</span>
+                                    <span>س</span>
+                                    <span>چ</span>
+                                    <span>پ</span>
+                                    <span>ج</span>
+
+                                </div>
+
+
+                                <div
+                                    class="cal-days"
+                                    id="calDays"
+                                ></div>
+
+
+                                <div class="legend">
+
+                                    <i>
+                                        <span class="sq selected"></span>
+                                        انتخاب‌شده
+                                    </i>
+
+                                    <i>
+                                        <span class="sq available"></span>
+                                        قابل انتخاب
+                                    </i>
+
+                                    <i>
+                                        <span class="sq past"></span>
+                                        گذشته
+                                    </i>
+
+                                </div>
 
                             </div>
 
 
-                            <div class="row">
+                            <div class="slots-panel">
 
-                                <span>
-                                    زمان
-                                </span>
+                                <div class="slots-title">
 
-                                <b id="sumTime">
-                                    —
-                                </b>
+                                    <div>
+                                        <small>
+                                            ظرفیت
+                                        </small>
+
+                                        <strong>
+                                            ساعت‌های خالی
+                                        </strong>
+                                    </div>
+
+                                    <span id="slotDate">
+                                        یک روز انتخاب کن
+                                    </span>
+
+                                </div>
+
+
+                                <div
+                                    class="slots"
+                                    id="slots"
+                                >
+                                    <div class="slots-msg">
+                                        اول از تقویم یک روز انتخاب کن
+                                    </div>
+                                </div>
 
                             </div>
 
                         </div>
 
 
+                        <div class="m-foot">
+
+                            <div class="m-summary">
+
+                                <div class="row">
+                                    <span>متخصص</span>
+                                    <b id="sumBarber">—</b>
+                                </div>
+
+                                <div class="row">
+                                    <span>خدمت</span>
+                                    <b id="sumService">—</b>
+                                </div>
+
+                                <div class="row">
+                                    <span>زمان</span>
+                                    <b id="sumTime">—</b>
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="btn-confirm"
+                                id="confirmBtn"
+                                disabled
+                            >
+                                تأیید و ادامه
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="success"
+                        id="successBox"
+                        aria-hidden="true"
+                    >
+
+                        <div class="tick">
+                            ✓
+                        </div>
+
+                        <h3>
+                            آماده‌ای!
+                        </h3>
+
+                        <p id="successText">
+                            در حال انتقال به مرحله تأیید رزرو...
+                        </p>
+
                         <button
                             type="button"
-                            class="btn-confirm"
-                            id="confirmBtn"
-                            disabled
+                            class="btn-diamond success-close"
+                            data-close-booking
                         >
-                            تأیید رزرو
+                            بستن
                         </button>
 
                     </div>
 
                 </div>
 
-
-                <div
-                    class="success"
-                    id="successBox"
-                    aria-hidden="true"
-                >
-
-                    <div class="tick">
-                        ✓
-                    </div>
-
-                    <h3>
-                        نوبتت ثبت شد!
-                    </h3>
-
-                    <p id="successText">
-                        —
-                    </p>
-
-                    <button
-                        type="button"
-                        class="btn-diamond success-close"
-                        data-close-booking
-                    >
-                        باشه، ممنون
-                    </button>
-
-                </div>
-
             </div>
 
-        </div>
+        @endif
 
 
-        {{-- =========================================================
-            FOOTER
-        ========================================================== --}}
         <footer>
-
-            ساخته‌شده با
-            <b>✦</b>
-            برای
-            <b>{{ $salon->name }}</b>
-
-            — تمام حقوق محفوظ است.
-
+            NOBAT
+            <span>✦</span>
+            {{ $salon->name }}
+            <span>—</span>
+            تمام حقوق محفوظ است.
         </footer>
+
+
+        <div
+            class="salon-toast"
+            id="salonToast"
+            role="status"
+            aria-live="polite"
+        ></div>
 
     </div>
 
 @endsection
-
-
-@push('scripts')
-    <script src="{{ asset('js/customer.js') }}" defer></script>
-@endpush

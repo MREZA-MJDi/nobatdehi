@@ -5,428 +5,1700 @@ namespace App\Http\Controllers\PublicSite;
 use App\Http\Controllers\Controller;
 use App\Models\Barber;
 use App\Models\Salon;
-use App\Models\SalonDailyStatus;
 use App\Models\Service;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class DiscoverController extends Controller
 {
-    private const PER_PAGE            = 12;
-    private const NEARBY_LIMIT        = 6;
+    private const PER_PAGE = 12;
+
+    private const NEARBY_LIMIT = 6;
+
+    private const POPULAR_SALONS_LIMIT = 6;
+
+    private const POPULAR_SERVICES_LIMIT = 8;
+
+    private const STYLIST_LIMIT = 8;
+
     private const CARD_SERVICES_LIMIT = 3;
-    private const DEFAULT_RADIUS_KM   = 15.0;
+
+    private const SERVICE_OPTIONS_LIMIT = 40;
+
+    private const DEFAULT_RADIUS_KM = 15.0;
+
+    private const MAX_RADIUS_KM = 100.0;
+
+    private const NEARBY_RADII = [
+        2.0,
+        5.0,
+        10.0,
+        15.0,
+        25.0,
+        50.0,
+        100.0,
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Index
+    |--------------------------------------------------------------------------
+    */
 
     public function index(Request $request): View
     {
-        $filters = $this->extractFilters($request);
-        $hasGeo  = $this->hasGeo($filters);
+        /*
+        |--------------------------------------------------------------------------
+        | Filters
+        |--------------------------------------------------------------------------
+        */
 
-        /* ------------------------------------------------------------------
-         | Query اصلی
-         * ------------------------------------------------------------------ */
+        $filters = $this->extractFilters($request);
+
+        $hasGeo = $this->hasGeo($filters);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Search mode
+        |--------------------------------------------------------------------------
+        */
+
+        $isSearchMode =
+            $filters['q'] !== ''
+            || $filters['type'] !== ''
+            || $filters['service'] !== null
+            || $filters['province'] !== ''
+            || $filters['city'] !== ''
+            || $filters['district'] !== ''
+            || (float) $filters['min_rating'] > 0
+            || (
+                is_numeric($filters['price_max'])
+                && (float) $filters['price_max'] > 0
+            )
+            || $filters['open_now']
+            || $filters['today']
+            || $hasGeo
+            || $filters['gender'] !== null
+            || $filters['sort'] !== 'recommended';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Main salon query
+        |--------------------------------------------------------------------------
+        */
+
         $salonQuery = $this->baseSalonQuery();
 
-        $this->applySearch($salonQuery, $filters['q']);
-        $this->applyServiceFilter($salonQuery, $filters['service']);
-        $this->applyRating($salonQuery, $filters['min_rating']);
-        $this->applyPriceCap($salonQuery, $filters['price_max']);
+        $this->applySearch(
+            $salonQuery,
+            $filters['q']
+        );
 
-        if ($filters['province']) {
-            $salonQuery->where('province', $filters['province']);
+        $this->applyTypeFilter(
+            $salonQuery,
+            $filters['type']
+        );
+
+        $this->applyServiceFilter(
+            $salonQuery,
+            $filters['service']
+        );
+
+        $this->applyRating(
+            $salonQuery,
+            $filters['min_rating']
+        );
+
+        $this->applyPriceCap(
+            $salonQuery,
+            $filters['price_max']
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Location filters
+        |--------------------------------------------------------------------------
+        */
+
+        if ($filters['province'] !== '') {
+            $salonQuery->where(
+                'province',
+                $filters['province']
+            );
         }
-        if ($filters['city']) {
-            $salonQuery->where('city', $filters['city']);
+
+        if ($filters['city'] !== '') {
+            $salonQuery->where(
+                'city',
+                $filters['city']
+            );
         }
-        if ($filters['district']) {
-            $salonQuery->where('district', $filters['district']);
+
+        if ($filters['district'] !== '') {
+            $salonQuery->where(
+                'district',
+                $filters['district']
+            );
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Availability filters
+        |--------------------------------------------------------------------------
+        */
+
         if ($filters['open_now']) {
-            $this->applyOpenNow($salonQuery);
-        }
-        if ($filters['today']) {
-            $this->applyHasSlotToday($salonQuery);
-        }
-        if ($hasGeo) {
-            $this->applyGeo($salonQuery, $filters);
+            $this->applyOpenNow(
+                $salonQuery
+            );
         }
 
-        $this->applySorting($salonQuery, $filters['sort'], $hasGeo);
+        if ($filters['today']) {
+            $this->applyHasSlotToday(
+                $salonQuery
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Geo
+        |--------------------------------------------------------------------------
+        */
+
+        if ($hasGeo) {
+            $this->applyGeo(
+                $salonQuery,
+                $filters
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Price sorting
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            in_array(
+                $filters['sort'],
+                [
+                    'price_asc',
+                    'price_desc',
+                ],
+                true
+            )
+        ) {
+            $this->applyMinimumServicePrice(
+                $salonQuery
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Sorting
+        |--------------------------------------------------------------------------
+        */
+
+        $this->applySorting(
+            $salonQuery,
+            $filters['sort'],
+            $hasGeo
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Main paginated results
+        |--------------------------------------------------------------------------
+        */
 
         $salons = $salonQuery
-            ->paginate(self::PER_PAGE)
+            ->paginate(
+                self::PER_PAGE
+            )
             ->withQueryString();
 
-        /* ------------------------------------------------------------------
-         | Featured
-         * ------------------------------------------------------------------ */
-        $featuredSalon = (clone $this->baseSalonQuery())
-            ->orderByDesc('reviews_avg_rating')
-            ->orderByDesc('reviews_count')
+        /*
+        |--------------------------------------------------------------------------
+        | Popular salons
+        |
+        | مهم:
+        | این جدا از $salons است تا Viewهای Discover
+        | pagination اصلی را خراب نکنند.
+        |--------------------------------------------------------------------------
+        */
+
+        $popularSalons = $this->baseSalonQuery()
+            ->orderByDesc(
+                'reviews_avg_rating'
+            )
+            ->orderByDesc(
+                'reviews_count'
+            )
+            ->latest('id')
+            ->limit(
+                self::POPULAR_SALONS_LIMIT
+            )
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Featured salon
+        |--------------------------------------------------------------------------
+        */
+
+        $featuredSalon = $this->baseSalonQuery()
+            ->orderByDesc(
+                'reviews_avg_rating'
+            )
+            ->orderByDesc(
+                'reviews_count'
+            )
             ->latest('id')
             ->first();
 
-        /* ------------------------------------------------------------------
-         | Nearby
-         * ------------------------------------------------------------------ */
-        $nearbySalons = $this->nearbySalons($filters, $hasGeo);
+        /*
+        |--------------------------------------------------------------------------
+        | Nearby salons
+        |--------------------------------------------------------------------------
+        */
 
-        /* ------------------------------------------------------------------
-         | Popular Services
-         * ------------------------------------------------------------------ */
-        $popularServices = Service::query()
-            ->where('is_active', true)
+        $nearbySalons = collect();
+
+        $nearbyRadius = null;
+
+        if ($hasGeo) {
+            $nearbyData = $this->nearbySalons(
+                $filters
+            );
+
+            $nearbySalons = $nearbyData['items'];
+
+            $nearbyRadius = $nearbyData['radius'];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Service options
+        |
+        | برای select فیلترها
+        |--------------------------------------------------------------------------
+        */
+
+        $serviceOptions = Service::query()
+            ->where(
+                'is_active',
+                true
+            )
+            ->whereHas(
+                'salon',
+                function ($query) {
+                    $query->where(
+                        'is_active',
+                        true
+                    );
+                }
+            )
             ->select([
-                'id', 'salon_id', 'name', 'description',
-                'duration_minutes', 'price', 'image_path',
+                'id',
+                'salon_id',
+                'name',
+                'price',
             ])
-            ->with(['salon:id,name,slug,code,city,district'])
-            ->withCount('bookings')
-            ->orderByDesc('bookings_count')
-            ->latest('id')
-            ->limit(8)
+            ->orderBy('name')
+            ->limit(
+                self::SERVICE_OPTIONS_LIMIT
+            )
             ->get();
 
-        /* ------------------------------------------------------------------
-         | Stylists
-         * ------------------------------------------------------------------ */
+        /*
+        |--------------------------------------------------------------------------
+        | Popular services
+        |--------------------------------------------------------------------------
+        */
+
+        $popularServices = Service::query()
+            ->where(
+                'is_active',
+                true
+            )
+            ->whereHas(
+                'salon',
+                function ($query) {
+                    $query->where(
+                        'is_active',
+                        true
+                    );
+                }
+            )
+            ->select([
+                'id',
+                'salon_id',
+                'name',
+                'description',
+                'duration_minutes',
+                'price',
+                'image_path',
+            ])
+            ->with([
+                'salon:id,name,slug,code,city,district',
+            ])
+            ->withCount(
+                'bookings'
+            )
+            ->orderByDesc(
+                'bookings_count'
+            )
+            ->latest('id')
+            ->limit(
+                self::POPULAR_SERVICES_LIMIT
+            )
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Stylists
+        |--------------------------------------------------------------------------
+        */
+
         $stylists = Barber::query()
-            ->where('is_active', true)
-            ->with(['salon:id,name,slug,code,city,district'])
-            ->select(['id', 'salon_id', 'name', 'specialty', 'bio', 'image_path'])
-            ->withCount('bookings')
-            ->orderByDesc('bookings_count')
+            ->where(
+                'is_active',
+                true
+            )
+            ->whereHas(
+                'salon',
+                function ($query) {
+                    $query->where(
+                        'is_active',
+                        true
+                    );
+                }
+            )
+            ->with([
+                'salon:id,name,slug,code,city,district',
+            ])
+            ->select([
+                'id',
+                'salon_id',
+                'name',
+                'specialty',
+                'bio',
+                'image_path',
+            ])
+            ->withCount(
+                'bookings'
+            )
+            ->orderByDesc(
+                'bookings_count'
+            )
             ->latest('id')
-            ->limit(8)
+            ->limit(
+                self::STYLIST_LIMIT
+            )
             ->get();
 
-        /* ------------------------------------------------------------------
-         | Helper data
-         * ------------------------------------------------------------------ */
+        /*
+        |--------------------------------------------------------------------------
+        | Service categories
+        |--------------------------------------------------------------------------
+        */
+
         $serviceCategories = $this->serviceCategories();
-        $provinces         = $this->provinces();
-        $cities            = $this->cities($filters['province']);
 
-        /* ------------------------------------------------------------------
-         | Stats
-         * ------------------------------------------------------------------ */
+        /*
+        |--------------------------------------------------------------------------
+        | Provinces
+        |--------------------------------------------------------------------------
+        */
+
+        $provinces = $this->provinces();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Cities
+        |--------------------------------------------------------------------------
+        */
+
+        $cities = $this->cities(
+            $filters['province']
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Stats
+        |--------------------------------------------------------------------------
+        */
+
         $stats = [
-            'salons'   => Salon::where('is_active', true)->count(),
-            'barbers'  => Barber::where('is_active', true)->count(),
-            'services' => Service::where('is_active', true)->count(),
+            'salons' => Salon::query()
+                ->where(
+                    'is_active',
+                    true
+                )
+                ->count(),
+
+            'barbers' => Barber::query()
+                ->where(
+                    'is_active',
+                    true
+                )
+                ->count(),
+
+            'services' => Service::query()
+                ->where(
+                    'is_active',
+                    true
+                )
+                ->count(),
         ];
 
-        return view('customer.discover', compact(
-            'salons',
-            'nearbySalons',
-            'featuredSalon',
-            'popularServices',
-            'stylists',
-            'serviceCategories',
-            'provinces',
-            'cities',
-            'stats',
-            'filters',
-        ));
+        /*
+        |--------------------------------------------------------------------------
+        | View
+        |--------------------------------------------------------------------------
+        */
+
+        return view(
+            'customer.discover',
+            compact(
+                'salons',
+                'popularSalons',
+                'nearbySalons',
+                'nearbyRadius',
+                'featuredSalon',
+                'popularServices',
+                'serviceOptions',
+                'stylists',
+                'serviceCategories',
+                'provinces',
+                'cities',
+                'stats',
+                'filters',
+                'hasGeo',
+                'isSearchMode',
+            )
+        );
     }
 
-    /* =====================================================================
-     | Filter Extraction
-     * ===================================================================== */
+    /*
+    |--------------------------------------------------------------------------
+    | Filter extraction
+    |--------------------------------------------------------------------------
+    */
 
-    private function extractFilters(Request $request): array
-    {
+    private function extractFilters(
+        Request $request
+    ): array {
+        $minRating = (float) $request->query(
+            'min_rating',
+            0
+        );
+
+        $minRating = max(
+            0,
+            min(
+                5,
+                $minRating
+            )
+        );
+
+        $radius = (float) $request->query(
+            'radius',
+            self::DEFAULT_RADIUS_KM
+        );
+
+        if ($radius <= 0) {
+            $radius = self::DEFAULT_RADIUS_KM;
+        }
+
+        $radius = min(
+            self::MAX_RADIUS_KM,
+            $radius
+        );
+
+        $sort = (string) $request->query(
+            'sort',
+            'recommended'
+        );
+
+        $allowedSorts = [
+            'recommended',
+            'rating',
+            'price_asc',
+            'price_desc',
+            'distance',
+            'newest',
+        ];
+
+        if (
+            ! in_array(
+                $sort,
+                $allowedSorts,
+                true
+            )
+        ) {
+            $sort = 'recommended';
+        }
+
+        $service = $request->query(
+            'service'
+        );
+
+        if (
+            $service === ''
+        ) {
+            $service = null;
+        }
+
         return [
-            'q'          => trim((string) $request->query('q', '')),
-            'service'    => $request->query('service'),
-            'province'   => $request->query('province'),
-            'city'       => $request->query('city'),
-            'district'   => $request->query('district'),
-            'sort'       => (string) $request->query('sort', 'recommended'),
-            'min_rating' => (float)  $request->query('min_rating', 0),
-            'price_max'  => $request->query('price_max'),
-            'open_now'   => $request->boolean('open_now'),
-            'today'      => $request->boolean('today'),
-            'lat'        => $request->query('lat'),
-            'lng'        => $request->query('lng'),
-            'radius'     => (float) $request->query('radius', self::DEFAULT_RADIUS_KM),
-            'gender'     => $request->query('gender'), // فعلاً UI-only
+            'q' => trim(
+                (string) $request->query(
+                    'q',
+                    ''
+                )
+            ),
+
+            'type' => trim(
+                (string) $request->query(
+                    'type',
+                    ''
+                )
+            ),
+
+            'service' => $service,
+
+            'province' => trim(
+                (string) $request->query(
+                    'province',
+                    ''
+                )
+            ),
+
+            'city' => trim(
+                (string) $request->query(
+                    'city',
+                    ''
+                )
+            ),
+
+            'district' => trim(
+                (string) $request->query(
+                    'district',
+                    ''
+                )
+            ),
+
+            'sort' => $sort,
+
+            'min_rating' => $minRating,
+
+            'price_max' => $request->query(
+                'price_max'
+            ),
+
+            'open_now' => $request->boolean(
+                'open_now'
+            ),
+
+            'today' => $request->boolean(
+                'today'
+            ),
+
+            'lat' => $request->query(
+                'lat'
+            ),
+
+            'lng' => $request->query(
+                'lng'
+            ),
+
+            'radius' => $radius,
+
+            'gender' => $request->query(
+                'gender'
+            ),
         ];
     }
 
-    private function hasGeo(array $filters): bool
-    {
-        return is_numeric($filters['lat']) && is_numeric($filters['lng']);
+    /*
+    |--------------------------------------------------------------------------
+    | Geo check
+    |--------------------------------------------------------------------------
+    */
+
+    private function hasGeo(
+        array $filters
+    ): bool {
+        if (
+            ! is_numeric(
+                $filters['lat']
+            )
+            ||
+            ! is_numeric(
+                $filters['lng']
+            )
+        ) {
+            return false;
+        }
+
+        $lat = (float) $filters['lat'];
+
+        $lng = (float) $filters['lng'];
+
+        return $lat >= -90
+            && $lat <= 90
+            && $lng >= -180
+            && $lng <= 180;
     }
 
-    /* =====================================================================
-     | Base Query
-     * ===================================================================== */
+    /*
+    |--------------------------------------------------------------------------
+    | Base salon query
+    |--------------------------------------------------------------------------
+    */
 
-    private function baseSalonQuery(): Builder
+    private function baseSalonQuery()
     {
         return Salon::query()
-            ->where('is_active', true)
+            ->where(
+                'is_active',
+                true
+            )
+
             ->withCount([
-                'services' => fn (Builder $q) => $q->where('is_active', true),
-                'barbers'  => fn (Builder $q) => $q->where('is_active', true),
+                'services' => function ($query) {
+                    $query->where(
+                        'is_active',
+                        true
+                    );
+                },
+
+                'barbers' => function ($query) {
+                    $query->where(
+                        'is_active',
+                        true
+                    );
+                },
+
                 'reviews',
             ])
-            ->withAvg('reviews', 'rating')
-            ->with(['services' => $this->servicesForCard()]);
+
+            ->withAvg(
+                'reviews',
+                'rating'
+            )
+
+            /*
+             * عمداً limit روی relation نذاشتیم.
+             * View خودش take(3) می‌کند.
+             */
+            ->with([
+                'services' => function ($query) {
+                    $query
+                        ->where(
+                            'is_active',
+                            true
+                        )
+                        ->select([
+                            'id',
+                            'salon_id',
+                            'name',
+                            'price',
+                            'sort_order',
+                        ])
+                        ->orderBy(
+                            'sort_order'
+                        )
+                        ->orderBy(
+                            'name'
+                        );
+                },
+            ]);
     }
 
-    private function servicesForCard(): \Closure
-    {
-        return function ($query) {
-            $query
-                ->where('is_active', true)
-                ->select(['id', 'salon_id', 'name', 'price'])
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->limit(self::CARD_SERVICES_LIMIT);
-        };
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | Search
+    |--------------------------------------------------------------------------
+    */
 
-    /* =====================================================================
-     | Filter Appliers
-     * ===================================================================== */
-
-    private function applySearch(Builder $query, string $search): void
-    {
+    private function applySearch(
+        $query,
+        string $search
+    ): void {
         if ($search === '') {
             return;
         }
 
-        $query->where(function (Builder $q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-                ->orWhere('code', 'like', "%{$search}%")
-                ->orWhere('city', 'like', "%{$search}%")
-                ->orWhere('district', 'like', "%{$search}%")
-                ->orWhere('address', 'like', "%{$search}%")
-                ->orWhereHas('services', function (Builder $sq) use ($search) {
-                    $sq->where('is_active', true)
-                        ->where(function (Builder $inner) use ($search) {
-                            $inner->where('name', 'like', "%{$search}%")
-                                ->orWhere('description', 'like', "%{$search}%");
-                        });
-                })
-                ->orWhereHas('barbers', function (Builder $bq) use ($search) {
-                    $bq->where('is_active', true)
-                        ->where(function (Builder $inner) use ($search) {
-                            $inner->where('name', 'like', "%{$search}%")
-                                ->orWhere('specialty', 'like', "%{$search}%")
-                                ->orWhere('bio', 'like', "%{$search}%");
-                        });
-                });
-        });
+        $searchLike = '%' . $search . '%';
+
+        $query->where(
+            function ($query) use ($searchLike) {
+
+                $query
+                    ->where(
+                        'name',
+                        'like',
+                        $searchLike
+                    )
+
+                    ->orWhere(
+                        'code',
+                        'like',
+                        $searchLike
+                    )
+
+                    ->orWhere(
+                        'city',
+                        'like',
+                        $searchLike
+                    )
+
+                    ->orWhere(
+                        'district',
+                        'like',
+                        $searchLike
+                    )
+
+                    ->orWhere(
+                        'address',
+                        'like',
+                        $searchLike
+                    )
+
+                    ->orWhereHas(
+                        'services',
+                        function ($query) use (
+                            $searchLike
+                        ) {
+                            $query
+                                ->where(
+                                    'is_active',
+                                    true
+                                )
+
+                                ->where(
+                                    function ($query) use (
+                                        $searchLike
+                                    ) {
+                                        $query
+                                            ->where(
+                                                'name',
+                                                'like',
+                                                $searchLike
+                                            )
+
+                                            ->orWhere(
+                                                'description',
+                                                'like',
+                                                $searchLike
+                                            );
+                                    }
+                                );
+                        }
+                    )
+
+                    ->orWhereHas(
+                        'barbers',
+                        function ($query) use (
+                            $searchLike
+                        ) {
+                            $query
+                                ->where(
+                                    'is_active',
+                                    true
+                                )
+
+                                ->where(
+                                    function ($query) use (
+                                        $searchLike
+                                    ) {
+                                        $query
+                                            ->where(
+                                                'name',
+                                                'like',
+                                                $searchLike
+                                            )
+
+                                            ->orWhere(
+                                                'specialty',
+                                                'like',
+                                                $searchLike
+                                            )
+
+                                            ->orWhere(
+                                                'bio',
+                                                'like',
+                                                $searchLike
+                                            );
+                                    }
+                                );
+                        }
+                    );
+            }
+        );
     }
 
-    private function applyServiceFilter(Builder $query, $service): void
-    {
-        if (! $service) {
+    /*
+    |--------------------------------------------------------------------------
+    | Type
+    |--------------------------------------------------------------------------
+    |
+    | type=salon:
+    | نتیجه باید سالن فعال باشد.
+    |
+    | type=barber:
+    | سالن باید حداقل یک متخصص فعال داشته باشد.
+    |
+    | چون خروجی Discover همچنان salon card است.
+    |--------------------------------------------------------------------------
+    */
+
+    private function applyTypeFilter(
+        $query,
+        string $type
+    ): void {
+        if ($type === '') {
             return;
         }
 
-        $query->whereHas('services', function (Builder $q) use ($service) {
-            $q->where('is_active', true);
+        if ($type === 'salon') {
+            return;
+        }
 
-            if (is_numeric($service)) {
-                $q->where('id', $service);
-            } else {
-                $q->where('name', 'like', "%{$service}%");
-            }
-        });
+        if ($type === 'barber') {
+            $query->whereHas(
+                'barbers',
+                function ($query) {
+                    $query->where(
+                        'is_active',
+                        true
+                    );
+                }
+            );
+        }
     }
 
-    private function applyRating(Builder $query, float $minRating): void
-    {
+    /*
+    |--------------------------------------------------------------------------
+    | Service filter
+    |--------------------------------------------------------------------------
+    */
+
+    private function applyServiceFilter(
+        $query,
+        $service
+    ): void {
+        if (
+            $service === null
+            ||
+            $service === ''
+        ) {
+            return;
+        }
+
+        $query->whereHas(
+            'services',
+            function ($query) use (
+                $service
+            ) {
+                $query->where(
+                    'is_active',
+                    true
+                );
+
+                if (
+                    is_numeric(
+                        $service
+                    )
+                ) {
+                    $query->where(
+                        'id',
+                        (int) $service
+                    );
+
+                    return;
+                }
+
+                $query->where(
+                    'name',
+                    'like',
+                    '%' . trim(
+                        (string) $service
+                    ) . '%'
+                );
+            }
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rating
+    |--------------------------------------------------------------------------
+    */
+
+    private function applyRating(
+        $query,
+        float $minRating
+    ): void {
         if ($minRating <= 0) {
             return;
         }
-        $query->having('reviews_avg_rating', '>=', $minRating);
+
+        $query->having(
+            'reviews_avg_rating',
+            '>=',
+            $minRating
+        );
     }
 
-    private function applyPriceCap(Builder $query, $priceMax): void
-    {
-        if (! is_numeric($priceMax) || $priceMax <= 0) {
+    /*
+    |--------------------------------------------------------------------------
+    | Minimum service price
+    |--------------------------------------------------------------------------
+    */
+
+    private function applyMinimumServicePrice(
+        $query
+    ): void {
+        $query->withMin(
+            [
+                'services as min_price' => function (
+                    $query
+                ) {
+                    $query->where(
+                        'is_active',
+                        true
+                    );
+                },
+            ],
+            'price'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Price cap
+    |--------------------------------------------------------------------------
+    */
+
+    private function applyPriceCap(
+        $query,
+        $priceMax
+    ): void {
+        if (
+            ! is_numeric(
+                $priceMax
+            )
+            ||
+            (float) $priceMax <= 0
+        ) {
             return;
         }
 
+        $this->applyMinimumServicePrice(
+            $query
+        );
+
+        $query->having(
+            'min_price',
+            '<=',
+            (int) $priceMax
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Open now
+    |--------------------------------------------------------------------------
+    */
+
+    private function applyOpenNow(
         $query
-            ->withMin(
-                ['services as min_price' => fn (Builder $q) => $q->where('is_active', true)],
-                'price'
+    ): void {
+        $now = Carbon::now();
+
+        $dayOfWeek = (int) $now->dayOfWeek;
+
+        $previousDayOfWeek = $dayOfWeek === 0
+            ? 6
+            : $dayOfWeek - 1;
+
+        $today = $now->toDateString();
+
+        $time = $now->format(
+            'H:i:s'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Daily close override
+        |--------------------------------------------------------------------------
+        */
+
+        $query->whereDoesntHave(
+            'dailyStatuses',
+            function ($query) use (
+                $today
+            ) {
+                $query
+                    ->where(
+                        'date',
+                        $today
+                    )
+                    ->where(
+                        'is_closed',
+                        true
+                    );
+            }
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Working hours
+        |--------------------------------------------------------------------------
+        */
+
+        $query->where(
+            function ($query) use (
+                $dayOfWeek,
+                $previousDayOfWeek,
+                $time
+            ) {
+
+                /*
+                |--------------------------------------------------------------------------
+                | Normal schedule
+                |--------------------------------------------------------------------------
+                */
+
+                $query->where(
+                    function ($query) use (
+                        $dayOfWeek,
+                        $time
+                    ) {
+                        $query
+                            ->where(
+                                'day_of_week',
+                                $dayOfWeek
+                            )
+
+                            ->where(
+                                'is_closed',
+                                false
+                            )
+
+                            ->whereColumn(
+                                'start_time',
+                                '<=',
+                                'end_time'
+                            )
+
+                            ->whereTime(
+                                'start_time',
+                                '<=',
+                                $time
+                            )
+
+                            ->whereTime(
+                                'end_time',
+                                '>=',
+                                $time
+                            );
+                    }
+                )
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Overnight schedule
+                    |--------------------------------------------------------------------------
+                    */
+
+                    ->orWhere(
+                        function ($query) use (
+                            $previousDayOfWeek,
+                            $time
+                        ) {
+                            $query
+                                ->where(
+                                    'day_of_week',
+                                    $previousDayOfWeek
+                                )
+
+                                ->where(
+                                    'is_closed',
+                                    false
+                                )
+
+                                ->whereColumn(
+                                    'start_time',
+                                    '>',
+                                    'end_time'
+                                )
+
+                                ->where(
+                                    function ($query) use (
+                                        $time
+                                    ) {
+                                        $query
+                                            ->whereTime(
+                                                'start_time',
+                                                '<=',
+                                                $time
+                                            )
+
+                                            ->orWhereTime(
+                                                'end_time',
+                                                '>=',
+                                                $time
+                                            );
+                                    }
+                                );
+                        }
+                    );
+            }
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Has slot today
+    |--------------------------------------------------------------------------
+    |
+    | فعلاً تخمینی است.
+    | یعنی:
+    | امروز بسته نباشد + working hour فعال داشته باشد.
+    |--------------------------------------------------------------------------
+    */
+
+    private function applyHasSlotToday(
+        $query
+    ): void {
+        $now = Carbon::now();
+
+        $dayOfWeek = (int) $now->dayOfWeek;
+
+        $today = $now->toDateString();
+
+        $query
+
+            ->whereDoesntHave(
+                'dailyStatuses',
+                function ($query) use (
+                    $today
+                ) {
+                    $query
+                        ->where(
+                            'date',
+                            $today
+                        )
+                        ->where(
+                            'is_closed',
+                            true
+                        );
+                }
             )
-            ->having('min_price', '<=', (int) $priceMax);
+
+            ->whereHas(
+                'workingHours',
+                function ($query) use (
+                    $dayOfWeek
+                ) {
+                    $query
+                        ->where(
+                            'day_of_week',
+                            $dayOfWeek
+                        )
+                        ->where(
+                            'is_closed',
+                            false
+                        );
+                }
+            );
     }
 
-    /**
-     * سالن باید:
-     *  1) امروز تو SalonDailyStatus بسته اعلام نشده باشه
-     *  2) حداقل یه شیفت فعال داشته باشه که الان داخلش باشیم
-     */
-    private function applyOpenNow(Builder $query): void
-    {
-        $now        = Carbon::now();
-        $dayOfWeek  = (int) $now->dayOfWeek; // 0=Sunday
-        $today      = $now->toDateString();
-        $time       = $now->format('H:i:s');
+    /*
+    |--------------------------------------------------------------------------
+    | Geo query
+    |--------------------------------------------------------------------------
+    */
+
+    private function applyGeo(
+        $query,
+        array $filters
+    ): void {
+        $lat = (float) $filters['lat'];
+
+        $lng = (float) $filters['lng'];
+
+        $radius = (float) (
+        $filters['radius']
+            ?: self::DEFAULT_RADIUS_KM
+        );
+
+        $radius = min(
+            self::MAX_RADIUS_KM,
+            max(
+                0.1,
+                $radius
+            )
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Haversine
+        |--------------------------------------------------------------------------
+        */
+
+        $haversine = '
+            (
+                6371 * ACOS(
+                    GREATEST(
+                        -1,
+                        LEAST(
+                            1,
+                            COS(RADIANS(?))
+                            * COS(RADIANS(salons.latitude))
+                            * COS(
+                                RADIANS(salons.longitude)
+                                - RADIANS(?)
+                            )
+                            + SIN(RADIANS(?))
+                            * SIN(RADIANS(salons.latitude))
+                        )
+                    )
+                )
+            )
+        ';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Distance
+        |--------------------------------------------------------------------------
+        */
 
         $query
-            ->whereDoesntHave('dailyStatuses', function (Builder $q) use ($today) {
-                $q->where('date', $today)->where('is_closed', true);
-            })
-            ->whereHas('workingHours', function (Builder $q) use ($dayOfWeek, $time) {
-                $q->where('day_of_week', $dayOfWeek)
-                    ->where('is_closed', false)
-                    ->whereTime('start_time', '<=', $time)
-                    ->whereTime('end_time', '>=', $time);
-            });
+
+            ->selectRaw(
+                "salons.*, {$haversine} AS distance_km",
+                [
+                    $lat,
+                    $lng,
+                    $lat,
+                ]
+            )
+
+            ->whereNotNull(
+                'salons.latitude'
+            )
+
+            ->whereNotNull(
+                'salons.longitude'
+            )
+
+            ->having(
+                'distance_km',
+                '<=',
+                $radius
+            );
     }
 
-    /**
-     * «نوبت خالی امروز» — تخمین:
-     *  امروز بسته نباشه + یه شیفت فعال برای امروز داشته باشه.
-     *  (وقتی جدول time_slots اضافه شد، این رو دقیق می‌کنیم.)
-     */
-    private function applyHasSlotToday(Builder $query): void
-    {
-        $dayOfWeek = (int) Carbon::now()->dayOfWeek;
-        $today     = Carbon::now()->toDateString();
+    /*
+    |--------------------------------------------------------------------------
+    | Sorting
+    |--------------------------------------------------------------------------
+    */
 
-        $query
-            ->whereDoesntHave('dailyStatuses', function (Builder $q) use ($today) {
-                $q->where('date', $today)->where('is_closed', true);
-            })
-            ->whereHas('workingHours', function (Builder $q) use ($dayOfWeek) {
-                $q->where('day_of_week', $dayOfWeek)
-                    ->where('is_closed', false);
-            });
-    }
-
-    private function applyGeo(Builder $query, array $filters): void
-    {
-        $lat    = (float) $filters['lat'];
-        $lng    = (float) $filters['lng'];
-        $radius = $filters['radius'] ?: self::DEFAULT_RADIUS_KM;
-
-        $haversine = '( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) )
-                       * cos( radians( longitude ) - radians(?) )
-                       + sin( radians(?) ) * sin( radians( latitude ) ) ) )';
-
-        $query
-            ->selectRaw("salons.*, {$haversine} AS distance_km", [$lat, $lng, $lat])
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->having('distance_km', '<=', $radius);
-    }
-
-    /* =====================================================================
-     | Sorting
-     * ===================================================================== */
-
-    private function applySorting(Builder $query, string $sort, bool $hasGeo): void
-    {
+    private function applySorting(
+        $query,
+        string $sort,
+        bool $hasGeo
+    ): void {
         switch ($sort) {
+
             case 'rating':
-                $query->orderByDesc('reviews_avg_rating')
-                    ->orderByDesc('reviews_count');
+
+                $query
+                    ->orderByDesc(
+                        'reviews_avg_rating'
+                    )
+                    ->orderByDesc(
+                        'reviews_count'
+                    )
+                    ->latest('id');
+
                 break;
 
             case 'price_asc':
-                $query->orderBy('min_price');
+
+                $query
+                    ->orderBy(
+                        'min_price'
+                    )
+                    ->orderByDesc(
+                        'reviews_avg_rating'
+                    )
+                    ->latest('id');
+
                 break;
 
             case 'price_desc':
-                $query->orderByDesc('min_price');
+
+                $query
+                    ->orderByDesc(
+                        'min_price'
+                    )
+                    ->orderByDesc(
+                        'reviews_avg_rating'
+                    )
+                    ->latest('id');
+
                 break;
 
             case 'distance':
-                $hasGeo
-                    ? $query->orderBy('distance_km')
-                    : $query->latest('id');
+
+                if ($hasGeo) {
+
+                    $query
+                        ->orderBy(
+                            'distance_km'
+                        )
+                        ->orderByDesc(
+                            'reviews_avg_rating'
+                        );
+
+                } else {
+
+                    $query
+                        ->orderByDesc(
+                            'reviews_avg_rating'
+                        )
+                        ->orderByDesc(
+                            'reviews_count'
+                        )
+                        ->latest('id');
+                }
+
                 break;
 
             case 'newest':
-                $query->latest('id');
+
+                $query->latest(
+                    'id'
+                );
+
                 break;
 
             case 'recommended':
             default:
-                $query->orderByDesc('reviews_avg_rating')
-                    ->orderByDesc('reviews_count')
+
+                $query
+                    ->orderByDesc(
+                        'reviews_avg_rating'
+                    )
+                    ->orderByDesc(
+                        'reviews_count'
+                    )
                     ->latest('id');
+
                 break;
         }
     }
 
-    /* =====================================================================
-     | Nearby
-     * ===================================================================== */
+    /*
+    |--------------------------------------------------------------------------
+    | Progressive Nearby
+    |--------------------------------------------------------------------------
+    |
+    | radius=10:
+    |
+    | 2km -> 5km -> 10km
+    |
+    | radius=30:
+    |
+    | 2 -> 5 -> 10 -> 15 -> 25 -> 30
+    |--------------------------------------------------------------------------
+    */
 
-    private function nearbySalons(array $filters, bool $hasGeo)
-    {
-        $query = $this->baseSalonQuery()
-            ->with(['barbers' => function ($q) {
-                $q->where('is_active', true)
-                    ->select(['id', 'salon_id', 'name', 'specialty', 'image_path'])
-                    ->orderBy('name')
-                    ->limit(2);
-            }]);
+    private function nearbySalons(
+        array $filters
+    ): array {
+        $requestedRadius = min(
+            self::MAX_RADIUS_KM,
+            max(
+                0.1,
+                (float) $filters['radius']
+            )
+        );
 
-        if ($hasGeo) {
-            $this->applyGeo($query, $filters);
-            $query->orderBy('distance_km');
-        } else {
-            $query->orderByDesc('reviews_avg_rating')
-                ->orderByDesc('reviews_count');
+        $radii = collect(
+            self::NEARBY_RADII
+        )
+
+            ->filter(
+                function (
+                    $radius
+                ) use (
+                    $requestedRadius
+                ) {
+                    return $radius
+                        < $requestedRadius;
+                }
+            )
+
+            ->push(
+                $requestedRadius
+            )
+
+            ->unique()
+
+            ->sort()
+
+            ->values();
+
+        foreach (
+            $radii as $radius
+        ) {
+
+            $nearbyFilters = $filters;
+
+            $nearbyFilters['radius'] = $radius;
+
+            $query = $this->baseSalonQuery();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Nearby barbers
+            |--------------------------------------------------------------------------
+            */
+
+            $query->with([
+                'barbers' => function (
+                    $query
+                ) {
+                    $query
+                        ->where(
+                            'is_active',
+                            true
+                        )
+                        ->select([
+                            'id',
+                            'salon_id',
+                            'name',
+                            'specialty',
+                            'image_path',
+                        ])
+                        ->orderBy(
+                            'name'
+                        );
+                },
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Geo
+            |--------------------------------------------------------------------------
+            */
+
+            $this->applyGeo(
+                $query,
+                $nearbyFilters
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Nearby ordering
+            |--------------------------------------------------------------------------
+            */
+
+            $results = $query
+
+                ->orderBy(
+                    'distance_km'
+                )
+
+                ->orderByDesc(
+                    'reviews_avg_rating'
+                )
+
+                ->limit(
+                    self::NEARBY_LIMIT
+                )
+
+                ->get();
+
+            if (
+                $results->isNotEmpty()
+            ) {
+                return [
+                    'items' => $results,
+
+                    'radius' => $radius,
+                ];
+            }
         }
 
-        return $query->limit(self::NEARBY_LIMIT)->get();
+        return [
+            'items' => collect(),
+
+            'radius' => $requestedRadius,
+        ];
     }
 
-    /* =====================================================================
-     | Helper Data
-     * ===================================================================== */
+    /*
+    |--------------------------------------------------------------------------
+    | Service categories
+    |--------------------------------------------------------------------------
+    */
 
     private function serviceCategories(): array
     {
-        return config('services.categories', [
-            ['key' => 'haircut', 'label' => 'اصلاح و کوتاهی', 'icon' => 'scissors'],
-            ['key' => 'color',   'label' => 'رنگ و مش',       'icon' => 'palette'],
-            ['key' => 'keratin', 'label' => 'کراتین و احیا',  'icon' => 'sparkles'],
-            ['key' => 'nails',   'label' => 'ناخن',           'icon' => 'hand'],
-            ['key' => 'makeup',  'label' => 'میکاپ',          'icon' => 'brush'],
-            ['key' => 'brows',   'label' => 'ابرو و مژه',     'icon' => 'eye'],
-            ['key' => 'skin',    'label' => 'پوست',           'icon' => 'droplet'],
-            ['key' => 'massage', 'label' => 'ماساژ',          'icon' => 'heart'],
-            ['key' => 'bridal',  'label' => 'عروس',           'icon' => 'crown'],
-        ]);
+        return config(
+            'services.categories',
+            [
+                [
+                    'key' => 'haircut',
+                    'label' => 'اصلاح و کوتاهی',
+                    'icon' => 'scissors',
+                ],
+                [
+                    'key' => 'color',
+                    'label' => 'رنگ و مش',
+                    'icon' => 'palette',
+                ],
+                [
+                    'key' => 'keratin',
+                    'label' => 'کراتین و احیا',
+                    'icon' => 'sparkles',
+                ],
+                [
+                    'key' => 'nails',
+                    'label' => 'ناخن',
+                    'icon' => 'hand',
+                ],
+                [
+                    'key' => 'makeup',
+                    'label' => 'میکاپ',
+                    'icon' => 'brush',
+                ],
+                [
+                    'key' => 'brows',
+                    'label' => 'ابرو و مژه',
+                    'icon' => 'eye',
+                ],
+                [
+                    'key' => 'skin',
+                    'label' => 'پوست',
+                    'icon' => 'droplet',
+                ],
+                [
+                    'key' => 'massage',
+                    'label' => 'ماساژ',
+                    'icon' => 'heart',
+                ],
+                [
+                    'key' => 'bridal',
+                    'label' => 'عروس',
+                    'icon' => 'crown',
+                ],
+            ]
+        );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Provinces
+    |--------------------------------------------------------------------------
+    */
 
     private function provinces()
     {
         return Salon::query()
-            ->where('is_active', true)
-            ->whereNotNull('province')
-            ->select('province')
+
+            ->where(
+                'is_active',
+                true
+            )
+
+            ->whereNotNull(
+                'province'
+            )
+
+            ->where(
+                'province',
+                '!=',
+                ''
+            )
+
+            ->select(
+                'province'
+            )
+
             ->distinct()
-            ->orderBy('province')
-            ->pluck('province');
+
+            ->orderBy(
+                'province'
+            )
+
+            ->pluck(
+                'province'
+            );
     }
 
-    private function cities(?string $province)
-    {
+    /*
+    |--------------------------------------------------------------------------
+    | Cities
+    |--------------------------------------------------------------------------
+    */
+
+    private function cities(
+        ?string $province
+    ) {
         return Salon::query()
-            ->where('is_active', true)
-            ->whereNotNull('city')
-            ->when($province, fn (Builder $q) => $q->where('province', $province))
-            ->select('city')
+
+            ->where(
+                'is_active',
+                true
+            )
+
+            ->whereNotNull(
+                'city'
+            )
+
+            ->where(
+                'city',
+                '!=',
+                ''
+            )
+
+            ->when(
+                $province !== null
+                && $province !== '',
+                function (
+                    $query
+                ) use (
+                    $province
+                ) {
+                    $query->where(
+                        'province',
+                        $province
+                    );
+                }
+            )
+
+            ->select(
+                'city'
+            )
+
             ->distinct()
-            ->orderBy('city')
-            ->pluck('city');
+
+            ->orderBy(
+                'city'
+            )
+
+            ->pluck(
+                'city'
+            );
     }
 }

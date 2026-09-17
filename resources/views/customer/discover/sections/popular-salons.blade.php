@@ -1,199 +1,142 @@
-<section
-    class="discovery-section"
-    id="salons"
->
+<section class="discover-section discover-section-soft">
 
-    <div class="discovery-container">
+    <div class="discover-container">
 
-        <div class="discovery-section-header">
+        <div class="discover-section-heading discover-section-heading-inline">
 
-            <div class="discovery-section-heading">
+            <div>
 
-                <span class="discovery-section-eyebrow">
-                    سالن‌های محبوب
+                <span class="discover-kicker">
+                    محبوب‌ها
                 </span>
 
-                <h2 class="discovery-section-title">
-                    محبوب این روزها
+                <h2>
+                    سالن‌هایی که بیشتر دیده می‌شوند
                 </h2>
 
-                <p class="discovery-section-description">
-                    سالن‌هایی که کاربران بیشتر دیده و انتخاب کرده‌اند.
+                <p>
+                    چند گزینه برای شروع انتخابت.
                 </p>
 
             </div>
 
             <a
-                href="{{ route('salons.discover') }}"
-                class="discovery-section-link"
+                href="{{ route('salons.discover') }}#results"
+                class="discover-section-link"
             >
                 مشاهده همه
-                <span>←</span>
+                ←
             </a>
 
         </div>
 
 
-        <div class="discovery-salons-grid">
+        <div class="discover-salon-grid">
 
             @forelse(
-                $salons->take(6)
-                as $salon
+                $popularSalons as $salon
             )
+
+                @php
+                    $salonImage =
+                        ($salon->cover_url ?? null)
+                        ?: $resolveImage(
+                            $salon->cover_path ?? null
+                        )
+                        ?: $resolveImage(
+                            $salon->logo_path ?? null
+                        );
+
+                    $rating = (float) (
+                        $salon->reviews_avg_rating ?? 0
+                    );
+
+                    $location = collect([
+                        $salon->district,
+                        $salon->city,
+                        $salon->province,
+                    ])->filter()->implode('، ');
+                @endphp
 
                 <a
                     href="{{ route(
                         'public.salons.show',
                         $salon
                     ) }}"
-                    class="discovery-salon-card"
+                    class="discover-salon-card"
                 >
 
-                    <div class="discovery-salon-image">
+                    <div class="discover-salon-media">
 
-                        @if($salon->cover_url ?? null)
-
-                            <img
-                                src="{{ $salon->cover_url }}"
-                                alt="{{ $salon->name }}"
-                                loading="lazy"
-                            >
-
-                        @elseif($salon->cover_path)
+                        @if($salonImage)
 
                             <img
-                                src="{{ $resolveImage(
-                                    $salon->cover_path
-                                ) }}"
+                                src="{{ $salonImage }}"
                                 alt="{{ $salon->name }}"
                                 loading="lazy"
                             >
 
                         @else
 
-                            <div
-                                class="discovery-salon-image-fallback"
-                            >
+                            <div class="discover-salon-fallback">
                                 NOBAT
                             </div>
 
                         @endif
 
+                        @if($rating > 0)
 
-                        <span
-                            class="discovery-salon-favorite"
-                            aria-hidden="true"
-                        >
-                            ♡
-                        </span>
+                            <span class="discover-rating-badge">
+                                ★
+                                {{ number_format(
+                                    $rating,
+                                    1
+                                ) }}
+                            </span>
+
+                        @endif
 
                     </div>
 
 
-                    <div class="discovery-salon-body">
+                    <div class="discover-salon-body">
 
-                        <div class="discovery-salon-name-row">
+                        <h3>
+                            {{ $salon->name }}
+                        </h3>
 
-                            <h3 class="discovery-salon-name">
-                                {{ $salon->name }}
-                            </h3>
-
-                            @if(isset($salon->rating))
-
-                                <span class="discovery-salon-rating">
-
-                                    <svg
-                                        viewBox="0 0 24 24"
-                                        fill="currentColor"
-                                        aria-hidden="true"
-                                    >
-                                        <path
-                                            d="m12 2.8 2.78 5.63 6.22.9-4.5 4.38 1.06 6.2L12 16.98 6.44 19.9l1.06-6.2-4.5-4.38 6.22-.9L12 2.8Z"
-                                        />
-                                    </svg>
-
-                                    {{ number_format(
-                                        (float) $salon->rating,
-                                        1
-                                    ) }}
-
-                                </span>
-
-                            @endif
-
-                        </div>
+                        <p>
+                            {{ $location ?: 'موقعیت ثبت نشده' }}
+                        </p>
 
 
-                        <div class="discovery-salon-location">
+                        <div class="discover-salon-meta">
 
                             <span>
-                                📍
+                                {{ number_format(
+                                    (int) $salon->services_count
+                                ) }}
+                                خدمت
                             </span>
 
                             <span>
-                                {{
-                                    collect([
-                                        $salon->district,
-                                        $salon->city,
-                                        $salon->province,
-                                    ])
-                                    ->filter()
-                                    ->first()
-                                    ?: 'ایران'
-                                }}
+                                {{ number_format(
+                                    (int) $salon->barbers_count
+                                ) }}
+                                متخصص
                             </span>
 
                         </div>
 
 
-                        @if(
-                            $salon->services
-                            ->isNotEmpty()
-                        )
+                        <div class="discover-salon-footer">
 
-                            <div class="discovery-salon-meta">
+                            <span>
+                                مشاهده سالن
+                            </span>
 
-                                @foreach(
-                                    $salon->services->take(3)
-                                    as $service
-                                )
-
-                                    <span class="discovery-salon-tag">
-                                        {{ $service->name }}
-                                    </span>
-
-                                @endforeach
-
-                            </div>
-
-                        @endif
-
-
-                        <div class="discovery-salon-footer">
-
-                            @php
-                                $firstService =
-                                    $salon->services->first();
-                            @endphp
-
-                            <div class="discovery-salon-price">
-
-                                شروع قیمت
-
-                                <strong>
-                                    {{
-                                        $firstService?->price !== null
-                                            ? number_format(
-                                                (int) $firstService->price
-                                            ) . ' تومان'
-                                            : 'توافقی'
-                                    }}
-                                </strong>
-
-                            </div>
-
-                            <span class="discovery-salon-button">
-                                مشاهده سالن →
+                            <span aria-hidden="true">
+                                ←
                             </span>
 
                         </div>
@@ -204,7 +147,7 @@
 
             @empty
 
-                <div class="discovery-empty">
+                <div class="discover-empty-inline">
                     هنوز سالنی برای نمایش وجود ندارد.
                 </div>
 

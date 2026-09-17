@@ -1,69 +1,50 @@
-<section class="discovery-section">
+<section class="discover-stats-section">
 
-    <div class="discovery-container">
+    <div class="discover-container">
 
-        <div class="discovery-stats">
+        <div class="discover-stats-grid">
 
-            <div class="discovery-stats-grid">
+            <div class="discover-stat">
 
-                <div class="discovery-stat">
+                <strong>
+                    {{ number_format(
+                        $stats['salons'] ?? 0
+                    ) }}+
+                </strong>
 
-                    <span class="discovery-stat-number">
-                        {{ number_format(
-                            $stats['salons'] ?? 0
-                        ) }}+
-                    </span>
+                <span>
+                    سالن فعال
+                </span>
 
-                    <span class="discovery-stat-label">
-                        سالن فعال
-                    </span>
-
-                </div>
+            </div>
 
 
-                <div class="discovery-stat">
+            <div class="discover-stat">
 
-                    <span class="discovery-stat-number">
-                        {{ number_format(
-                            $stats['barbers'] ?? 0
-                        ) }}+
-                    </span>
+                <strong>
+                    {{ number_format(
+                        $stats['barbers'] ?? 0
+                    ) }}+
+                </strong>
 
-                    <span class="discovery-stat-label">
-                        متخصص
-                    </span>
+                <span>
+                    متخصص
+                </span>
 
-                </div>
-
-
-                <div class="discovery-stat">
-
-                    <span class="discovery-stat-number">
-                        {{ number_format(
-                            $stats['services'] ?? 0
-                        ) }}+
-                    </span>
-
-                    <span class="discovery-stat-label">
-                        خدمت
-                    </span>
-
-                </div>
+            </div>
 
 
-                <div class="discovery-stat">
+            <div class="discover-stat">
 
-                    <span class="discovery-stat-number">
-                        {{ number_format(
-                            $stats['bookings'] ?? 0
-                        ) }}+
-                    </span>
+                <strong>
+                    {{ number_format(
+                        $stats['services'] ?? 0
+                    ) }}+
+                </strong>
 
-                    <span class="discovery-stat-label">
-                        نوبت ثبت‌شده
-                    </span>
-
-                </div>
+                <span>
+                    خدمت
+                </span>
 
             </div>
 

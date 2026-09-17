@@ -1,23 +1,28 @@
-@extends('layouts.discovery')
+@extends('layouts.customer')
 
-@section('title', 'NOBAT — کشف و رزرو نوبت')
+@section('title', 'کشف سالن و رزرو نوبت')
 
 @section(
-    'description',
-    'بهترین سالن‌ها، متخصص‌ها و خدمات زیبایی را پیدا کن و آنلاین نوبت بگیر.'
+    'meta_description',
+    'سالن‌ها، آرایشگرها و خدمات زیبایی را پیدا کن، مقایسه کن و آنلاین نوبت بگیر.'
 )
+
+@section('canonical', route('salons.discover'))
+
+@push('head')
+    @vite('resources/css/discovery.css')
+@endpush
+
+@push('scripts')
+    @vite('resources/js/discover.js')
+@endpush
 
 @php
     use Illuminate\Support\Facades\Storage;
-
-    /*
-    |--------------------------------------------------------------------------
-    | IMAGE RESOLVER
-    |--------------------------------------------------------------------------
-    */
+    use Illuminate\Support\Str;
 
     $resolveImage = function ($path) {
-        if (!$path) {
+        if (! $path) {
             return null;
         }
 
@@ -32,123 +37,59 @@
         return Storage::url($path);
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | DATA
-    |--------------------------------------------------------------------------
-    */
-
-    $salons = ($nearbySalons ?? collect())->values();
-
-    $services = ($popularServices ?? collect())->values();
-
-    $heroSalon =
-        $featuredSalon
-        ?? $salons->first();
-
-    /*
-    |--------------------------------------------------------------------------
-    | HERO IMAGE
-    |--------------------------------------------------------------------------
-    */
-
-    $fallbackHero =
-        'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1800&q=88';
+    $heroSalon = $featuredSalon ?? $popularSalons->first();
 
     $heroImage = null;
 
     if ($heroSalon) {
         $heroImage =
-            $resolveImage($heroSalon->cover_path)
-            ?: $resolveImage($heroSalon->logo_path);
+            ($heroSalon->cover_url ?? null)
+            ?: $resolveImage($heroSalon->cover_path ?? null)
+            ?: $resolveImage($heroSalon->logo_path ?? null);
     }
 
-    $heroImage =
-        $heroImage ?: $fallbackHero;
-
-    /*
-    |--------------------------------------------------------------------------
-    | SERVICE FALLBACK IMAGES
-    |--------------------------------------------------------------------------
-    */
+    $heroImage ??= 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1800&q=88';
 
     $serviceFallbacks = [
-
-        'مو' =>
-            'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=1000&q=85',
-
-        'رنگ' =>
-            'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1000&q=85',
-
-        'ناخن' =>
-            'https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=1000&q=85',
-
-        'پوست' =>
-            'https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=1000&q=85',
-
-        'ماساژ' =>
-            'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1000&q=85',
-
-        'میکاپ' =>
-            'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1000&q=85',
-    ];
-
-    $defaultServiceImage = $fallbackHero;
-
-    /*
-    |--------------------------------------------------------------------------
-    | STATS FALLBACK
-    |--------------------------------------------------------------------------
-    */
-
-    $stats = $stats ?? [
-        'salons' => $salons->count(),
-
-        'barbers' =>
-            $salons
-                ->flatMap
-                ->barbers
-                ->count(),
-
-        'services' => $services->count(),
-
-        'bookings' => 0,
+        'مو'    => 'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=1000&q=85',
+        'رنگ'   => 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1000&q=85',
+        'ناخن'  => 'https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=1000&q=85',
+        'پوست'  => 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=1000&q=85',
+        'ماساژ' => 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1000&q=85',
+        'میکاپ' => 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1000&q=85',
     ];
 @endphp
 
-
 @section('content')
 
-    <div
-        id="discoveryPage"
-        class="discovery-page"
-    >
+    <div class="discover-page">
 
-        @include('customer.discover.partials.header')
+        @include('customer.discover.sections.hero')
 
-        <main>
+        {{-- =========================================================
+            MAIN SEARCH RESULTS
+        ========================================================== --}}
+        @include('customer.discover.sections.results')
 
-            @include('customer.discover.sections.hero')
+        {{-- =========================================================
+            SECONDARY DISCOVERY CONTENT
+        ========================================================== --}}
 
-            @include('customer.discover.sections.popular-salons')
+        @include('customer.discover.sections.services')
 
-            @include('customer.discover.sections.services')
+        @include('customer.discover.sections.popular-salons')
 
-            @include('customer.discover.sections.featured')
+        @include('customer.discover.sections.featured')
 
-            @include('customer.discover.sections.stylists')
+        @include('customer.discover.sections.stylists')
 
+        @if($hasGeo && $nearbySalons->isNotEmpty())
             @include('customer.discover.sections.nearby')
+        @endif
 
-            @include('customer.discover.sections.booking')
+        @include('customer.discover.sections.stats')
 
-            @include('customer.discover.sections.stats')
-
-            @include('customer.discover.sections.blog')
-
-            @include('customer.discover.sections.owner-cta')
-
-        </main>
+        @include('customer.discover.sections.owner-cta')
 
     </div>
 

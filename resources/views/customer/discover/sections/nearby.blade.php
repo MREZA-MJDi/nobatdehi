@@ -1,155 +1,284 @@
-<section
-    class="discovery-section"
-    id="nearby"
->
+@if($nearbySalons->isNotEmpty())
 
-    <div class="discovery-container">
+    <section
+        class="discover-section discover-section-soft"
+        id="nearby"
+    >
 
-        <div class="discovery-section-header">
+        <div class="discover-container">
 
-            <div class="discovery-section-heading">
+            {{-- =====================================================
+                HEADER
+            ====================================================== --}}
 
-                <span class="discovery-section-eyebrow">
-                    LOCATION
-                </span>
+            <div class="discover-section-heading discover-section-heading-inline">
 
-                <h2 class="discovery-section-title">
-                    سالن‌ها در اطراف تو
-                </h2>
+                <div>
 
-                <p class="discovery-section-description">
-                    سالن‌های نزدیک را سریع‌تر پیدا کن.
-                </p>
+                    <span class="discover-kicker">
+                        نزدیک شما
+                    </span>
+
+                    <h2>
+                        سالن‌های اطراف تو
+                    </h2>
+
+                    <p>
+
+                        @if($nearbyRadius <= 2)
+
+                            چند سالن در شعاع
+                            ۲ کیلومتری
+                            از موقعیتت پیدا کردیم.
+
+                        @elseif($nearbyRadius <= 5)
+
+                            در شعاع
+                            {{ number_format($nearbyRadius, 0) }}
+                            کیلومتری
+                            چند گزینه نزدیک پیدا کردیم.
+
+                        @else
+
+                            در شعاع
+                            {{ rtrim(
+                                rtrim(
+                                    number_format(
+                                        $nearbyRadius,
+                                        1
+                                    ),
+                                    '0'
+                                ),
+                                '.'
+                            ) }}
+                            کیلومتری
+                            گزینه‌هایی برایت پیدا کردیم.
+
+                        @endif
+
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="{{ route('salons.discover') }}#results"
+                    class="discover-section-link"
+                >
+                    تغییر موقعیت
+                    <span aria-hidden="true">
+                        ←
+                    </span>
+                </a>
 
             </div>
 
-            <a
-                href="{{ route('salons.discover') }}"
-                class="discovery-section-link"
-            >
-                تغییر موقعیت
-                <span>←</span>
-            </a>
 
-        </div>
+            {{-- =====================================================
+                RADIUS INFO
+            ====================================================== --}}
+
+            <div class="discover-nearby-info">
+
+                <span>
+                    نزدیک‌ترین گزینه‌ها
+                </span>
+
+                <strong>
+                    تا
+                    {{ rtrim(
+                        rtrim(
+                            number_format(
+                                $nearbyRadius,
+                                1
+                            ),
+                            '0'
+                        ),
+                        '.'
+                    ) }}
+                    کیلومتر
+                </strong>
+
+            </div>
 
 
-        <div class="discovery-nearby-layout">
+            {{-- =====================================================
+                SALONS
+            ====================================================== --}}
 
-            <div class="discovery-nearby-list">
+            <div class="discover-nearby-grid">
 
-                @forelse(
-                    $salons->take(5)
-                    as $salon
-                )
+                @foreach($nearbySalons as $salon)
 
-                    <a
-                        href="{{ route(
-                            'public.salons.show',
-                            $salon
-                        ) }}"
-                        class="discovery-nearby-item"
-                    >
+                    @php
 
-                        <div class="discovery-nearby-item-image">
+                        $image =
+                            ($salon->cover_url ?? null)
+                            ?: $resolveImage(
+                                $salon->cover_path ?? null
+                            )
+                            ?: $resolveImage(
+                                $salon->logo_path ?? null
+                            );
 
-                            @if($salon->cover_url ?? null)
+                        $rating = (float) (
+                            $salon->reviews_avg_rating ?? 0
+                        );
+
+                        $location = collect([
+                            $salon->district,
+                            $salon->city,
+                        ])
+                        ->filter()
+                        ->implode('، ');
+
+                    @endphp
+
+
+                    <article class="discover-nearby-card">
+
+                        <a
+                            href="{{ route(
+                                'public.salons.show',
+                                $salon
+                            ) }}"
+                            class="discover-nearby-media"
+                        >
+
+                            @if($image)
 
                                 <img
-                                    src="{{ $salon->cover_url }}"
+                                    src="{{ $image }}"
                                     alt="{{ $salon->name }}"
                                     loading="lazy"
                                 >
 
-                            @elseif($salon->cover_path)
+                            @else
 
-                                <img
-                                    src="{{ $resolveImage(
-                                        $salon->cover_path
-                                    ) }}"
-                                    alt="{{ $salon->name }}"
-                                    loading="lazy"
-                                >
+                                <div class="discover-salon-fallback">
+                                    NOBAT
+                                </div>
 
                             @endif
 
-                        </div>
+                        </a>
 
 
-                        <div class="discovery-nearby-item-content">
+                        <div class="discover-nearby-body">
 
-                            <div class="discovery-nearby-item-name">
-                                {{ $salon->name }}
-                            </div>
+                            <div class="discover-nearby-top">
 
-                            <div class="discovery-nearby-item-meta">
+                                <div>
 
-                                ★
+                                    <h3>
+                                        {{ $salon->name }}
+                                    </h3>
 
-                                {{
-                                    isset($salon->rating)
-                                        ? number_format(
-                                            (float) $salon->rating,
+                                    <p>
+                                        {{ $location ?: 'ایران' }}
+                                    </p>
+
+                                </div>
+
+
+                                @if($rating > 0)
+
+                                    <span class="discover-nearby-rating">
+                                        ★
+                                        {{ number_format(
+                                            $rating,
                                             1
-                                        )
-                                        : '—'
-                                }}
+                                        ) }}
+                                    </span>
 
-                                ·
+                                @endif
 
-                                {{
-                                    collect([
-                                        $salon->district,
-                                        $salon->city,
-                                    ])
-                                    ->filter()
-                                    ->implode('، ')
-                                    ?: 'ایران'
-                                }}
+                            </div>
+
+
+                            <div class="discover-nearby-meta">
+
+                                @if(isset($salon->distance_km))
+
+                                    <span>
+                                        📍
+                                        {{ number_format(
+                                            (float) $salon->distance_km,
+                                            1
+                                        ) }}
+                                        کیلومتر
+                                    </span>
+
+                                @endif
+
+                                <span>
+                                    {{ number_format(
+                                        (int) $salon->services_count
+                                    ) }}
+                                    خدمت
+                                </span>
+
+                                <span>
+                                    {{ number_format(
+                                        (int) $salon->barbers_count
+                                    ) }}
+                                    متخصص
+                                </span>
+
+                            </div>
+
+
+                            @if($salon->services->isNotEmpty())
+
+                                <div class="discover-result-tags">
+
+                                    @foreach(
+                                        $salon->services->take(3)
+                                        as $service
+                                    )
+
+                                        <span>
+                                            {{ $service->name }}
+                                        </span>
+
+                                    @endforeach
+
+                                </div>
+
+                            @endif
+
+
+                            <div class="discover-nearby-footer">
+
+                                <span>
+                                    نزدیک شما
+                                </span>
+
+                                <a
+                                    href="{{ route(
+                                        'public.salons.show',
+                                        $salon
+                                    ) }}"
+                                    class="discover-result-button"
+                                >
+                                    مشاهده سالن
+                                    <span aria-hidden="true">
+                                        ←
+                                    </span>
+                                </a>
 
                             </div>
 
                         </div>
 
+                    </article>
 
-                        <span class="discovery-nearby-arrow">
-                            ←
-                        </span>
-
-                    </a>
-
-                @empty
-
-                    <div class="discovery-empty">
-                        هنوز سالنی برای نمایش وجود ندارد.
-                    </div>
-
-                @endforelse
-
-            </div>
-
-
-            {{-- VISUAL MAP --}}
-            <div class="discovery-map">
-
-                <div class="discovery-map-grid"></div>
-
-                <div class="discovery-map-overlay"></div>
-
-                <span class="discovery-map-pin"></span>
-
-                <span class="discovery-map-pin"></span>
-
-                <span class="discovery-map-pin"></span>
-
-                <span class="discovery-map-pin"></span>
-
-                <span class="discovery-map-center"></span>
+                @endforeach
 
             </div>
 
         </div>
 
-    </div>
+    </section>
 
-</section>
+@endif

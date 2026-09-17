@@ -1,6 +1,6 @@
 /* ================================================================
-   PUBLIC SALON
-   Diamond / Matte Graphite
+   NOBAT PUBLIC SALON
+   Premium Editorial / Matte Graphite
    ================================================================ */
 
 .salon-page,
@@ -10,63 +10,56 @@
     box-sizing: border-box;
 }
 
-
-/* ================================================================
-   TOKENS
-   ================================================================ */
-
 .salon-page {
-    --bg: #0d0d0f;
-    --bg-2: #121216;
+    --bg: #08090b;
+    --bg-soft: #0e1013;
+    --surface: #111317;
+    --surface-2: #15181d;
+    --surface-3: #1a1e24;
 
-    --card: #17171d;
-    --card-2: #1d1d24;
+    --text: #f5f6f8;
+    --text-soft: rgba(245, 246, 248, .70);
+    --muted: rgba(245, 246, 248, .48);
+    --muted-2: rgba(245, 246, 248, .30);
 
-    --line: rgba(255, 255, 255, .07);
-    --line-strong: rgba(255, 255, 255, .12);
+    --line: rgba(255,255,255,.075);
+    --line-strong: rgba(255,255,255,.13);
 
-    --text: #f3f3f6;
-    --muted: #9494a1;
-    --muted-2: #6d6d7a;
+    --diamond: #edf3f8;
+    --diamond-2: #c4d0dc;
+    --diamond-3: #94a4b5;
 
-    --diamond-50: #f8fafc;
-    --diamond-100: #eef2f7;
-    --diamond-200: #dde5ef;
-    --diamond-300: #c5d2e0;
-    --diamond-400: #a8b8cc;
-
-    --green: #7fd6b8;
-    --red: #ff6b6b;
+    --green: #7dd6b3;
+    --red: #ff7272;
 
     --shadow-sm:
-        0 8px 24px rgba(0, 0, 0, .20);
+        0 12px 32px rgba(0,0,0,.20);
 
     --shadow-md:
-        0 18px 45px rgba(0, 0, 0, .42);
+        0 24px 70px rgba(0,0,0,.32);
 
     --shadow-lg:
-        0 28px 80px rgba(0, 0, 0, .62);
+        0 34px 100px rgba(0,0,0,.55);
 
-    --diamond-glow:
-        rgba(232, 238, 245, .22);
+    --radius-xl: 30px;
+    --radius-lg: 24px;
+    --radius-md: 18px;
+    --radius-sm: 13px;
 
-    --diamond-glow-strong:
-        rgba(232, 238, 245, .38);
-
+    width: 100%;
     min-height: 100vh;
-    position: relative;
     overflow-x: clip;
 
     background:
         radial-gradient(
-            900px 520px at 88% -10%,
-            rgba(232, 238, 245, .045),
+            900px 550px at 86% -10%,
+            rgba(237,243,248,.045),
             transparent 70%
         ),
         radial-gradient(
-            700px 480px at 5% 14%,
-            rgba(168, 184, 204, .025),
-            transparent 70%
+            700px 430px at 0 18%,
+            rgba(148,164,181,.025),
+            transparent 72%
         ),
         var(--bg);
 
@@ -74,41 +67,25 @@
 
     font-family:
         "Vazirmatn",
-        system-ui,
+        Tahoma,
+        Arial,
         sans-serif;
 
-    line-height: 1.7;
+    line-height: 1.75;
 
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| Avoid light body background leaking around the salon page
-|--------------------------------------------------------------------------
-*/
-
 html:has(.salon-page),
 body:has(.salon-page) {
     background: var(--bg) !important;
-}
-
-body:has(.salon-page) {
     color: var(--text);
 }
 
-
-/* ================================================================
-   BASE
-   ================================================================ */
-
-.salon-page img,
-.salon-page video,
-.salon-page iframe {
-    display: block;
-    max-width: 100%;
+.salon-page a {
+    color: inherit;
+    text-decoration: none;
 }
 
 .salon-page button,
@@ -120,53 +97,43 @@ body:has(.salon-page) {
 
 .salon-page button {
     border: 0;
-    background: none;
     color: inherit;
     cursor: pointer;
 }
 
-.salon-page a {
-    color: inherit;
-    text-decoration: none;
+.salon-page img,
+.salon-page video,
+.salon-page iframe {
+    display: block;
+    max-width: 100%;
 }
 
 .salon-page ::selection {
-    background: var(--diamond-300);
-    color: #0d0d0f;
+    background: var(--diamond-2);
+    color: #0a0b0d;
 }
 
-.salon-page ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+.salon-page [hidden] {
+    display: none !important;
 }
-
-.salon-page ::-webkit-scrollbar-track {
-    background: var(--bg);
-}
-
-.salon-page ::-webkit-scrollbar-thumb {
-    background: #292930;
-    border-radius: 999px;
-}
-
-.salon-page ::-webkit-scrollbar-thumb:hover {
-    background: #3a3a44;
-}
-
 
 /* ================================================================
-   LAYOUT
+   GLOBAL
    ================================================================ */
 
 .salon-page .wrap {
-    width: 100%;
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 0 20px;
-    position: relative;
-    z-index: 1;
+    width: min(
+        calc(100% - 40px),
+        1180px
+    );
+
+    margin-inline: auto;
 }
 
+body.salon-modal-open,
+body.salon-lightbox-open {
+    overflow: hidden;
+}
 
 /* ================================================================
    TOPBAR
@@ -180,38 +147,74 @@ body:has(.salon-page) {
     border-bottom: 1px solid var(--line);
 
     background:
-        rgba(13, 13, 15, .88);
+        rgba(8,9,11,.82);
 
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
 }
 
 .salon-page .topbar-in {
-    max-width: 1120px;
-    margin: 0 auto;
-    min-height: 68px;
-    padding: 10px 20px;
+    width: min(
+        calc(100% - 40px),
+        1180px
+    );
+
+    min-height: 72px;
+
+    margin-inline: auto;
 
     display: flex;
     align-items: center;
-    gap: 14px;
+
+    gap: 18px;
 }
 
+.salon-page .back-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 
-/* Brand */
+    flex: 0 0 auto;
+
+    color: var(--muted);
+
+    font-size: .74rem;
+    font-weight: 700;
+
+    transition:
+        color .2s ease,
+        transform .2s ease;
+}
+
+.salon-page .back-home:hover {
+    color: var(--text);
+    transform: translateX(2px);
+}
+
+.salon-page .back-icon {
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid var(--line);
+    border-radius: 10px;
+
+    background: rgba(255,255,255,.025);
+
+    font-size: 1rem;
+}
 
 .salon-page .brand {
+    min-width: 0;
+
     display: inline-flex;
     align-items: center;
     gap: 10px;
-
-    font-size: 1rem;
-    font-weight: 800;
-
-    white-space: nowrap;
 }
 
-.salon-page .brand .dot {
+.salon-page .brand-mark {
     width: 34px;
     height: 34px;
 
@@ -220,119 +223,107 @@ body:has(.salon-page) {
 
     flex: 0 0 34px;
 
-    border-radius: 11px;
-
-    color: #0d0d0f;
+    border-radius: 10px;
 
     background:
         linear-gradient(
-            140deg,
-            #ffffff 0%,
-            #dde5ef 45%,
-            #a8b8cc 100%
+            135deg,
+            #fff,
+            #d6e0e9 48%,
+            #99a9b9
         );
 
-    box-shadow:
-        0 6px 20px var(--diamond-glow),
-        inset 0 1px 0 rgba(255,255,255,.9);
-}
-
-
-/* Back */
-
-.salon-page .back-home {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-
-    min-height: 36px;
-    padding: 7px 11px;
-
-    border: 1px solid var(--line);
-    border-radius: 11px;
-
-    color: var(--muted);
-
-    background: rgba(255,255,255,.025);
+    color: #0a0b0d;
 
     font-size: .76rem;
-    font-weight: 700;
+    font-weight: 900;
 
-    transition:
-        color .2s ease,
-        background .2s ease,
-        border-color .2s ease,
-        transform .2s ease;
+    box-shadow:
+        0 9px 24px rgba(214,224,233,.12);
 }
 
-.salon-page .back-home span:first-child {
-    font-size: 1rem;
-    line-height: 1;
+.salon-page .brand-copy {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
 }
 
-.salon-page .back-home:hover {
+.salon-page .brand-copy strong {
     color: var(--text);
 
-    background: rgba(255,255,255,.05);
+    font-family:
+        Arial,
+        sans-serif;
 
-    border-color: var(--line-strong);
-
-    transform: translateX(2px);
+    font-size: .80rem;
+    letter-spacing: .18em;
 }
 
+.salon-page .brand-copy small {
+    max-width: 220px;
 
-/* Navigation */
+    overflow: hidden;
+
+    color: var(--muted-2);
+
+    font-size: .61rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 .salon-page .topnav {
     margin-inline-start: auto;
 
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
 }
 
-.salon-page .topnav a {
-    padding: 8px 12px;
+.salon-page .topnav > a {
+    padding: 9px 11px;
 
     border-radius: 10px;
 
     color: var(--muted);
 
-    font-size: .82rem;
-    font-weight: 500;
+    font-size: .72rem;
+    font-weight: 600;
 
     transition:
         color .2s ease,
         background .2s ease;
 }
 
-.salon-page .topnav a:hover {
+.salon-page .topnav > a:hover {
     color: var(--text);
-    background: rgba(255,255,255,.05);
+    background: rgba(255,255,255,.04);
 }
 
+.salon-page .mobile-anchor-bar {
+    display: none;
+}
 
 /* ================================================================
-   DIAMOND BUTTONS
+   BUTTONS
    ================================================================ */
 
 .salon-page .btn-diamond,
 .salon-page .btn-book,
 .salon-page .btn-confirm {
+    color: #0a0b0d;
 
     background:
         linear-gradient(
             135deg,
             #ffffff 0%,
-            #eef2f7 35%,
-            #c5d2e0 68%,
+            #ebf1f6 40%,
+            #c5d0db 72%,
             #ffffff 100%
         );
 
-    color: #0d0d0f;
-
     box-shadow:
-        0 10px 28px var(--diamond-glow),
+        0 12px 30px rgba(212,223,233,.10),
         inset 0 1px 0 rgba(255,255,255,.95);
 
     transition:
@@ -345,62 +336,59 @@ body:has(.salon-page) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: 8px;
 
-    padding: 10px 18px;
+    min-height: 40px;
 
-    border-radius: 13px;
+    padding: 0 16px;
 
-    font-size: .82rem;
-    font-weight: 800;
+    border-radius: 12px;
+
+    font-size: .72rem;
+    font-weight: 850;
 }
 
 .salon-page .btn-diamond:hover {
     transform: translateY(-2px);
 
     box-shadow:
-        0 15px 34px var(--diamond-glow-strong),
+        0 17px 38px rgba(212,223,233,.17),
         inset 0 1px 0 #fff;
 }
 
-.salon-page .btn-diamond:active {
-    transform: translateY(0);
-}
-
-
-/* Ghost */
-
 .salon-page .btn-ghost {
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 7px;
 
-    padding: 9px 16px;
+    min-height: 40px;
+
+    padding: 0 14px;
 
     border: 1px solid var(--line-strong);
-    border-radius: 13px;
+    border-radius: 12px;
 
     color: var(--text);
 
     background: rgba(255,255,255,.025);
 
-    font-size: .81rem;
-    font-weight: 600;
+    font-size: .72rem;
+    font-weight: 700;
 
     transition:
-        background .2s ease,
         border-color .2s ease,
+        background .2s ease,
         transform .2s ease;
 }
 
 .salon-page .btn-ghost:hover {
-    background: rgba(255,255,255,.05);
-    border-color: var(--diamond-400);
+    border-color: var(--diamond-3);
+
+    background: rgba(255,255,255,.055);
+
     transform: translateY(-1px);
 }
-
 
 /* ================================================================
    HERO
@@ -408,49 +396,26 @@ body:has(.salon-page) {
 
 .salon-page .hero {
     margin-top: 20px;
-    position: relative;
 }
 
 .salon-page .cover {
-
-    height: 250px;
+    min-height: 330px;
 
     position: relative;
     overflow: hidden;
 
     border: 1px solid var(--line);
-    border-radius: 28px;
-
-    background:
-        radial-gradient(
-            700px 350px at 20% 0%,
-            rgba(232,238,245,.13),
-            transparent 65%
-        ),
-        linear-gradient(
-            140deg,
-            #19191f,
-            #0f0f12 65%
-        );
-}
-
-.salon-page .cover::after {
-    content: "";
-
-    position: absolute;
-    inset: 0;
+    border-radius: var(--radius-xl);
 
     background:
         linear-gradient(
-            to bottom,
-            transparent,
-            rgba(0,0,0,.12)
+            135deg,
+            #1a1f25,
+            #0d0f12
         );
-
-    pointer-events: none;
 }
 
-.salon-page .cover img {
+.salon-page .cover > img {
     position: absolute;
     inset: 0;
 
@@ -459,41 +424,134 @@ body:has(.salon-page) {
 
     object-fit: cover;
 
-    opacity: .48;
+    filter:
+        saturate(.78)
+        contrast(1.05)
+        brightness(.64);
+
+    transform: scale(1.02);
+
+    transition:
+        transform 1.2s ease;
 }
 
+.salon-page .hero:hover .cover > img {
+    transform: scale(1.045);
+}
 
-/* Open badge */
+.salon-page .cover-fallback {
+    width: 100%;
+    min-height: 330px;
 
-.salon-page .cover-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
+    color: var(--diamond);
+
+    background:
+        radial-gradient(
+            450px 240px at 50% 0,
+            rgba(237,243,248,.08),
+            transparent 70%
+        );
+}
+
+.salon-page .cover-fallback span {
+    font-family: Arial, sans-serif;
+    font-size: 2rem;
+    letter-spacing: .35em;
+}
+
+.salon-page .cover-fallback small {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: .72rem;
+}
+
+.salon-page .cover-shade {
     position: absolute;
+    inset: 0;
 
-    top: 16px;
-    inset-inline-start: 16px;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(4,5,7,.18) 0%,
+            rgba(4,5,7,.03) 35%,
+            rgba(4,5,7,.82) 100%
+        );
+}
 
-    z-index: 3;
+.salon-page .cover-topline {
+    position: absolute;
+    top: 20px;
+    inset-inline: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+}
+
+.salon-page .cover-label,
+.salon-page .cover-location {
+    padding: 7px 10px;
+
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 999px;
+
+    background: rgba(0,0,0,.26);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    color: rgba(255,255,255,.62);
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: .55rem;
+    letter-spacing: .15em;
+}
+
+.salon-page .cover-location {
+    font-family:
+        "Vazirmatn",
+        Tahoma,
+        sans-serif;
+
+    letter-spacing: 0;
+}
+
+.salon-page .cover-status {
+    position: absolute;
+    top: 70px;
+    inset-inline-start: 20px;
 
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
 
-    padding: 7px 12px;
+    padding: 8px 12px;
 
-    border: 1px solid var(--line-strong);
+    border: 1px solid rgba(255,255,255,.11);
     border-radius: 999px;
 
-    background: rgba(13,13,15,.58);
+    background: rgba(0,0,0,.32);
 
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 
-    font-size: .72rem;
+    color: #fff;
+
+    font-size: .66rem;
     font-weight: 700;
 }
 
 .salon-page .pulse-dot {
-
     width: 7px;
     height: 7px;
 
@@ -503,174 +561,166 @@ body:has(.salon-page) {
 
     background: var(--green);
 
-    animation: salonPulse 2s infinite;
+    box-shadow:
+        0 0 0 6px rgba(125,214,179,.08);
+
+    animation:
+        salonPulse 2.1s ease-in-out infinite;
 }
 
 .salon-page .pulse-dot.is-closed {
     background: var(--red);
+
+    box-shadow:
+        0 0 0 6px rgba(255,114,114,.07);
+
     animation: none;
 }
 
 @keyframes salonPulse {
-
-    0%,
-    100% {
-        box-shadow: 0 0 0 0 rgba(127,214,184,.35);
+    0%, 100% {
+        opacity: .55;
     }
 
-    70% {
-        box-shadow: 0 0 0 7px rgba(127,214,184,0);
+    50% {
+        opacity: 1;
     }
 }
-
 
 /* ================================================================
    PROFILE
    ================================================================ */
 
 .salon-page .profile-bar {
-
-    display: flex;
-    align-items: flex-end;
-    gap: 20px;
-
-    margin-top: -58px;
-    padding: 0 28px;
-
     position: relative;
     z-index: 5;
 
-    flex-wrap: wrap;
+    margin-top: -62px;
+    padding: 0 28px;
+
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr) auto;
+    align-items: end;
+
+    gap: 18px;
 }
 
 .salon-page .avatar {
-
-    width: 124px;
-    height: 124px;
-
-    flex: 0 0 124px;
-
-    position: relative;
-    overflow: hidden;
+    width: 126px;
+    height: 126px;
 
     display: grid;
     place-items: center;
 
+    overflow: hidden;
+
     border: 4px solid var(--bg);
-    border-radius: 34px;
+    border-radius: 32px;
 
     background:
         linear-gradient(
             145deg,
-            #2b2b36,
-            #141419
+            #293039,
+            #12161a
         );
 
-    color: var(--diamond-200);
+    color: var(--diamond);
 
-    font-size: 2.4rem;
+    font-size: 2.5rem;
     font-weight: 900;
 
     box-shadow:
-        0 18px 45px rgba(0,0,0,.55),
-        0 0 0 1px rgba(255,255,255,.08);
+        0 22px 50px rgba(0,0,0,.52),
+        0 0 0 1px rgba(255,255,255,.07);
 }
 
 .salon-page .avatar img {
-
     width: 100%;
     height: 100%;
 
     object-fit: cover;
-
-    position: relative;
-    z-index: 1;
-
-    border-radius: 29px;
 }
-
-.salon-page .avatar span {
-
-    position: relative;
-    z-index: 1;
-
-    color: var(--diamond-200);
-}
-
-
-/* Profile info */
 
 .salon-page .profile-info {
-
-    flex: 1;
-    min-width: 240px;
-
-    padding-bottom: 6px;
+    min-width: 0;
+    padding-bottom: 7px;
 }
 
 .salon-page .name-row {
-
     display: flex;
     align-items: center;
-    gap: 8px;
     flex-wrap: wrap;
+
+    gap: 9px;
 }
 
 .salon-page .name-row h1 {
-
     margin: 0;
 
-    font-size: 1.55rem;
-    line-height: 1.35;
-    font-weight: 850;
-    letter-spacing: -.45px;
-
     color: var(--text);
-}
 
-.salon-page .verified {
+    font-size: clamp(
+        1.45rem,
+        2.5vw,
+        2rem
+    );
 
-    width: 21px;
-    height: 21px;
-
-    display: grid;
-    place-items: center;
-
-    flex: 0 0 21px;
-
-    border-radius: 50%;
-
-    color: #0d0d0f;
-
-    background:
-        linear-gradient(
-            135deg,
-            #f4f6f9,
-            #9cacbf
-        );
-
-    font-size: .68rem;
+    line-height: 1.3;
     font-weight: 900;
 }
 
-.salon-page .tagline {
+.salon-page .verified-live {
+    min-height: 24px;
 
-    margin-top: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 0 8px;
+
+    border: 1px solid rgba(125,214,179,.18);
+    border-radius: 999px;
+
+    color: var(--green);
+
+    background: rgba(125,214,179,.045);
+
+    font-size: .58rem;
+    font-weight: 800;
+}
+
+.salon-page .verified-live span {
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+
+    background: currentColor;
+}
+
+.salon-page .tagline {
+    max-width: 680px;
+
+    margin: 5px 0 0;
 
     color: var(--muted);
 
-    font-size: .85rem;
+    font-size: .75rem;
+    line-height: 1.9;
 }
 
 .salon-page .stats {
+    margin-top: 15px;
 
     display: flex;
-    align-items: flex-start;
-    gap: 22px;
-
-    margin-top: 14px;
-
     flex-wrap: wrap;
+    align-items: flex-start;
+
+    gap: 20px;
+}
+
+.salon-page .stat {
+    min-width: 62px;
 }
 
 .salon-page .stat b {
@@ -678,64 +728,86 @@ body:has(.salon-page) {
 
     color: var(--text);
 
-    font-size: 1.02rem;
-    font-weight: 800;
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: .95rem;
+    font-weight: 700;
 }
 
 .salon-page .stat span {
-
     display: block;
-    margin-top: 1px;
+
+    margin-top: 3px;
 
     color: var(--muted-2);
 
-    font-size: .7rem;
+    font-size: .60rem;
 }
 
 .salon-page .stat.rate b {
-    color: var(--diamond-200);
+    color: var(--diamond);
 }
 
-
-/* Actions */
-
 .salon-page .profile-actions {
+    padding-bottom: 7px;
 
     display: flex;
     align-items: center;
     gap: 8px;
-
-    padding-bottom: 6px;
-
-    flex-wrap: wrap;
 }
 
+.salon-page .hero-bottom {
+    margin: 20px 28px 0;
 
-/* Bio + chips */
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr);
+    gap: 30px;
 
-.salon-page .bio {
+    align-items: start;
+}
 
-    max-width: 700px;
+.salon-page .hero-bio {
+    color: var(--text-soft);
 
-    margin: 18px 28px 0;
+    font-size: .77rem;
+    line-height: 2;
+}
+
+.salon-page .hero-meta {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
 
     color: var(--muted);
 
-    font-size: .84rem;
-    line-height: 1.95;
+    font-size: .65rem;
+}
+
+.salon-page .hero-meta span {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+}
+
+.salon-page .hero-meta i {
+    color: var(--diamond-2);
+    font-style: normal;
 }
 
 .salon-page .chips {
+    margin: 13px 28px 0;
 
     display: flex;
-    gap: 7px;
+    align-items: center;
     flex-wrap: wrap;
 
-    margin: 12px 28px 0;
+    gap: 7px;
 }
 
 .salon-page .chip {
-
     padding: 6px 11px;
 
     border: 1px solid var(--line);
@@ -743,73 +815,77 @@ body:has(.salon-page) {
 
     color: var(--muted);
 
-    background: rgba(255,255,255,.025);
+    background: rgba(255,255,255,.022);
 
-    font-size: .69rem;
-    font-weight: 600;
+    font-size: .60rem;
+    font-weight: 700;
 }
 
-.salon-page .chip.diamond {
+.salon-page .chip.accent {
+    color: var(--diamond);
 
-    color: var(--diamond-100);
-
-    border-color: rgba(197,210,224,.24);
-
-    background: rgba(197,210,224,.05);
+    border-color: rgba(237,243,248,.16);
+    background: rgba(237,243,248,.045);
 }
 
+.salon-page .chip.success {
+    color: var(--green);
+
+    border-color: rgba(125,214,179,.18);
+    background: rgba(125,214,179,.045);
+}
+
+.salon-page .chip.danger {
+    color: var(--red);
+
+    border-color: rgba(255,114,114,.18);
+    background: rgba(255,114,114,.045);
+}
 
 /* ================================================================
    BOOKING CTA
    ================================================================ */
 
 .salon-page .booking-cta {
+    position: relative;
 
-    margin-top: 30px;
+    margin-top: 34px;
+    overflow: hidden;
 
     display: flex;
     align-items: center;
+    justify-content: space-between;
+
     gap: 28px;
 
-    padding: 30px;
+    padding: 26px 28px;
 
-    position: relative;
-    overflow: hidden;
-
-    border: 1px solid rgba(197,210,224,.15);
-    border-radius: 26px;
+    border: 1px solid rgba(237,243,248,.11);
+    border-radius: var(--radius-lg);
 
     background:
-        radial-gradient(
-            650px 300px at 10% 0%,
-            rgba(232,238,245,.08),
-            transparent 70%
-        ),
         linear-gradient(
-            150deg,
-            #18181f,
-            #0e0e12
+            135deg,
+            rgba(255,255,255,.045),
+            rgba(255,255,255,.015)
         );
 }
 
-.salon-page .booking-cta::after {
-
-    content: "";
-
+.salon-page .booking-cta-glow {
     position: absolute;
 
-    width: 260px;
-    height: 260px;
+    width: 310px;
+    height: 310px;
 
-    inset-inline-end: -100px;
-    top: -130px;
+    inset-inline-end: -130px;
+    top: -145px;
 
     border-radius: 50%;
 
     background:
         radial-gradient(
             circle,
-            rgba(232,238,245,.09),
+            rgba(237,243,248,.12),
             transparent 70%
         );
 
@@ -817,295 +893,917 @@ body:has(.salon-page) {
 }
 
 .salon-page .bk-text {
-
-    flex: 1;
-    min-width: 260px;
-
     position: relative;
-    z-index: 1;
+    z-index: 2;
+
+    min-width: 0;
 }
 
 .salon-page .bk-text .eyebrow {
-
     display: flex;
     align-items: center;
     gap: 7px;
 
-    margin-bottom: 7px;
+    margin-bottom: 5px;
 
-    color: var(--diamond-200);
+    color: var(--diamond-2);
 
-    font-size: .7rem;
+    font-size: .62rem;
     font-weight: 800;
 }
 
 .salon-page .bk-text h2 {
-
-    margin: 0 0 7px;
+    margin: 0;
 
     color: var(--text);
 
-    font-size: 1.35rem;
+    font-size: 1.25rem;
     line-height: 1.5;
-    font-weight: 800;
+    font-weight: 900;
 }
 
 .salon-page .bk-text p {
+    max-width: 620px;
 
-    max-width: 500px;
-
-    margin: 0;
+    margin: 6px 0 0;
 
     color: var(--muted);
 
-    font-size: .82rem;
+    font-size: .70rem;
     line-height: 1.9;
 }
 
 .salon-page .bk-side {
-
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-
     position: relative;
-    z-index: 1;
+    z-index: 2;
+
+    flex: 0 0 auto;
+
+    min-width: 235px;
 }
 
 .salon-page .btn-book {
+    width: 100%;
 
-    min-width: 210px;
+    min-height: 56px;
 
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 9px;
+    gap: 11px;
 
-    padding: 14px 24px;
+    padding: 0 20px;
 
     border-radius: 15px;
 
-    font-size: .85rem;
-    font-weight: 850;
+    font-size: .77rem;
+    font-weight: 900;
 }
 
 .salon-page .btn-book:hover {
     transform: translateY(-2px);
-
-    box-shadow:
-        0 16px 36px var(--diamond-glow-strong),
-        inset 0 1px 0 #fff;
 }
 
-.salon-page .bk-side .hint {
+.salon-page .btn-book-icon {
+    font-size: 1rem;
+}
 
-    text-align: center;
+.salon-page .btn-arrow {
+    margin-inline-start: auto;
+
+    font-size: 1.05rem;
+}
+
+.salon-page .hint {
+    margin-top: 7px;
 
     color: var(--muted-2);
 
-    font-size: .68rem;
-}
+    text-align: center;
 
+    font-size: .57rem;
+}
 
 /* ================================================================
    SECTIONS
    ================================================================ */
 
 .salon-page .section {
-    margin-top: 52px;
+    margin-top: 72px;
+    scroll-margin-top: 100px;
 }
 
-.salon-page .sec-head {
-
+.salon-page .section-topline {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    align-items: end;
+    justify-content: space-between;
 
-    margin-bottom: 18px;
+    gap: 20px;
+
+    margin-bottom: 21px;
 }
 
-.salon-page .sec-head h3 {
+.salon-page .section-kicker {
+    display: block;
 
+    margin-bottom: 5px;
+
+    color: var(--diamond-3);
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: .54rem;
+    letter-spacing: .18em;
+}
+
+.salon-page .section-topline h2 {
     margin: 0;
 
     color: var(--text);
 
-    font-size: 1.08rem;
-    font-weight: 800;
+    font-size: 1.22rem;
+    line-height: 1.45;
+    font-weight: 900;
+}
 
+.salon-page .section-topline p {
+    margin: 5px 0 0;
+
+    color: var(--muted);
+
+    font-size: .68rem;
+}
+
+.salon-page .section-count {
+    color: var(--muted-2);
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: .60rem;
     white-space: nowrap;
 }
 
-.salon-page .sec-head .line {
+/* ================================================================
+   TABS
+   ================================================================ */
 
-    flex: 1;
+.salon-page .tabs {
+    width: 100%;
 
-    height: 1px;
+    display: flex;
+    gap: 5px;
 
-    background:
-        linear-gradient(
-            90deg,
-            rgba(197,210,224,.20),
-            transparent
-        );
+    margin-bottom: 15px;
+    padding: 4px;
+
+    overflow-x: auto;
+
+    border: 1px solid var(--line);
+    border-radius: 14px;
+
+    background: rgba(255,255,255,.018);
+
+    scrollbar-width: none;
 }
 
-.salon-page .sec-head .count {
+.salon-page .tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.salon-page .tab {
+    flex: 0 0 auto;
+
+    min-height: 35px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    padding: 0 12px;
+
+    border-radius: 10px;
+
+    color: var(--muted);
+
+    background: transparent;
+
+    font-size: .62rem;
+    font-weight: 750;
+
+    transition:
+        background .2s ease,
+        color .2s ease;
+}
+
+.salon-page .tab span {
+    padding: 2px 5px;
+
+    border-radius: 999px;
+
+    background: rgba(255,255,255,.05);
 
     color: var(--muted-2);
 
-    font-size: .7rem;
+    font-family:
+        Arial,
+        sans-serif;
 
-    white-space: nowrap;
+    font-size: .50rem;
 }
 
-
-/* ================================================================
-   SERVICES
-   ================================================================ */
-
-.salon-page .services-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-
-    gap: 14px;
-}
-
-.salon-page .service-card {
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
-
-    border: 1px solid var(--line);
-    border-radius: 22px;
+.salon-page .tab.active {
+    color: #0a0b0d;
 
     background:
         linear-gradient(
-            155deg,
-            var(--card-2),
-            var(--card)
+            135deg,
+            #fff,
+            #dce5ec
         );
 
-    transition:
-        transform .25s ease,
-        border-color .25s ease,
-        box-shadow .25s ease;
+    box-shadow:
+        0 7px 20px rgba(220,229,236,.09);
 }
 
-.salon-page .service-card:hover {
+.salon-page .tab.active span {
+    color: #0a0b0d;
+    background: rgba(0,0,0,.07);
+}
 
+/* ================================================================
+   GALLERY
+   ================================================================ */
+
+.salon-page .gallery {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0,1fr));
+
+    grid-auto-flow: dense;
+
+    gap: 10px;
+}
+
+.salon-page .tile {
+    min-width: 0;
+
+    position: relative;
+    overflow: hidden;
+
+    min-height: 265px;
+
+    border: 1px solid var(--line);
+    border-radius: 19px;
+
+    background: #15181c;
+
+    cursor: pointer;
+
+    outline: none;
+
+    transition:
+        transform .28s ease,
+        border-color .28s ease,
+        box-shadow .28s ease;
+}
+
+.salon-page .tile:focus-visible {
+    border-color: var(--diamond-3);
+
+    box-shadow:
+        0 0 0 3px rgba(197,208,219,.08);
+}
+
+.salon-page .tile.tile-1 {
+    grid-column: span 2;
+    grid-row: span 2;
+
+    min-height: 540px;
+}
+
+.salon-page .tile.tile-6 {
+    grid-column: span 2;
+}
+
+.salon-page .tile:hover {
     transform: translateY(-4px);
 
-    border-color:
-        rgba(197,210,224,.26);
+    border-color: rgba(237,243,248,.18);
 
     box-shadow:
         var(--shadow-md);
 }
 
-.salon-page .service-media {
-
-    aspect-ratio: 16 / 10;
-
-    position: relative;
-    overflow: hidden;
-
-    background:
-        linear-gradient(
-            135deg,
-            #25252e,
-            #111116
-        );
+.salon-page .tile .media {
+    position: absolute;
+    inset: 0;
 }
 
-.salon-page .service-media img {
-
+.salon-page .tile .media img,
+.salon-page .tile .media video {
     width: 100%;
     height: 100%;
 
     object-fit: cover;
 
     transition:
-        transform .45s ease;
+        transform .65s ease;
+}
+
+.salon-page .tile:hover .media img,
+.salon-page .tile:hover .media video {
+    transform: scale(1.045);
+}
+
+.salon-page .tile-gradient {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(0,0,0,.02) 42%,
+            rgba(0,0,0,.82) 100%
+        );
+}
+
+.salon-page .tile-top {
+    position: absolute;
+    top: 12px;
+    inset-inline: 12px;
+
+    z-index: 4;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 8px;
+}
+
+.salon-page .badge-type {
+    padding: 5px 9px;
+
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 999px;
+
+    background: rgba(6,7,9,.56);
+
+    backdrop-filter: blur(9px);
+
+    color: var(--diamond);
+
+    font-size: .54rem;
+    font-weight: 800;
+}
+
+.salon-page .badge-type.reel {
+    color: #e2c7ff;
+}
+
+.salon-page .badge-type.video {
+    color: #c2d9ff;
+}
+
+.salon-page .badge-type.image {
+    color: var(--diamond);
+}
+
+.salon-page .badge-type.gif {
+    color: #ffd2b8;
+}
+
+.salon-page .tile-play {
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid rgba(255,255,255,.17);
+    border-radius: 50%;
+
+    background: rgba(255,255,255,.08);
+
+    color: #fff;
+
+    font-size: .65rem;
+
+    backdrop-filter: blur(10px);
+}
+
+.salon-page .tile-bottom {
+    position: absolute;
+    inset-inline: 13px;
+    bottom: 13px;
+
+    z-index: 4;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 2px;
+}
+
+.salon-page .tile-bottom strong {
+    overflow: hidden;
+
+    color: rgba(255,255,255,.95);
+
+    font-size: .68rem;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-page .tile-bottom span {
+    overflow: hidden;
+
+    color: rgba(255,255,255,.55);
+
+    font-size: .56rem;
+    line-height: 1.65;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-page .media-empty {
+    width: 100%;
+    height: 100%;
+
+    min-height: 265px;
+
+    display: grid;
+    place-items: center;
+
+    color: var(--diamond-3);
+
+    background:
+        radial-gradient(
+            320px 180px at 50% 0,
+            rgba(237,243,248,.06),
+            transparent 70%
+        );
+}
+
+.salon-page .media-empty span {
+    font-size: 1.8rem;
+}
+
+.salon-page .gallery-empty,
+.salon-page .section-empty {
+    padding: 40px 24px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    text-align: center;
+
+    border: 1px solid var(--line);
+    border-radius: 18px;
+
+    background: rgba(255,255,255,.018);
+}
+
+.salon-page .gallery-empty-icon {
+    width: 48px;
+    height: 48px;
+
+    display: grid;
+    place-items: center;
+
+    margin-bottom: 12px;
+
+    border-radius: 15px;
+
+    color: var(--diamond);
+
+    background: rgba(255,255,255,.04);
+}
+
+.salon-page .gallery-empty strong,
+.salon-page .section-empty strong {
+    color: var(--text);
+
+    font-size: .75rem;
+}
+
+.salon-page .gallery-empty span,
+.salon-page .section-empty span {
+    margin-top: 4px;
+
+    color: var(--muted);
+
+    font-size: .62rem;
+}
+
+/* ================================================================
+   LIGHTBOX
+   ================================================================ */
+
+.salon-page .media-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 18px;
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity .22s ease;
+}
+
+.salon-page .media-lightbox.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.salon-page .lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+
+    background: rgba(2,3,5,.90);
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.salon-page .lightbox-dialog {
+    width: min(
+        100%,
+        1180px
+    );
+
+    max-height: 92vh;
+
+    position: relative;
+    z-index: 2;
+
+    display: grid;
+    grid-template-columns: 1fr;
+
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 25px;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            145deg,
+            #14171b,
+            #0a0c0f
+        );
+
+    box-shadow:
+        var(--shadow-lg);
+
+    transform: translateY(10px) scale(.98);
+
+    transition:
+        transform .22s ease;
+}
+
+.salon-page .media-lightbox.open .lightbox-dialog {
+    transform: translateY(0) scale(1);
+}
+
+.salon-page .lightbox-close {
+    position: absolute;
+    top: 13px;
+    inset-inline-end: 13px;
+
+    z-index: 8;
+
+    width: 38px;
+    height: 38px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+
+    background: rgba(0,0,0,.35);
+
+    color: #fff;
+
+    backdrop-filter: blur(10px);
+}
+
+.salon-page .lightbox-nav {
+    position: absolute;
+    top: 50%;
+
+    z-index: 8;
+
+    width: 40px;
+    height: 40px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50%;
+
+    background: rgba(0,0,0,.35);
+
+    color: #fff;
+
+    font-size: 1.5rem;
+
+    transform: translateY(-50%);
+
+    backdrop-filter: blur(10px);
+}
+
+.salon-page .lightbox-nav.prev {
+    inset-inline-start: 13px;
+}
+
+.salon-page .lightbox-nav.next {
+    inset-inline-end: 13px;
+}
+
+.salon-page .lightbox-nav:disabled {
+    opacity: .3;
+}
+
+.salon-page .lightbox-media {
+    min-height: 55vh;
+
+    display: grid;
+    place-items: center;
+
+    padding: 54px 70px 24px;
+
+    background:
+        radial-gradient(
+            600px 300px at 50% 20%,
+            rgba(255,255,255,.04),
+            transparent 70%
+        );
+}
+
+.salon-page .lightbox-media img,
+.salon-page .lightbox-media video {
+    max-width: 100%;
+    max-height: 62vh;
+
+    width: auto;
+    height: auto;
+
+    object-fit: contain;
+}
+
+.salon-page .lightbox-info {
+    padding: 17px 22px 20px;
+
+    border-top: 1px solid var(--line);
+}
+
+.salon-page .lightbox-type {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: var(--diamond-3);
+
+    font-size: .56rem;
+    font-weight: 800;
+}
+
+.salon-page .lightbox-info strong {
+    display: block;
+
+    color: var(--text);
+
+    font-size: .83rem;
+    font-weight: 850;
+}
+
+.salon-page .lightbox-info > span:not(.lightbox-type) {
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--muted);
+
+    font-size: .61rem;
+}
+
+.salon-page .lightbox-info p {
+    max-width: 800px;
+
+    margin: 5px 0 0;
+
+    color: var(--muted);
+
+    font-size: .65rem;
+    line-height: 1.9;
+}
+
+.salon-page .lightbox-fallback {
+    color: var(--muted);
+    font-size: .72rem;
+}
+
+/* ================================================================
+   SERVICES
+   ================================================================ */
+
+.salon-page .services-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0,1fr));
+
+    gap: 14px;
+}
+
+.salon-page .service-card {
+    overflow: hidden;
+
+    border: 1px solid var(--line);
+    border-radius: 21px;
+
+    background:
+        linear-gradient(
+            150deg,
+            var(--surface-2),
+            var(--surface)
+        );
+
+    transition:
+        transform .24s ease,
+        border-color .24s ease,
+        box-shadow .24s ease;
+}
+
+.salon-page .service-card:hover {
+    transform: translateY(-4px);
+
+    border-color: rgba(237,243,248,.16);
+
+    box-shadow: var(--shadow-sm);
+}
+
+.salon-page .service-media {
+    aspect-ratio: 16 / 10;
+
+    position: relative;
+    overflow: hidden;
+
+    background: #16191e;
+}
+
+.salon-page .service-media img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    transition:
+        transform .5s ease;
 }
 
 .salon-page .service-card:hover .service-media img {
     transform: scale(1.05);
 }
 
-.salon-page .service-content {
+.salon-page .service-media-overlay {
+    position: absolute;
+    inset: 0;
 
+    background:
+        linear-gradient(
+            180deg,
+            transparent 50%,
+            rgba(0,0,0,.43)
+        );
+}
+
+.salon-page .service-media-fallback {
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+    place-items: center;
+
+    color: var(--diamond-3);
+
+    background:
+        radial-gradient(
+            300px 180px at 50% 0,
+            rgba(237,243,248,.055),
+            transparent 70%
+        );
+}
+
+.salon-page .service-number {
+    position: absolute;
+    top: 10px;
+    inset-inline-start: 10px;
+
+    padding: 5px 8px;
+
+    border-radius: 999px;
+
+    color: rgba(255,255,255,.62);
+
+    background: rgba(0,0,0,.32);
+
+    font-family: Arial, sans-serif;
+    font-size: .50rem;
+
+    backdrop-filter: blur(9px);
+}
+
+.salon-page .service-content {
     padding: 16px;
 }
 
 .salon-page .service-title {
-
     color: var(--text);
 
-    font-size: .9rem;
-    font-weight: 800;
+    font-size: .83rem;
+    font-weight: 850;
 }
 
 .salon-page .service-description {
-
-    margin-top: 4px;
+    margin: 5px 0 0;
 
     color: var(--muted);
 
-    font-size: .7rem;
-    line-height: 1.8;
+    font-size: .63rem;
+    line-height: 1.9;
 }
 
 .salon-page .service-info {
+    margin-top: 13px;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
 
-    margin-top: 13px;
+    gap: 10px;
 }
 
 .salon-page .service-price {
+    color: var(--diamond);
 
-    color: var(--diamond-200);
-
-    font-size: .82rem;
-    font-weight: 850;
+    font-size: .72rem;
 }
 
-.salon-page .service-duration {
+.salon-page .service-price small {
+    margin-inline-start: 2px;
 
     color: var(--muted-2);
 
-    font-size: .68rem;
+    font-size: .50rem;
+    font-weight: 600;
+}
+
+.salon-page .service-duration {
+    color: var(--muted-2);
+
+    font-size: .58rem;
 }
 
 .salon-page .service-book {
-
     width: 100%;
 
-    display: inline-flex;
-    justify-content: center;
+    margin-top: 13px;
+
+    min-height: 40px;
+
+    display: flex;
     align-items: center;
+    justify-content: space-between;
 
-    margin-top: 14px;
-    padding: 10px 12px;
+    padding: 0 12px;
 
-    border: 1px solid rgba(197,210,224,.18);
-    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 11px;
 
-    color: var(--diamond-100);
+    background: rgba(255,255,255,.025);
 
-    background: rgba(255,255,255,.035);
+    color: var(--text);
 
-    font-size: .72rem;
+    font-size: .62rem;
     font-weight: 800;
 
     transition:
@@ -1114,325 +1812,59 @@ body:has(.salon-page) {
 }
 
 .salon-page .service-book:hover {
-
-    background:
-        rgba(197,210,224,.08);
-
-    border-color:
-        rgba(197,210,224,.32);
+    border-color: rgba(237,243,248,.16);
+    background: rgba(237,243,248,.055);
 }
-
-.salon-page .service-empty {
-
-    min-height: 180px;
-
-    display: grid;
-    place-items: center;
-
-    color: var(--muted-2);
-
-    font-size: 1.6rem;
-}
-
 
 /* ================================================================
-   GALLERY
+   REVIEWS
    ================================================================ */
 
-.salon-page .tabs {
-
-    width: fit-content;
-    max-width: 100%;
-
+.salon-page .rating-summary {
     display: flex;
-    gap: 5px;
-
-    margin-bottom: 16px;
-    padding: 4px;
-
-    overflow-x: auto;
-
-    border: 1px solid var(--line);
-    border-radius: 13px;
-
-    background: rgba(255,255,255,.025);
-}
-
-.salon-page .tab {
+    align-items: center;
+    gap: 10px;
 
     flex: 0 0 auto;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 8px 14px;
-
-    border-radius: 9px;
-
-    color: var(--muted);
-
-    font-size: .72rem;
-    font-weight: 700;
-
-    transition:
-        color .2s ease,
-        background .2s ease;
 }
 
-.salon-page .tab.active {
+.salon-page .rating-score {
+    font-family: Arial, sans-serif;
 
-    color: #0d0d0f;
+    color: var(--diamond);
 
-    background:
-        linear-gradient(
-            135deg,
-            #ffffff,
-            #dde5ef
-        );
-
-    box-shadow:
-        0 5px 14px var(--diamond-glow);
+    font-size: 1.25rem;
+    font-weight: 800;
 }
 
-.salon-page .tab:not(.active):hover {
+.salon-page .rating-stars {
+    color: var(--diamond-2);
 
-    color: var(--text);
-
-    background:
-        rgba(255,255,255,.05);
+    font-size: .60rem;
+    letter-spacing: 2px;
 }
 
+.salon-page .rating-summary span:last-child {
+    display: block;
 
-.salon-page .gallery {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
-
-    gap: 11px;
-}
-
-.salon-page .tile {
-
-    aspect-ratio: 1 / 1.28;
-
-    min-width: 0;
-
-    position: relative;
-    overflow: hidden;
-
-    border: 1px solid var(--line);
-    border-radius: 18px;
-
-    background: #19191f;
-
-    cursor: pointer;
-
-    transition:
-        transform .25s ease,
-        border-color .25s ease,
-        box-shadow .25s ease;
-}
-
-.salon-page .tile:hover {
-
-    transform: translateY(-4px);
-
-    border-color:
-        rgba(197,210,224,.30);
-
-    box-shadow:
-        0 18px 42px rgba(0,0,0,.55);
-}
-
-.salon-page .tile .media {
-
-    position: absolute;
-    inset: 0;
-}
-
-.salon-page .tile .media img,
-.salon-page .tile .media video {
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-
-    transition:
-        transform .4s ease;
-}
-
-.salon-page .tile:hover .media img,
-.salon-page .tile:hover .media video {
-    transform: scale(1.05);
-}
-
-.salon-page .media-empty {
-
-    width: 100%;
-    height: 100%;
-
-    display: grid;
-    place-items: center;
+    margin-top: 2px;
 
     color: var(--muted-2);
 
-    background:
-        linear-gradient(
-            135deg,
-            #25252e,
-            #101014
-        );
-
-    font-size: 1.8rem;
+    font-size: .53rem;
 }
-
-.salon-page .tile .ov {
-
-    position: absolute;
-    inset: 0;
-
-    z-index: 1;
-
-    background:
-        linear-gradient(
-            to top,
-            rgba(0,0,0,.86),
-            rgba(0,0,0,.12) 52%,
-            transparent 74%
-        );
-}
-
-.salon-page .tile .meta {
-
-    position: absolute;
-
-    bottom: 0;
-    inset-inline: 0;
-
-    z-index: 3;
-
-    display: flex;
-    align-items: center;
-
-    padding: 11px;
-
-    gap: 8px;
-}
-
-.salon-page .tile .views {
-
-    max-width: 100%;
-
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    color: rgba(255,255,255,.9);
-
-    font-size: .66rem;
-    font-weight: 700;
-}
-
-.salon-page .tile .play {
-
-    position: absolute;
-
-    top: 50%;
-    left: 50%;
-
-    width: 46px;
-    height: 46px;
-
-    z-index: 3;
-
-    display: grid;
-    place-items: center;
-
-    transform:
-        translate(-50%, -50%);
-
-    border: 1px solid rgba(255,255,255,.32);
-    border-radius: 50%;
-
-    background:
-        rgba(255,255,255,.12);
-
-    color: #fff;
-
-    opacity: 0;
-
-    transition:
-        opacity .25s ease,
-        transform .25s ease;
-}
-
-.salon-page .tile:hover .play {
-
-    opacity: 1;
-
-    transform:
-        translate(-50%, -50%) scale(1.05);
-}
-
-.salon-page .tile .badge-type {
-
-    position: absolute;
-
-    top: 9px;
-    inset-inline-start: 9px;
-
-    z-index: 3;
-
-    padding: 4px 8px;
-
-    border: 1px solid var(--line-strong);
-    border-radius: 999px;
-
-    background:
-        rgba(13,13,15,.62);
-
-    backdrop-filter: blur(7px);
-
-    font-size: .61rem;
-    font-weight: 700;
-}
-
-.salon-page .badge-type.reel {
-    color: #e4c4ff;
-}
-
-.salon-page .badge-type.video {
-    color: #b8d4ff;
-}
-
-.salon-page .badge-type.photo {
-    color: var(--diamond-200);
-}
-
-.salon-page .badge-type.gif {
-    color: #ffc8a8;
-}
-
-
-/* ================================================================
-   COMMENTS
-   ================================================================ */
 
 .salon-page .comments {
-
     display: grid;
 
     grid-template-columns:
-        repeat(3, minmax(0, 1fr));
+        repeat(3, minmax(0,1fr));
 
     gap: 13px;
 }
 
 .salon-page .comment {
+    min-height: 180px;
 
     padding: 17px;
 
@@ -1441,9 +1873,9 @@ body:has(.salon-page) {
 
     background:
         linear-gradient(
-            150deg,
-            var(--card-2),
-            var(--card)
+            155deg,
+            var(--surface-2),
+            var(--surface)
         );
 
     transition:
@@ -1452,175 +1884,189 @@ body:has(.salon-page) {
 }
 
 .salon-page .comment:hover {
-
     transform: translateY(-3px);
-
-    border-color:
-        rgba(197,210,224,.22);
+    border-color: rgba(237,243,248,.15);
 }
 
 .salon-page .c-top {
-
     display: flex;
     align-items: center;
     gap: 10px;
-
-    margin-bottom: 10px;
 }
 
 .salon-page .c-av {
+    width: 42px;
+    height: 42px;
 
-    width: 40px;
-    height: 40px;
-
-    flex: 0 0 40px;
+    flex: 0 0 42px;
 
     display: grid;
     place-items: center;
 
     overflow: hidden;
 
-    border: 1px solid var(--line);
-    border-radius: 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 13px;
 
-    color: var(--diamond-200);
+    color: var(--diamond);
 
     background:
         linear-gradient(
-            135deg,
-            #2c2c37,
-            #141419
+            145deg,
+            #293039,
+            #111418
         );
 
-    font-size: .86rem;
-    font-weight: 800;
+    font-size: .75rem;
+    font-weight: 900;
 }
 
 .salon-page .c-av img {
-
     width: 100%;
     height: 100%;
-
     object-fit: cover;
 }
 
+.salon-page .c-identity {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
 .salon-page .c-name {
+    overflow: hidden;
 
     color: var(--text);
 
-    font-size: .8rem;
-    font-weight: 800;
-}
+    font-size: .68rem;
+    font-weight: 850;
 
-.salon-page .c-date {
-
-    margin-top: 1px;
-
-    color: var(--muted-2);
-
-    font-size: .64rem;
-}
-
-.salon-page .c-stars {
-
-    margin-inline-start: auto;
-
-    color: var(--diamond-200);
-
-    font-size: .7rem;
-    letter-spacing: 1px;
-
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
+.salon-page .c-date {
+    margin-top: 2px;
+
+    color: var(--muted-2);
+
+    font-size: .53rem;
+}
+
+.salon-page .c-stars {
+    margin-inline-start: auto;
+
+    white-space: nowrap;
+
+    font-size: .59rem;
+    letter-spacing: 1px;
+}
+
+.salon-page .c-stars > span:first-child {
+    color: var(--diamond);
+}
+
 .salon-page .muted-stars {
-    color: #3a3a44;
+    color: #343941;
 }
 
 .salon-page .c-body {
+    margin: 13px 0 0;
 
-    margin: 0;
+    color: var(--text-soft);
 
-    color: var(--muted);
-
-    font-size: .77rem;
-    line-height: 1.9;
+    font-size: .64rem;
+    line-height: 2;
 }
 
 .salon-page .c-service {
-
-    margin-top: 9px;
-    padding-top: 9px;
+    margin-top: 13px;
+    padding-top: 10px;
 
     border-top: 1px solid var(--line);
 
     color: var(--muted-2);
 
-    font-size: .63rem;
+    font-size: .55rem;
 }
-
 
 /* ================================================================
    TEAM
    ================================================================ */
 
 .salon-page .team-grid {
-
     display: grid;
 
     grid-template-columns:
-        repeat(2, minmax(0, 1fr));
+        repeat(2, minmax(0,1fr));
 
     gap: 14px;
 }
 
 .salon-page .tcard {
-
     position: relative;
     overflow: hidden;
 
-    padding: 20px;
+    padding: 19px;
 
     border: 1px solid var(--line);
-    border-radius: 24px;
+    border-radius: 21px;
 
     background:
         linear-gradient(
             150deg,
-            var(--card-2),
-            var(--card)
+            var(--surface-2),
+            var(--surface)
         );
 
     transition:
-        transform .25s ease,
-        border-color .25s ease,
-        box-shadow .25s ease;
+        transform .24s ease,
+        border-color .24s ease,
+        box-shadow .24s ease;
 }
 
 .salon-page .tcard:hover {
-
     transform: translateY(-4px);
 
-    border-color:
-        rgba(197,210,224,.25);
+    border-color: rgba(237,243,248,.16);
 
-    box-shadow:
-        var(--shadow-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.salon-page .tcard-glow {
+    position: absolute;
+
+    width: 220px;
+    height: 220px;
+
+    inset-inline-end: -120px;
+    top: -120px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(237,243,248,.07),
+            transparent 70%
+        );
+
+    pointer-events: none;
 }
 
 .salon-page .t-head {
-
     display: flex;
     align-items: center;
-    gap: 13px;
+
+    gap: 12px;
 }
 
 .salon-page .t-av {
+    width: 66px;
+    height: 66px;
 
-    width: 62px;
-    height: 62px;
-
-    flex: 0 0 62px;
+    flex: 0 0 66px;
 
     display: grid;
     place-items: center;
@@ -1630,128 +2076,118 @@ body:has(.salon-page) {
     border: 1px solid var(--line-strong);
     border-radius: 18px;
 
-    color: var(--diamond-200);
+    color: var(--diamond);
 
     background:
         linear-gradient(
-            140deg,
-            #2c2c37,
-            #131317
+            145deg,
+            #2a3037,
+            #13171b
         );
 
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 900;
 }
 
 .salon-page .t-av img {
-
     width: 100%;
     height: 100%;
-
     object-fit: cover;
 }
 
-.salon-page .t-name {
+.salon-page .t-identity {
+    min-width: 0;
 
+    display: flex;
+    flex-direction: column;
+}
+
+.salon-page .t-name {
     color: var(--text);
 
-    font-size: .94rem;
-    font-weight: 800;
+    font-size: .80rem;
+    font-weight: 850;
 }
 
 .salon-page .t-role {
+    margin-top: 3px;
 
-    margin-top: 2px;
+    color: var(--diamond-2);
 
-    color: var(--diamond-200);
-
-    font-size: .7rem;
-    font-weight: 600;
+    font-size: .59rem;
 }
 
 .salon-page .t-rating {
-
     margin-inline-start: auto;
+
+    min-width: 58px;
 
     text-align: center;
 }
 
-.salon-page .t-rating b {
-
+.salon-page .t-rating strong {
     display: block;
 
-    color: var(--diamond-200);
+    color: var(--diamond);
 
-    font-size: .92rem;
-    font-weight: 800;
+    font-family: Arial, sans-serif;
+
+    font-size: .82rem;
 }
 
 .salon-page .t-rating span {
+    display: block;
+
+    margin-top: 2px;
 
     color: var(--muted-2);
 
-    font-size: .61rem;
+    font-size: .50rem;
 }
 
 .salon-page .t-bio {
-
-    margin: 12px 0 0;
+    margin: 13px 0 0;
 
     color: var(--muted);
 
-    font-size: .73rem;
-    line-height: 1.85;
+    font-size: .64rem;
+    line-height: 1.95;
 }
 
 .salon-page .t-foot {
-
-    display: flex;
-    align-items: center;
-
-    margin-top: 17px;
+    margin-top: 16px;
 }
 
 .salon-page .t-foot .btn-diamond {
-
-    padding: 8px 15px;
-
-    border-radius: 11px;
-
-    font-size: .72rem;
+    width: 100%;
 }
 
-
 /* ================================================================
-   MAP / ABOUT
+   LOCATION / ABOUT
    ================================================================ */
 
 .salon-page .bottom-grid {
-
     display: grid;
 
     grid-template-columns:
-        1.15fr 1fr;
+        1.12fr .88fr;
 
-    gap: 16px;
-
-    margin-bottom: 60px;
+    gap: 15px;
 }
 
 .salon-page .map-card {
-
-    min-height: 330px;
+    min-height: 370px;
 
     position: relative;
     overflow: hidden;
 
     border: 1px solid var(--line);
-    border-radius: 25px;
+    border-radius: 24px;
 
-    background: var(--card);
+    background: var(--surface);
 }
 
 .salon-page .map-card iframe {
-
     position: absolute;
     inset: 0;
 
@@ -1761,144 +2197,156 @@ body:has(.salon-page) {
     border: 0;
 
     filter:
-        invert(.92)
+        invert(.93)
         hue-rotate(180deg)
-        saturate(.45)
-        brightness(.88);
+        saturate(.48)
+        brightness(.87);
 }
 
 .salon-page .map-overlay {
-
     position: absolute;
 
     bottom: 0;
     inset-inline: 0;
 
-    z-index: 2;
+    z-index: 4;
 
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
 
     gap: 12px;
-    flex-wrap: wrap;
 
     padding: 18px;
 
     background:
         linear-gradient(
-            to top,
-            rgba(10,10,12,.96),
-            rgba(10,10,12,.55) 58%,
-            transparent
+            180deg,
+            transparent,
+            rgba(5,6,8,.92)
         );
 }
 
-.salon-page .map-addr b {
+.salon-page .map-addr {
+    min-width: 0;
+}
 
+.salon-page .map-addr strong {
     display: block;
 
     color: var(--text);
 
-    font-size: .84rem;
-    font-weight: 800;
+    font-size: .75rem;
+    font-weight: 850;
 }
 
 .salon-page .map-addr span {
-
     display: block;
 
-    margin-top: 2px;
+    margin-top: 3px;
 
     color: var(--muted);
 
-    font-size: .72rem;
-    line-height: 1.7;
+    font-size: .60rem;
+    line-height: 1.8;
 }
 
 .salon-page .map-empty {
-
-    min-height: 330px;
-
-    display: grid;
-    place-items: center;
-
-    color: var(--muted-2);
-
-    font-size: .8rem;
-}
-
-
-/* About */
-
-.salon-page .about-card {
-
-    min-height: 330px;
+    width: 100%;
+    min-height: 370px;
 
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
-    padding: 25px;
+    text-align: center;
+}
+
+.salon-page .map-empty span {
+    font-size: 1.7rem;
+    color: var(--diamond-2);
+}
+
+.salon-page .map-empty strong {
+    margin-top: 10px;
+
+    color: var(--text);
+
+    font-size: .76rem;
+}
+
+.salon-page .map-empty small {
+    max-width: 260px;
+
+    margin-top: 4px;
+
+    color: var(--muted);
+
+    font-size: .57rem;
+}
+
+.salon-page .about-card {
+    min-height: 370px;
+
+    padding: 23px;
 
     border: 1px solid var(--line);
-    border-radius: 25px;
+    border-radius: 24px;
 
     background:
         linear-gradient(
             155deg,
-            var(--card-2),
-            var(--card)
+            var(--surface-2),
+            var(--surface)
         );
 }
 
-.salon-page .about-card .sub {
+.salon-page .about-kicker {
+    color: var(--diamond-3);
 
-    margin-bottom: 10px;
+    font-family: Arial, sans-serif;
 
-    color: var(--diamond-200);
-
-    font-size: .68rem;
-    font-weight: 800;
-    letter-spacing: 1.4px;
+    font-size: .52rem;
+    letter-spacing: .17em;
 }
 
 .salon-page .about-card h3 {
-
-    margin: 0 0 5px;
+    margin: 7px 0 0;
 
     color: var(--text);
 
-    font-size: 1.05rem;
-    font-weight: 800;
+    font-size: 1rem;
+    font-weight: 900;
 }
 
-.salon-page .about-card p {
-
-    margin: 0 0 16px;
+.salon-page .about-card > p {
+    margin: 8px 0 0;
 
     color: var(--muted);
 
-    font-size: .78rem;
-    line-height: 1.95;
+    font-size: .66rem;
+    line-height: 2;
 }
 
 .salon-page .feat {
+    margin-top: 20px;
 
     display: grid;
 
     grid-template-columns:
-        repeat(2, minmax(0, 1fr));
+        repeat(2, minmax(0,1fr));
 
     gap: 8px;
-
-    margin-top: auto;
 }
 
-.salon-page .feat div {
+.salon-page .feat > div {
+    min-height: 46px;
 
     display: flex;
     align-items: center;
-    gap: 7px;
+
+    gap: 8px;
 
     padding: 10px;
 
@@ -1907,88 +2355,86 @@ body:has(.salon-page) {
 
     color: var(--muted);
 
-    background: rgba(255,255,255,.02);
+    background: rgba(255,255,255,.018);
 
-    font-size: .69rem;
-}
-
-.salon-page .feat div:hover {
-
-    color: var(--text);
-
-    border-color:
-        rgba(197,210,224,.24);
+    font-size: .58rem;
 }
 
 .salon-page .feat i {
+    color: var(--diamond-2);
     font-style: normal;
 }
 
 .salon-page .hours {
+    margin-top: 17px;
+    padding-top: 15px;
+
+    border-top: 1px solid var(--line);
 
     display: flex;
     align-items: center;
     justify-content: space-between;
 
-    gap: 8px;
-    flex-wrap: wrap;
-
-    margin-top: 14px;
-    padding-top: 14px;
-
-    border-top: 1px solid var(--line);
-
-    font-size: .7rem;
+    gap: 15px;
 }
 
-.salon-page .hours-today {
-    color: var(--muted);
+.salon-page .hours-label {
+    display: block;
+
+    color: var(--muted-2);
+
+    font-size: .53rem;
+}
+
+.salon-page .hours strong {
+    display: block;
+
+    margin-top: 3px;
+
+    color: var(--text);
+
+    font-size: .62rem;
 }
 
 .salon-page .hours .open {
-
     display: inline-flex;
     align-items: center;
     gap: 6px;
 
     color: var(--green);
 
-    font-weight: 700;
+    font-size: .58rem;
+    font-weight: 800;
 }
 
 .salon-page .hours .open.is-closed {
     color: var(--red);
 }
 
-
 /* ================================================================
    RELATED
    ================================================================ */
 
 .salon-page .related-grid {
-
     display: grid;
 
     grid-template-columns:
-        repeat(6, minmax(0, 1fr));
+        repeat(6, minmax(0,1fr));
 
-    gap: 10px;
+    gap: 9px;
 }
 
 .salon-page .related-card {
-
-    display: block;
-
-    padding: 12px;
+    overflow: hidden;
 
     border: 1px solid var(--line);
-    border-radius: 16px;
+    border-radius: 17px;
 
     background:
         linear-gradient(
             150deg,
-            var(--card-2),
-            var(--card)
+            var(--surface-2),
+            var(--surface)
         );
 
     transition:
@@ -1997,96 +2443,97 @@ body:has(.salon-page) {
 }
 
 .salon-page .related-card:hover {
-
     transform: translateY(-3px);
-
-    border-color:
-        rgba(197,210,224,.28);
+    border-color: rgba(237,243,248,.15);
 }
 
 .salon-page .related-logo {
-
-    aspect-ratio: 1;
+    aspect-ratio: 1 / .92;
 
     display: grid;
     place-items: center;
 
     overflow: hidden;
 
-    margin-bottom: 9px;
-
-    border-radius: 11px;
-
-    color: var(--diamond-200);
+    color: var(--diamond-2);
 
     background:
         linear-gradient(
             135deg,
-            #2b2b35,
-            #131317
+            #252b31,
+            #101317
         );
 
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     font-weight: 900;
 }
 
 .salon-page .related-logo img {
-
     width: 100%;
     height: 100%;
 
     object-fit: cover;
 }
 
+.salon-page .related-body {
+    padding: 10px;
+}
+
 .salon-page .related-name {
+    display: block;
 
     overflow: hidden;
 
     color: var(--text);
 
-    font-size: .7rem;
-    font-weight: 700;
+    font-size: .59rem;
+    font-weight: 800;
 
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .salon-page .related-meta {
+    margin-top: 4px;
 
     display: flex;
     justify-content: space-between;
-    gap: 4px;
 
-    margin-top: 3px;
+    gap: 4px;
 
     color: var(--muted-2);
 
-    font-size: .59rem;
+    font-size: .50rem;
 }
 
+/* ================================================================
+   FLOAT BOOK
+   ================================================================ */
+
+.salon-page .float-book {
+    display: none;
+}
 
 /* ================================================================
    BOOKING MODAL
    ================================================================ */
 
 .salon-page .modal-back {
-
     position: fixed;
     inset: 0;
 
-    z-index: 300;
+    z-index: 900;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    padding: 16px;
+    padding: 18px;
 
-    background:
-        rgba(6,6,8,.82);
+    background: rgba(3,4,6,.86);
 
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 
     opacity: 0;
     pointer-events: none;
@@ -2096,63 +2543,58 @@ body:has(.salon-page) {
 }
 
 .salon-page .modal-back.open {
-
     opacity: 1;
     pointer-events: auto;
 }
 
 .salon-page .modal {
+    width: min(
+        100%,
+        900px
+    );
 
-    width: 100%;
-    max-width: 880px;
     max-height: 92vh;
 
     overflow-y: auto;
 
-    padding: 28px;
-
     position: relative;
 
-    border: 1px solid rgba(197,210,224,.18);
-    border-radius: 27px;
+    border: 1px solid rgba(237,243,248,.12);
+    border-radius: 25px;
 
     background:
         linear-gradient(
-            160deg,
-            #18181f,
-            #0e0e12
+            155deg,
+            #171b20,
+            #0b0d10
         );
 
     box-shadow:
-        0 35px 90px rgba(0,0,0,.78);
+        var(--shadow-lg);
 
-    transform:
-        translateY(18px) scale(.98);
-
+    transform: translateY(15px) scale(.985);
     opacity: 0;
 
     transition:
-        transform .28s ease,
-        opacity .28s ease;
+        transform .25s ease,
+        opacity .25s ease;
 }
 
 .salon-page .modal-back.open .modal {
-
-    transform:
-        translateY(0) scale(1);
-
+    transform: translateY(0) scale(1);
     opacity: 1;
 }
 
 .salon-page .modal-close {
-
     position: absolute;
 
-    top: 16px;
-    inset-inline-end: 16px;
+    top: 14px;
+    inset-inline-end: 14px;
 
-    width: 36px;
-    height: 36px;
+    z-index: 10;
+
+    width: 37px;
+    height: 37px;
 
     display: grid;
     place-items: center;
@@ -2160,190 +2602,164 @@ body:has(.salon-page) {
     border: 1px solid var(--line);
     border-radius: 11px;
 
-    color: var(--muted);
+    background: rgba(255,255,255,.035);
 
-    background: rgba(255,255,255,.04);
+    color: var(--muted);
 
     transition:
         color .2s ease,
-        background .2s ease,
         transform .2s ease;
 }
 
 .salon-page .modal-close:hover {
-
     color: var(--red);
-
-    background:
-        rgba(255,107,107,.12);
-
     transform: rotate(90deg);
 }
 
-
-/* Modal heading */
+.salon-page #modalMain {
+    padding: 26px;
+}
 
 .salon-page .m-head {
-
-    margin-bottom: 20px;
-    padding-inline-end: 45px;
+    padding-inline-end: 48px;
 }
 
 .salon-page .m-head .eyebrow {
+    color: var(--diamond-2);
 
-    margin-bottom: 6px;
-
-    color: var(--diamond-200);
-
-    font-size: .68rem;
+    font-size: .58rem;
     font-weight: 800;
 }
 
 .salon-page .m-head h2 {
-
-    margin: 0;
+    margin: 5px 0 0;
 
     color: var(--text);
 
-    font-size: 1.22rem;
-    font-weight: 800;
+    font-size: 1.2rem;
+    font-weight: 900;
 }
 
 .salon-page .m-head p {
-
-    margin: 3px 0 0;
+    margin: 4px 0 0;
 
     color: var(--muted);
 
-    font-size: .76rem;
+    font-size: .65rem;
 }
 
-
-/* Filters */
-
 .salon-page .m-filters {
+    margin-top: 20px;
 
     display: grid;
 
     grid-template-columns:
-        repeat(2, minmax(0, 1fr));
+        repeat(2, minmax(0,1fr));
 
-    gap: 11px;
-
-    margin-bottom: 18px;
+    gap: 10px;
 }
 
 .salon-page .field span {
-
     display: block;
 
     margin-bottom: 5px;
 
     color: var(--muted);
 
-    font-size: .68rem;
-    font-weight: 600;
+    font-size: .57rem;
 }
 
 .salon-page .field select {
-
     width: 100%;
 
-    padding: 10px 12px;
+    min-height: 43px;
+
+    padding: 0 12px;
 
     border: 1px solid var(--line-strong);
-    border-radius: 11px;
+    border-radius: 12px;
 
     outline: none;
 
     color: var(--text);
 
-    background:
-        rgba(255,255,255,.035);
+    background: rgba(255,255,255,.028);
 
-    font-size: .76rem;
+    font-size: .65rem;
 }
 
 .salon-page .field select:focus {
-
-    border-color:
-        var(--diamond-400);
+    border-color: var(--diamond-3);
 
     box-shadow:
-        0 0 0 3px
-        rgba(197,210,224,.08);
+        0 0 0 3px rgba(197,208,219,.06);
 }
 
-
-/* Calendar layout */
-
 .salon-page .m-grid {
+    margin-top: 18px;
 
     display: grid;
 
     grid-template-columns:
-        1.05fr 1fr;
+        1.08fr .92fr;
 
     gap: 22px;
 }
 
 .salon-page .cal-head {
-
     display: flex;
     align-items: center;
     justify-content: space-between;
 
-    margin-bottom: 11px;
+    margin-bottom: 10px;
+}
+
+.salon-page .cal-head small {
+    display: block;
+
+    color: var(--muted-2);
+
+    font-size: .50rem;
 }
 
 .salon-page .cal-head b {
+    display: block;
+
+    margin-top: 2px;
 
     color: var(--text);
 
-    font-size: .82rem;
+    font-size: .75rem;
 }
 
 .salon-page .cal-nav {
-
     display: flex;
     gap: 5px;
 }
 
 .salon-page .cal-nav button {
-
-    width: 31px;
-    height: 31px;
+    width: 32px;
+    height: 32px;
 
     display: grid;
     place-items: center;
 
     border: 1px solid var(--line);
-    border-radius: 9px;
+    border-radius: 10px;
+
+    background: rgba(255,255,255,.025);
 
     color: var(--muted);
 
-    background: rgba(255,255,255,.035);
-
-    transition:
-        color .2s ease,
-        background .2s ease;
-}
-
-.salon-page .cal-nav button:hover {
-
-    color: var(--text);
-
-    background:
-        rgba(197,210,224,.08);
+    font-size: 1rem;
 }
 
 .salon-page .cal-week,
 .salon-page .cal-days {
-
     display: grid;
 
     grid-template-columns:
-        repeat(7, minmax(0, 1fr));
+        repeat(7, minmax(0,1fr));
 
     gap: 5px;
 }
@@ -2353,19 +2769,14 @@ body:has(.salon-page) {
 }
 
 .salon-page .cal-week span {
-
-    padding: 3px 0;
-
     text-align: center;
 
     color: var(--muted-2);
 
-    font-size: .62rem;
-    font-weight: 600;
+    font-size: .53rem;
 }
 
 .salon-page .day {
-
     aspect-ratio: 1;
 
     display: grid;
@@ -2376,184 +2787,62 @@ body:has(.salon-page) {
 
     color: var(--text);
 
-    background:
-        rgba(255,255,255,.022);
+    background: rgba(255,255,255,.025);
 
-    font-size: .72rem;
-    font-weight: 600;
+    font-size: .62rem;
+    font-weight: 700;
 
     transition:
+        border-color .18s ease,
         background .18s ease,
-        border-color .18s ease;
+        color .18s ease;
 }
 
 .salon-page .day:hover:not(.off):not(.empty) {
-
-    border-color:
-        rgba(197,210,224,.25);
-
-    background:
-        rgba(197,210,224,.08);
+    border-color: rgba(237,243,248,.17);
+    background: rgba(237,243,248,.06);
 }
 
 .salon-page .day.sel {
-
-    color: #0d0d0f;
-
-    background:
-        linear-gradient(
-            135deg,
-            #ffffff,
-            #dde5ef
-        );
-
-    box-shadow:
-        0 6px 18px var(--diamond-glow);
-}
-
-.salon-page .day.off {
-
-    color: #393942;
-
-    background: transparent;
-
-    cursor: not-allowed;
-}
-
-.salon-page .day.empty {
-
-    background: transparent;
-}
-
-
-/* Slots */
-
-.salon-page .slots-title {
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    margin-bottom: 10px;
-
-    color: var(--text);
-
-    font-size: .75rem;
-    font-weight: 700;
-}
-
-.salon-page .slots-title small {
-
-    color: var(--muted-2);
-
-    font-size: .63rem;
-    font-weight: 500;
-}
-
-.salon-page .slots {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-
-    gap: 7px;
-
-    max-height: 320px;
-
-    overflow-y: auto;
-
-    padding-inline-end: 3px;
-}
-
-.salon-page .slot {
-
-    padding: 10px 6px;
-
-    border: 1px solid var(--line);
-    border-radius: 10px;
-
-    color: var(--text);
-
-    background:
-        rgba(255,255,255,.025);
-
-    text-align: center;
-
-    font-size: .7rem;
-    font-weight: 600;
-}
-
-.salon-page .slot:hover:not(.taken) {
-
-    border-color:
-        rgba(197,210,224,.28);
-
-    background:
-        rgba(197,210,224,.07);
-}
-
-.salon-page .slot.sel {
-
-    color: #0d0d0f;
+    color: #0a0b0d;
 
     border-color: transparent;
 
     background:
         linear-gradient(
             135deg,
-            #ffffff,
-            #dde5ef
+            #fff,
+            #dbe5ed
         );
+
+    box-shadow:
+        0 7px 18px rgba(219,229,237,.08);
 }
 
-.salon-page .slot.taken {
-
-    color: #40404a;
-
-    text-decoration: line-through;
+.salon-page .day.off {
+    color: #3a3f46;
+    background: transparent;
 
     cursor: not-allowed;
-
-    background:
-        rgba(255,255,255,.01);
 }
 
-.salon-page .slots-msg {
-
-    grid-column: 1 / -1;
-
-    padding: 24px 0;
-
-    color: var(--muted-2);
-
-    text-align: center;
-
-    font-size: .7rem;
+.salon-page .day.empty {
+    background: transparent;
 }
-
-.salon-page .slots-msg.error {
-    color: var(--red);
-}
-
-
-/* Legend */
 
 .salon-page .legend {
+    margin-top: 10px;
 
     display: flex;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
-
-    margin-top: 11px;
 
     color: var(--muted-2);
 
-    font-size: .61rem;
+    font-size: .48rem;
 }
 
 .salon-page .legend i {
-
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -2562,243 +2851,321 @@ body:has(.salon-page) {
 }
 
 .salon-page .legend .sq {
-
-    width: 9px;
-    height: 9px;
-
-    display: inline-block;
+    width: 8px;
+    height: 8px;
 
     border-radius: 3px;
 }
 
 .salon-page .sq.selected {
+    background:
+        linear-gradient(
+            135deg,
+            #fff,
+            #cbd7e1
+        );
+}
+
+.salon-page .sq.available {
+    background: rgba(255,255,255,.07);
+}
+
+.salon-page .sq.past {
+    background: #2d3238;
+}
+
+.salon-page .slots-title {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 10px;
+}
+
+.salon-page .slots-title small {
+    display: block;
+
+    color: var(--muted-2);
+
+    font-size: .50rem;
+}
+
+.salon-page .slots-title strong {
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--text);
+
+    font-size: .72rem;
+}
+
+.salon-page .slots-title > span {
+    color: var(--muted);
+
+    font-size: .54rem;
+
+    white-space: nowrap;
+}
+
+.salon-page .slots {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0,1fr));
+
+    gap: 7px;
+
+    max-height: 330px;
+
+    overflow-y: auto;
+
+    padding-inline-end: 3px;
+}
+
+.salon-page .slot {
+    min-height: 42px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid var(--line);
+    border-radius: 11px;
+
+    background: rgba(255,255,255,.025);
+
+    color: var(--text);
+
+    font-size: .60rem;
+    font-weight: 700;
+}
+
+.salon-page .slot:hover:not(.taken) {
+    border-color: rgba(237,243,248,.18);
+    background: rgba(237,243,248,.06);
+}
+
+.salon-page .slot.sel {
+    color: #0a0b0d;
+
+    border-color: transparent;
 
     background:
         linear-gradient(
             135deg,
             #fff,
-            #c5d2e0
+            #dce5ec
         );
 }
 
-.salon-page .sq.available {
-    background: rgba(255,255,255,.06);
+.salon-page .slot.taken {
+    color: #3a3f46;
+
+    cursor: not-allowed;
+
+    text-decoration: line-through;
 }
 
-.salon-page .sq.past {
-    background: #2a2a32;
+.salon-page .slots-msg {
+    grid-column: 1 / -1;
+
+    padding: 28px 0;
+
+    color: var(--muted-2);
+
+    text-align: center;
+
+    font-size: .60rem;
 }
 
-
-/* Modal bottom */
+.salon-page .slots-msg.error {
+    color: var(--red);
+}
 
 .salon-page .m-foot {
+    margin-top: 20px;
+    padding-top: 17px;
 
     display: flex;
     align-items: center;
 
-    gap: 14px;
-    flex-wrap: wrap;
-
-    margin-top: 20px;
-    padding-top: 18px;
+    gap: 15px;
 
     border-top: 1px solid var(--line);
 }
 
 .salon-page .m-summary {
-
     flex: 1;
-    min-width: 200px;
 
-    color: var(--muted);
-
-    font-size: .72rem;
+    min-width: 0;
 }
 
 .salon-page .m-summary .row {
-
     display: flex;
     align-items: center;
     gap: 8px;
 
-    margin-top: 3px;
+    margin-top: 4px;
 }
 
-.salon-page .m-summary .row span:first-child {
+.salon-page .m-summary .row:first-child {
+    margin-top: 0;
+}
 
-    min-width: 58px;
+.salon-page .m-summary .row span {
+    min-width: 45px;
 
     color: var(--muted-2);
 
-    font-size: .64rem;
+    font-size: .51rem;
 }
 
-.salon-page .m-summary b {
+.salon-page .m-summary .row b {
+    overflow: hidden;
 
     color: var(--text);
 
-    font-weight: 700;
+    font-size: .58rem;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .salon-page .btn-confirm {
+    min-width: 155px;
+    min-height: 45px;
 
-    min-width: 160px;
+    padding: 0 18px;
 
-    padding: 12px 22px;
+    border-radius: 12px;
 
-    border-radius: 13px;
-
-    font-size: .78rem;
-    font-weight: 800;
+    font-size: .64rem;
+    font-weight: 850;
 }
 
 .salon-page .btn-confirm:disabled {
-
-    opacity: .3;
+    opacity: .32;
 
     cursor: not-allowed;
 
-    box-shadow: none;
+    filter: grayscale(.4);
 
-    filter: grayscale(.5);
+    box-shadow: none;
 }
 
-
-/* Success */
-
 .salon-page .success {
-
     display: none;
 
-    padding: 24px 10px;
+    padding: 50px 25px;
 
     text-align: center;
 }
 
 .salon-page .success.show {
-
     display: block;
-
-    animation:
-        salonSuccess .3s ease;
-}
-
-@keyframes salonSuccess {
-
-    from {
-        opacity: 0;
-        transform: scale(.97);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
 }
 
 .salon-page .success .tick {
-
-    width: 72px;
-    height: 72px;
+    width: 68px;
+    height: 68px;
 
     display: grid;
     place-items: center;
 
-    margin: 0 auto 15px;
+    margin: 0 auto 13px;
 
     border-radius: 50%;
 
-    color: #0d0d0f;
+    color: #0a0b0d;
 
     background:
         linear-gradient(
             135deg,
             #fff,
-            #dde5ef
+            #dce5ec
         );
 
-    box-shadow:
-        0 14px 32px var(--diamond-glow-strong);
-
-    font-size: 1.9rem;
+    font-size: 1.65rem;
 }
 
 .salon-page .success h3 {
-
-    margin: 0 0 5px;
+    margin: 0;
 
     color: var(--text);
 
-    font-size: 1.15rem;
-    font-weight: 800;
+    font-size: 1rem;
 }
 
 .salon-page .success p {
-
-    margin: 0;
+    margin: 6px auto 0;
+    max-width: 420px;
 
     color: var(--muted);
 
-    font-size: .77rem;
+    font-size: .65rem;
     line-height: 1.9;
 }
 
-.salon-page .success-close {
-    margin-top: 20px;
-}
-
-
 /* ================================================================
-   FLOATING BOOK
+   TOAST
    ================================================================ */
 
-.salon-page .float-book {
-
-    display: none;
-
+.salon-page .salon-toast {
     position: fixed;
 
-    bottom: 16px;
-    inset-inline: 16px;
+    left: 50%;
+    bottom: 26px;
 
-    z-index: 150;
-}
+    z-index: 1200;
 
-.salon-page .float-book button {
+    max-width: min(
+        calc(100% - 28px),
+        430px
+    );
 
-    width: 100%;
+    padding: 11px 15px;
 
-    padding: 14px;
+    border: 1px solid rgba(255,255,255,.11);
+    border-radius: 13px;
 
-    border-radius: 14px;
+    background: rgba(13,15,18,.92);
 
-    color: #0d0d0f;
-
-    background:
-        linear-gradient(
-            135deg,
-            #ffffff,
-            #eef2f7 40%,
-            #c5d2e0
-        );
+    color: var(--text);
 
     box-shadow:
-        0 15px 34px rgba(0,0,0,.55),
-        0 0 22px var(--diamond-glow);
+        0 20px 50px rgba(0,0,0,.34);
 
-    font-size: .82rem;
-    font-weight: 850;
+    backdrop-filter: blur(14px);
+
+    transform:
+        translate(-50%, 20px);
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition:
+        opacity .2s ease,
+        transform .2s ease;
+
+    font-size: .63rem;
+    font-weight: 700;
 }
 
+.salon-page .salon-toast.show {
+    opacity: 1;
+
+    transform:
+        translate(-50%, 0);
+}
 
 /* ================================================================
    FOOTER
    ================================================================ */
 
 .salon-page footer {
-
-    padding: 25px 20px 30px;
+    padding: 36px 20px 105px;
 
     border-top: 1px solid var(--line);
 
@@ -2806,285 +3173,394 @@ body:has(.salon-page) {
 
     text-align: center;
 
-    font-size: .67rem;
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: .58rem;
+    letter-spacing: .04em;
 }
 
-.salon-page footer b {
-    color: var(--diamond-200);
-}
+.salon-page footer span {
+    margin-inline: 4px;
 
+    color: var(--diamond-2);
+}
 
 /* ================================================================
    REVEAL
    ================================================================ */
 
-/*
- * Reveal is intentionally subtle.
- * If JS doesn't run, content must remain visible.
- */
-
 .salon-page .reveal {
-
     opacity: 1;
-
     transform: none;
 }
 
 .salon-page .reveal.reveal-ready {
-
     opacity: 0;
 
-    transform: translateY(16px);
+    transform: translateY(15px);
 
     transition:
-        opacity .45s ease,
-        transform .45s ease;
+        opacity .5s ease,
+        transform .5s ease;
 }
 
 .salon-page .reveal.reveal-ready.in {
-
     opacity: 1;
-
     transform: none;
 }
-
-
-/* ================================================================
-   MODAL BODY LOCK
-   ================================================================ */
-
-body.salon-modal-open {
-    overflow: hidden;
-}
-
 
 /* ================================================================
    RESPONSIVE
    ================================================================ */
 
-@media (max-width: 1000px) {
+@media (max-width: 1050px) {
+    .salon-page .gallery {
+        grid-template-columns:
+            repeat(3, minmax(0,1fr));
+    }
 
     .salon-page .services-grid {
         grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-    }
-
-    .salon-page .gallery {
-        grid-template-columns:
-            repeat(3, minmax(0, 1fr));
+            repeat(2, minmax(0,1fr));
     }
 
     .salon-page .related-grid {
         grid-template-columns:
-            repeat(4, minmax(0, 1fr));
+            repeat(4, minmax(0,1fr));
     }
 }
-
 
 @media (max-width: 860px) {
-
-    .salon-page .comments {
-        grid-template-columns:
-            1fr;
-    }
-
-    .salon-page .bottom-grid {
-        grid-template-columns:
-            1fr;
-    }
-
-    .salon-page .m-grid {
-        grid-template-columns:
-            1fr;
-    }
-}
-
-
-@media (max-width: 760px) {
-
-    .salon-page .topnav a {
+    .salon-page .topnav > a {
         display: none;
-    }
-
-    .salon-page .topnav .btn-diamond {
-        display: inline-flex;
     }
 
     .salon-page .profile-bar {
-        padding: 0 16px;
-        margin-top: -52px;
-    }
+        grid-template-columns:
+            auto minmax(0,1fr);
 
-    .salon-page .avatar {
-        width: 104px;
-        height: 104px;
-        flex-basis: 104px;
-        border-radius: 29px;
-    }
-
-    .salon-page .avatar img {
-        border-radius: 24px;
-    }
-
-    .salon-page .profile-info {
-        min-width: 200px;
+        align-items: end;
     }
 
     .salon-page .profile-actions {
-        width: 100%;
+        grid-column: 1 / -1;
+
         padding-bottom: 0;
     }
 
-    .salon-page .bio,
-    .salon-page .chips {
-        margin-inline: 16px;
+    .salon-page .hero-bottom {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
-    .salon-page .booking-cta {
-        padding: 23px 19px;
+    .salon-page .comments {
+        grid-template-columns: 1fr;
     }
 
-    .salon-page .team-grid {
-        grid-template-columns:
-            1fr;
+    .salon-page .bottom-grid {
+        grid-template-columns: 1fr;
     }
 
-    .salon-page .related-grid {
-        grid-template-columns:
-            repeat(3, minmax(0, 1fr));
+    .salon-page .m-grid {
+        grid-template-columns: 1fr;
     }
 }
 
-
-@media (max-width: 640px) {
-
+@media (max-width: 680px) {
     .salon-page .wrap {
-        padding-inline: 14px;
+        width: min(
+            calc(100% - 24px),
+            1180px
+        );
     }
 
     .salon-page .topbar-in {
-        min-height: 60px;
-        padding-inline: 14px;
+        width: min(
+            calc(100% - 24px),
+            1180px
+        );
+
+        min-height: 62px;
+
+        gap: 10px;
     }
 
-    .salon-page .back-home span:last-child {
+    .salon-page .back-label {
         display: none;
     }
 
-    .salon-page .back-home {
-        width: 36px;
-        padding: 0;
-
-        justify-content: center;
-    }
-
-    .salon-page .topnav {
-        margin-inline-start: auto;
-    }
-
-    .salon-page .topnav .btn-diamond {
-        padding: 8px 12px;
-        font-size: .72rem;
-    }
-
     .salon-page .brand {
-        min-width: 0;
+        max-width: 200px;
     }
 
-    .salon-page .brand > span:last-child {
-
+    .salon-page .brand-copy small {
         max-width: 120px;
+    }
+
+    .salon-page .mobile-anchor-bar {
+        display: flex;
+
+        gap: 6px;
+
+        overflow-x: auto;
+
+        padding: 0 12px 10px;
+
+        scrollbar-width: none;
+    }
+
+    .salon-page .mobile-anchor-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .salon-page .mobile-anchor-bar a {
+        flex: 0 0 auto;
+
+        min-height: 30px;
+
+        display: inline-flex;
+        align-items: center;
+
+        padding: 0 10px;
+
+        border: 1px solid var(--line);
+        border-radius: 999px;
+
+        color: var(--muted);
+
+        background: rgba(255,255,255,.02);
+
+        font-size: .54rem;
+    }
+
+    .salon-page .topnav .btn-top-book {
+        padding-inline: 12px;
+    }
+
+    .salon-page .hero {
+        margin-top: 12px;
+    }
+
+    .salon-page .cover {
+        min-height: 235px;
+        border-radius: 22px;
+    }
+
+    .salon-page .cover-fallback {
+        min-height: 235px;
+    }
+
+    .salon-page .cover-topline {
+        top: 13px;
+        inset-inline: 13px;
+    }
+
+    .salon-page .cover-status {
+        top: 57px;
+        inset-inline-start: 13px;
+    }
+
+    .salon-page .cover-label {
+        font-size: .46rem;
+    }
+
+    .salon-page .cover-location {
+        max-width: 140px;
 
         overflow: hidden;
 
         text-overflow: ellipsis;
-
         white-space: nowrap;
-    }
 
-    .salon-page .cover {
-        height: 185px;
-        border-radius: 22px;
+        font-size: .49rem;
     }
 
     .salon-page .profile-bar {
-        gap: 13px;
+        grid-template-columns:
+            auto minmax(0,1fr);
+
+        margin-top: -46px;
+
+        padding: 0 14px;
+
+        gap: 12px;
+    }
+
+    .salon-page .avatar {
+        width: 92px;
+        height: 92px;
+
+        flex-basis: 92px;
+
+        border-radius: 25px;
     }
 
     .salon-page .name-row h1 {
-        font-size: 1.3rem;
+        font-size: 1.12rem;
+    }
+
+    .salon-page .tagline {
+        font-size: .62rem;
     }
 
     .salon-page .stats {
-        gap: 14px;
+        gap: 11px;
+        margin-top: 10px;
+    }
+
+    .salon-page .stat b {
+        font-size: .74rem;
+    }
+
+    .salon-page .stat span {
+        font-size: .47rem;
+    }
+
+    .salon-page .profile-actions {
+        display: grid;
+
+        grid-template-columns:
+            minmax(0,1fr)
+            minmax(0,1fr);
+
+        gap: 7px;
+    }
+
+    .salon-page .profile-actions .btn-diamond,
+    .salon-page .profile-actions .btn-ghost {
+        width: 100%;
+    }
+
+    .salon-page .hero-bottom,
+    .salon-page .chips {
+        margin-inline: 14px;
+    }
+
+    .salon-page .hero-bottom {
+        margin-top: 16px;
+    }
+
+    .salon-page .hero-bio {
+        font-size: .66rem;
+    }
+
+    .salon-page .hero-meta {
+        font-size: .55rem;
     }
 
     .salon-page .booking-cta {
         flex-direction: column;
         align-items: stretch;
-    }
 
-    .salon-page .bk-text {
-        min-width: 0;
+        padding: 20px 17px;
     }
 
     .salon-page .bk-side {
+        min-width: 0;
         width: 100%;
     }
 
-    .salon-page .btn-book {
-        width: 100%;
+    .salon-page .section {
+        margin-top: 55px;
     }
 
-    .salon-page .services-grid {
-        grid-template-columns:
-            1fr;
+    .salon-page .section-topline {
+        align-items: start;
+    }
+
+    .salon-page .section-topline h2 {
+        font-size: 1rem;
+    }
+
+    .salon-page .section-topline p {
+        font-size: .58rem;
+    }
+
+    .salon-page .section-count {
+        font-size: .52rem;
     }
 
     .salon-page .gallery {
         grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-        gap: 8px;
-    }
+            repeat(2, minmax(0,1fr));
 
-    .salon-page .tile {
-        border-radius: 15px;
-    }
-
-    .salon-page .tabs {
-        width: 100%;
-    }
-
-    .salon-page .tab {
-        padding-inline: 11px;
-    }
-
-    .salon-page .about-card,
-    .salon-page .map-card {
-        min-height: 300px;
-    }
-
-    .salon-page .feat {
         gap: 7px;
     }
 
-    .salon-page .m-filters {
+    .salon-page .tile {
+        min-height: 220px;
+        border-radius: 14px;
+    }
+
+    .salon-page .tile.tile-1 {
+        grid-column: span 2;
+        grid-row: span 1;
+
+        min-height: 265px;
+    }
+
+    .salon-page .tile.tile-6 {
+        grid-column: auto;
+    }
+
+    .salon-page .services-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .salon-page .team-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .salon-page .related-grid {
         grid-template-columns:
-            1fr;
+            repeat(2, minmax(0,1fr));
+    }
+
+    .salon-page .lightbox-media {
+        min-height: 48vh;
+
+        padding: 50px 30px 18px;
+    }
+
+    .salon-page .lightbox-media img,
+    .salon-page .lightbox-media video {
+        max-height: 55vh;
+    }
+
+    .salon-page .lightbox-nav {
+        width: 34px;
+        height: 34px;
+
+        font-size: 1.15rem;
+    }
+
+    .salon-page .modal-back {
+        padding: 8px;
     }
 
     .salon-page .modal {
-        max-height: 94vh;
-        padding: 21px 16px;
-        border-radius: 22px;
+        max-height: 95vh;
+
+        border-radius: 21px;
+    }
+
+    .salon-page #modalMain {
+        padding: 20px 15px;
+    }
+
+    .salon-page .m-filters {
+        grid-template-columns: 1fr;
     }
 
     .salon-page .slots {
         grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+            repeat(3, minmax(0,1fr));
     }
 
     .salon-page .m-foot {
+        flex-direction: column;
         align-items: stretch;
     }
 
@@ -3094,6 +3570,51 @@ body.salon-modal-open {
 
     .salon-page .float-book {
         display: block;
+
+        position: fixed;
+
+        bottom: 12px;
+        inset-inline: 12px;
+
+        z-index: 500;
+    }
+
+    .salon-page .float-book button {
+        width: 100%;
+
+        min-height: 52px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        gap: 8px;
+
+        border-radius: 15px;
+
+        color: #0a0b0d;
+
+        background:
+            linear-gradient(
+                135deg,
+                #fff,
+                #e3ebf2
+            );
+
+        box-shadow:
+            0 18px 40px rgba(0,0,0,.42);
+
+        font-size: .69rem;
+        font-weight: 900;
+    }
+
+    .salon-page .float-book button small {
+        margin-inline-start: 3px;
+
+        color: rgba(0,0,0,.48);
+
+        font-size: .50rem;
+        font-weight: 700;
     }
 
     .salon-page footer {
@@ -3101,59 +3622,40 @@ body.salon-modal-open {
     }
 }
 
-
-@media (max-width: 440px) {
-
-    .salon-page .profile-actions {
-        display: grid;
-
-        grid-template-columns:
-            1fr 1fr;
+@media (max-width: 430px) {
+    .salon-page .brand-copy small {
+        max-width: 95px;
     }
 
-    .salon-page .profile-actions .btn-diamond,
-    .salon-page .profile-actions .btn-ghost {
-        width: 100%;
+    .salon-page .stats {
+        gap: 9px;
+    }
+
+    .salon-page .profile-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .salon-page .feat {
+        grid-template-columns: 1fr;
     }
 
     .salon-page .related-grid {
         grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-    }
-
-    .salon-page .sec-head {
-        gap: 8px;
-    }
-
-    .salon-page .sec-head h3 {
-        font-size: .96rem;
-    }
-
-    .salon-page .sec-head .count {
-        font-size: .62rem;
+            repeat(2, minmax(0,1fr));
     }
 }
-
 
 /* ================================================================
    REDUCED MOTION
    ================================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-
     .salon-page *,
     .salon-page *::before,
     .salon-page *::after {
-
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
         scroll-behavior: auto !important;
-
-        animation-duration:
-            .01ms !important;
-
-        animation-iteration-count:
-            1 !important;
-
-        transition-duration:
-            .01ms !important;
     }
 }

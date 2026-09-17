@@ -4,32 +4,16 @@ namespace App\Http\Controllers\PublicSite;
 
 use App\Http\Controllers\Controller;
 use App\Models\Salon;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class SalonController extends Controller
 {
     public function show(Salon $salon): View
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Active salon
-        |--------------------------------------------------------------------------
-        */
-
         abort_unless(
             $salon->is_active,
             404
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Salon rating
-        |--------------------------------------------------------------------------
-        */
-
-        $salon->loadAvg(
-            'reviews',
-            'rating'
         );
 
         /*
@@ -39,31 +23,13 @@ class SalonController extends Controller
         */
 
         $salon->load([
-            /*
-            |--------------------------------------------------------------------------
-            | Owner
-            |--------------------------------------------------------------------------
-            */
-
             'owner',
-
-            /*
-            |--------------------------------------------------------------------------
-            | Active barbers
-            |--------------------------------------------------------------------------
-            */
 
             'barbers' => function ($query) {
                 $query
                     ->where('is_active', true)
                     ->orderBy('name');
             },
-
-            /*
-            |--------------------------------------------------------------------------
-            | Active services
-            |--------------------------------------------------------------------------
-            */
 
             'services' => function ($query) {
                 $query
@@ -72,34 +38,12 @@ class SalonController extends Controller
                     ->orderBy('name');
             },
 
-            /*
-            |--------------------------------------------------------------------------
-            | Working hours
-            |--------------------------------------------------------------------------
-            */
-
             'workingHours' => function ($query) {
                 $query
                     ->orderBy('day_of_week')
                     ->orderBy('sort_order')
                     ->orderBy('start_time');
             },
-
-            /*
-            |--------------------------------------------------------------------------
-            | Public posts
-            |--------------------------------------------------------------------------
-            |
-            | Post can be:
-            | photo
-            | video
-            | gif
-            | reel
-            |
-            | Also load the barber / service associated
-            | with each post.
-            |
-            */
 
             'posts' => function ($query) {
                 $query
@@ -109,14 +53,9 @@ class SalonController extends Controller
                         'service',
                     ])
                     ->orderBy('sort_order')
-                    ->latest('id');
+                    ->latest('id')
+                    ->limit(36);
             },
-
-            /*
-            |--------------------------------------------------------------------------
-            | Published salon reviews
-            |--------------------------------------------------------------------------
-            */
 
             'reviews' => function ($query) {
                 $query
@@ -125,54 +64,86 @@ class SalonController extends Controller
                         'customer',
                         'booking.service',
                     ])
-                    ->latest();
+                    ->latest()
+                    ->limit(12);
             },
         ]);
 
         /*
         |--------------------------------------------------------------------------
-        | Related salons
+        | Public counters
         |--------------------------------------------------------------------------
         |
-        | Priority:
-        | 1. Same district
-        | 2. Same city
-        | 3. Same province
+        | Count from database, not from limited eager-loaded collections.
         |
-        | Current salon is always excluded.
+        */
+
+        $postsCount = $salon
+            ->posts()
+            ->where('is_active', true)
+            ->count();
+
+        $reviewsCount = $salon
+            ->reviews()
+            ->where('is_published', true)
+            ->count();
+
+        $barbersCount = $salon
+            ->barbers()
+            ->where('is_active', true)
+            ->count();
+
+        $servicesCount = $salon
+            ->services()
+            ->where('is_active', true)
+            ->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Public rating
+        |--------------------------------------------------------------------------
         |
+        | Only published reviews affect public rating.
+        |
+        */
+
+        $publicRating = $salon
+            ->reviews()
+            ->where('is_published', true)
+            ->avg('rating');
+
+        $salon->setAttribute(
+            'reviews_avg_rating',
+            $publicRating !== null
+                ? (float) $publicRating
+                : null
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Related salons
+        |--------------------------------------------------------------------------
         */
 
         $relatedSalons = collect();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Same district
-        |--------------------------------------------------------------------------
-        */
-
         if (filled($salon->district)) {
             $relatedSalons = Salon::query()
-                ->whereKeyNot($salon->id)
+                ->where('id', '!=', $salon->id)
                 ->where('is_active', true)
-                ->where(
-                    'district',
-                    $salon->district
-                )
-                ->where(
-                    'city',
-                    $salon->city
-                )
+                ->where('district', $salon->district)
+                ->where('city', $salon->city)
                 ->withCount([
                     'services' => function ($query) {
-                        $query->where(
-                            'is_active',
-                            true
-                        );
+                        $query->where('is_active', true);
                     },
                 ])
                 ->withAvg(
-                    'reviews',
+                    [
+                        'reviews' => function ($query) {
+                            $query->where('is_published', true);
+                        },
+                    ],
                     'rating'
                 )
                 ->orderByDesc('services_count')
@@ -180,12 +151,6 @@ class SalonController extends Controller
                 ->limit(6)
                 ->get();
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Same city
-        |--------------------------------------------------------------------------
-        */
 
         if (
             $relatedSalons->count() < 6 &&
@@ -196,35 +161,26 @@ class SalonController extends Controller
                 ->push($salon->id);
 
             $citySalons = Salon::query()
-                ->whereNotIn(
-                    'id',
-                    $existingIds
-                )
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->where(
-                    'city',
-                    $salon->city
-                )
+                ->whereNotIn('id', $existingIds)
+                ->where('is_active', true)
+                ->where('city', $salon->city)
                 ->withCount([
                     'services' => function ($query) {
-                        $query->where(
-                            'is_active',
-                            true
-                        );
+                        $query->where('is_active', true);
                     },
                 ])
                 ->withAvg(
-                    'reviews',
+                    [
+                        'reviews' => function ($query) {
+                            $query->where('is_published', true);
+                        },
+                    ],
                     'rating'
                 )
                 ->orderByDesc('services_count')
                 ->latest('id')
                 ->limit(
-                    6 -
-                    $relatedSalons->count()
+                    6 - $relatedSalons->count()
                 )
                 ->get();
 
@@ -232,12 +188,6 @@ class SalonController extends Controller
                 ->concat($citySalons)
                 ->values();
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Same province
-        |--------------------------------------------------------------------------
-        */
 
         if (
             $relatedSalons->count() < 6 &&
@@ -248,35 +198,26 @@ class SalonController extends Controller
                 ->push($salon->id);
 
             $provinceSalons = Salon::query()
-                ->whereNotIn(
-                    'id',
-                    $existingIds
-                )
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->where(
-                    'province',
-                    $salon->province
-                )
+                ->whereNotIn('id', $existingIds)
+                ->where('is_active', true)
+                ->where('province', $salon->province)
                 ->withCount([
                     'services' => function ($query) {
-                        $query->where(
-                            'is_active',
-                            true
-                        );
+                        $query->where('is_active', true);
                     },
                 ])
                 ->withAvg(
-                    'reviews',
+                    [
+                        'reviews' => function ($query) {
+                            $query->where('is_published', true);
+                        },
+                    ],
                     'rating'
                 )
                 ->orderByDesc('services_count')
                 ->latest('id')
                 ->limit(
-                    6 -
-                    $relatedSalons->count()
+                    6 - $relatedSalons->count()
                 )
                 ->get();
 
@@ -311,12 +252,10 @@ class SalonController extends Controller
             $salon->address,
         ])
             ->filter(
-                fn ($value) =>
-                filled($value)
+                fn ($value) => filled($value)
             )
             ->map(
-                fn ($value) =>
-                trim((string) $value)
+                fn ($value) => trim((string) $value)
             )
             ->values();
 
@@ -337,46 +276,23 @@ class SalonController extends Controller
                 $latitude . ',' . $longitude;
 
             $googleMapsUrl =
-                'https://www.google.com/maps/search/?api=1&query='
-                . rawurlencode($coordinates);
+                'https://www.google.com/maps/search/?api=1&query=' .
+                rawurlencode($coordinates);
 
             $mapsEmbedUrl =
-                'https://www.google.com/maps?q='
-                . rawurlencode($coordinates)
-                . '&z=16&output=embed';
+                'https://www.google.com/maps?q=' .
+                rawurlencode($coordinates) .
+                '&z=16&output=embed';
         } elseif ($fullAddress !== '') {
             $googleMapsUrl =
-                'https://www.google.com/maps/search/?api=1&query='
-                . rawurlencode($fullAddress);
+                'https://www.google.com/maps/search/?api=1&query=' .
+                rawurlencode($fullAddress);
 
             $mapsEmbedUrl =
-                'https://www.google.com/maps?q='
-                . rawurlencode($fullAddress)
-                . '&z=16&output=embed';
+                'https://www.google.com/maps?q=' .
+                rawurlencode($fullAddress) .
+                '&z=16&output=embed';
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Convenience data for public UI
-        |--------------------------------------------------------------------------
-        */
-
-        $postsCount = $salon->posts->count();
-
-        $reviewsCount =
-            $salon->reviews->count();
-
-        $barbersCount =
-            $salon->barbers->count();
-
-        $servicesCount =
-            $salon->services->count();
-
-        /*
-        |--------------------------------------------------------------------------
-        | View
-        |--------------------------------------------------------------------------
-        */
 
         return view(
             'public.salon',
