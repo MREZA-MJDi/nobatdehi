@@ -42,7 +42,7 @@
     </a>
 
     <a
-        href="{{ route('salons.discover', ['sort' => 'nearest']) }}#results"
+        href="{{ route('salons.discover', ['sort' => 'distance']) }}#results"
         class="discover-mobile-item"
     >
         <span class="discover-mobile-icon" aria-hidden="true">
