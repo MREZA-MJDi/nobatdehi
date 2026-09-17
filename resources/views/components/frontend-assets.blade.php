@@ -5,29 +5,27 @@
 @php
     $assets = match ($role) {
         'admin' => [
-            'resources/css/admin.css',
-            'resources/js/admin.js',
+            'resources/css/app.css',
+            'resources/js/app.js',
         ],
 
         'salon' => [
-            'resources/css/admin.css',
-            'resources/js/admin.js',
-            'resources/css/salon.css',
+            'resources/css/app.css',
+            'resources/js/app.js',
             'resources/js/salon.js',
         ],
 
         'public' => [
-            'resources/css/admin.css',
-            'resources/js/admin.js',
-            'resources/css/customer.css',
+            'resources/css/app.css',
+            'resources/css/public-salon.css',
+            'resources/js/app.js',
             'resources/js/customer.js',
-            'resources/css/salon.css',
         ],
 
         default => [
-            'resources/css/admin.css',
-            'resources/js/admin.js',
+            'resources/css/app.css',
             'resources/css/customer.css',
+            'resources/js/app.js',
             'resources/js/customer.js',
         ],
     };
@@ -35,7 +33,7 @@
 
 {{--
     Theme must be applied before styles paint to avoid a visible flash.
-    Runtime stores and Alpine are initialized by admin.js.
+    Shared runtime is initialized by app.js.
 --}}
 <script>
     (() => {
