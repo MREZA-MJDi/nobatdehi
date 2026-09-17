@@ -32,30 +32,17 @@
         <div class="discover-navbar-actions">
             @auth
                 @if(auth()->user()->isSalonOwner())
-                    <a
-                        href="{{ route('salon.dashboard') }}"
-                        class="discover-account-link"
-                    >
-                        <span class="discover-account-avatar" aria-hidden="true">
-                            {{ mb_substr(auth()->user()->name ?: 'س', 0, 1) }}
-                        </span>
+                    <a href="{{ route('salon.dashboard') }}" class="discover-account-link">
+                        <span class="discover-account-avatar" aria-hidden="true">{{ mb_substr(auth()->user()->name ?: 'س', 0, 1) }}</span>
                         <span>داشبورد سالن</span>
                     </a>
                 @elseif(auth()->user()->isCustomer())
-                    <a
-                        href="{{ route('customer.profile.edit') }}"
-                        class="discover-account-link"
-                    >
-                        <span class="discover-account-avatar" aria-hidden="true">
-                            {{ mb_substr(auth()->user()->name ?: 'ک', 0, 1) }}
-                        </span>
+                    <a href="{{ route('customer.profile.edit') }}" class="discover-account-link">
+                        <span class="discover-account-avatar" aria-hidden="true">{{ mb_substr(auth()->user()->name ?: 'ک', 0, 1) }}</span>
                         <span>{{ auth()->user()->name ?: 'حساب من' }}</span>
                     </a>
                 @elseif(auth()->user()->isSuperAdmin())
-                    <a
-                        href="{{ route('admin.dashboard') }}"
-                        class="discover-account-link"
-                    >
+                    <a href="{{ route('admin.dashboard') }}" class="discover-account-link">
                         <span class="discover-account-avatar" aria-hidden="true">A</span>
                         <span>مدیریت</span>
                     </a>

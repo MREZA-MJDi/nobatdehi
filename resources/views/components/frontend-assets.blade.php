@@ -17,9 +17,10 @@
 
         'public' => [
             'resources/css/app.css',
-            'resources/css/public-salon.css',
+            'resources/css/salon.css',
+            'resources/css/public-salon-enhancements.css',
             'resources/js/app.js',
-            'resources/js/customer.js',
+            'resources/js/public-salon.js',
         ],
 
         default => [

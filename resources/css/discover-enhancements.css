@@ -1,0 +1,235 @@
+/* NOBAT Discover — brand, rhythm and interaction refinements */
+
+.discover-footer {
+    position: relative;
+    overflow: hidden;
+    border-top: 1px solid #d8d0c8;
+    background: #121414;
+    color: #f5f1ec;
+}
+
+.discover-footer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(700px 360px at 82% 10%, rgb(198 127 112 / 12%), transparent 70%),
+        radial-gradient(560px 300px at 8% 90%, rgb(255 255 255 / 5%), transparent 70%);
+}
+
+.discover-footer-inner,
+.discover-footer-bottom {
+    position: relative;
+    width: min(100% - 2rem, 84rem);
+    margin-inline: auto;
+}
+
+.discover-footer-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.9fr) repeat(3, minmax(0, .7fr));
+    gap: clamp(2rem, 5vw, 5rem);
+    padding-block: clamp(4rem, 8vw, 6.5rem) 3rem;
+}
+
+.discover-footer-brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .8rem;
+    color: #fff;
+}
+
+.discover-footer-mark {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: .9rem;
+    background: rgb(255 255 255 / 7%);
+    font-size: .88rem;
+    font-weight: 950;
+    letter-spacing: .12em;
+}
+
+.discover-footer-brand-link strong {
+    display: block;
+    font-family: Arial, sans-serif;
+    font-size: 1rem;
+    letter-spacing: .18em;
+}
+
+.discover-footer-brand-link small {
+    display: block;
+    margin-top: .25rem;
+    color: rgb(255 255 255 / 50%);
+    font-size: .62rem;
+}
+
+.discover-footer-brand p {
+    max-width: 34rem;
+    margin: 1.25rem 0 0;
+    color: rgb(255 255 255 / 64%);
+    font-size: .76rem;
+    line-height: 2.05;
+}
+
+.discover-footer-imprint {
+    display: inline-flex;
+    align-items: center;
+    gap: .65rem;
+    margin-top: 1.4rem;
+    color: rgb(255 255 255 / 44%);
+    font-family: Arial, sans-serif;
+    font-size: .55rem;
+    letter-spacing: .14em;
+}
+
+.discover-footer-imprint i {
+    width: 1.8rem;
+    height: 1px;
+    background: rgb(255 255 255 / 20%);
+}
+
+.discover-footer-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .45rem;
+}
+
+.discover-footer-column h2 {
+    margin: 0 0 .55rem;
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 900;
+}
+
+.discover-footer-column a {
+    padding-block: .16rem;
+    color: rgb(255 255 255 / 53%);
+    font-size: .63rem;
+    font-weight: 700;
+    transition: color .18s ease, transform .18s ease;
+}
+
+.discover-footer-column a:hover {
+    color: #fff;
+    transform: translateX(-2px);
+}
+
+.discover-footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 1.1rem 1.4rem;
+    border-top: 1px solid rgb(255 255 255 / 8%);
+    color: rgb(255 255 255 / 38%);
+    font-size: .55rem;
+    font-weight: 700;
+}
+
+.discover-footer-bottom a {
+    color: rgb(255 255 255 / 64%);
+}
+
+/* A quieter, more editorial hierarchy between the long discovery sections. */
+.discover-page .discover-services {
+    background: #f1ede8;
+}
+
+.discover-page .discover-popular {
+    background: #faf8f4;
+}
+
+.discover-page .discover-featured {
+    border-color: #d6cec6;
+    background: #191a1b;
+}
+
+.discover-page .discover-stylists {
+    background: #f4f0eb;
+}
+
+.discover-page .discover-stats {
+    background: #171919;
+    color: #fff;
+}
+
+.discover-page .discover-owner-cta {
+    background: #eee9e4;
+}
+
+.discover-page .discover-services .discover-category-grid,
+.discover-page .discover-services .discover-service-grid {
+    align-items: stretch;
+}
+
+@media (min-width: 1040px) {
+    .discover-page .discover-services .discover-category-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .discover-page .discover-services .discover-category-card:nth-child(3n + 2) {
+        transform: translateY(1.2rem);
+    }
+
+    .discover-page .discover-services .discover-service-card:nth-child(3n + 1) {
+        transform: translateY(1.5rem);
+    }
+
+    .discover-page .discover-services .discover-service-card:nth-child(3n + 2) {
+        transform: translateY(-.35rem);
+    }
+
+    .discover-page .discover-services .discover-service-card:nth-child(3n + 3) {
+        transform: translateY(2rem);
+    }
+
+    .discover-page .discover-stylists .discover-stylist-grid {
+        align-items: start;
+    }
+}
+
+@media (max-width: 720px) {
+    .discover-footer-inner {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2.25rem 1.5rem;
+    }
+
+    .discover-footer-brand {
+        grid-column: 1 / -1;
+    }
+
+    .discover-footer-bottom {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 520px) {
+    .discover-footer-inner,
+    .discover-footer-bottom {
+        width: min(100% - 1.1rem, 84rem);
+    }
+
+    .discover-footer-inner {
+        grid-template-columns: 1fr 1fr;
+        padding-block: 3.5rem 2.5rem;
+    }
+
+    .discover-footer-bottom {
+        gap: .65rem 1rem;
+        padding-bottom: 1.15rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .discover-footer-column a,
+    .discover-page .discover-services .discover-category-card,
+    .discover-page .discover-services .discover-service-card {
+        transition: none !important;
+        transform: none !important;
+    }
+}

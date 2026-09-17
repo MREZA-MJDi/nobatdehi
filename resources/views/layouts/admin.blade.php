@@ -14,14 +14,14 @@
     <header class="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-xl">
         <div class="mx-auto flex min-h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
-                <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-950 font-black text-white shadow-soft">ن</span>
-                <span class="hidden sm:block"><span class="block text-sm font-black text-content">نوبت‌دهی</span><span class="block text-[9px] text-content-muted">پنل مدیریت</span></span>
+                <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-950 font-black text-white shadow-soft">N</span>
+                <span class="hidden sm:block"><span class="block text-sm font-black text-content">NOBAT</span><span class="block text-[9px] text-content-muted">پنل مدیریت · RM / CO</span></span>
             </a>
             <nav class="hidden items-center gap-1 md:flex" aria-label="ناوبری مدیریت">
                 <a href="{{ route('admin.dashboard') }}" class="rounded-xl px-3 py-2 text-xs font-bold {{ request()->routeIs('admin.dashboard') ? 'bg-primary-100 text-content' : 'text-content-muted hover:bg-primary-50 hover:text-content' }}">داشبورد</a>
                 <a href="{{ route('admin.salons.index') }}" class="rounded-xl px-3 py-2 text-xs font-bold {{ request()->routeIs('admin.salons.*') ? 'bg-primary-100 text-content' : 'text-content-muted hover:bg-primary-50 hover:text-content' }}">سالن‌ها</a>
                 <a href="{{ route('admin.salons.create') }}" class="rounded-xl px-3 py-2 text-xs font-bold text-content-muted hover:bg-primary-50 hover:text-content">ایجاد سالن</a>
-                <a href="{{ route('brand.intro') }}" class="rounded-xl px-3 py-2 text-xs font-bold text-content-muted hover:bg-primary-50 hover:text-content">مشاهده سایت</a>
+                <a href="{{ route('salons.discover') }}" class="rounded-xl px-3 py-2 text-xs font-bold text-content-muted hover:bg-primary-50 hover:text-content">مشاهده سایت</a>
             </nav>
             <div class="mr-auto flex items-center gap-2">
                 <x-theme-toggle />
@@ -40,7 +40,7 @@
             <a href="{{ route('admin.dashboard') }}" class="flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[9px] font-bold {{ request()->routeIs('admin.dashboard') ? 'bg-primary-100 text-content' : 'text-content-muted' }}">⌂<span>داشبورد</span></a>
             <a href="{{ route('admin.salons.index') }}" class="flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[9px] font-bold {{ request()->routeIs('admin.salons.*') ? 'bg-primary-100 text-content' : 'text-content-muted' }}">▦<span>سالن‌ها</span></a>
             <a href="{{ route('admin.salons.create') }}" class="flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[9px] font-bold text-content-muted">＋<span>ایجاد</span></a>
-            <a href="{{ route('brand.intro') }}" class="flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[9px] font-bold text-content-muted">↗<span>سایت</span></a>
+            <a href="{{ route('salons.discover') }}" class="flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[9px] font-bold text-content-muted">↗<span>سایت</span></a>
         </div>
     </nav>
 </div>

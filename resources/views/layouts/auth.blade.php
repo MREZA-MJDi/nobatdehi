@@ -21,11 +21,11 @@
 
     <div class="relative w-full max-w-md">
         <div class="mb-7 text-center">
-            <a href="{{ route('brand.intro') }}" class="group inline-flex items-center gap-3">
-                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-950 text-base font-black text-white shadow-lg transition group-hover:-translate-y-1">ن</span>
+            <a href="{{ route('salons.discover') }}" class="group inline-flex items-center gap-3">
+                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-950 text-base font-black text-white shadow-lg transition group-hover:-translate-y-1">N</span>
                 <span class="text-right">
-                    <span class="block text-base font-black text-content">نوبت‌دهی</span>
-                    <span class="mt-0.5 block text-[10px] font-medium text-content-muted">رزرو آسان، تجربه بهتر</span>
+                    <span class="block text-base font-black text-content">NOBAT</span>
+                    <span class="mt-0.5 block text-[10px] font-medium text-content-muted">پیدا کن. انتخاب کن. نوبت بگیر.</span>
                 </span>
             </a>
         </div>
@@ -49,7 +49,7 @@
         </section>
 
         <div class="mt-6 text-center">
-            <div class="text-[10px] font-medium text-content-faint">© {{ now()->year }} نوبت‌دهی</div>
+            <div class="text-[10px] font-medium text-content-faint">© {{ now()->year }} NOBAT · RM / CO</div>
             <div class="mt-1 text-[9px] text-content-faint">رزرو سریع و ساده خدمات موردنظر شما</div>
         </div>
     </div>

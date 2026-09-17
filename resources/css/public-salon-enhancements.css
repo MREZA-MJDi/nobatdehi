@@ -1,0 +1,158 @@
+/* NOBAT Public Salon — focused visual polish without replacing the graphite/silver identity. */
+
+.salon-page .topbar,
+.salon-page .mobile-anchor-bar {
+    box-shadow: 0 10px 35px rgba(0,0,0,.18);
+}
+
+.salon-page .topnav .btn-top-book {
+    position: relative;
+}
+
+.salon-page .topnav .btn-top-book::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border: 1px solid rgba(237,243,248,.08);
+    border-radius: 15px;
+    pointer-events: none;
+}
+
+/* More intentional gallery rhythm: selected tiles become visual anchors. */
+@media (min-width: 1051px) {
+    .salon-page .gallery {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .salon-page .tile:nth-child(6n + 2) {
+        min-height: 330px;
+    }
+
+    .salon-page .tile:nth-child(6n + 3) {
+        grid-column: span 1;
+        min-height: 330px;
+    }
+
+    .salon-page .tile:nth-child(6n + 4) {
+        grid-row: span 2;
+        min-height: 540px;
+    }
+
+    .salon-page .tile:nth-child(6n + 5) {
+        grid-column: span 2;
+        min-height: 330px;
+    }
+}
+
+.salon-page .tile:hover .tile-bottom strong {
+    text-shadow: 0 3px 18px rgba(0,0,0,.45);
+}
+
+.salon-page .slot {
+    position: relative;
+    min-height: 48px;
+    gap: 2px;
+}
+
+.salon-page .slot strong {
+    font-size: .62rem;
+}
+
+.salon-page .slot small {
+    color: var(--muted-2);
+    font-size: .45rem;
+    font-weight: 700;
+}
+
+.salon-page .slot.pending {
+    border-color: rgba(255,210,130,.20);
+    background: rgba(255,198,90,.035);
+}
+
+.salon-page .slot.pending small {
+    color: #d9b276;
+}
+
+.salon-page .slot.sel small {
+    color: rgba(10,11,13,.55);
+}
+
+.salon-page .modal,
+.salon-page .lightbox-dialog {
+    overscroll-behavior: contain;
+}
+
+.salon-page .modal {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,.15) transparent;
+}
+
+.salon-page .modal-close:focus-visible,
+.salon-page .lightbox-close:focus-visible,
+.salon-page .lightbox-nav:focus-visible,
+.salon-page .cal-nav button:focus-visible,
+.salon-page .slot:focus-visible,
+.salon-page .day:focus-visible,
+.salon-page .tab:focus-visible,
+.salon-page .service-book:focus-visible,
+.salon-page .btn-diamond:focus-visible,
+.salon-page .btn-ghost:focus-visible,
+.salon-page .btn-confirm:focus-visible,
+.salon-page .float-book button:focus-visible {
+    outline: 2px solid var(--diamond-2);
+    outline-offset: 3px;
+}
+
+.salon-page footer {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 10px;
+    margin-top: 25px;
+    padding: 46px 20px 110px;
+    background:
+        radial-gradient(500px 180px at 50% 0, rgba(237,243,248,.045), transparent 72%),
+        linear-gradient(180deg, rgba(255,255,255,.015), transparent);
+    font-family: "Vazirmatn", Tahoma, Arial, sans-serif;
+    font-size: .58rem;
+    letter-spacing: 0;
+}
+
+.salon-page footer::before {
+    content: "NOBAT · SALON EXPERIENCE";
+    width: 100%;
+    margin-bottom: 4px;
+    color: var(--diamond-2);
+    font-family: Arial, sans-serif;
+    font-size: .52rem;
+    font-weight: 800;
+    letter-spacing: .18em;
+}
+
+.salon-page footer::after {
+    content: "RM / CO";
+    width: 100%;
+    margin-top: 4px;
+    color: var(--muted-2);
+    font-family: Arial, sans-serif;
+    font-size: .48rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+}
+
+.salon-page footer span {
+    margin-inline: 1px;
+}
+
+@media (max-width: 680px) {
+    .salon-page .gallery {
+        align-items: stretch;
+    }
+
+    .salon-page footer {
+        padding-bottom: 96px;
+    }
+}
