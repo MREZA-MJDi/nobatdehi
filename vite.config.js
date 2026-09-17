@@ -6,14 +6,14 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                'resources/css/app.css',
-                'resources/js/app.js',
+                'resources/css/admin.css',
+                'resources/js/admin.js',
 
                 'resources/css/customer.css',
                 'resources/js/customer.js',
 
-                'resources/css/discovery.css',
                 'resources/css/salon.css',
+                'resources/js/salon.js',
             ],
 
             refresh: true,
