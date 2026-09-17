@@ -53,21 +53,33 @@
                     <a href="{{ route('salons.discover', ['type' => 'barber']) }}#results">متخصص‌ها</a>
                     <a href="{{ route('salons.discover', ['sort' => 'nearest']) }}#results">نزدیک من</a>
                     @auth
-                        @if(auth()->user()->isCustomer())
+                        @if(auth()->user()->isSalonOwner())
+                            <a href="{{ route('salon.dashboard') }}">داشبورد سالن</a>
+                        @elseif(auth()->user()->isCustomer())
                             <a href="{{ route('customer.dashboard') }}">نوبت‌های من</a>
+                        @elseif(auth()->user()->isSuperAdmin())
+                            <a href="{{ route('admin.dashboard') }}">مدیریت</a>
                         @endif
                     @endauth
                 </nav>
 
                 <div class="discover-navbar-actions">
                     @auth
-                        @if(auth()->user()->isCustomer())
+                        @if(auth()->user()->isSalonOwner())
+                            <a href="{{ route('salon.dashboard') }}" class="discover-account-link">
+                                <span class="discover-account-avatar" aria-hidden="true">{{ mb_substr(auth()->user()->name ?: 'س', 0, 1) }}</span>
+                                <span>داشبورد سالن</span>
+                            </a>
+                        @elseif(auth()->user()->isCustomer())
                             <a href="{{ route('customer.profile.edit') }}" class="discover-account-link">
                                 <span class="discover-account-avatar" aria-hidden="true">{{ mb_substr(auth()->user()->name ?: 'ک', 0, 1) }}</span>
                                 <span>{{ auth()->user()->name ?: 'حساب من' }}</span>
                             </a>
-                        @else
-                            <a href="{{ route('login') }}" class="discover-navbar-ghost">ورود</a>
+                        @elseif(auth()->user()->isSuperAdmin())
+                            <a href="{{ route('admin.dashboard') }}" class="discover-account-link">
+                                <span class="discover-account-avatar" aria-hidden="true">A</span>
+                                <span>مدیریت</span>
+                            </a>
                         @endif
                     @else
                         <a href="{{ route('login') }}" class="discover-navbar-ghost">ورود</a>
@@ -111,19 +123,58 @@
             </a>
 
             @auth
-                @if(auth()->user()->isCustomer())
+                @if(auth()->user()->isSalonOwner())
+                    <a href="{{ route('salon.dashboard') }}" class="discover-mobile-item">
+                        <span class="discover-mobile-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20V9h12v11"/><path d="M8 9V5h8v4"/><path d="M9 13h1M14 13h1M9 16h1M14 16h1"/></svg>
+                        </span>
+                        <span>پنل سالن</span>
+                    </a>
+                @elseif(auth()->user()->isCustomer())
                     <a href="{{ route('customer.dashboard') }}" class="discover-mobile-item">
-                @else
-                    <a href="{{ route('login') }}" class="discover-mobile-item">
+                        <span class="discover-mobile-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M6 4v16"/><path d="M6 5h11l-3 4 3 4H6"/></svg>
+                        </span>
+                        <span>نوبت‌ها</span>
+                    </a>
+                @elseif(auth()->user()->isSuperAdmin())
+                    <a href="{{ route('admin.dashboard') }}" class="discover-mobile-item">
+                        <span class="discover-mobile-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 8h8M8 12h5M8 16h8"/></svg>
+                        </span>
+                        <span>مدیریت</span>
+                    </a>
                 @endif
             @else
                 <a href="{{ route('login') }}" class="discover-mobile-item">
+                    <span class="discover-mobile-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21c.8-4 3.2-6 7-6s6.2 2 7 6"/></svg>
+                    </span>
+                    <span>ورود</span>
+                </a>
             @endauth
-                <span class="discover-mobile-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21c.8-4 3.2-6 7-6s6.2 2 7 6"/></svg>
-                </span>
-                <span>حساب</span>
-            </a>
+
+            @auth
+                @if(auth()->user()->isSalonOwner())
+                    <a href="{{ route('salon.settings.edit') }}" class="discover-mobile-item">
+                @elseif(auth()->user()->isCustomer())
+                    <a href="{{ route('customer.profile.edit') }}" class="discover-mobile-item">
+                @elseif(auth()->user()->isSuperAdmin())
+                    <a href="{{ route('admin.dashboard') }}" class="discover-mobile-item">
+                @endif
+                    <span class="discover-mobile-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21c.8-4 3.2-6 7-6s6.2 2 7 6"/></svg>
+                    </span>
+                    <span>حساب</span>
+                </a>
+            @else
+                <a href="{{ route('register') }}" class="discover-mobile-item">
+                    <span class="discover-mobile-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                    </span>
+                    <span>ثبت‌نام</span>
+                </a>
+            @endauth
         </nav>
     </div>
 
