@@ -20,17 +20,11 @@ enum BookingStatus: string
     }
 
     /**
-     * آیا این وضعیت باید در محاسبه availability
-     * زمان را اشغال‌شده در نظر بگیرد؟
+     * Only a confirmed booking permanently blocks the time slot.
+     * Pending bookings stay visible as a queue and may coexist.
      */
     public function blocksAvailability(): bool
     {
-        return match ($this) {
-            self::PENDING,
-            self::CONFIRMED => true,
-
-            self::COMPLETED,
-            self::CANCELLED => false,
-        };
+        return $this === self::CONFIRMED;
     }
 }
