@@ -1,0 +1,504 @@
+@import "./customer.css";
+
+/* ========================================================================== 
+   NOBAT DISCOVER — Editorial production skin
+   ========================================================================== */
+
+.discover-page {
+    --discover-bg: #f5f4f1;
+    --discover-surface: #ffffff;
+    --discover-ink: #171717;
+    --discover-muted: #77736c;
+    --discover-line: #dfdcd5;
+    --discover-accent: #9b7b4f;
+    --discover-dark: #101011;
+
+    min-height: 100vh;
+    overflow: clip;
+    background: var(--discover-bg);
+    color: var(--discover-ink);
+}
+
+.discover-page,
+.discover-page * {
+    box-sizing: border-box;
+}
+
+.discover-page a,
+.discover-page button,
+.discover-page input,
+.discover-page select {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.discover-page .discover-container {
+    width: min(100% - 2rem, 84rem);
+    margin-inline: auto;
+}
+
+.discover-page .discover-kicker {
+    color: var(--discover-accent);
+    font-size: .68rem;
+    font-weight: 900;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+}
+
+.discover-page .discover-section,
+.discover-page .discover-section-soft,
+.discover-page .discover-results,
+.discover-page .discover-services,
+.discover-page .discover-popular,
+.discover-page .discover-featured,
+.discover-page .discover-stylists,
+.discover-page .discover-stats,
+.discover-page .discover-owner-cta {
+    border-top: 1px solid var(--discover-line);
+}
+
+/* --------------------------------------------------------------------------
+   Hero
+   -------------------------------------------------------------------------- */
+
+.discover-page .discover-hero {
+    min-height: calc(100svh - 4.5rem);
+    display: flex;
+    align-items: stretch;
+    background: var(--discover-bg);
+}
+
+.discover-page .discover-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+    min-height: calc(100svh - 4.5rem);
+    width: min(100% - 2rem, 84rem);
+    margin-inline: auto;
+}
+
+.discover-page .discover-hero-content {
+    order: 2;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(3.5rem, 7vw, 7.5rem) clamp(1rem, 5vw, 5rem) clamp(3.5rem, 6vw, 6rem) 0;
+}
+
+.discover-page .discover-hero-title {
+    max-width: 11ch;
+    margin: .9rem 0 0;
+    font-size: clamp(3.1rem, 7vw, 6.6rem);
+    font-weight: 900;
+    line-height: .96;
+    letter-spacing: -.055em;
+}
+
+.discover-page .discover-hero-title span {
+    display: block;
+    color: var(--discover-muted);
+    font-weight: 500;
+}
+
+.discover-page .discover-hero-description {
+    max-width: 36rem;
+    margin: 1.6rem 0 0;
+    color: var(--discover-muted);
+    font-size: clamp(.9rem, 1.3vw, 1.06rem);
+    line-height: 2;
+}
+
+.discover-page .discover-hero-search {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, .55fr) auto;
+    gap: 0;
+    max-width: 52rem;
+    margin-top: 2rem;
+    overflow: hidden;
+    border: 1px solid #cbc7bf;
+    border-radius: 1rem;
+    background: var(--discover-surface);
+    box-shadow: 0 20px 50px rgb(24 24 27 / 8%);
+}
+
+.discover-page .discover-hero-search-field {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: .7rem;
+    padding: .7rem 1rem;
+    border-inline-start: 1px solid var(--discover-line);
+}
+
+.discover-page .discover-hero-search-field > span {
+    color: var(--discover-muted);
+    font-size: 1rem;
+}
+
+.discover-page .discover-hero-search-field input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--discover-ink);
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+.discover-page .discover-hero-search-field input::placeholder {
+    color: #9d9a94;
+}
+
+.discover-page .discover-hero-search-button {
+    min-width: 7.5rem;
+    border: 0;
+    border-radius: 0;
+    background: var(--discover-dark);
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 900;
+    transition: background-color .18s ease;
+}
+
+.discover-page .discover-hero-search-button:hover {
+    background: #27272a;
+}
+
+.discover-page .discover-hero-popular {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem 1rem;
+    margin-top: 1.15rem;
+    color: var(--discover-muted);
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.discover-page .discover-hero-popular > span {
+    color: var(--discover-ink);
+    font-weight: 900;
+}
+
+.discover-page .discover-hero-popular a {
+    position: relative;
+    color: var(--discover-muted);
+}
+
+.discover-page .discover-hero-popular a:hover {
+    color: var(--discover-accent);
+}
+
+.discover-page .discover-hero-results-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    width: fit-content;
+    margin-top: 2rem;
+    color: var(--discover-ink);
+    font-size: .72rem;
+    font-weight: 900;
+}
+
+.discover-page .discover-hero-results-link:hover {
+    color: var(--discover-accent);
+}
+
+.discover-page .discover-hero-media {
+    order: 1;
+    position: relative;
+    min-height: 100%;
+    overflow: hidden;
+    background: #141414;
+}
+
+.discover-page .discover-hero-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(.72) contrast(1.04);
+}
+
+.discover-page .discover-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(10 10 10 / 4%), rgb(10 10 10 / 52%));
+}
+
+.discover-page .discover-hero-card {
+    position: absolute;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgb(255 255 255 / 28%);
+    color: #fff;
+}
+
+.discover-page .discover-hero-card-label {
+    color: rgb(255 255 255 / 68%);
+    font-size: .62rem;
+    font-weight: 800;
+}
+
+.discover-page .discover-hero-card strong {
+    font-size: 1.1rem;
+    font-weight: 900;
+}
+
+.discover-page .discover-hero-card > span:last-child {
+    color: rgb(255 255 255 / 66%);
+    font-size: .68rem;
+}
+
+/* --------------------------------------------------------------------------
+   Results / filters
+   -------------------------------------------------------------------------- */
+
+.discover-page .discover-results {
+    padding: clamp(4rem, 7vw, 7rem) 0;
+}
+
+.discover-page .discover-results__filter {
+    border-inline: 0 !important;
+    border-radius: 0 !important;
+    border-color: var(--discover-line) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.discover-page .discover-results__filter form {
+    padding-inline: 0 !important;
+}
+
+.discover-page .discover-results input,
+.discover-page .discover-results select {
+    border-radius: .7rem !important;
+    background: #fbfaf8 !important;
+    border-color: #d6d2ca !important;
+}
+
+.discover-page .discover-result-card,
+.discover-page .discover-salon-card,
+.discover-page .discover-service-card,
+.discover-page .discover-stylist-card,
+.discover-page .discover-nearby-card {
+    border-radius: 1rem !important;
+    border-color: var(--discover-line) !important;
+    box-shadow: none !important;
+    transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+
+.discover-page .discover-result-card:hover,
+.discover-page .discover-salon-card:hover,
+.discover-page .discover-service-card:hover,
+.discover-page .discover-stylist-card:hover,
+.discover-page .discover-nearby-card:hover {
+    transform: translateY(-3px);
+    border-color: #c7bba9 !important;
+    box-shadow: 0 18px 44px rgb(24 24 27 / 8%) !important;
+}
+
+.discover-page .discover-result-button,
+.discover-page .discover-section-link,
+.discover-page .discover-primary-button {
+    border-radius: .7rem !important;
+}
+
+/* --------------------------------------------------------------------------
+   Nearby map
+   -------------------------------------------------------------------------- */
+
+.discover-page .discover-nearby-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.discover-page .discover-nearby-map {
+    position: relative;
+    min-height: 32rem;
+    overflow: hidden;
+    border: 1px solid var(--discover-line);
+    background: #e7e5df;
+}
+
+.discover-page .discover-nearby-map iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 32rem;
+    border: 0;
+    filter: saturate(.74) contrast(.98);
+}
+
+.discover-page .discover-nearby-map-credit {
+    position: absolute;
+    right: .7rem;
+    bottom: .7rem;
+    padding: .25rem .45rem;
+    background: rgb(255 255 255 / 86%);
+    color: #66625a;
+    font-size: .55rem;
+    font-weight: 700;
+}
+
+.discover-page .discover-nearby-grid {
+    align-content: start;
+}
+
+/* --------------------------------------------------------------------------
+   Editorial section rhythm
+   -------------------------------------------------------------------------- */
+
+.discover-page .discover-section,
+.discover-page .discover-section-soft,
+.discover-page .discover-services,
+.discover-page .discover-popular,
+.discover-page .discover-featured,
+.discover-page .discover-stylists,
+.discover-page .discover-stats,
+.discover-page .discover-owner-cta {
+    padding-block: clamp(4rem, 7vw, 7rem) !important;
+}
+
+.discover-page .discover-section-heading h2,
+.discover-page .discover-results h2 {
+    font-size: clamp(2rem, 4vw, 3.6rem) !important;
+    line-height: 1.1 !important;
+    letter-spacing: -.04em !important;
+}
+
+.discover-page .discover-section-heading p,
+.discover-page .discover-results p {
+    color: var(--discover-muted) !important;
+}
+
+.discover-page .discover-section-heading-inline {
+    align-items: end;
+}
+
+.discover-page .discover-section-soft {
+    background: #eeece7 !important;
+}
+
+.discover-page .discover-nearby-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-block: 1px solid var(--discover-line);
+    color: var(--discover-muted);
+    font-size: .7rem;
+    font-weight: 700;
+}
+
+.discover-page .discover-nearby-info strong {
+    color: var(--discover-ink);
+}
+
+/* --------------------------------------------------------------------------
+   Motion / accessibility
+   -------------------------------------------------------------------------- */
+
+.discover-page .discover-result-card,
+.discover-page .discover-salon-card,
+.discover-page .discover-service-card,
+.discover-page .discover-stylist-card {
+    opacity: .001;
+    transform: translateY(12px);
+}
+
+.discover-page .discover-result-card.is-visible,
+.discover-page .discover-salon-card.is-visible,
+.discover-page .discover-service-card.is-visible,
+.discover-page .discover-stylist-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .discover-page .discover-result-card,
+    .discover-page .discover-salon-card,
+    .discover-page .discover-service-card,
+    .discover-page .discover-stylist-card {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+@media (max-width: 900px) {
+    .discover-page .discover-hero,
+    .discover-page .discover-hero-grid {
+        min-height: auto;
+    }
+
+    .discover-page .discover-hero-grid {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .discover-page .discover-hero-media {
+        order: 1;
+        min-height: min(70svh, 40rem);
+    }
+
+    .discover-page .discover-hero-content {
+        order: 2;
+        padding: 3rem 0 4rem;
+    }
+
+    .discover-page .discover-hero-title {
+        max-width: none;
+        font-size: clamp(3rem, 13vw, 5rem);
+    }
+
+    .discover-page .discover-hero-search {
+        grid-template-columns: 1fr;
+        border-radius: .85rem;
+    }
+
+    .discover-page .discover-hero-search-field {
+        border-inline-start: 0;
+        border-bottom: 1px solid var(--discover-line);
+    }
+
+    .discover-page .discover-hero-search-button {
+        min-height: 3.2rem;
+    }
+
+    .discover-page .discover-nearby-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .discover-page .discover-container,
+    .discover-page .discover-hero-grid {
+        width: min(100% - 1rem, 84rem);
+    }
+
+    .discover-page .discover-hero-media {
+        min-height: 28rem;
+    }
+
+    .discover-page .discover-hero-card {
+        right: 1rem;
+        bottom: 1rem;
+        left: 1rem;
+    }
+
+    .discover-page .discover-section-heading,
+    .discover-page .discover-section-heading-inline {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .discover-page .discover-nearby-map,
+    .discover-page .discover-nearby-map iframe {
+        min-height: 24rem;
+    }
+}
