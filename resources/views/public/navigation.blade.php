@@ -16,7 +16,7 @@
             <a href="{{ route('salons.discover') }}#hero" class="is-active">کشف</a>
             <a href="{{ route('salons.discover', ['type' => 'salon']) }}#results">سالن‌ها</a>
             <a href="{{ route('salons.discover', ['type' => 'barber']) }}#results">متخصص‌ها</a>
-            <a href="{{ route('salons.discover', ['sort' => 'nearest']) }}#results">نزدیک من</a>
+            <a href="{{ route('salons.discover', ['sort' => 'distance']) }}#results">نزدیک من</a>
 
             @auth
                 @if(auth()->user()->isSalonOwner())
