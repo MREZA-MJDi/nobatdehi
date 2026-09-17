@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Salon;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Salon\WorkingHourRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,19 +14,58 @@ class WorkingHourController extends Controller
 {
     public function edit(
         Request $request
-    ): View {
+    ): View|JsonResponse {
         $salon = $request
             ->user()
             ->managedSalons()
             ->firstOrFail();
 
-        $hours = $salon
+        $rows = $salon
             ->workingHours()
             ->orderBy('day_of_week')
             ->orderBy('sort_order')
             ->orderBy('start_time')
-            ->get()
-            ->groupBy('day_of_week');
+            ->get();
+
+        $schedule = [];
+
+        for ($day = 0; $day <= 6; $day++) {
+            $dayRows = $rows->where('day_of_week', $day)->values();
+            $isClosed = $dayRows->contains(
+                fn ($row): bool => (bool) $row->is_closed
+            );
+
+            $intervals = $dayRows
+                ->filter(
+                    fn ($row): bool =>
+                        !$row->is_closed &&
+                        $row->start_time &&
+                        $row->end_time
+                )
+                ->map(
+                    fn ($row): array => [
+                        'start' => substr((string) $row->start_time, 0, 5),
+                        'end' => substr((string) $row->end_time, 0, 5),
+                    ]
+                )
+                ->values()
+                ->all();
+
+            $schedule[$day] = [
+                'configured' => $dayRows->isNotEmpty(),
+                'closed' => $dayRows->isEmpty() ? true : $isClosed,
+                'intervals' => $intervals,
+            ];
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'schedule' => $schedule,
+            ]);
+        }
+
+        $hours = $rows->groupBy('day_of_week');
 
         return view(
             'salon.working-hours.edit',
@@ -62,16 +102,6 @@ class WorkingHourController extends Controller
                     FILTER_VALIDATE_BOOLEAN
                 );
 
-                /*
-                |--------------------------------------------------------------------------
-                | Closed day
-                |--------------------------------------------------------------------------
-                |
-                | We intentionally keep one DB row for a closed day.
-                | This makes the weekly schedule predictable.
-                |
-                */
-
                 if ($isClosed) {
                     $salon->workingHours()->create([
                         'day_of_week' => $dayOfWeek,
@@ -83,12 +113,6 @@ class WorkingHourController extends Controller
 
                     continue;
                 }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Open day
-                |--------------------------------------------------------------------------
-                */
 
                 $intervals = $day['intervals'] ?? [];
 
@@ -113,16 +137,6 @@ class WorkingHourController extends Controller
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Optional default schedule
-    |--------------------------------------------------------------------------
-    |
-    | This method is kept for compatibility with the existing route.
-    | The new UI applies defaults on the page itself.
-    |
-    */
-
     public function applyDefault(
         Request $request
     ): RedirectResponse {
@@ -132,48 +146,12 @@ class WorkingHourController extends Controller
             ->firstOrFail();
 
         $defaults = [
-            0 => [
-                [
-                    'start_time' => '09:00',
-                    'end_time' => '22:00',
-                ],
-            ],
-
-            1 => [
-                [
-                    'start_time' => '09:00',
-                    'end_time' => '22:00',
-                ],
-            ],
-
-            2 => [
-                [
-                    'start_time' => '09:00',
-                    'end_time' => '22:00',
-                ],
-            ],
-
-            3 => [
-                [
-                    'start_time' => '09:00',
-                    'end_time' => '22:00',
-                ],
-            ],
-
-            4 => [
-                [
-                    'start_time' => '09:00',
-                    'end_time' => '22:00',
-                ],
-            ],
-
-            5 => [
-                [
-                    'start_time' => '09:00',
-                    'end_time' => '22:00',
-                ],
-            ],
-
+            0 => [['start_time' => '09:00', 'end_time' => '22:00']],
+            1 => [['start_time' => '09:00', 'end_time' => '22:00']],
+            2 => [['start_time' => '09:00', 'end_time' => '22:00']],
+            3 => [['start_time' => '09:00', 'end_time' => '22:00']],
+            4 => [['start_time' => '09:00', 'end_time' => '22:00']],
+            5 => [['start_time' => '09:00', 'end_time' => '22:00']],
             6 => [],
         ];
 

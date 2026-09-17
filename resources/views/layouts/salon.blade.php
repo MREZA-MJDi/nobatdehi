@@ -8,6 +8,9 @@
     <meta name="description" content="@yield('meta_description', 'مدیریت سالن')">
     <x-frontend-assets role="salon" />
     @vite('resources/css/experience-enhancements.css')
+    @if(request()->routeIs('salon.working-hours.edit', 'salon.settings.edit'))
+        @vite('resources/js/working-hours-sync.js')
+    @endif
     @stack('head')
 </head>
 
