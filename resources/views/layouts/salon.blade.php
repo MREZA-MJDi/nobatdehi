@@ -7,10 +7,11 @@
     <title>@hasSection('title')@yield('title') | {{ $salon?->name ?? 'پنل سالن' }}@else{{ $salon?->name ?? 'پنل سالن' }}@endif</title>
     <meta name="description" content="@yield('meta_description', 'مدیریت سالن')">
     <x-frontend-assets role="salon" />
+    @vite('resources/css/experience-enhancements.css')
     @stack('head')
 </head>
 
-<body class="min-h-screen bg-background text-content">
+<body class="salon-portal min-h-screen bg-background text-content">
 <div class="min-h-screen">
     <aside class="fixed inset-y-0 right-0 z-50 hidden w-72 flex-col border-l border-border bg-surface shadow-sm lg:flex">
         <div class="border-b border-border p-4">

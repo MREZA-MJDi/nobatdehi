@@ -1,9 +1,5 @@
 <!DOCTYPE html>
-<html
-    lang="fa"
-    dir="rtl"
-    class="antialiased"
->
+<html lang="fa" dir="rtl" class="antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -21,6 +17,11 @@
     <meta name="robots" content="@yield('robots', 'index,follow')">
     <link rel="canonical" href="@yield('canonical', url()->current())">
 
+    @if(request()->routeIs('public.salons.booking.create'))
+        <meta name="nobat-app-date" content="{{ now(config('app.timezone', 'Asia/Tehran'))->toDateString() }}">
+        <meta name="nobat-booking-availability-url" content="{{ route('public.salons.booking.availability', request()->route('salon')) }}">
+    @endif
+
     @if(request()->routeIs('salons.discover'))
         @vite([
             'resources/css/app.css',
@@ -36,6 +37,7 @@
             'resources/css/customer.css',
             'resources/js/app.js',
             'resources/js/customer.js',
+            'resources/js/public-booking-enhancements.js',
         ])
     @else
         @vite([
@@ -44,6 +46,7 @@
             'resources/css/public-salon-enhancements.css',
             'resources/js/app.js',
             'resources/js/public-salon.js',
+            'resources/js/public-salon-enhancements.js',
         ])
     @endif
 

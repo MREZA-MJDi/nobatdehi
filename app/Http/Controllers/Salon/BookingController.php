@@ -124,14 +124,16 @@ class BookingController extends Controller
             ->orderBy('name')
             ->get();
 
+        /*
+         * A manual booking is often used for a first-time customer.
+         * The selector therefore must contain every active customer account,
+         * not only people who already booked this salon.
+         */
         $customers = User::query()
             ->where('role', 'customer')
-            ->whereHas('bookings', function ($query) use ($salon): void {
-                $query->where('salon_id', $salon->id);
-            })
+            ->where('is_active', true)
             ->orderBy('name')
             ->get(['id', 'name', 'phone'])
-            ->unique('id')
             ->values();
 
         return view('salon.bookings.create', compact(
@@ -217,15 +219,13 @@ class BookingController extends Controller
         $customer = User::query()
             ->whereKey($data['customer_id'])
             ->where('role', 'customer')
-            ->whereHas('bookings', function ($query) use ($salon): void {
-                $query->where('salon_id', $salon->id);
-            })
+            ->where('is_active', true)
             ->first();
 
         if (!$customer) {
             return back()
                 ->withErrors([
-                    'customer_id' => 'این مشتری متعلق به مشتریان این سالن نیست.',
+                    'customer_id' => 'حساب مشتری انتخاب‌شده معتبر یا فعال نیست.',
                 ])
                 ->withInput();
         }

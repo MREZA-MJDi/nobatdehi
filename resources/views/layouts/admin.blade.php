@@ -7,9 +7,10 @@
     <title>@yield('title', 'پنل مدیریت نوبت‌دهی')</title>
     <meta name="description" content="@yield('meta_description', 'پنل مدیریت نوبت‌دهی')">
     <x-frontend-assets role="admin" />
+    @vite('resources/css/experience-enhancements.css')
     @stack('head')
 </head>
-<body>
+<body class="admin-portal">
 <div class="min-h-screen bg-background text-content">
     <header class="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-xl">
         <div class="mx-auto flex min-h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">

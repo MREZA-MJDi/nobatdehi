@@ -1,0 +1,201 @@
+/* NOBAT experience layer — shared polish for booking, salon portal and admin portal.
+   All selectors are explicitly scoped so the existing public salon identity remains intact. */
+
+/* ========================================================================== 
+   PUBLIC BOOKING
+   ========================================================================== */
+.nobat-booking {
+    --booking-ink: #151515;
+    --booking-muted: #716d68;
+    --booking-line: rgba(24, 24, 22, .10);
+    --booking-surface: rgba(255,255,255,.80);
+    --booking-surface-strong: #fff;
+    --booking-accent: #9d7567;
+    position: relative;
+    isolation: isolate;
+    background:
+        radial-gradient(900px 500px at 90% -10%, rgba(169,123,108,.10), transparent 70%),
+        radial-gradient(760px 460px at 0 45%, rgba(0,0,0,.035), transparent 72%),
+        #f5f2ed;
+    color: var(--booking-ink);
+}
+
+.nobat-booking .booking-card,
+.nobat-booking .booking-time-card,
+.nobat-booking .booking-summary,
+.nobat-booking .booking-side-card {
+    border-color: var(--booking-line) !important;
+    background: var(--booking-surface) !important;
+    box-shadow: 0 22px 70px rgba(28,24,21,.07), inset 0 1px 0 rgba(255,255,255,.70);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.nobat-booking .booking-card {
+    scroll-margin-top: 96px;
+}
+
+.nobat-booking .booking-choice {
+    border-color: var(--booking-line) !important;
+    background: rgba(255,255,255,.55) !important;
+    transition: transform .22s ease, border-color .22s ease, background-color .22s ease, box-shadow .22s ease;
+}
+
+.nobat-booking .booking-choice:hover {
+    transform: translateY(-2px);
+    border-color: rgba(157,117,103,.28) !important;
+    box-shadow: 0 14px 36px rgba(28,24,21,.07);
+}
+
+.nobat-booking .booking-choice.is-selected {
+    border-color: rgba(157,117,103,.52) !important;
+    background: rgba(157,117,103,.08) !important;
+    box-shadow: 0 18px 44px rgba(157,117,103,.11);
+}
+
+.nobat-booking .booking-time,
+.nobat-booking .booking-time-button,
+.nobat-booking .booking-slot {
+    transition: transform .18s ease, border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
+}
+
+.nobat-booking .booking-time:hover,
+.nobat-booking .booking-time-button:hover,
+.nobat-booking .booking-slot:hover {
+    transform: translateY(-1px);
+}
+
+.nobat-booking .booking-time.is-selected,
+.nobat-booking .booking-time-button.is-selected,
+.nobat-booking .booking-slot.is-selected {
+    box-shadow: 0 12px 30px rgba(157,117,103,.15);
+}
+
+.nobat-booking .np-step-number {
+    display: inline-grid;
+    place-items: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    flex: 0 0 2.35rem;
+    border: 1px solid rgba(24,24,22,.09);
+    border-radius: .85rem;
+    background: #efebe5;
+    color: #6b625d;
+    font-family: Arial, sans-serif;
+    font-size: .65rem;
+    font-weight: 900;
+    letter-spacing: .08em;
+}
+
+.nobat-booking .np-booking-salon-chip {
+    border-color: rgba(24,24,22,.09) !important;
+    background: rgba(255,255,255,.60) !important;
+    box-shadow: 0 12px 34px rgba(28,24,21,.05);
+}
+
+.nobat-booking .np-back:focus-visible,
+.nobat-booking button:focus-visible,
+.nobat-booking a:focus-visible,
+.nobat-booking select:focus-visible,
+.nobat-booking input:focus-visible {
+    outline: 2px solid var(--booking-accent);
+    outline-offset: 3px;
+}
+
+/* ========================================================================== 
+   SALON OWNER PORTAL
+   ========================================================================== */
+.salon-portal > div > aside {
+    box-shadow: -16px 0 60px rgba(36,32,51,.06);
+}
+
+.salon-portal > div > aside nav a {
+    position: relative;
+    border: 1px solid transparent;
+}
+
+.salon-portal > div > aside nav a:hover {
+    border-color: rgba(79,70,229,.08);
+}
+
+.salon-portal > div > aside nav a[href*="salon.dashboard"].bg-accent-50,
+.salon-portal > div > aside nav a.bg-accent-50 {
+    box-shadow: 0 10px 28px rgba(79,70,229,.08);
+}
+
+.salon-portal > div > header {
+    box-shadow: 0 10px 35px rgba(36,32,51,.05);
+}
+
+.salon-portal > div > main {
+    background:
+        radial-gradient(800px 360px at 80% 0, rgba(79,70,229,.035), transparent 70%),
+        transparent;
+}
+
+.salon-portal > div > nav[aria-label="ناوبری سالن"] > div {
+    box-shadow: 0 14px 40px rgba(36,32,51,.10);
+}
+
+.salon-portal a:focus-visible,
+.salon-portal button:focus-visible,
+.salon-portal input:focus-visible,
+.salon-portal select:focus-visible,
+.salon-portal textarea:focus-visible {
+    outline: 2px solid var(--color-accent-600, #7c3aed);
+    outline-offset: 3px;
+}
+
+/* ========================================================================== 
+   SUPER ADMIN PORTAL
+   ========================================================================== */
+.admin-portal > div {
+    background:
+        radial-gradient(980px 460px at 100% 0, rgba(79,70,229,.045), transparent 70%),
+        var(--color-background, #f7f8fc);
+}
+
+.admin-portal > div > header {
+    box-shadow: 0 10px 34px rgba(36,32,51,.05);
+}
+
+.admin-portal > div > header nav a,
+.admin-portal > div > nav a {
+    border: 1px solid transparent;
+    transition: transform .18s ease, background-color .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.admin-portal > div > header nav a:hover,
+.admin-portal > div > nav a:hover {
+    border-color: rgba(79,70,229,.08);
+    transform: translateY(-1px);
+}
+
+.admin-portal > div > main > * {
+    scroll-margin-top: 88px;
+}
+
+.admin-portal a:focus-visible,
+.admin-portal button:focus-visible,
+.admin-portal input:focus-visible,
+.admin-portal select:focus-visible,
+.admin-portal textarea:focus-visible {
+    outline: 2px solid var(--color-primary-500, #6366f1);
+    outline-offset: 3px;
+}
+
+/* ========================================================================== 
+   REDUCED MOTION
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .nobat-booking .booking-choice,
+    .nobat-booking .booking-time,
+    .nobat-booking .booking-time-button,
+    .nobat-booking .booking-slot,
+    .admin-portal > div > header nav a,
+    .admin-portal > div > nav a,
+    .salon-portal > div > aside nav a {
+        transition: none !important;
+        transform: none !important;
+    }
+}
