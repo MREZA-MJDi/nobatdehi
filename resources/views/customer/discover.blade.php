@@ -1,21 +1,13 @@
-@extends('layouts.customer')
+@extends('layouts.discovery')
 
 @section('title', 'کشف سالن و رزرو نوبت')
 
 @section(
-    'meta_description',
+    'description',
     'سالن‌ها، آرایشگرها و خدمات زیبایی را پیدا کن، مقایسه کن و آنلاین نوبت بگیر.'
 )
 
 @section('canonical', route('salons.discover'))
-
-@push('head')
-    @vite('resources/css/discovery.css')
-@endpush
-
-@push('scripts')
-    @vite('resources/js/discover.js')
-@endpush
 
 @php
     use Illuminate\Support\Facades\Storage;
@@ -61,26 +53,14 @@
 @endphp
 
 @section('content')
-
     <div class="discover-page">
-
         @include('customer.discover.sections.hero')
 
-        {{-- =========================================================
-            MAIN SEARCH RESULTS
-        ========================================================== --}}
         @include('customer.discover.sections.results')
 
-        {{-- =========================================================
-            SECONDARY DISCOVERY CONTENT
-        ========================================================== --}}
-
         @include('customer.discover.sections.services')
-
         @include('customer.discover.sections.popular-salons')
-
         @include('customer.discover.sections.featured')
-
         @include('customer.discover.sections.stylists')
 
         @if($hasGeo && $nearbySalons->isNotEmpty())
@@ -88,9 +68,6 @@
         @endif
 
         @include('customer.discover.sections.stats')
-
         @include('customer.discover.sections.owner-cta')
-
     </div>
-
 @endsection
