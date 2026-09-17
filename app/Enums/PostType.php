@@ -4,7 +4,7 @@ namespace App\Enums;
 
 enum PostType: string
 {
-    case PHOTO = 'photo';
+    case PHOTO = 'image';
     case VIDEO = 'video';
     case GIF = 'gif';
     case REEL = 'reel';

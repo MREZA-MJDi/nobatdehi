@@ -18,30 +18,19 @@
 
 @font-face {
     font-family: "Vazirmatn";
+
     src:
         url("../fonts/webfonts/Vazirmatn[wght].woff2")
         format("woff2");
 
     font-style: normal;
     font-weight: 100 900;
-
     font-display: swap;
 
-    /* Better rendering for variable Persian font */
     ascent-override: 90%;
     descent-override: 22%;
     line-gap-override: 0%;
 }
-
-
-/* ==========================================================================
-   DARK VARIANT
-   ========================================================================== */
-
-@custom-variant dark (&:where(
-[data-theme="dark"],
-[data-theme="dark"] *
-));
 
 
 /* ==========================================================================
@@ -176,27 +165,16 @@
 
 
     /* ----------------------------------------------------------------------
-       SEMANTIC COLORS
-       ----------------------------------------------------------------------
-       These become Tailwind utilities such as:
-       bg-background
-       text-foreground
-       bg-surface
-       bg-card
-       text-content
-       text-content-muted
-       border-border
-       ring-ring
+       SEMANTIC UI COLORS
        ---------------------------------------------------------------------- */
-
-}
-
-
-@theme inline {
 
     --color-background: var(--app-background);
     --color-foreground: var(--app-content);
-    --color-border-strong: var(--app-border-strong);
+
+    --color-surface: var(--app-surface);
+    --color-surface-soft: var(--app-surface-soft);
+    --color-surface-raised: var(--app-surface-raised);
+
     --color-card: var(--app-surface);
     --color-card-foreground: var(--app-content);
 
@@ -204,16 +182,22 @@
     --color-muted-foreground: var(--app-content-muted);
 
     --color-border: var(--app-border);
-    --color-input: var(--app-border);
+    --color-border-strong: var(--app-border-strong);
+
+    --color-input: var(--app-control-border);
 
     --color-primary: var(--app-primary);
     --color-primary-foreground: var(--app-on-primary);
 
-    --color-ring: var(--app-ring);
+    --color-accent: var(--app-accent);
+    --color-accent-foreground: var(--app-on-accent);
 
-    --color-surface: var(--app-surface);
-    --color-surface-soft: var(--app-surface-soft);
-    --color-surface-raised: var(--app-surface-raised);
+    --color-success: var(--app-success);
+    --color-warning: var(--app-warning);
+    --color-danger: var(--app-danger);
+    --color-info: var(--app-info);
+
+    --color-ring: var(--app-ring);
 
     --color-content: var(--app-content);
     --color-content-soft: var(--app-content-soft);
@@ -240,17 +224,12 @@
     --radius-2xl: 1.5rem;
     --radius-3xl: 2rem;
 
-
-    /* ----------------------------------------------------------------------
-       CONTAINER
-       ---------------------------------------------------------------------- */
-
     --container-2xl: 90rem;
 }
 
 
 /* ==========================================================================
-   LIGHT THEME
+   APPLICATION TOKENS
    ========================================================================== */
 
 :root {
@@ -297,7 +276,45 @@
        ---------------------------------------------------------------------- */
 
     --app-primary: #4f46e5;
+    --app-primary-hover: #4338ca;
     --app-on-primary: #ffffff;
+
+
+    /* ----------------------------------------------------------------------
+       Accent
+       ---------------------------------------------------------------------- */
+
+    --app-accent: #7c3aed;
+    --app-accent-hover: #6d28d9;
+    --app-on-accent: #ffffff;
+
+
+    /* ----------------------------------------------------------------------
+       Semantic states
+       ---------------------------------------------------------------------- */
+
+    --app-success: #16a34a;
+    --app-warning: #d97706;
+    --app-danger: #dc2626;
+    --app-info: #2563eb;
+
+
+    /* ----------------------------------------------------------------------
+       Form controls
+       ---------------------------------------------------------------------- */
+
+    --app-control-bg: #ffffff;
+    --app-control-border: #dbe2ea;
+    --app-control-border-hover: #cbd5e1;
+    --app-control-border-focus: #4f46e5;
+    --app-control-placeholder: #9ca3af;
+
+
+    /* ----------------------------------------------------------------------
+       Focus
+       ---------------------------------------------------------------------- */
+
+    --app-ring: rgb(79 70 229 / 28%);
 
 
     /* ----------------------------------------------------------------------
@@ -310,96 +327,47 @@
 
 
     /* ----------------------------------------------------------------------
-       Interaction
+       Overlay
        ---------------------------------------------------------------------- */
 
-    --app-ring: rgb(79 70 229 / 28%);
+    --app-overlay: rgb(255 255 255 / 82%);
+
+
+    /* ----------------------------------------------------------------------
+       Selection
+       ---------------------------------------------------------------------- */
+
     --app-selection-bg: rgb(79 70 229 / 14%);
 
 
     /* ----------------------------------------------------------------------
-       Misc
+       Shadows
        ---------------------------------------------------------------------- */
 
-    --app-overlay: rgb(255 255 255 / 82%);
-    --app-scrollbar: #cbd5e1;
-}
+    --app-shadow-sm:
+        0 1px 2px rgb(15 23 42 / 4%);
 
+    --app-shadow-md:
+        0 8px 24px rgb(15 23 42 / 8%);
 
-/* ==========================================================================
-   DARK THEME
-   ========================================================================== */
+    --app-shadow-lg:
+        0 16px 40px rgb(15 23 42 / 10%);
 
-html[data-theme="dark"] {
-
-    color-scheme: dark;
+    --app-shadow-float:
+        0 24px 60px rgb(15 23 42 / 14%);
 
 
     /* ----------------------------------------------------------------------
-       Background
+       Radius
        ---------------------------------------------------------------------- */
 
-    --app-background: #0b1020;
-
-
-    /* ----------------------------------------------------------------------
-       Surfaces
-       ---------------------------------------------------------------------- */
-
-    --app-surface: #111827;
-    --app-surface-soft: #172033;
-    --app-surface-raised: #1d293d;
-
-
-    /* ----------------------------------------------------------------------
-       Content
-       ---------------------------------------------------------------------- */
-
-    --app-content: #f8fafc;
-    --app-content-soft: #dbe4f0;
-    --app-content-muted: #94a3b8;
-    --app-content-faint: #64748b;
-
-
-    /* ----------------------------------------------------------------------
-       Borders
-       ---------------------------------------------------------------------- */
-
-    --app-border: #263247;
-    --app-border-strong: #35445c;
-
-
-    /* ----------------------------------------------------------------------
-       Primary
-       ---------------------------------------------------------------------- */
-
-    --app-primary: #818cf8;
-    --app-on-primary: #111827;
-
-
-    /* ----------------------------------------------------------------------
-       Brand
-       ---------------------------------------------------------------------- */
-
-    --app-brand-from: #818cf8;
-    --app-brand-via: #a78bfa;
-    --app-brand-to: #22d3ee;
-
-
-    /* ----------------------------------------------------------------------
-       Interaction
-       ---------------------------------------------------------------------- */
-
-    --app-ring: rgb(129 140 248 / 36%);
-    --app-selection-bg: rgb(129 140 248 / 22%);
-
-
-    /* ----------------------------------------------------------------------
-       Misc
-       ---------------------------------------------------------------------- */
-
-    --app-overlay: rgb(17 24 39 / 84%);
-    --app-scrollbar: #3b4b63;
+    --app-radius-xs: .4rem;
+    --app-radius-sm: .55rem;
+    --app-radius-md: .75rem;
+    --app-radius-lg: 1rem;
+    --app-radius-xl: 1.25rem;
+    --app-radius-2xl: 1.5rem;
+    --app-radius-3xl: 2rem;
 }
 
 
@@ -415,15 +383,13 @@ html[data-theme="dark"] {
 
         min-height: 100%;
 
-        background:
-            var(--app-background);
+        background: var(--app-background);
 
         scroll-behavior: smooth;
 
         text-rendering: optimizeLegibility;
 
-        font-family:
-            var(--font-sans);
+        font-family: var(--font-sans);
     }
 
 
@@ -448,29 +414,21 @@ html[data-theme="dark"] {
             ),
             var(--app-background);
 
-        color:
-            var(--app-content);
+        color: var(--app-content);
 
-        font-family:
-            var(--font-sans);
+        font-family: var(--font-sans);
 
-        font-size:
-            1rem;
+        font-size: 1rem;
 
-        font-weight:
-            400;
+        font-weight: 400;
 
-        line-height:
-            1.8;
+        line-height: 1.8;
 
-        font-synthesis:
-            none;
+        font-synthesis: none;
 
-        -webkit-font-smoothing:
-            antialiased;
+        -webkit-font-smoothing: antialiased;
 
-        -moz-osx-font-smoothing:
-            grayscale;
+        -moz-osx-font-smoothing: grayscale;
     }
 
 
@@ -487,9 +445,7 @@ html[data-theme="dark"] {
 
 
     a {
-
         color: inherit;
-
         text-decoration: none;
     }
 
@@ -498,21 +454,17 @@ html[data-theme="dark"] {
     input,
     textarea,
     select {
-
         font: inherit;
     }
 
 
     button:not(:disabled) {
-
         cursor: pointer;
     }
 
 
     button:disabled {
-
-        cursor:
-            not-allowed;
+        cursor: not-allowed;
     }
 
 
@@ -520,158 +472,575 @@ html[data-theme="dark"] {
     svg,
     video,
     canvas {
-
         display: block;
-
         max-width: 100%;
     }
 
 
     img {
-
         height: auto;
     }
 
 
     ::selection {
-
-        background:
-            var(--app-selection-bg);
-
-        color:
-            var(--app-content);
+        background: var(--app-selection-bg);
+        color: var(--app-content);
     }
 
 
     :focus-visible {
-
-        outline:
-            3px solid var(--app-ring);
-
-        outline-offset:
-            3px;
+        outline: 3px solid var(--app-ring);
+        outline-offset: 3px;
     }
 
 
     input::placeholder,
     textarea::placeholder {
-
-        color:
-            var(--app-content-faint);
-
-        opacity:
-            1;
+        color: var(--app-control-placeholder);
+        opacity: 1;
     }
 
 
     input,
     textarea,
     select {
-
-        color:
-            var(--app-content);
+        color: var(--app-content);
     }
 
 
     textarea {
-
-        resize:
-            vertical;
+        resize: vertical;
     }
 
 
     option {
-
-        color:
-            #111827;
-
-        background:
-            #ffffff;
+        color: var(--app-content);
+        background: var(--app-surface);
     }
-
 }
 
 
 /* ==========================================================================
-   CUSTOM UTILITIES
+   GLOBAL UTILITIES
    ========================================================================== */
 
 @layer utilities {
 
     .text-balance {
-
-        text-wrap:
-            balance;
+        text-wrap: balance;
     }
 
 
     .scrollbar-hide {
-
-        -ms-overflow-style:
-            none;
-
-        scrollbar-width:
-            none;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
 
 
     .scrollbar-hide::-webkit-scrollbar {
-
-        display:
-            none;
+        display: none;
     }
 
 
     .shadow-soft {
-
-        box-shadow:
-            0 4px 18px
-            rgb(30 41 59 / 4%);
+        box-shadow: var(--app-shadow-sm);
     }
 
 
     .shadow-card {
-
-        box-shadow:
-            0 16px 38px
-            rgb(30 41 59 / 8%);
+        box-shadow: var(--app-shadow-md);
     }
 
 
     .shadow-float {
-
-        box-shadow:
-            0 24px 60px
-            rgb(30 41 59 / 14%);
+        box-shadow: var(--app-shadow-float);
     }
 
 
     .shadow-brand {
-
         box-shadow:
             0 12px 35px
             rgb(79 70 229 / 20%);
     }
-
 }
 
 
 /* ==========================================================================
-   THEME TRANSITION
+   COMMON FORM SYSTEM
    ========================================================================== */
 
-.theme-transition,
-.theme-transition *,
-.theme-transition *::before,
-.theme-transition *::after {
+.form-group {
+    min-width: 0;
+}
+
+
+.form-label {
+    display: block;
+
+    margin-bottom: .55rem;
+
+    color: var(--app-content);
+
+    font-size: .75rem;
+
+    font-weight: 800;
+
+    line-height: 1.7;
+}
+
+
+.form-control {
+    display: block;
+
+    width: 100%;
+
+    min-height: 3rem;
+
+    border: 1px solid var(--app-control-border);
+
+    border-radius: var(--app-radius-lg);
+
+    background: var(--app-control-bg);
+
+    color: var(--app-content);
+
+    padding: .75rem .9rem;
+
+    font-family: inherit;
+
+    font-size: .78rem;
+
+    font-weight: 600;
+
+    line-height: 1.6;
+
+    outline: none;
 
     transition:
-        background-color .25s ease,
-        border-color .25s ease,
-        color .25s ease,
-        fill .25s ease,
-        stroke .25s ease,
-        box-shadow .25s ease !important;
+        border-color .18s ease,
+        box-shadow .18s ease,
+        background-color .18s ease;
+}
+
+
+.form-control:hover {
+    border-color: var(--app-control-border-hover);
+}
+
+
+.form-control:focus {
+    border-color: var(--app-control-border-focus);
+
+    box-shadow:
+        0 0 0 4px var(--app-ring);
+}
+
+
+.form-control:disabled {
+    cursor: not-allowed;
+
+    opacity: .6;
+
+    background: var(--app-surface-soft);
+}
+
+
+.form-help {
+    margin-top: .45rem;
+
+    color: var(--app-content-muted);
+
+    font-size: .65rem;
+
+    font-weight: 500;
+
+    line-height: 1.8;
+}
+
+
+.form-error {
+    margin-top: .45rem;
+
+    color: var(--app-danger);
+
+    font-size: .65rem;
+
+    font-weight: 800;
+
+    line-height: 1.8;
+}
+
+
+/* ==========================================================================
+   COMMON BUTTON SYSTEM
+   ========================================================================== */
+
+.btn {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: .5rem;
+
+    min-height: 2.9rem;
+
+    border: 1px solid transparent;
+
+    border-radius: var(--app-radius-lg);
+
+    padding: .7rem 1rem;
+
+    font-family: inherit;
+
+    font-size: .72rem;
+
+    font-weight: 800;
+
+    line-height: 1.2;
+
+    white-space: nowrap;
+
+    transition:
+        background-color .18s ease,
+        border-color .18s ease,
+        color .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease,
+        opacity .18s ease;
+}
+
+
+.btn:not(:disabled):hover {
+    transform: translateY(-1px);
+}
+
+
+.btn:not(:disabled):active {
+    transform: translateY(0);
+}
+
+
+.btn:disabled {
+    opacity: .55;
+}
+
+
+/* --------------------------------------------------------------------------
+   Accent
+   -------------------------------------------------------------------------- */
+
+.btn-accent {
+
+    background: var(--app-primary);
+
+    color: var(--app-on-primary);
+
+    box-shadow:
+        0 8px 24px rgb(79 70 229 / 14%);
+}
+
+
+.btn-accent:hover:not(:disabled) {
+    background: var(--app-primary-hover);
+}
+
+
+/* --------------------------------------------------------------------------
+   Secondary
+   -------------------------------------------------------------------------- */
+
+.btn-secondary {
+
+    background: var(--app-surface);
+
+    color: var(--app-content);
+
+    border-color: var(--app-border);
+}
+
+
+.btn-secondary:hover:not(:disabled) {
+
+    background: var(--app-surface-soft);
+
+    border-color: var(--app-border-strong);
+}
+
+
+/* --------------------------------------------------------------------------
+   Ghost
+   -------------------------------------------------------------------------- */
+
+.btn-ghost {
+
+    background: transparent;
+
+    color: var(--app-content-muted);
+
+    border-color: transparent;
+}
+
+
+.btn-ghost:hover:not(:disabled) {
+
+    background: var(--app-surface-soft);
+
+    color: var(--app-content);
+}
+
+
+/* --------------------------------------------------------------------------
+   Danger
+   -------------------------------------------------------------------------- */
+
+.btn-danger {
+
+    background: var(--app-danger);
+
+    color: #ffffff;
+}
+
+
+.btn-danger:hover:not(:disabled) {
+    background: #b91c1c;
+}
+
+
+/* --------------------------------------------------------------------------
+   Small
+   -------------------------------------------------------------------------- */
+
+.btn-sm {
+
+    min-height: 2.35rem;
+
+    padding: .55rem .8rem;
+
+    border-radius: var(--app-radius-md);
+
+    font-size: .65rem;
+}
+
+
+/* ==========================================================================
+   COMMON CARDS
+   ========================================================================== */
+
+.ui-card {
+
+    border: 1px solid var(--app-border);
+
+    border-radius: var(--app-radius-3xl);
+
+    background: var(--app-surface);
+
+    color: var(--app-content);
+
+    box-shadow: var(--app-shadow-sm);
+}
+
+
+.ui-card-soft {
+
+    border: 1px solid var(--app-border);
+
+    border-radius: var(--app-radius-2xl);
+
+    background: var(--app-surface-soft);
+
+    color: var(--app-content);
+}
+
+
+/* ==========================================================================
+   COMMON ALERTS
+   ========================================================================== */
+
+.alert {
+
+    border: 1px solid var(--app-border);
+
+    border-radius: var(--app-radius-lg);
+
+    padding: .85rem 1rem;
+
+    font-size: .72rem;
+
+    font-weight: 700;
+
+    line-height: 1.8;
+}
+
+
+.alert-success {
+
+    border-color: var(--color-success-100);
+
+    background: var(--color-success-50);
+
+    color: var(--color-success-800);
+}
+
+
+.alert-warning {
+
+    border-color: var(--color-warning-200);
+
+    background: var(--color-warning-50);
+
+    color: var(--color-warning-800);
+}
+
+
+.alert-danger {
+
+    border-color: var(--color-danger-200);
+
+    background: var(--color-danger-50);
+
+    color: var(--color-danger-800);
+}
+
+
+.alert-info {
+
+    border-color: var(--color-info-200);
+
+    background: var(--color-info-50);
+
+    color: var(--color-info-800);
+}
+
+
+/* ==========================================================================
+   THEME TOGGLE
+   ========================================================================== */
+
+.theme-toggle-wrap {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+
+.theme-toggle {
+
+    appearance: none;
+
+    -webkit-appearance: none;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: .5rem;
+
+    min-height: 2.65rem;
+
+    padding: .4rem .7rem;
+
+    border: 1px solid var(--app-border);
+
+    border-radius: .8rem;
+
+    background: var(--app-surface);
+
+    color: var(--app-content-soft);
+
+    box-shadow: var(--app-shadow-sm);
+
+    font-family: inherit;
+
+    font-size: .75rem;
+
+    font-weight: 700;
+
+    line-height: 1;
+
+    user-select: none;
+
+    transition:
+        background-color .18s ease,
+        border-color .18s ease,
+        color .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease;
+}
+
+
+.theme-toggle:hover {
+
+    background: var(--app-surface-soft);
+
+    border-color: var(--app-border-strong);
+
+    color: var(--app-content);
+}
+
+
+.theme-toggle:active {
+    transform: translateY(1px);
+}
+
+
+.theme-toggle-icon {
+
+    display: grid;
+
+    place-items: center;
+
+    width: 1.8rem;
+
+    height: 1.8rem;
+
+    flex: 0 0 1.8rem;
+
+    border-radius: .55rem;
+
+    background: var(--color-primary-50);
+
+    color: var(--app-accent);
+}
+
+
+.theme-toggle-icon svg {
+
+    display: block;
+
+    width: 1rem;
+
+    height: 1rem;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+
+    stroke-linejoin: round;
+}
+
+
+.theme-toggle-label {
+
+    display: inline-block;
+
+    font-size: .7rem;
+
+    font-weight: 800;
+
+    line-height: 1;
+
+    white-space: nowrap;
 }
 
 
@@ -682,9 +1051,7 @@ html[data-theme="dark"] {
 @media (prefers-reduced-motion: reduce) {
 
     html {
-
-        scroll-behavior:
-            auto;
+        scroll-behavior: auto;
     }
 
 
@@ -704,115 +1071,4 @@ html[data-theme="dark"] {
         scroll-behavior:
             auto !important;
     }
-
-}
-/* ==========================================================================
-   THEME TOGGLE
-   ========================================================================== */
-
-.theme-toggle-wrap {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.theme-toggle {
-    appearance: none;
-    -webkit-appearance: none;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .5rem;
-
-    min-height: 2.65rem;
-    padding: .4rem .7rem;
-
-    border: 1px solid var(--app-border);
-    border-radius: .8rem;
-
-    background: var(--app-surface);
-    color: var(--app-content-soft);
-
-    box-shadow:
-        0 1px 2px rgb(15 23 42 / 4%);
-
-    font-family: inherit;
-    font-size: .75rem;
-    font-weight: 700;
-    line-height: 1;
-
-    user-select: none;
-
-    transition:
-        background-color .18s ease,
-        border-color .18s ease,
-        color .18s ease,
-        box-shadow .18s ease,
-        transform .18s ease;
-}
-
-.theme-toggle:hover {
-    background: var(--app-surface-soft);
-    border-color: var(--app-border-strong);
-    color: var(--app-content);
-}
-
-.theme-toggle:active {
-    transform: translateY(1px);
-}
-
-.theme-toggle:focus-visible {
-    outline:
-        3px solid var(--app-ring);
-
-    outline-offset:
-        3px;
-}
-
-.theme-toggle-icon {
-    display: grid;
-    place-items: center;
-
-    width: 1.8rem;
-    height: 1.8rem;
-
-    flex: 0 0 1.8rem;
-
-    border-radius: .55rem;
-
-    background: var(--color-primary-50);
-    color: var(--color-accent-600);
-
-    transition:
-        background-color .18s ease,
-        color .18s ease;
-}
-
-html[data-theme="dark"] .theme-toggle-icon {
-    background: rgb(129 140 248 / 14%);
-    color: var(--color-primary-400);
-}
-
-.theme-toggle-icon svg {
-    display: block;
-
-    width: 1rem;
-    height: 1rem;
-
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.theme-toggle-label {
-    display: inline-block;
-
-    font-size: .7rem;
-    font-weight: 800;
-    line-height: 1;
-
-    white-space: nowrap;
 }

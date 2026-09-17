@@ -24,9 +24,7 @@ class PostController extends Controller
     public function index(
         Request $request
     ): View {
-        $salon = $this->currentSalon(
-            $request
-        );
+        $salon = $this->currentSalon($request);
 
         $posts = $salon
             ->posts()
@@ -45,6 +43,7 @@ class PostController extends Controller
         );
     }
 
+
     /*
     |--------------------------------------------------------------------------
     | Create
@@ -54,25 +53,17 @@ class PostController extends Controller
     public function create(
         Request $request
     ): View {
-        $salon = $this->currentSalon(
-            $request
-        );
+        $salon = $this->currentSalon($request);
 
         $barbers = $salon
             ->barbers()
-            ->where(
-                'is_active',
-                true
-            )
+            ->where('is_active', true)
             ->orderBy('name')
             ->get();
 
         $services = $salon
             ->services()
-            ->where(
-                'is_active',
-                true
-            )
+            ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
@@ -90,6 +81,7 @@ class PostController extends Controller
         );
     }
 
+
     /*
     |--------------------------------------------------------------------------
     | Store
@@ -99,46 +91,33 @@ class PostController extends Controller
     public function store(
         PostRequest $request
     ): RedirectResponse {
-        $salon = $this->currentSalon(
-            $request
-        );
+        $salon = $this->currentSalon($request);
 
         $data = $request->validated();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validate performer
-        |--------------------------------------------------------------------------
-        */
 
         $this->validatePerformer(
             $salon,
             $data
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validate service
-        |--------------------------------------------------------------------------
-        */
-
         $this->validateService(
             $salon,
             $data['service_id'] ?? null
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Create
-        |--------------------------------------------------------------------------
-        */
+        $mediaPath = null;
+        $thumbnailPath = null;
 
-        DB::transaction(
-            function () use (
+        try {
+
+            DB::transaction(function () use (
                 $request,
                 $salon,
-                $data
+                $data,
+                &$mediaPath,
+                &$thumbnailPath
             ) {
+
                 $mediaPath = $request
                     ->file('media')
                     ->store(
@@ -146,13 +125,8 @@ class PostController extends Controller
                         'public'
                     );
 
-                $thumbnailPath = null;
+                if ($request->hasFile('thumbnail')) {
 
-                if (
-                    $request->hasFile(
-                        'thumbnail'
-                    )
-                ) {
                     $thumbnailPath = $request
                         ->file('thumbnail')
                         ->store(
@@ -164,6 +138,7 @@ class PostController extends Controller
                 }
 
                 Post::create([
+
                     'salon_id' =>
                         $salon->id,
 
@@ -173,13 +148,10 @@ class PostController extends Controller
                             : $data['barber_id'],
 
                     'performed_by_owner' =>
-                        (bool) $data[
-                        'performed_by_owner'
-                        ],
+                        (bool) $data['performed_by_owner'],
 
                     'service_id' =>
-                        $data['service_id']
-                        ?? null,
+                        $data['service_id'] ?? null,
 
                     'type' =>
                         $data['type'],
@@ -191,33 +163,40 @@ class PostController extends Controller
                         $thumbnailPath,
 
                     'title' =>
-                        $data['title']
-                        ?? null,
+                        $data['title'] ?? null,
 
                     'caption' =>
-                        $data['caption']
-                        ?? null,
+                        $data['caption'] ?? null,
 
                     'is_active' =>
-                        $data['is_active']
-                        ?? true,
+                        $data['is_active'] ?? true,
 
                     'sort_order' =>
-                        $data['sort_order']
-                        ?? 0,
+                        $data['sort_order'] ?? 0,
                 ]);
+            });
+
+        } catch (\Throwable $e) {
+
+            if ($mediaPath) {
+                Storage::disk('public')->delete($mediaPath);
             }
-        );
+
+            if ($thumbnailPath) {
+                Storage::disk('public')->delete($thumbnailPath);
+            }
+
+            throw $e;
+        }
 
         return redirect()
-            ->route(
-                'salon.posts.index'
-            )
+            ->route('salon.posts.index')
             ->with(
                 'success',
                 'پست با موفقیت ایجاد شد.'
             );
     }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -229,9 +208,7 @@ class PostController extends Controller
         Request $request,
         Post $post
     ): View {
-        $salon = $this->currentSalon(
-            $request
-        );
+        $salon = $this->currentSalon($request);
 
         $this->ensurePostBelongsToSalon(
             $post,
@@ -240,19 +217,13 @@ class PostController extends Controller
 
         $barbers = $salon
             ->barbers()
-            ->where(
-                'is_active',
-                true
-            )
+            ->where('is_active', true)
             ->orderBy('name')
             ->get();
 
         $services = $salon
             ->services()
-            ->where(
-                'is_active',
-                true
-            )
+            ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
@@ -271,6 +242,7 @@ class PostController extends Controller
         );
     }
 
+
     /*
     |--------------------------------------------------------------------------
     | Update
@@ -281,9 +253,7 @@ class PostController extends Controller
         PostRequest $request,
         Post $post
     ): RedirectResponse {
-        $salon = $this->currentSalon(
-            $request
-        );
+        $salon = $this->currentSalon($request);
 
         $this->ensurePostBelongsToSalon(
             $post,
@@ -302,128 +272,180 @@ class PostController extends Controller
             $data['service_id'] ?? null
         );
 
-        DB::transaction(
-            function () use (
+        $oldMediaPath = $post->media_path;
+        $oldThumbnailPath = $post->thumbnail_path;
+
+        $newMediaPath = null;
+        $newThumbnailPath = null;
+
+        try {
+
+            DB::transaction(function () use (
                 $request,
                 $post,
+                $salon,
                 $data,
-                $salon
+                &$newMediaPath,
+                &$newThumbnailPath,
+                $oldMediaPath,
+                $oldThumbnailPath
             ) {
+
+                /*
+                |--------------------------------------------------------------------------
+                | New media
+                |--------------------------------------------------------------------------
+                */
+
+                if ($request->hasFile('media')) {
+
+                    $newMediaPath = $request
+                        ->file('media')
+                        ->store(
+                            'posts/' . $salon->id,
+                            'public'
+                        );
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | New thumbnail
+                |--------------------------------------------------------------------------
+                */
+
+                if ($request->hasFile('thumbnail')) {
+
+                    $newThumbnailPath = $request
+                        ->file('thumbnail')
+                        ->store(
+                            'posts/' .
+                            $salon->id .
+                            '/thumbnails',
+                            'public'
+                        );
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Main update
+                |--------------------------------------------------------------------------
+                */
+
                 $post->update([
+
                     'barber_id' =>
                         $data['performed_by_owner']
                             ? null
                             : $data['barber_id'],
 
                     'performed_by_owner' =>
-                        (bool) $data[
-                        'performed_by_owner'
-                        ],
+                        (bool) $data['performed_by_owner'],
 
                     'service_id' =>
-                        $data['service_id']
-                        ?? null,
+                        $data['service_id'] ?? null,
 
                     'type' =>
                         $data['type'],
 
                     'title' =>
-                        $data['title']
-                        ?? null,
+                        $data['title'] ?? null,
 
                     'caption' =>
-                        $data['caption']
-                        ?? null,
+                        $data['caption'] ?? null,
 
                     'is_active' =>
-                        $data['is_active']
-                        ?? false,
+                        $data['is_active'] ?? false,
 
                     'sort_order' =>
-                        $data['sort_order']
-                        ?? 0,
+                        $data['sort_order'] ?? 0,
+
+                    'media_path' =>
+                        $newMediaPath
+                            ?: $post->media_path,
+
+                    'thumbnail_path' =>
+                        $newThumbnailPath
+                            ?: $post->thumbnail_path,
                 ]);
 
+
                 /*
                 |--------------------------------------------------------------------------
-                | Replace media
+                | Replace old media
+                |--------------------------------------------------------------------------
+                */
+
+                if ($newMediaPath && $oldMediaPath) {
+
+                    Storage::disk('public')
+                        ->delete($oldMediaPath);
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Replace old thumbnail
                 |--------------------------------------------------------------------------
                 */
 
                 if (
-                    $request->hasFile(
-                        'media'
-                    )
+                    $newThumbnailPath &&
+                    $oldThumbnailPath
                 ) {
-                    if (
-                        $post->media_path
-                    ) {
-                        Storage::disk(
-                            'public'
-                        )->delete(
-                            $post->media_path
-                        );
-                    }
 
-                    $post->media_path =
-                        $request
-                            ->file('media')
-                            ->store(
-                                'posts/' .
-                                $salon->id,
-                                'public'
-                            );
+                    Storage::disk('public')
+                        ->delete($oldThumbnailPath);
                 }
+
 
                 /*
                 |--------------------------------------------------------------------------
-                | Replace thumbnail
+                | Photo does not need a thumbnail
                 |--------------------------------------------------------------------------
                 */
 
                 if (
-                    $request->hasFile(
-                        'thumbnail'
-                    )
+                    $data['type'] === PostType::PHOTO->value &&
+                    $post->thumbnail_path
                 ) {
-                    if (
-                        $post->thumbnail_path
-                    ) {
-                        Storage::disk(
-                            'public'
-                        )->delete(
-                            $post->thumbnail_path
-                        );
-                    }
 
-                    $post->thumbnail_path =
-                        $request
-                            ->file('thumbnail')
-                            ->store(
-                                'posts/' .
-                                $salon->id .
-                                '/thumbnails',
-                                'public'
-                            );
+                    Storage::disk('public')
+                        ->delete($post->thumbnail_path);
+
+                    $post->thumbnail_path = null;
+                    $post->save();
                 }
+            });
 
-                $post->save();
+        } catch (\Throwable $e) {
+
+            if ($newMediaPath) {
+                Storage::disk('public')
+                    ->delete($newMediaPath);
             }
-        );
+
+            if ($newThumbnailPath) {
+                Storage::disk('public')
+                    ->delete($newThumbnailPath);
+            }
+
+            throw $e;
+        }
 
         return redirect()
-            ->route(
-                'salon.posts.index'
-            )
+            ->route('salon.posts.index')
             ->with(
                 'success',
                 'پست با موفقیت ویرایش شد.'
             );
     }
 
+
     /*
     |--------------------------------------------------------------------------
-    | Toggle visibility
+    | Toggle
     |--------------------------------------------------------------------------
     */
 
@@ -431,9 +453,7 @@ class PostController extends Controller
         Request $request,
         Post $post
     ): RedirectResponse {
-        $salon = $this->currentSalon(
-            $request
-        );
+        $salon = $this->currentSalon($request);
 
         $this->ensurePostBelongsToSalon(
             $post,
@@ -441,8 +461,7 @@ class PostController extends Controller
         );
 
         $post->update([
-            'is_active' =>
-                !$post->is_active,
+            'is_active' => !$post->is_active,
         ]);
 
         return back()->with(
@@ -452,6 +471,7 @@ class PostController extends Controller
                 : 'پست مخفی شد.'
         );
     }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -463,20 +483,12 @@ class PostController extends Controller
         Request $request,
         Post $post
     ): RedirectResponse {
-        $salon = $this->currentSalon(
-            $request
-        );
+        $salon = $this->currentSalon($request);
 
         $this->ensurePostBelongsToSalon(
             $post,
             $salon
         );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Delete media files
-        |--------------------------------------------------------------------------
-        */
 
         $paths = [
             $post->media_path,
@@ -484,18 +496,14 @@ class PostController extends Controller
         ];
 
         foreach ($paths as $path) {
-            if ($path) {
-                Storage::disk(
-                    'public'
-                )->delete($path);
-            }
-        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Soft delete
-        |--------------------------------------------------------------------------
-        */
+            if (!$path) {
+                continue;
+            }
+
+            Storage::disk('public')
+                ->delete($path);
+        }
 
         $post->delete();
 
@@ -504,6 +512,7 @@ class PostController extends Controller
             'پست حذف شد.'
         );
     }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -523,10 +532,7 @@ class PostController extends Controller
 
         $salon = $user
             ->managedSalons()
-            ->where(
-                'is_active',
-                true
-            )
+            ->where('is_active', true)
             ->first();
 
         abort_unless(
@@ -536,6 +542,7 @@ class PostController extends Controller
 
         return $salon;
     }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -548,12 +555,13 @@ class PostController extends Controller
         array $data
     ): void {
         $isOwner = (bool) (
-            $data['performed_by_owner']
-            ?? false
+            $data['performed_by_owner'] ?? false
         );
 
         if ($isOwner) {
+
             if (!empty($data['barber_id'])) {
+
                 abort(
                     422,
                     'وقتی انجام‌دهنده صاحب سالن است، آرایشگر نباید انتخاب شود.'
@@ -564,6 +572,7 @@ class PostController extends Controller
         }
 
         if (empty($data['barber_id'])) {
+
             abort(
                 422,
                 'آرایشگر انجام‌دهنده را انتخاب کنید.'
@@ -572,13 +581,8 @@ class PostController extends Controller
 
         $barberExists = $salon
             ->barbers()
-            ->whereKey(
-                $data['barber_id']
-            )
-            ->where(
-                'is_active',
-                true
-            )
+            ->whereKey($data['barber_id'])
+            ->where('is_active', true)
             ->exists();
 
         abort_unless(
@@ -587,6 +591,7 @@ class PostController extends Controller
             'آرایشگر انتخاب‌شده عضو این سالن نیست.'
         );
     }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -605,10 +610,7 @@ class PostController extends Controller
         $exists = $salon
             ->services()
             ->whereKey($serviceId)
-            ->where(
-                'is_active',
-                true
-            )
+            ->where('is_active', true)
             ->exists();
 
         abort_unless(
@@ -617,6 +619,7 @@ class PostController extends Controller
             'خدمت انتخاب‌شده متعلق به این سالن نیست.'
         );
     }
+
 
     /*
     |--------------------------------------------------------------------------

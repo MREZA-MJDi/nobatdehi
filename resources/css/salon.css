@@ -1,67 +1,165 @@
-/* ═══════════════════════════════════════════════════
-   SALON PAGE — Diamond / Matte Graphite
-   ═══════════════════════════════════════════════════ */
+/* ================================================================
+   PUBLIC SALON
+   Diamond / Matte Graphite
+   ================================================================ */
 
+.salon-page,
 .salon-page *,
 .salon-page *::before,
-.salon-page *::after { box-sizing: border-box; }
+.salon-page *::after {
+    box-sizing: border-box;
+}
+
+
+/* ================================================================
+   TOKENS
+   ================================================================ */
 
 .salon-page {
     --bg: #0d0d0f;
-    --bg-2: #131317;
-    --card: #17171d;
-    --card-2: #1c1c24;
-    --line: rgba(255,255,255,.06);
-    --line-2: rgba(255,255,255,.11);
+    --bg-2: #121216;
 
-    --d-50: #f8fafc;
-    --d-100: #eef2f7;
-    --d-200: #dde5ef;
-    --d-300: #c5d2e0;
-    --d-400: #a8b8cc;
-    --d-500: #8b9db3;
-    --d-glow: rgba(232,238,245,.28);
-    --d-glow-strong: rgba(232,238,245,.45);
+    --card: #17171d;
+    --card-2: #1d1d24;
+
+    --line: rgba(255, 255, 255, .07);
+    --line-strong: rgba(255, 255, 255, .12);
 
     --text: #f3f3f6;
-    --muted: #8d8d9c;
-    --muted-2: #6b6b7a;
+    --muted: #9494a1;
+    --muted-2: #6d6d7a;
+
+    --diamond-50: #f8fafc;
+    --diamond-100: #eef2f7;
+    --diamond-200: #dde5ef;
+    --diamond-300: #c5d2e0;
+    --diamond-400: #a8b8cc;
+
     --green: #7fd6b8;
     --red: #ff6b6b;
 
-    font-family: 'Vazirmatn', system-ui, sans-serif;
-    color: var(--text);
-    line-height: 1.7;
-    -webkit-font-smoothing: antialiased;
+    --shadow-sm:
+        0 8px 24px rgba(0, 0, 0, .20);
+
+    --shadow-md:
+        0 18px 45px rgba(0, 0, 0, .42);
+
+    --shadow-lg:
+        0 28px 80px rgba(0, 0, 0, .62);
+
+    --diamond-glow:
+        rgba(232, 238, 245, .22);
+
+    --diamond-glow-strong:
+        rgba(232, 238, 245, .38);
+
     min-height: 100vh;
     position: relative;
-    overflow-x: hidden;
-    background: var(--bg);
-    background-image:
-        radial-gradient(1000px 700px at 85% -15%, rgba(232,238,245,.055), transparent 65%),
-        radial-gradient(800px 600px at 5% 15%, rgba(168,184,204,.04), transparent 60%),
-        radial-gradient(900px 700px at 50% 115%, rgba(197,210,224,.035), transparent 65%);
-    background-attachment: fixed;
+    overflow-x: clip;
+
+    background:
+        radial-gradient(
+            900px 520px at 88% -10%,
+            rgba(232, 238, 245, .045),
+            transparent 70%
+        ),
+        radial-gradient(
+            700px 480px at 5% 14%,
+            rgba(168, 184, 204, .025),
+            transparent 70%
+        ),
+        var(--bg);
+
+    color: var(--text);
+
+    font-family:
+        "Vazirmatn",
+        system-ui,
+        sans-serif;
+
+    line-height: 1.7;
+
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
-.salon-page img { max-width: 100%; display: block; }
+
+/*
+|--------------------------------------------------------------------------
+| Avoid light body background leaking around the salon page
+|--------------------------------------------------------------------------
+*/
+
+html:has(.salon-page),
+body:has(.salon-page) {
+    background: var(--bg) !important;
+}
+
+body:has(.salon-page) {
+    color: var(--text);
+}
+
+
+/* ================================================================
+   BASE
+   ================================================================ */
+
+.salon-page img,
+.salon-page video,
+.salon-page iframe {
+    display: block;
+    max-width: 100%;
+}
+
+.salon-page button,
+.salon-page input,
+.salon-page select,
+.salon-page textarea {
+    font: inherit;
+}
 
 .salon-page button {
-    font-family: inherit;
-    cursor: pointer;
-    border: none;
+    border: 0;
     background: none;
     color: inherit;
+    cursor: pointer;
 }
 
-.salon-page ::selection { background: var(--d-300); color: #0d0d0f; }
+.salon-page a {
+    color: inherit;
+    text-decoration: none;
+}
 
-.salon-page ::-webkit-scrollbar { width: 9px; height: 9px; }
-.salon-page ::-webkit-scrollbar-track { background: var(--bg); }
-.salon-page ::-webkit-scrollbar-thumb { background: #282830; border-radius: 20px; }
-.salon-page ::-webkit-scrollbar-thumb:hover { background: var(--d-400); }
+.salon-page ::selection {
+    background: var(--diamond-300);
+    color: #0d0d0f;
+}
+
+.salon-page ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.salon-page ::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+.salon-page ::-webkit-scrollbar-thumb {
+    background: #292930;
+    border-radius: 999px;
+}
+
+.salon-page ::-webkit-scrollbar-thumb:hover {
+    background: #3a3a44;
+}
+
+
+/* ================================================================
+   LAYOUT
+   ================================================================ */
 
 .salon-page .wrap {
+    width: 100%;
     max-width: 1120px;
     margin: 0 auto;
     padding: 0 20px;
@@ -69,964 +167,2993 @@
     z-index: 1;
 }
 
-/* ═══════════ TOPBAR ═══════════ */
+
+/* ================================================================
+   TOPBAR
+   ================================================================ */
+
 .salon-page .topbar {
-    position: sticky; top: 0; z-index: 60;
-    backdrop-filter: blur(24px);
-    background: rgba(13,13,15,.75);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
     border-bottom: 1px solid var(--line);
+
+    background:
+        rgba(13, 13, 15, .88);
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 }
+
 .salon-page .topbar-in {
-    max-width: 1120px; margin: 0 auto; padding: 12px 20px;
-    display: flex; align-items: center; gap: 16px;
+    max-width: 1120px;
+    margin: 0 auto;
+    min-height: 68px;
+    padding: 10px 20px;
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
+
+
+/* Brand */
+
 .salon-page .brand {
-    display: flex; align-items: center; gap: 10px;
-    font-weight: 800; font-size: 1.05rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    font-size: 1rem;
+    font-weight: 800;
+
+    white-space: nowrap;
 }
+
 .salon-page .brand .dot {
-    width: 34px; height: 34px; border-radius: 11px;
-    background: linear-gradient(140deg, #ffffff 0%, #dde5ef 40%, #a8b8cc 100%);
-    display: grid; place-items: center;
-    font-size: .95rem; color: #0d0d0f;
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    flex: 0 0 34px;
+
+    border-radius: 11px;
+
+    color: #0d0d0f;
+
+    background:
+        linear-gradient(
+            140deg,
+            #ffffff 0%,
+            #dde5ef 45%,
+            #a8b8cc 100%
+        );
+
     box-shadow:
-        0 6px 22px var(--d-glow),
-        inset 0 1px 0 rgba(255,255,255,.9),
-        inset 0 -1px 0 rgba(0,0,0,.15);
+        0 6px 20px var(--diamond-glow),
+        inset 0 1px 0 rgba(255,255,255,.9);
 }
+
+
+/* Back */
+
+.salon-page .back-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    min-height: 36px;
+    padding: 7px 11px;
+
+    border: 1px solid var(--line);
+    border-radius: 11px;
+
+    color: var(--muted);
+
+    background: rgba(255,255,255,.025);
+
+    font-size: .76rem;
+    font-weight: 700;
+
+    transition:
+        color .2s ease,
+        background .2s ease,
+        border-color .2s ease,
+        transform .2s ease;
+}
+
+.salon-page .back-home span:first-child {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.salon-page .back-home:hover {
+    color: var(--text);
+
+    background: rgba(255,255,255,.05);
+
+    border-color: var(--line-strong);
+
+    transform: translateX(2px);
+}
+
+
+/* Navigation */
+
 .salon-page .topnav {
     margin-inline-start: auto;
-    display: flex; gap: 6px; align-items: center;
-}
-.salon-page .topnav a {
-    font-size: .86rem; color: var(--muted); text-decoration: none;
-    padding: 8px 14px; border-radius: 12px;
-    transition: .25s; font-weight: 500;
-}
-.salon-page .topnav a:hover { color: var(--text); background: rgba(255,255,255,.05); }
 
-/* Diamond button */
-.salon-page .btn-diamond {
-    background: linear-gradient(135deg, #ffffff 0%, #eef2f7 35%, #c5d2e0 65%, #ffffff 100%);
-    background-size: 220% auto;
-    color: #0d0d0f; font-weight: 800; font-size: .86rem;
-    padding: 10px 20px; border-radius: 14px;
-    transition: .4s cubic-bezier(.2,.8,.2,1);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.salon-page .topnav a {
+    padding: 8px 12px;
+
+    border-radius: 10px;
+
+    color: var(--muted);
+
+    font-size: .82rem;
+    font-weight: 500;
+
+    transition:
+        color .2s ease,
+        background .2s ease;
+}
+
+.salon-page .topnav a:hover {
+    color: var(--text);
+    background: rgba(255,255,255,.05);
+}
+
+
+/* ================================================================
+   DIAMOND BUTTONS
+   ================================================================ */
+
+.salon-page .btn-diamond,
+.salon-page .btn-book,
+.salon-page .btn-confirm {
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff 0%,
+            #eef2f7 35%,
+            #c5d2e0 68%,
+            #ffffff 100%
+        );
+
+    color: #0d0d0f;
+
     box-shadow:
-        0 8px 24px var(--d-glow),
-        inset 0 1px 0 rgba(255,255,255,.95),
-        inset 0 -1px 0 rgba(0,0,0,.12);
-    display: inline-flex; align-items: center; gap: 8px;
+        0 10px 28px var(--diamond-glow),
+        inset 0 1px 0 rgba(255,255,255,.95);
+
+    transition:
+        transform .22s ease,
+        box-shadow .22s ease,
+        filter .22s ease;
 }
+
+.salon-page .btn-diamond {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    padding: 10px 18px;
+
+    border-radius: 13px;
+
+    font-size: .82rem;
+    font-weight: 800;
+}
+
 .salon-page .btn-diamond:hover {
-    background-position: right center;
     transform: translateY(-2px);
-    box-shadow: 0 14px 36px var(--d-glow-strong), inset 0 1px 0 #fff;
+
+    box-shadow:
+        0 15px 34px var(--diamond-glow-strong),
+        inset 0 1px 0 #fff;
 }
-.salon-page .btn-diamond:active { transform: translateY(0); }
+
+.salon-page .btn-diamond:active {
+    transform: translateY(0);
+}
+
+
+/* Ghost */
 
 .salon-page .btn-ghost {
-    border: 1px solid var(--line-2);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 9px 16px;
+
+    border: 1px solid var(--line-strong);
+    border-radius: 13px;
+
     color: var(--text);
-    padding: 10px 20px; border-radius: 14px;
-    font-size: .86rem; font-weight: 600;
-    transition: .25s;
-    background: rgba(255,255,255,.02);
-    display: inline-flex; align-items: center; gap: 8px;
-    text-decoration: none;
+
+    background: rgba(255,255,255,.025);
+
+    font-size: .81rem;
+    font-weight: 600;
+
+    transition:
+        background .2s ease,
+        border-color .2s ease,
+        transform .2s ease;
 }
+
 .salon-page .btn-ghost:hover {
-    background: rgba(255,255,255,.06);
-    border-color: var(--d-400);
-    box-shadow: 0 6px 20px rgba(197,210,224,.12);
+    background: rgba(255,255,255,.05);
+    border-color: var(--diamond-400);
+    transform: translateY(-1px);
 }
 
-@media (max-width: 760px) {
-    .salon-page .topnav a { display: none; }
-    .salon-page .topnav a.keep { display: block; }
-}
 
-/* ═══════════ HERO ═══════════ */
-.salon-page .hero { margin-top: 22px; position: relative; }
+/* ================================================================
+   HERO
+   ================================================================ */
+
+.salon-page .hero {
+    margin-top: 20px;
+    position: relative;
+}
 
 .salon-page .cover {
-    height: 250px; border-radius: 28px;
-    position: relative; overflow: hidden;
+
+    height: 250px;
+
+    position: relative;
+    overflow: hidden;
+
     border: 1px solid var(--line);
+    border-radius: 28px;
+
     background:
-        radial-gradient(700px 350px at 20% 0%, rgba(232,238,245,.18), transparent 65%),
-        radial-gradient(600px 350px at 90% 100%, rgba(168,184,204,.12), transparent 60%),
-        linear-gradient(140deg, #1a1a22, #0e0e12 60%);
+        radial-gradient(
+            700px 350px at 20% 0%,
+            rgba(232,238,245,.13),
+            transparent 65%
+        ),
+        linear-gradient(
+            140deg,
+            #19191f,
+            #0f0f12 65%
+        );
 }
+
 .salon-page .cover::after {
-    content: ''; position: absolute; inset: 0;
-    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.02) 0 2px, transparent 2px 22px);
-    opacity: .6;
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            to bottom,
+            transparent,
+            rgba(0,0,0,.12)
+        );
+
+    pointer-events: none;
 }
-.salon-page .cover::before {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,.08) 50%, transparent 60%);
-    background-size: 200% 100%;
-    animation: coverShine 8s linear infinite;
-    z-index: 1; pointer-events: none;
-}
-@keyframes coverShine {
-    0%   { background-position: 200% center; }
-    100% { background-position: -200% center; }
-}
+
 .salon-page .cover img {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%; object-fit: cover; opacity: .45;
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    opacity: .48;
 }
+
+
+/* Open badge */
+
 .salon-page .cover-badge {
-    position: absolute; top: 18px; inset-inline-start: 18px; z-index: 2;
-    background: rgba(13,13,15,.6); backdrop-filter: blur(14px);
-    border: 1px solid var(--line-2);
-    padding: 7px 14px; border-radius: 100px;
-    font-size: .76rem; font-weight: 600;
-    display: flex; align-items: center; gap: 7px;
+
+    position: absolute;
+
+    top: 16px;
+    inset-inline-start: 16px;
+
+    z-index: 3;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 7px 12px;
+
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+
+    background: rgba(13,13,15,.58);
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    font-size: .72rem;
+    font-weight: 700;
 }
 
 .salon-page .pulse-dot {
-    width: 7px; height: 7px; border-radius: 50%;
+
+    width: 7px;
+    height: 7px;
+
+    flex: 0 0 7px;
+
+    border-radius: 50%;
+
     background: var(--green);
-    box-shadow: 0 0 0 0 rgba(127,214,184,.6);
-    animation: pulse 2s infinite;
+
+    animation: salonPulse 2s infinite;
 }
-@keyframes pulse {
-    70%  { box-shadow: 0 0 0 9px rgba(127,214,184,0); }
-    100% { box-shadow: 0 0 0 0 rgba(127,214,184,0); }
+
+.salon-page .pulse-dot.is-closed {
+    background: var(--red);
+    animation: none;
 }
+
+@keyframes salonPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(127,214,184,.35);
+    }
+
+    70% {
+        box-shadow: 0 0 0 7px rgba(127,214,184,0);
+    }
+}
+
+
+/* ================================================================
+   PROFILE
+   ================================================================ */
 
 .salon-page .profile-bar {
-    display: flex; align-items: flex-end; gap: 22px;
-    padding: 0 30px; margin-top: -62px;
-    position: relative; z-index: 2; flex-wrap: wrap;
+
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+
+    margin-top: -58px;
+    padding: 0 28px;
+
+    position: relative;
+    z-index: 5;
+
+    flex-wrap: wrap;
 }
+
 .salon-page .avatar {
-    width: 132px; height: 132px; border-radius: 38px; flex-shrink: 0;
-    background: linear-gradient(140deg, #242430, #141419);
+
+    width: 124px;
+    height: 124px;
+
+    flex: 0 0 124px;
+
+    position: relative;
+    overflow: hidden;
+
+    display: grid;
+    place-items: center;
+
     border: 4px solid var(--bg);
-    display: grid; place-items: center;
-    font-size: 2.6rem; font-weight: 900;
-    color: transparent; background-clip: padding-box;
+    border-radius: 34px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #2b2b36,
+            #141419
+        );
+
+    color: var(--diamond-200);
+
+    font-size: 2.4rem;
+    font-weight: 900;
+
     box-shadow:
-        0 18px 50px rgba(0,0,0,.7),
-        0 0 0 1px rgba(255,255,255,.1),
-        0 0 40px rgba(197,210,224,.12);
-    position: relative; overflow: hidden;
+        0 18px 45px rgba(0,0,0,.55),
+        0 0 0 1px rgba(255,255,255,.08);
 }
-.salon-page .avatar::before {
-    content: ''; position: absolute; inset: -40%;
-    background: conic-gradient(from 0deg, transparent 0%, rgba(232,238,245,.35) 20%, transparent 40%, transparent 100%);
-    animation: spin 8s linear infinite;
-}
-.salon-page .avatar::after {
-    content: ''; position: absolute; inset: 4px;
-    border-radius: 32px;
-    background: linear-gradient(140deg, #2a2a36, #141419);
-    z-index: 0;
-}
+
 .salon-page .avatar img {
-    position: relative; z-index: 1;
-    width: 100%; height: 100%; object-fit: cover; border-radius: 32px;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    position: relative;
+    z-index: 1;
+
+    border-radius: 29px;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 .salon-page .avatar span {
-    position: relative; z-index: 1;
-    background: linear-gradient(135deg, #ffffff, #c5d2e0, #ffffff);
-    background-size: 200% auto;
-    -webkit-background-clip: text; background-clip: text;
-    color: transparent;
-    animation: shimmerText 5s linear infinite;
-}
-@keyframes shimmerText { to { background-position: 200% center; } }
 
-.salon-page .profile-info { flex: 1; min-width: 240px; padding-bottom: 6px; }
-.salon-page .name-row { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+    position: relative;
+    z-index: 1;
+
+    color: var(--diamond-200);
+}
+
+
+/* Profile info */
+
+.salon-page .profile-info {
+
+    flex: 1;
+    min-width: 240px;
+
+    padding-bottom: 6px;
+}
+
+.salon-page .name-row {
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
 .salon-page .name-row h1 {
-    font-size: 1.65rem; font-weight: 800; letter-spacing: -.5px;
-    background: linear-gradient(120deg, #ffffff 0%, #c5d2e0 30%, #ffffff 55%, #a8b8cc 80%, #ffffff 100%);
-    background-size: 300% auto;
-    -webkit-background-clip: text; background-clip: text;
-    color: transparent;
-    animation: shimmerText 7s linear infinite;
+
+    margin: 0;
+
+    font-size: 1.55rem;
+    line-height: 1.35;
+    font-weight: 850;
+    letter-spacing: -.45px;
+
+    color: var(--text);
 }
+
 .salon-page .verified {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: linear-gradient(135deg, #eef2f7, #8b9db3);
-    display: grid; place-items: center;
-    font-size: .7rem; color: #0d0d0f;
-    flex-shrink: 0; font-weight: 900;
-    box-shadow: 0 4px 12px rgba(197,210,224,.3), inset 0 1px 0 #fff;
+
+    width: 21px;
+    height: 21px;
+
+    display: grid;
+    place-items: center;
+
+    flex: 0 0 21px;
+
+    border-radius: 50%;
+
+    color: #0d0d0f;
+
+    background:
+        linear-gradient(
+            135deg,
+            #f4f6f9,
+            #9cacbf
+        );
+
+    font-size: .68rem;
+    font-weight: 900;
 }
-.salon-page .tagline { color: var(--muted); font-size: .9rem; margin-top: 2px; }
-.salon-page .stats { display: flex; gap: 26px; margin-top: 16px; flex-wrap: wrap; }
-.salon-page .stat b { display: block; font-size: 1.15rem; font-weight: 800; }
-.salon-page .stat span { font-size: .76rem; color: var(--muted-2); }
+
+.salon-page .tagline {
+
+    margin-top: 3px;
+
+    color: var(--muted);
+
+    font-size: .85rem;
+}
+
+.salon-page .stats {
+
+    display: flex;
+    align-items: flex-start;
+    gap: 22px;
+
+    margin-top: 14px;
+
+    flex-wrap: wrap;
+}
+
+.salon-page .stat b {
+    display: block;
+
+    color: var(--text);
+
+    font-size: 1.02rem;
+    font-weight: 800;
+}
+
+.salon-page .stat span {
+
+    display: block;
+    margin-top: 1px;
+
+    color: var(--muted-2);
+
+    font-size: .7rem;
+}
+
 .salon-page .stat.rate b {
-    background: linear-gradient(135deg, #ffffff, #c5d2e0, #ffffff);
-    background-size: 200% auto;
-    -webkit-background-clip: text; background-clip: text;
-    color: transparent;
-    animation: shimmerText 5s linear infinite;
-    display: flex; align-items: center; gap: 5px;
+    color: var(--diamond-200);
 }
+
+
+/* Actions */
+
 .salon-page .profile-actions {
-    display: flex; gap: 10px; padding-bottom: 6px; flex-wrap: wrap;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding-bottom: 6px;
+
+    flex-wrap: wrap;
 }
+
+
+/* Bio + chips */
 
 .salon-page .bio {
-    margin: 20px 30px 0;
-    color: var(--muted); font-size: .9rem;
-    max-width: 640px; line-height: 1.9;
-}
-.salon-page .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 30px 0; }
-.salon-page .chip {
-    font-size: .75rem; padding: 6px 13px; border-radius: 100px;
-    background: rgba(255,255,255,.03);
-    border: 1px solid var(--line);
+
+    max-width: 700px;
+
+    margin: 18px 28px 0;
+
     color: var(--muted);
-    transition: .25s;
-}
-.salon-page .chip:hover { border-color: var(--d-400); color: var(--text); }
-.salon-page .chip.diamond {
-    border-color: rgba(197,210,224,.35);
-    color: var(--d-100);
-    background: rgba(197,210,224,.06);
+
+    font-size: .84rem;
+    line-height: 1.95;
 }
 
-/* ═══════════ BOOKING CTA ═══════════ */
+.salon-page .chips {
+
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+
+    margin: 12px 28px 0;
+}
+
+.salon-page .chip {
+
+    padding: 6px 11px;
+
+    border: 1px solid var(--line);
+    border-radius: 999px;
+
+    color: var(--muted);
+
+    background: rgba(255,255,255,.025);
+
+    font-size: .69rem;
+    font-weight: 600;
+}
+
+.salon-page .chip.diamond {
+
+    color: var(--diamond-100);
+
+    border-color: rgba(197,210,224,.24);
+
+    background: rgba(197,210,224,.05);
+}
+
+
+/* ================================================================
+   BOOKING CTA
+   ================================================================ */
+
 .salon-page .booking-cta {
-    margin-top: 34px; border-radius: 28px;
-    position: relative; overflow: hidden;
-    border: 1px solid rgba(197,210,224,.18);
+
+    margin-top: 30px;
+
+    display: flex;
+    align-items: center;
+    gap: 28px;
+
+    padding: 30px;
+
+    position: relative;
+    overflow: hidden;
+
+    border: 1px solid rgba(197,210,224,.15);
+    border-radius: 26px;
+
     background:
-        radial-gradient(800px 350px at 15% 0%, rgba(232,238,245,.1), transparent 65%),
-        linear-gradient(150deg, #181820, #0d0d11);
-    padding: 34px;
-    display: flex; align-items: center; gap: 30px; flex-wrap: wrap;
+        radial-gradient(
+            650px 300px at 10% 0%,
+            rgba(232,238,245,.08),
+            transparent 70%
+        ),
+        linear-gradient(
+            150deg,
+            #18181f,
+            #0e0e12
+        );
 }
-.salon-page .booking-cta::before {
-    content: ''; position: absolute;
-    inset-inline-end: -80px; top: -80px;
-    width: 280px; height: 280px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(232,238,245,.14), transparent 70%);
-    animation: floatGlow 8s ease-in-out infinite;
+
+.salon-page .booking-cta::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 260px;
+    height: 260px;
+
+    inset-inline-end: -100px;
+    top: -130px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(232,238,245,.09),
+            transparent 70%
+        );
+
+    pointer-events: none;
 }
-@keyframes floatGlow {
-    0%, 100% { transform: translate(0,0) scale(1); }
-    50%      { transform: translate(-20px,15px) scale(1.08); }
+
+.salon-page .bk-text {
+
+    flex: 1;
+    min-width: 260px;
+
+    position: relative;
+    z-index: 1;
 }
-.salon-page .bk-text { flex: 1; min-width: 260px; position: relative; z-index: 1; }
+
 .salon-page .bk-text .eyebrow {
-    font-size: .74rem; letter-spacing: 2px;
-    color: var(--d-100); font-weight: 700;
-    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    margin-bottom: 7px;
+
+    color: var(--diamond-200);
+
+    font-size: .7rem;
+    font-weight: 800;
 }
+
 .salon-page .bk-text h2 {
-    font-size: 1.5rem; font-weight: 800; letter-spacing: -.4px;
-    margin-bottom: 10px;
-    background: linear-gradient(120deg, #ffffff 0%, #dde5ef 30%, #ffffff 55%, #a8b8cc 80%, #ffffff 100%);
-    background-size: 300% auto;
-    -webkit-background-clip: text; background-clip: text;
-    color: transparent;
-    animation: shimmerText 6s linear infinite;
+
+    margin: 0 0 7px;
+
+    color: var(--text);
+
+    font-size: 1.35rem;
+    line-height: 1.5;
+    font-weight: 800;
 }
-.salon-page .bk-text p { color: var(--muted); font-size: .88rem; max-width: 460px; }
+
+.salon-page .bk-text p {
+
+    max-width: 500px;
+
+    margin: 0;
+
+    color: var(--muted);
+
+    font-size: .82rem;
+    line-height: 1.9;
+}
+
 .salon-page .bk-side {
-    display: flex; flex-direction: column; gap: 12px;
-    align-items: stretch; position: relative; z-index: 1;
-}
-.salon-page .bk-side .hint {
-    font-size: .74rem; color: var(--muted-2); text-align: center;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+
+    position: relative;
+    z-index: 1;
 }
 
 .salon-page .btn-book {
-    background: linear-gradient(135deg, #ffffff 0%, #eef2f7 30%, #c5d2e0 60%, #ffffff 100%);
-    background-size: 220% auto;
-    color: #0d0d0f; font-weight: 800; font-size: .95rem;
-    padding: 15px 34px; border-radius: 16px;
-    box-shadow:
-        0 14px 38px var(--d-glow),
-        inset 0 1px 0 rgba(255,255,255,.95),
-        inset 0 -1px 0 rgba(0,0,0,.12);
-    transition: .4s cubic-bezier(.2,.8,.2,1);
-    display: inline-flex; align-items: center; gap: 10px; justify-content: center;
-}
-.salon-page .btn-book:hover {
-    background-position: right center;
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 20px 50px var(--d-glow-strong), inset 0 1px 0 #fff;
+
+    min-width: 210px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    padding: 14px 24px;
+
+    border-radius: 15px;
+
+    font-size: .85rem;
+    font-weight: 850;
 }
 
-/* ═══════════ SECTION HEAD ═══════════ */
-.salon-page .section { margin-top: 56px; }
-.salon-page .sec-head {
-    display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+.salon-page .btn-book:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 16px 36px var(--diamond-glow-strong),
+        inset 0 1px 0 #fff;
 }
+
+.salon-page .bk-side .hint {
+
+    text-align: center;
+
+    color: var(--muted-2);
+
+    font-size: .68rem;
+}
+
+
+/* ================================================================
+   SECTIONS
+   ================================================================ */
+
+.salon-page .section {
+    margin-top: 52px;
+}
+
+.salon-page .sec-head {
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-bottom: 18px;
+}
+
 .salon-page .sec-head h3 {
-    font-size: 1.18rem; font-weight: 800; letter-spacing: -.3px;
+
+    margin: 0;
+
+    color: var(--text);
+
+    font-size: 1.08rem;
+    font-weight: 800;
+
     white-space: nowrap;
 }
+
 .salon-page .sec-head .line {
-    flex: 1; height: 1px;
-    background: linear-gradient(90deg, rgba(197,210,224,.25), transparent);
-}
-.salon-page .sec-head .count { font-size: .75rem; color: var(--muted-2); }
 
-/* ═══════════ GALLERY ═══════════ */
-.salon-page .tabs {
-    display: flex; gap: 6px;
-    background: rgba(255,255,255,.03);
-    padding: 5px; border-radius: 14px;
-    border: 1px solid var(--line);
-    width: fit-content; margin-bottom: 18px;
-}
-.salon-page .tab {
-    padding: 9px 20px; border-radius: 10px;
-    font-size: .83rem; font-weight: 600;
-    color: var(--muted); transition: .25s;
-    display: flex; align-items: center; gap: 7px;
-}
-.salon-page .tab.active {
-    background: linear-gradient(135deg, #ffffff, #dde5ef 50%, #ffffff);
-    color: #0d0d0f;
-    box-shadow: 0 6px 18px var(--d-glow), inset 0 1px 0 rgba(255,255,255,.9);
-}
-.salon-page .tab:not(.active):hover {
-    color: var(--text); background: rgba(255,255,255,.05);
+    flex: 1;
+
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(197,210,224,.20),
+            transparent
+        );
 }
 
-.salon-page .gallery {
+.salon-page .sec-head .count {
+
+    color: var(--muted-2);
+
+    font-size: .7rem;
+
+    white-space: nowrap;
+}
+
+
+/* ================================================================
+   SERVICES
+   ================================================================ */
+
+.salon-page .services-grid {
+
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-}
-@media (max-width: 900px) { .salon-page .gallery { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 600px) { .salon-page .gallery { grid-template-columns: repeat(2, 1fr); } }
 
-.salon-page .tile {
-    aspect-ratio: 1/1.32; border-radius: 20px;
-    position: relative; overflow: hidden;
-    border: 1px solid var(--line);
-    cursor: pointer;
-    transition: .4s cubic-bezier(.2,.8,.2,1);
-    background: #1a1a22;
-}
-.salon-page .tile:hover {
-    transform: translateY(-5px) scale(1.015);
-    border-color: rgba(197,210,224,.4);
-    box-shadow: 0 20px 44px rgba(0,0,0,.65), 0 0 30px rgba(197,210,224,.1);
-}
-.salon-page .tile .media {
-    position: absolute; inset: 0; transition: .6s;
-}
-.salon-page .tile .media img,
-.salon-page .tile .media video {
-    width: 100%; height: 100%; object-fit: cover;
-}
-.salon-page .tile:hover .media { transform: scale(1.09); }
-.salon-page .tile .ov {
-    position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,.88) 0%, rgba(0,0,0,.15) 45%, transparent 70%);
-    z-index: 1;
-}
-.salon-page .tile .meta {
-    position: absolute; bottom: 0; inset-inline: 0;
-    padding: 12px; z-index: 2;
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-}
-.salon-page .tile .views {
-    font-size: .72rem; color: rgba(255,255,255,.9);
-    display: flex; align-items: center; gap: 5px; font-weight: 600;
-}
-.salon-page .tile .play {
-    position: absolute; top: 50%; inset-inline-start: 50%;
-    transform: translate(50%,-50%) scale(.85);
-    width: 48px; height: 48px; border-radius: 50%;
-    background: rgba(255,255,255,.15); backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,.35);
-    display: grid; place-items: center;
-    z-index: 2; opacity: 0; transition: .35s;
-    color: #fff;
-}
-.salon-page .tile:hover .play {
-    opacity: 1; transform: translate(50%,-50%) scale(1);
-}
-.salon-page .tile .badge-type {
-    position: absolute; top: 10px; inset-inline-start: 10px; z-index: 2;
-    font-size: .66rem; padding: 4px 10px; border-radius: 100px; font-weight: 700;
-    background: rgba(13,13,15,.65); backdrop-filter: blur(8px);
-    border: 1px solid var(--line-2);
-}
-.salon-page .tile .badge-type.reel  { color: #e4c4ff; border-color: rgba(228,196,255,.3); }
-.salon-page .tile .badge-type.video { color: #b8d4ff; border-color: rgba(184,212,255,.3); }
-.salon-page .tile .badge-type.photo { color: var(--d-200); border-color: rgba(197,210,224,.3); }
-.salon-page .tile .badge-type.gif   { color: #ffc8a8; border-color: rgba(255,200,168,.3); }
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
 
-.salon-page .g1 { background: linear-gradient(140deg,#2d2a3a,#131017); }
-.salon-page .g2 { background: linear-gradient(140deg,#3a3520,#15120a); }
-.salon-page .g3 { background: linear-gradient(140deg,#1f3236,#0c1416); }
-.salon-page .g4 { background: linear-gradient(140deg,#3a222a,#160b0f); }
-.salon-page .g5 { background: linear-gradient(140deg,#26304d,#0d1018); }
-.salon-page .g6 { background: linear-gradient(140deg,#3a3520,#14110a); }
-.salon-page .g7 { background: linear-gradient(140deg,#2d2038,#100c15); }
-.salon-page .g8 { background: linear-gradient(140deg,#1d3330,#0b1211); }
-
-/* ═══════════ COMMENTS ═══════════ */
-.salon-page .comments {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
     gap: 14px;
 }
-@media (max-width: 860px) { .salon-page .comments { grid-template-columns: 1fr; } }
+
+.salon-page .service-card {
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    border: 1px solid var(--line);
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            155deg,
+            var(--card-2),
+            var(--card)
+        );
+
+    transition:
+        transform .25s ease,
+        border-color .25s ease,
+        box-shadow .25s ease;
+}
+
+.salon-page .service-card:hover {
+
+    transform: translateY(-4px);
+
+    border-color:
+        rgba(197,210,224,.26);
+
+    box-shadow:
+        var(--shadow-md);
+}
+
+.salon-page .service-media {
+
+    aspect-ratio: 16 / 10;
+
+    position: relative;
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            135deg,
+            #25252e,
+            #111116
+        );
+}
+
+.salon-page .service-media img {
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    transition:
+        transform .45s ease;
+}
+
+.salon-page .service-card:hover .service-media img {
+    transform: scale(1.05);
+}
+
+.salon-page .service-content {
+
+    padding: 16px;
+}
+
+.salon-page .service-title {
+
+    color: var(--text);
+
+    font-size: .9rem;
+    font-weight: 800;
+}
+
+.salon-page .service-description {
+
+    margin-top: 4px;
+
+    color: var(--muted);
+
+    font-size: .7rem;
+    line-height: 1.8;
+}
+
+.salon-page .service-info {
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    margin-top: 13px;
+}
+
+.salon-page .service-price {
+
+    color: var(--diamond-200);
+
+    font-size: .82rem;
+    font-weight: 850;
+}
+
+.salon-page .service-duration {
+
+    color: var(--muted-2);
+
+    font-size: .68rem;
+}
+
+.salon-page .service-book {
+
+    width: 100%;
+
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+
+    margin-top: 14px;
+    padding: 10px 12px;
+
+    border: 1px solid rgba(197,210,224,.18);
+    border-radius: 12px;
+
+    color: var(--diamond-100);
+
+    background: rgba(255,255,255,.035);
+
+    font-size: .72rem;
+    font-weight: 800;
+
+    transition:
+        background .2s ease,
+        border-color .2s ease;
+}
+
+.salon-page .service-book:hover {
+
+    background:
+        rgba(197,210,224,.08);
+
+    border-color:
+        rgba(197,210,224,.32);
+}
+
+.salon-page .service-empty {
+
+    min-height: 180px;
+
+    display: grid;
+    place-items: center;
+
+    color: var(--muted-2);
+
+    font-size: 1.6rem;
+}
+
+
+/* ================================================================
+   GALLERY
+   ================================================================ */
+
+.salon-page .tabs {
+
+    width: fit-content;
+    max-width: 100%;
+
+    display: flex;
+    gap: 5px;
+
+    margin-bottom: 16px;
+    padding: 4px;
+
+    overflow-x: auto;
+
+    border: 1px solid var(--line);
+    border-radius: 13px;
+
+    background: rgba(255,255,255,.025);
+}
+
+.salon-page .tab {
+
+    flex: 0 0 auto;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 8px 14px;
+
+    border-radius: 9px;
+
+    color: var(--muted);
+
+    font-size: .72rem;
+    font-weight: 700;
+
+    transition:
+        color .2s ease,
+        background .2s ease;
+}
+
+.salon-page .tab.active {
+
+    color: #0d0d0f;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff,
+            #dde5ef
+        );
+
+    box-shadow:
+        0 5px 14px var(--diamond-glow);
+}
+
+.salon-page .tab:not(.active):hover {
+
+    color: var(--text);
+
+    background:
+        rgba(255,255,255,.05);
+}
+
+
+.salon-page .gallery {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 11px;
+}
+
+.salon-page .tile {
+
+    aspect-ratio: 1 / 1.28;
+
+    min-width: 0;
+
+    position: relative;
+    overflow: hidden;
+
+    border: 1px solid var(--line);
+    border-radius: 18px;
+
+    background: #19191f;
+
+    cursor: pointer;
+
+    transition:
+        transform .25s ease,
+        border-color .25s ease,
+        box-shadow .25s ease;
+}
+
+.salon-page .tile:hover {
+
+    transform: translateY(-4px);
+
+    border-color:
+        rgba(197,210,224,.30);
+
+    box-shadow:
+        0 18px 42px rgba(0,0,0,.55);
+}
+
+.salon-page .tile .media {
+
+    position: absolute;
+    inset: 0;
+}
+
+.salon-page .tile .media img,
+.salon-page .tile .media video {
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    transition:
+        transform .4s ease;
+}
+
+.salon-page .tile:hover .media img,
+.salon-page .tile:hover .media video {
+    transform: scale(1.05);
+}
+
+.salon-page .media-empty {
+
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+    place-items: center;
+
+    color: var(--muted-2);
+
+    background:
+        linear-gradient(
+            135deg,
+            #25252e,
+            #101014
+        );
+
+    font-size: 1.8rem;
+}
+
+.salon-page .tile .ov {
+
+    position: absolute;
+    inset: 0;
+
+    z-index: 1;
+
+    background:
+        linear-gradient(
+            to top,
+            rgba(0,0,0,.86),
+            rgba(0,0,0,.12) 52%,
+            transparent 74%
+        );
+}
+
+.salon-page .tile .meta {
+
+    position: absolute;
+
+    bottom: 0;
+    inset-inline: 0;
+
+    z-index: 3;
+
+    display: flex;
+    align-items: center;
+
+    padding: 11px;
+
+    gap: 8px;
+}
+
+.salon-page .tile .views {
+
+    max-width: 100%;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    color: rgba(255,255,255,.9);
+
+    font-size: .66rem;
+    font-weight: 700;
+}
+
+.salon-page .tile .play {
+
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    width: 46px;
+    height: 46px;
+
+    z-index: 3;
+
+    display: grid;
+    place-items: center;
+
+    transform:
+        translate(-50%, -50%);
+
+    border: 1px solid rgba(255,255,255,.32);
+    border-radius: 50%;
+
+    background:
+        rgba(255,255,255,.12);
+
+    color: #fff;
+
+    opacity: 0;
+
+    transition:
+        opacity .25s ease,
+        transform .25s ease;
+}
+
+.salon-page .tile:hover .play {
+
+    opacity: 1;
+
+    transform:
+        translate(-50%, -50%) scale(1.05);
+}
+
+.salon-page .tile .badge-type {
+
+    position: absolute;
+
+    top: 9px;
+    inset-inline-start: 9px;
+
+    z-index: 3;
+
+    padding: 4px 8px;
+
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+
+    background:
+        rgba(13,13,15,.62);
+
+    backdrop-filter: blur(7px);
+
+    font-size: .61rem;
+    font-weight: 700;
+}
+
+.salon-page .badge-type.reel {
+    color: #e4c4ff;
+}
+
+.salon-page .badge-type.video {
+    color: #b8d4ff;
+}
+
+.salon-page .badge-type.photo {
+    color: var(--diamond-200);
+}
+
+.salon-page .badge-type.gif {
+    color: #ffc8a8;
+}
+
+
+/* ================================================================
+   COMMENTS
+   ================================================================ */
+
+.salon-page .comments {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 13px;
+}
 
 .salon-page .comment {
-    background: linear-gradient(150deg, var(--card-2), var(--card));
-    border: 1px solid var(--line); border-radius: 20px;
-    padding: 18px; transition: .3s;
+
+    padding: 17px;
+
+    border: 1px solid var(--line);
+    border-radius: 19px;
+
+    background:
+        linear-gradient(
+            150deg,
+            var(--card-2),
+            var(--card)
+        );
+
+    transition:
+        transform .22s ease,
+        border-color .22s ease;
 }
+
 .salon-page .comment:hover {
-    border-color: rgba(197,210,224,.28);
+
     transform: translateY(-3px);
-    box-shadow: 0 16px 40px rgba(0,0,0,.45);
+
+    border-color:
+        rgba(197,210,224,.22);
 }
+
 .salon-page .c-top {
-    display: flex; align-items: center; gap: 11px; margin-bottom: 11px;
-}
-.salon-page .c-av {
-    width: 40px; height: 40px; border-radius: 13px;
-    display: grid; place-items: center;
-    font-weight: 800; font-size: .9rem; flex-shrink: 0;
-    background: linear-gradient(135deg,#2d2a3a,#131017);
-    color: #dde5ef;
-}
-.salon-page .c-av img {
-    width: 100%; height: 100%; object-fit: cover; border-radius: 13px;
-}
-.salon-page .c-name { font-size: .86rem; font-weight: 700; }
-.salon-page .c-date { font-size: .7rem; color: var(--muted-2); }
-.salon-page .c-stars {
-    margin-inline-start: auto;
-    color: var(--d-200); font-size: .75rem; letter-spacing: 1px;
-}
-.salon-page .c-body { font-size: .84rem; color: var(--muted); line-height: 1.9; }
-.salon-page .c-body b { color: var(--text); font-weight: 600; }
-.salon-page .c-service {
-    font-size: .68rem; color: var(--muted-2);
-    margin-top: 10px; padding-top: 10px;
-    border-top: 1px solid var(--line);
-}
 
-/* ═══════════ TEAM ═══════════ */
-.salon-page .team-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-}
-@media (max-width: 760px) { .salon-page .team-grid { grid-template-columns: 1fr; } }
+    display: flex;
+    align-items: center;
+    gap: 10px;
 
-.salon-page .tcard {
-    background: linear-gradient(150deg, var(--card-2), var(--card));
-    border: 1px solid var(--line); border-radius: 28px;
-    padding: 22px; transition: .35s cubic-bezier(.2,.8,.2,1);
-    position: relative; overflow: hidden;
-}
-.salon-page .tcard::after {
-    content: ''; position: absolute;
-    top: -60px; inset-inline-end: -60px;
-    width: 170px; height: 170px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(232,238,245,.08), transparent 70%);
-    transition: .5s;
-}
-.salon-page .tcard:hover {
-    transform: translateY(-5px);
-    border-color: rgba(197,210,224,.35);
-    box-shadow: 0 22px 50px rgba(0,0,0,.6), 0 0 40px rgba(197,210,224,.06);
-}
-.salon-page .tcard:hover::after { transform: scale(1.5); }
-
-.salon-page .t-head {
-    display: flex; gap: 14px; align-items: center; position: relative; z-index: 1;
-}
-.salon-page .t-av {
-    width: 64px; height: 64px; border-radius: 20px; flex-shrink: 0;
-    display: grid; place-items: center;
-    font-size: 1.4rem; font-weight: 900;
-    border: 1px solid var(--line-2);
-    background: linear-gradient(140deg,#2d2a3a,#131017);
-    color: #dde5ef; overflow: hidden;
-}
-.salon-page .t-av img { width: 100%; height: 100%; object-fit: cover; }
-.salon-page .t-name { font-size: 1rem; font-weight: 800; }
-.salon-page .t-role { font-size: .76rem; color: var(--d-200); font-weight: 600; margin-top: 1px; }
-.salon-page .t-rating { margin-inline-start: auto; text-align: center; }
-.salon-page .t-rating b {
-    display: block; font-size: 1rem; font-weight: 800;
-    background: linear-gradient(135deg, #ffffff, #c5d2e0, #ffffff);
-    background-size: 200% auto;
-    -webkit-background-clip: text; background-clip: text;
-    color: transparent;
-    animation: shimmerText 5s linear infinite;
-}
-.salon-page .t-rating span { font-size: .66rem; color: var(--muted-2); }
-.salon-page .t-bio {
-    font-size: .78rem; color: var(--muted); line-height: 1.85;
-    margin-top: 14px; position: relative; z-index: 1;
-}
-.salon-page .t-foot {
-    display: flex; align-items: center; gap: 10px;
-    margin-top: 20px; position: relative; z-index: 1;
-}
-.salon-page .t-foot .btn-diamond { padding: 9px 18px; font-size: .79rem; border-radius: 12px; }
-
-/* ═══════════ MAP + ABOUT ═══════════ */
-.salon-page .bottom-grid {
-    display: grid;
-    grid-template-columns: 1.15fr 1fr;
-    gap: 18px; margin-bottom: 70px;
-}
-@media (max-width: 860px) { .salon-page .bottom-grid { grid-template-columns: 1fr; } }
-
-.salon-page .map-card {
-    border-radius: 28px; overflow: hidden;
-    border: 1px solid var(--line);
-    background: var(--card);
-    position: relative; min-height: 340px;
-}
-.salon-page .map-card iframe {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%; border: 0;
-    filter: invert(.92) hue-rotate(180deg) saturate(.5) brightness(.9);
-}
-.salon-page .map-overlay {
-    position: absolute; bottom: 0; inset-inline: 0;
-    padding: 20px; z-index: 4;
-    background: linear-gradient(to top, rgba(10,10,12,.97), rgba(10,10,12,.6) 55%, transparent);
-    display: flex; align-items: flex-end; justify-content: space-between;
-    gap: 14px; flex-wrap: wrap;
-}
-.salon-page .map-addr { font-size: .85rem; line-height: 1.9; }
-.salon-page .map-addr b { display: block; font-size: .95rem; margin-bottom: 2px; }
-.salon-page .map-addr span { color: var(--muted); font-size: .8rem; }
-.salon-page .map-empty {
-    display: grid; place-items: center; min-height: 340px;
-    color: var(--muted-2); font-size: .85rem;
-}
-
-.salon-page .about-card {
-    border-radius: 28px; border: 1px solid var(--line);
-    background: linear-gradient(155deg, var(--card-2), var(--card));
-    padding: 28px; display: flex; flex-direction: column;
-}
-.salon-page .about-card h3 { font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; }
-.salon-page .about-card .sub {
-    font-size: .74rem; color: var(--d-200);
-    letter-spacing: 1.6px; font-weight: 700; margin-bottom: 14px;
-}
-.salon-page .about-card p {
-    font-size: .85rem; color: var(--muted);
-    line-height: 2; margin-bottom: 18px;
-}
-.salon-page .feat {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 10px; margin-top: auto;
-}
-.salon-page .feat div {
-    background: rgba(255,255,255,.025);
-    border: 1px solid var(--line);
-    border-radius: 14px; padding: 12px;
-    font-size: .77rem; color: var(--muted);
-    display: flex; align-items: center; gap: 8px;
-    transition: .25s;
-}
-.salon-page .feat div:hover {
-    border-color: rgba(197,210,224,.3); color: var(--text);
-}
-.salon-page .hours {
-    margin-top: 16px; border-top: 1px solid var(--line);
-    padding-top: 16px;
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: .8rem; flex-wrap: wrap; gap: 8px;
-}
-.salon-page .hours .open {
-    color: var(--green); font-weight: 700;
-    display: flex; align-items: center; gap: 7px;
-}
-
-/* ═══════════ RELATED ═══════════ */
-.salon-page .related-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 12px;
-}
-@media (max-width: 900px) { .salon-page .related-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 560px) { .salon-page .related-grid { grid-template-columns: repeat(2, 1fr); } }
-
-.salon-page .related-card {
-    border-radius: 18px; border: 1px solid var(--line);
-    background: linear-gradient(150deg, var(--card-2), var(--card));
-    padding: 14px;
-    text-decoration: none; color: inherit;
-    transition: .3s; display: block;
-}
-.salon-page .related-card:hover {
-    border-color: rgba(197,210,224,.35);
-    transform: translateY(-3px);
-    box-shadow: 0 14px 34px rgba(0,0,0,.5);
-}
-.salon-page .related-logo {
-    aspect-ratio: 1/1; border-radius: 12px; overflow: hidden;
-    display: grid; place-items: center;
-    font-size: 1.6rem; font-weight: 900;
-    background: linear-gradient(135deg,#2d2a3a,#131017);
-    color: transparent; background-clip: padding-box;
     margin-bottom: 10px;
 }
-.salon-page .related-logo span {
-    background: linear-gradient(135deg, #ffffff, #c5d2e0);
-    -webkit-background-clip: text; background-clip: text;
-    color: transparent;
-}
-.salon-page .related-logo img { width: 100%; height: 100%; object-fit: cover; }
-.salon-page .related-name {
-    font-size: .78rem; font-weight: 700;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.salon-page .related-meta {
-    font-size: .66rem; color: var(--muted-2);
-    margin-top: 3px;
-    display: flex; align-items: center; justify-content: space-between; gap: 4px;
+
+.salon-page .c-av {
+
+    width: 40px;
+    height: 40px;
+
+    flex: 0 0 40px;
+
+    display: grid;
+    place-items: center;
+
+    overflow: hidden;
+
+    border: 1px solid var(--line);
+    border-radius: 12px;
+
+    color: var(--diamond-200);
+
+    background:
+        linear-gradient(
+            135deg,
+            #2c2c37,
+            #141419
+        );
+
+    font-size: .86rem;
+    font-weight: 800;
 }
 
-/* ═══════════ MODAL ═══════════ */
-.salon-page .modal-back {
-    position: fixed; inset: 0; z-index: 200;
-    background: rgba(6,6,8,.82);
-    backdrop-filter: blur(14px);
-    display: flex; align-items: center; justify-content: center;
-    padding: 18px;
-    opacity: 0; pointer-events: none;
-    transition: .3s;
+.salon-page .c-av img {
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
 }
-.salon-page .modal-back.open { opacity: 1; pointer-events: auto; }
+
+.salon-page .c-name {
+
+    color: var(--text);
+
+    font-size: .8rem;
+    font-weight: 800;
+}
+
+.salon-page .c-date {
+
+    margin-top: 1px;
+
+    color: var(--muted-2);
+
+    font-size: .64rem;
+}
+
+.salon-page .c-stars {
+
+    margin-inline-start: auto;
+
+    color: var(--diamond-200);
+
+    font-size: .7rem;
+    letter-spacing: 1px;
+
+    white-space: nowrap;
+}
+
+.salon-page .muted-stars {
+    color: #3a3a44;
+}
+
+.salon-page .c-body {
+
+    margin: 0;
+
+    color: var(--muted);
+
+    font-size: .77rem;
+    line-height: 1.9;
+}
+
+.salon-page .c-service {
+
+    margin-top: 9px;
+    padding-top: 9px;
+
+    border-top: 1px solid var(--line);
+
+    color: var(--muted-2);
+
+    font-size: .63rem;
+}
+
+
+/* ================================================================
+   TEAM
+   ================================================================ */
+
+.salon-page .team-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 14px;
+}
+
+.salon-page .tcard {
+
+    position: relative;
+    overflow: hidden;
+
+    padding: 20px;
+
+    border: 1px solid var(--line);
+    border-radius: 24px;
+
+    background:
+        linear-gradient(
+            150deg,
+            var(--card-2),
+            var(--card)
+        );
+
+    transition:
+        transform .25s ease,
+        border-color .25s ease,
+        box-shadow .25s ease;
+}
+
+.salon-page .tcard:hover {
+
+    transform: translateY(-4px);
+
+    border-color:
+        rgba(197,210,224,.25);
+
+    box-shadow:
+        var(--shadow-md);
+}
+
+.salon-page .t-head {
+
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.salon-page .t-av {
+
+    width: 62px;
+    height: 62px;
+
+    flex: 0 0 62px;
+
+    display: grid;
+    place-items: center;
+
+    overflow: hidden;
+
+    border: 1px solid var(--line-strong);
+    border-radius: 18px;
+
+    color: var(--diamond-200);
+
+    background:
+        linear-gradient(
+            140deg,
+            #2c2c37,
+            #131317
+        );
+
+    font-size: 1.25rem;
+    font-weight: 900;
+}
+
+.salon-page .t-av img {
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.salon-page .t-name {
+
+    color: var(--text);
+
+    font-size: .94rem;
+    font-weight: 800;
+}
+
+.salon-page .t-role {
+
+    margin-top: 2px;
+
+    color: var(--diamond-200);
+
+    font-size: .7rem;
+    font-weight: 600;
+}
+
+.salon-page .t-rating {
+
+    margin-inline-start: auto;
+
+    text-align: center;
+}
+
+.salon-page .t-rating b {
+
+    display: block;
+
+    color: var(--diamond-200);
+
+    font-size: .92rem;
+    font-weight: 800;
+}
+
+.salon-page .t-rating span {
+
+    color: var(--muted-2);
+
+    font-size: .61rem;
+}
+
+.salon-page .t-bio {
+
+    margin: 12px 0 0;
+
+    color: var(--muted);
+
+    font-size: .73rem;
+    line-height: 1.85;
+}
+
+.salon-page .t-foot {
+
+    display: flex;
+    align-items: center;
+
+    margin-top: 17px;
+}
+
+.salon-page .t-foot .btn-diamond {
+
+    padding: 8px 15px;
+
+    border-radius: 11px;
+
+    font-size: .72rem;
+}
+
+
+/* ================================================================
+   MAP / ABOUT
+   ================================================================ */
+
+.salon-page .bottom-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        1.15fr 1fr;
+
+    gap: 16px;
+
+    margin-bottom: 60px;
+}
+
+.salon-page .map-card {
+
+    min-height: 330px;
+
+    position: relative;
+    overflow: hidden;
+
+    border: 1px solid var(--line);
+    border-radius: 25px;
+
+    background: var(--card);
+}
+
+.salon-page .map-card iframe {
+
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    border: 0;
+
+    filter:
+        invert(.92)
+        hue-rotate(180deg)
+        saturate(.45)
+        brightness(.88);
+}
+
+.salon-page .map-overlay {
+
+    position: absolute;
+
+    bottom: 0;
+    inset-inline: 0;
+
+    z-index: 2;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 12px;
+    flex-wrap: wrap;
+
+    padding: 18px;
+
+    background:
+        linear-gradient(
+            to top,
+            rgba(10,10,12,.96),
+            rgba(10,10,12,.55) 58%,
+            transparent
+        );
+}
+
+.salon-page .map-addr b {
+
+    display: block;
+
+    color: var(--text);
+
+    font-size: .84rem;
+    font-weight: 800;
+}
+
+.salon-page .map-addr span {
+
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--muted);
+
+    font-size: .72rem;
+    line-height: 1.7;
+}
+
+.salon-page .map-empty {
+
+    min-height: 330px;
+
+    display: grid;
+    place-items: center;
+
+    color: var(--muted-2);
+
+    font-size: .8rem;
+}
+
+
+/* About */
+
+.salon-page .about-card {
+
+    min-height: 330px;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 25px;
+
+    border: 1px solid var(--line);
+    border-radius: 25px;
+
+    background:
+        linear-gradient(
+            155deg,
+            var(--card-2),
+            var(--card)
+        );
+}
+
+.salon-page .about-card .sub {
+
+    margin-bottom: 10px;
+
+    color: var(--diamond-200);
+
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+}
+
+.salon-page .about-card h3 {
+
+    margin: 0 0 5px;
+
+    color: var(--text);
+
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.salon-page .about-card p {
+
+    margin: 0 0 16px;
+
+    color: var(--muted);
+
+    font-size: .78rem;
+    line-height: 1.95;
+}
+
+.salon-page .feat {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 8px;
+
+    margin-top: auto;
+}
+
+.salon-page .feat div {
+
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 10px;
+
+    border: 1px solid var(--line);
+    border-radius: 12px;
+
+    color: var(--muted);
+
+    background: rgba(255,255,255,.02);
+
+    font-size: .69rem;
+}
+
+.salon-page .feat div:hover {
+
+    color: var(--text);
+
+    border-color:
+        rgba(197,210,224,.24);
+}
+
+.salon-page .feat i {
+    font-style: normal;
+}
+
+.salon-page .hours {
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 8px;
+    flex-wrap: wrap;
+
+    margin-top: 14px;
+    padding-top: 14px;
+
+    border-top: 1px solid var(--line);
+
+    font-size: .7rem;
+}
+
+.salon-page .hours-today {
+    color: var(--muted);
+}
+
+.salon-page .hours .open {
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    color: var(--green);
+
+    font-weight: 700;
+}
+
+.salon-page .hours .open.is-closed {
+    color: var(--red);
+}
+
+
+/* ================================================================
+   RELATED
+   ================================================================ */
+
+.salon-page .related-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(6, minmax(0, 1fr));
+
+    gap: 10px;
+}
+
+.salon-page .related-card {
+
+    display: block;
+
+    padding: 12px;
+
+    border: 1px solid var(--line);
+    border-radius: 16px;
+
+    background:
+        linear-gradient(
+            150deg,
+            var(--card-2),
+            var(--card)
+        );
+
+    transition:
+        transform .22s ease,
+        border-color .22s ease;
+}
+
+.salon-page .related-card:hover {
+
+    transform: translateY(-3px);
+
+    border-color:
+        rgba(197,210,224,.28);
+}
+
+.salon-page .related-logo {
+
+    aspect-ratio: 1;
+
+    display: grid;
+    place-items: center;
+
+    overflow: hidden;
+
+    margin-bottom: 9px;
+
+    border-radius: 11px;
+
+    color: var(--diamond-200);
+
+    background:
+        linear-gradient(
+            135deg,
+            #2b2b35,
+            #131317
+        );
+
+    font-size: 1.4rem;
+    font-weight: 900;
+}
+
+.salon-page .related-logo img {
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.salon-page .related-name {
+
+    overflow: hidden;
+
+    color: var(--text);
+
+    font-size: .7rem;
+    font-weight: 700;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-page .related-meta {
+
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+
+    margin-top: 3px;
+
+    color: var(--muted-2);
+
+    font-size: .59rem;
+}
+
+
+/* ================================================================
+   BOOKING MODAL
+   ================================================================ */
+
+.salon-page .modal-back {
+
+    position: fixed;
+    inset: 0;
+
+    z-index: 300;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 16px;
+
+    background:
+        rgba(6,6,8,.82);
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition:
+        opacity .22s ease;
+}
+
+.salon-page .modal-back.open {
+
+    opacity: 1;
+    pointer-events: auto;
+}
 
 .salon-page .modal {
-    width: 100%; max-width: 880px; max-height: 92vh;
+
+    width: 100%;
+    max-width: 880px;
+    max-height: 92vh;
+
     overflow-y: auto;
-    background: linear-gradient(160deg, #181820, #0e0e12);
-    border: 1px solid rgba(197,210,224,.2);
-    border-radius: 30px;
-    padding: 30px;
+
+    padding: 28px;
+
     position: relative;
-    transform: translateY(30px) scale(.94);
+
+    border: 1px solid rgba(197,210,224,.18);
+    border-radius: 27px;
+
+    background:
+        linear-gradient(
+            160deg,
+            #18181f,
+            #0e0e12
+        );
+
+    box-shadow:
+        0 35px 90px rgba(0,0,0,.78);
+
+    transform:
+        translateY(18px) scale(.98);
+
     opacity: 0;
-    transition: .45s cubic-bezier(.2,.9,.25,1);
-    box-shadow: 0 40px 100px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.05);
+
+    transition:
+        transform .28s ease,
+        opacity .28s ease;
 }
+
 .salon-page .modal-back.open .modal {
-    transform: translateY(0) scale(1); opacity: 1;
+
+    transform:
+        translateY(0) scale(1);
+
+    opacity: 1;
 }
 
 .salon-page .modal-close {
-    position: absolute; top: 18px; inset-inline-end: 18px;
-    width: 38px; height: 38px; border-radius: 12px;
-    background: rgba(255,255,255,.05);
+
+    position: absolute;
+
+    top: 16px;
+    inset-inline-end: 16px;
+
+    width: 36px;
+    height: 36px;
+
+    display: grid;
+    place-items: center;
+
     border: 1px solid var(--line);
-    display: grid; place-items: center;
-    font-size: 1.1rem; color: var(--muted);
-    transition: .25s; z-index: 5;
+    border-radius: 11px;
+
+    color: var(--muted);
+
+    background: rgba(255,255,255,.04);
+
+    transition:
+        color .2s ease,
+        background .2s ease,
+        transform .2s ease;
 }
+
 .salon-page .modal-close:hover {
-    background: rgba(255,107,107,.15);
+
     color: var(--red);
-    border-color: rgba(255,107,107,.3);
+
+    background:
+        rgba(255,107,107,.12);
+
     transform: rotate(90deg);
 }
 
-.salon-page .m-head { margin-bottom: 22px; }
+
+/* Modal heading */
+
+.salon-page .m-head {
+
+    margin-bottom: 20px;
+    padding-inline-end: 45px;
+}
+
 .salon-page .m-head .eyebrow {
-    font-size: .72rem; letter-spacing: 2px;
-    color: var(--d-200); font-weight: 700; margin-bottom: 8px;
+
+    margin-bottom: 6px;
+
+    color: var(--diamond-200);
+
+    font-size: .68rem;
+    font-weight: 800;
 }
+
 .salon-page .m-head h2 {
-    font-size: 1.35rem; font-weight: 800; letter-spacing: -.3px;
+
+    margin: 0;
+
+    color: var(--text);
+
+    font-size: 1.22rem;
+    font-weight: 800;
 }
+
 .salon-page .m-head p {
-    font-size: .82rem; color: var(--muted); margin-top: 4px;
+
+    margin: 3px 0 0;
+
+    color: var(--muted);
+
+    font-size: .76rem;
 }
+
+
+/* Filters */
 
 .salon-page .m-filters {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-@media (max-width: 560px) { .salon-page .m-filters { grid-template-columns: 1fr; } }
 
-.salon-page .field { display: block; }
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 11px;
+
+    margin-bottom: 18px;
+}
+
 .salon-page .field span {
-    font-size: .72rem; color: var(--muted); font-weight: 600;
-    display: block; margin-bottom: 6px;
+
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: var(--muted);
+
+    font-size: .68rem;
+    font-weight: 600;
 }
+
 .salon-page .field select {
+
     width: 100%;
-    background: rgba(255,255,255,.03);
-    border: 1px solid var(--line-2);
-    border-radius: 12px;
-    padding: 11px 14px;
+
+    padding: 10px 12px;
+
+    border: 1px solid var(--line-strong);
+    border-radius: 11px;
+
+    outline: none;
+
     color: var(--text);
-    font-family: inherit;
-    font-size: .86rem;
-    transition: .25s;
+
+    background:
+        rgba(255,255,255,.035);
+
+    font-size: .76rem;
 }
+
 .salon-page .field select:focus {
-    outline: none; border-color: var(--d-400);
-    box-shadow: 0 0 0 3px rgba(197,210,224,.1);
+
+    border-color:
+        var(--diamond-400);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(197,210,224,.08);
 }
+
+
+/* Calendar layout */
 
 .salon-page .m-grid {
-    display: grid;
-    grid-template-columns: 1.05fr 1fr;
-    gap: 24px;
-}
-@media (max-width: 720px) { .salon-page .m-grid { grid-template-columns: 1fr; } }
 
-/* Calendar */
+    display: grid;
+
+    grid-template-columns:
+        1.05fr 1fr;
+
+    gap: 22px;
+}
+
 .salon-page .cal-head {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 11px;
 }
-.salon-page .cal-head b { font-size: .92rem; font-weight: 700; }
-.salon-page .cal-nav { display: flex; gap: 6px; }
-.salon-page .cal-nav button {
-    width: 32px; height: 32px; border-radius: 10px;
-    background: rgba(255,255,255,.04);
-    border: 1px solid var(--line);
-    display: grid; place-items: center;
-    color: var(--muted);
-    transition: .2s; font-size: .85rem;
-}
-.salon-page .cal-nav button:hover {
-    background: rgba(197,210,224,.1);
-    color: var(--d-100);
-    border-color: rgba(197,210,224,.3);
-}
-.salon-page .cal-week {
-    display: grid; grid-template-columns: repeat(7, 1fr);
-    gap: 5px; margin-bottom: 7px;
-}
-.salon-page .cal-week span {
-    text-align: center; font-size: .68rem;
-    color: var(--muted-2); font-weight: 600; padding: 4px 0;
-}
-.salon-page .cal-days {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
-}
-.salon-page .day {
-    aspect-ratio: 1/1; border-radius: 12px;
-    display: grid; place-items: center;
-    font-size: .82rem; font-weight: 600;
+
+.salon-page .cal-head b {
+
     color: var(--text);
-    background: rgba(255,255,255,.025);
+
+    font-size: .82rem;
+}
+
+.salon-page .cal-nav {
+
+    display: flex;
+    gap: 5px;
+}
+
+.salon-page .cal-nav button {
+
+    width: 31px;
+    height: 31px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid var(--line);
+    border-radius: 9px;
+
+    color: var(--muted);
+
+    background: rgba(255,255,255,.035);
+
+    transition:
+        color .2s ease,
+        background .2s ease;
+}
+
+.salon-page .cal-nav button:hover {
+
+    color: var(--text);
+
+    background:
+        rgba(197,210,224,.08);
+}
+
+.salon-page .cal-week,
+.salon-page .cal-days {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(7, minmax(0, 1fr));
+
+    gap: 5px;
+}
+
+.salon-page .cal-week {
+    margin-bottom: 6px;
+}
+
+.salon-page .cal-week span {
+
+    padding: 3px 0;
+
+    text-align: center;
+
+    color: var(--muted-2);
+
+    font-size: .62rem;
+    font-weight: 600;
+}
+
+.salon-page .day {
+
+    aspect-ratio: 1;
+
+    display: grid;
+    place-items: center;
+
     border: 1px solid transparent;
-    transition: .22s; cursor: pointer; position: relative;
+    border-radius: 10px;
+
+    color: var(--text);
+
+    background:
+        rgba(255,255,255,.022);
+
+    font-size: .72rem;
+    font-weight: 600;
+
+    transition:
+        background .18s ease,
+        border-color .18s ease;
 }
+
 .salon-page .day:hover:not(.off):not(.empty) {
-    background: rgba(197,210,224,.1);
-    border-color: rgba(197,210,224,.3);
+
+    border-color:
+        rgba(197,210,224,.25);
+
+    background:
+        rgba(197,210,224,.08);
 }
+
 .salon-page .day.sel {
-    background: linear-gradient(135deg, #ffffff, #dde5ef 50%, #ffffff);
-    color: #0d0d0f; font-weight: 800;
-    box-shadow: 0 6px 18px var(--d-glow), inset 0 1px 0 #fff;
+
+    color: #0d0d0f;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff,
+            #dde5ef
+        );
+
+    box-shadow:
+        0 6px 18px var(--diamond-glow);
 }
+
 .salon-page .day.off {
-    color: #3a3a44; cursor: not-allowed; background: transparent;
+
+    color: #393942;
+
+    background: transparent;
+
+    cursor: not-allowed;
 }
-.salon-page .day.empty { background: transparent; cursor: default; }
+
+.salon-page .day.empty {
+
+    background: transparent;
+}
+
+
+/* Slots */
 
 .salon-page .slots-title {
-    font-size: .82rem; font-weight: 700;
-    margin-bottom: 12px;
-    display: flex; align-items: center; justify-content: space-between;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 10px;
+
+    color: var(--text);
+
+    font-size: .75rem;
+    font-weight: 700;
 }
+
 .salon-page .slots-title small {
-    font-size: .7rem; color: var(--muted-2); font-weight: 500;
+
+    color: var(--muted-2);
+
+    font-size: .63rem;
+    font-weight: 500;
 }
+
 .salon-page .slots {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    max-height: 340px; overflow-y: auto;
-    padding-inline-end: 4px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 7px;
+
+    max-height: 320px;
+
+    overflow-y: auto;
+
+    padding-inline-end: 3px;
 }
-.salon-page .slots::-webkit-scrollbar { width: 6px; }
-.salon-page .slots::-webkit-scrollbar-thumb {
-    background: #2a2a32; border-radius: 10px;
-}
-@media (max-width: 420px) { .salon-page .slots { grid-template-columns: repeat(2, 1fr); } }
 
 .salon-page .slot {
-    padding: 11px 6px; border-radius: 12px;
-    text-align: center; font-size: .8rem; font-weight: 600;
-    background: rgba(255,255,255,.03);
+
+    padding: 10px 6px;
+
     border: 1px solid var(--line);
+    border-radius: 10px;
+
     color: var(--text);
-    transition: .22s; cursor: pointer;
+
+    background:
+        rgba(255,255,255,.025);
+
+    text-align: center;
+
+    font-size: .7rem;
+    font-weight: 600;
 }
+
 .salon-page .slot:hover:not(.taken) {
-    background: rgba(197,210,224,.1);
-    border-color: rgba(197,210,224,.35);
-    transform: translateY(-2px);
+
+    border-color:
+        rgba(197,210,224,.28);
+
+    background:
+        rgba(197,210,224,.07);
 }
+
 .salon-page .slot.sel {
-    background: linear-gradient(135deg, #ffffff, #dde5ef 50%, #ffffff);
-    color: #0d0d0f; border-color: transparent; font-weight: 800;
-    box-shadow: 0 6px 18px var(--d-glow), inset 0 1px 0 #fff;
+
+    color: #0d0d0f;
+
+    border-color: transparent;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff,
+            #dde5ef
+        );
 }
+
 .salon-page .slot.taken {
-    color: #3d3d48;
+
+    color: #40404a;
+
     text-decoration: line-through;
+
     cursor: not-allowed;
-    background: rgba(255,255,255,.012);
-    border-color: rgba(255,255,255,.04);
+
+    background:
+        rgba(255,255,255,.01);
 }
+
 .salon-page .slots-msg {
+
     grid-column: 1 / -1;
-    text-align: center; font-size: .8rem;
-    color: var(--muted-2); padding: 26px 0;
+
+    padding: 24px 0;
+
+    color: var(--muted-2);
+
+    text-align: center;
+
+    font-size: .7rem;
 }
-.salon-page .slots-msg.error { color: var(--red); }
+
+.salon-page .slots-msg.error {
+    color: var(--red);
+}
+
+
+/* Legend */
 
 .salon-page .legend {
-    display: flex; gap: 16px;
-    margin-top: 14px;
-    font-size: .7rem; color: var(--muted-2); flex-wrap: wrap;
-}
-.salon-page .legend i {
-    font-style: normal; display: flex; align-items: center; gap: 6px;
-}
-.salon-page .legend .sq {
-    width: 10px; height: 10px; border-radius: 4px; display: inline-block;
+
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    margin-top: 11px;
+
+    color: var(--muted-2);
+
+    font-size: .61rem;
 }
 
+.salon-page .legend i {
+
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    font-style: normal;
+}
+
+.salon-page .legend .sq {
+
+    width: 9px;
+    height: 9px;
+
+    display: inline-block;
+
+    border-radius: 3px;
+}
+
+.salon-page .sq.selected {
+
+    background:
+        linear-gradient(
+            135deg,
+            #fff,
+            #c5d2e0
+        );
+}
+
+.salon-page .sq.available {
+    background: rgba(255,255,255,.06);
+}
+
+.salon-page .sq.past {
+    background: #2a2a32;
+}
+
+
+/* Modal bottom */
+
 .salon-page .m-foot {
-    margin-top: 24px; padding-top: 20px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+    flex-wrap: wrap;
+
+    margin-top: 20px;
+    padding-top: 18px;
+
     border-top: 1px solid var(--line);
-    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
 }
+
 .salon-page .m-summary {
-    flex: 1; min-width: 200px;
-    font-size: .82rem; color: var(--muted);
+
+    flex: 1;
+    min-width: 200px;
+
+    color: var(--muted);
+
+    font-size: .72rem;
 }
-.salon-page .m-summary b { color: var(--text); font-weight: 700; }
+
 .salon-page .m-summary .row {
-    display: flex; gap: 8px; align-items: center; margin-top: 3px;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-top: 3px;
 }
+
 .salon-page .m-summary .row span:first-child {
-    color: var(--muted-2); min-width: 64px; font-size: .76rem;
+
+    min-width: 58px;
+
+    color: var(--muted-2);
+
+    font-size: .64rem;
+}
+
+.salon-page .m-summary b {
+
+    color: var(--text);
+
+    font-weight: 700;
 }
 
 .salon-page .btn-confirm {
-    background: linear-gradient(135deg, #ffffff, #eef2f7 30%, #c5d2e0 60%, #ffffff);
-    background-size: 220% auto;
-    color: #0d0d0f; font-weight: 800; font-size: .88rem;
-    padding: 14px 32px; border-radius: 15px;
-    box-shadow:
-        0 12px 32px var(--d-glow),
-        inset 0 1px 0 rgba(255,255,255,.95);
-    transition: .4s cubic-bezier(.2,.8,.2,1);
+
+    min-width: 160px;
+
+    padding: 12px 22px;
+
+    border-radius: 13px;
+
+    font-size: .78rem;
+    font-weight: 800;
 }
-.salon-page .btn-confirm:hover:not(:disabled) {
-    background-position: right center;
-    transform: translateY(-2px);
-    box-shadow: 0 18px 44px var(--d-glow-strong), inset 0 1px 0 #fff;
-}
+
 .salon-page .btn-confirm:disabled {
-    opacity: .32; cursor: not-allowed;
-    transform: none; box-shadow: none;
-    filter: grayscale(.6);
+
+    opacity: .3;
+
+    cursor: not-allowed;
+
+    box-shadow: none;
+
+    filter: grayscale(.5);
 }
+
 
 /* Success */
+
 .salon-page .success {
-    text-align: center; padding: 30px 10px; display: none;
+
+    display: none;
+
+    padding: 24px 10px;
+
+    text-align: center;
 }
+
 .salon-page .success.show {
+
     display: block;
-    animation: pop .5s cubic-bezier(.2,.9,.25,1);
+
+    animation:
+        salonSuccess .3s ease;
 }
-@keyframes pop {
-    from { opacity: 0; transform: scale(.9); }
-    to   { opacity: 1; transform: scale(1); }
+
+@keyframes salonSuccess {
+
+    from {
+        opacity: 0;
+        transform: scale(.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
+
 .salon-page .success .tick {
-    width: 78px; height: 78px; border-radius: 50%;
-    margin: 0 auto 18px;
-    background: linear-gradient(135deg, #ffffff, #dde5ef 50%, #ffffff);
-    display: grid; place-items: center;
-    font-size: 2.1rem; color: #0d0d0f;
-    box-shadow: 0 14px 40px var(--d-glow-strong), inset 0 1px 0 #fff;
-    animation: bounceIn .6s .15s backwards;
-}
-@keyframes bounceIn {
-    from { transform: scale(0); }
-    60%  { transform: scale(1.15); }
-    to   { transform: scale(1); }
-}
-.salon-page .success h3 {
-    font-size: 1.25rem; font-weight: 800; margin-bottom: 6px;
-}
-.salon-page .success p {
-    color: var(--muted); font-size: .86rem; line-height: 1.9;
-}
 
-/* ═══════════ FOOTER ═══════════ */
-.salon-page footer {
-    border-top: 1px solid var(--line);
-    padding: 26px 20px; text-align: center;
-    color: var(--muted-2); font-size: .76rem;
-}
-.salon-page footer b { color: var(--d-200); }
+    width: 72px;
+    height: 72px;
 
-/* ═══════════ FLOATING BOOK ═══════════ */
-.salon-page .float-book {
-    position: fixed; bottom: 18px; inset-inline: 18px;
-    z-index: 80; display: none;
-}
-.salon-page .float-book button {
-    width: 100%;
-    background: linear-gradient(135deg, #ffffff, #eef2f7 30%, #c5d2e0 60%, #ffffff);
-    background-size: 220% auto;
-    color: #0d0d0f; font-weight: 800;
-    padding: 15px; border-radius: 16px;
+    display: grid;
+    place-items: center;
+
+    margin: 0 auto 15px;
+
+    border-radius: 50%;
+
+    color: #0d0d0f;
+
+    background:
+        linear-gradient(
+            135deg,
+            #fff,
+            #dde5ef
+        );
+
     box-shadow:
-        0 12px 34px rgba(0,0,0,.6),
-        0 0 30px var(--d-glow),
-        inset 0 1px 0 #fff;
-    font-size: .9rem;
-}
-@media (max-width: 640px) {
-    .salon-page .float-book { display: block; }
-    .salon-page .profile-bar { padding: 0 16px; margin-top: -55px; }
-    .salon-page .avatar { width: 104px; height: 104px; border-radius: 30px; font-size: 2rem; }
-    .salon-page .bio,
-    .salon-page .chips { margin-inline: 16px; }
-    .salon-page .booking-cta { padding: 26px 20px; }
-    .salon-page .modal { padding: 22px 18px; border-radius: 24px; }
-    .salon-page .cover { height: 190px; }
-    .salon-page .stats { gap: 18px; }
-    .salon-page footer { padding-bottom: 90px; }
+        0 14px 32px var(--diamond-glow-strong);
+
+    font-size: 1.9rem;
 }
 
-/* ═══════════ REVEAL ═══════════ */
+.salon-page .success h3 {
+
+    margin: 0 0 5px;
+
+    color: var(--text);
+
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.salon-page .success p {
+
+    margin: 0;
+
+    color: var(--muted);
+
+    font-size: .77rem;
+    line-height: 1.9;
+}
+
+.salon-page .success-close {
+    margin-top: 20px;
+}
+
+
+/* ================================================================
+   FLOATING BOOK
+   ================================================================ */
+
+.salon-page .float-book {
+
+    display: none;
+
+    position: fixed;
+
+    bottom: 16px;
+    inset-inline: 16px;
+
+    z-index: 150;
+}
+
+.salon-page .float-book button {
+
+    width: 100%;
+
+    padding: 14px;
+
+    border-radius: 14px;
+
+    color: #0d0d0f;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff,
+            #eef2f7 40%,
+            #c5d2e0
+        );
+
+    box-shadow:
+        0 15px 34px rgba(0,0,0,.55),
+        0 0 22px var(--diamond-glow);
+
+    font-size: .82rem;
+    font-weight: 850;
+}
+
+
+/* ================================================================
+   FOOTER
+   ================================================================ */
+
+.salon-page footer {
+
+    padding: 25px 20px 30px;
+
+    border-top: 1px solid var(--line);
+
+    color: var(--muted-2);
+
+    text-align: center;
+
+    font-size: .67rem;
+}
+
+.salon-page footer b {
+    color: var(--diamond-200);
+}
+
+
+/* ================================================================
+   REVEAL
+   ================================================================ */
+
+/*
+ * Reveal is intentionally subtle.
+ * If JS doesn't run, content must remain visible.
+ */
+
 .salon-page .reveal {
-    opacity: 0; transform: translateY(26px);
-    transition: .7s cubic-bezier(.2,.8,.2,1);
-}
-.salon-page .reveal.in { opacity: 1; transform: none; }
 
-/* ═══════════ MODAL LOCK ═══════════ */
-body.salon-modal-open { overflow: hidden; }
+    opacity: 1;
+
+    transform: none;
+}
+
+.salon-page .reveal.reveal-ready {
+
+    opacity: 0;
+
+    transform: translateY(16px);
+
+    transition:
+        opacity .45s ease,
+        transform .45s ease;
+}
+
+.salon-page .reveal.reveal-ready.in {
+
+    opacity: 1;
+
+    transform: none;
+}
+
+
+/* ================================================================
+   MODAL BODY LOCK
+   ================================================================ */
+
+body.salon-modal-open {
+    overflow: hidden;
+}
+
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+
+@media (max-width: 1000px) {
+
+    .salon-page .services-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .salon-page .gallery {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+    .salon-page .related-grid {
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+    }
+}
+
+
+@media (max-width: 860px) {
+
+    .salon-page .comments {
+        grid-template-columns:
+            1fr;
+    }
+
+    .salon-page .bottom-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+    .salon-page .m-grid {
+        grid-template-columns:
+            1fr;
+    }
+}
+
+
+@media (max-width: 760px) {
+
+    .salon-page .topnav a {
+        display: none;
+    }
+
+    .salon-page .topnav .btn-diamond {
+        display: inline-flex;
+    }
+
+    .salon-page .profile-bar {
+        padding: 0 16px;
+        margin-top: -52px;
+    }
+
+    .salon-page .avatar {
+        width: 104px;
+        height: 104px;
+        flex-basis: 104px;
+        border-radius: 29px;
+    }
+
+    .salon-page .avatar img {
+        border-radius: 24px;
+    }
+
+    .salon-page .profile-info {
+        min-width: 200px;
+    }
+
+    .salon-page .profile-actions {
+        width: 100%;
+        padding-bottom: 0;
+    }
+
+    .salon-page .bio,
+    .salon-page .chips {
+        margin-inline: 16px;
+    }
+
+    .salon-page .booking-cta {
+        padding: 23px 19px;
+    }
+
+    .salon-page .team-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+    .salon-page .related-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+}
+
+
+@media (max-width: 640px) {
+
+    .salon-page .wrap {
+        padding-inline: 14px;
+    }
+
+    .salon-page .topbar-in {
+        min-height: 60px;
+        padding-inline: 14px;
+    }
+
+    .salon-page .back-home span:last-child {
+        display: none;
+    }
+
+    .salon-page .back-home {
+        width: 36px;
+        padding: 0;
+
+        justify-content: center;
+    }
+
+    .salon-page .topnav {
+        margin-inline-start: auto;
+    }
+
+    .salon-page .topnav .btn-diamond {
+        padding: 8px 12px;
+        font-size: .72rem;
+    }
+
+    .salon-page .brand {
+        min-width: 0;
+    }
+
+    .salon-page .brand > span:last-child {
+
+        max-width: 120px;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+        white-space: nowrap;
+    }
+
+    .salon-page .cover {
+        height: 185px;
+        border-radius: 22px;
+    }
+
+    .salon-page .profile-bar {
+        gap: 13px;
+    }
+
+    .salon-page .name-row h1 {
+        font-size: 1.3rem;
+    }
+
+    .salon-page .stats {
+        gap: 14px;
+    }
+
+    .salon-page .booking-cta {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .salon-page .bk-text {
+        min-width: 0;
+    }
+
+    .salon-page .bk-side {
+        width: 100%;
+    }
+
+    .salon-page .btn-book {
+        width: 100%;
+    }
+
+    .salon-page .services-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+    .salon-page .gallery {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .salon-page .tile {
+        border-radius: 15px;
+    }
+
+    .salon-page .tabs {
+        width: 100%;
+    }
+
+    .salon-page .tab {
+        padding-inline: 11px;
+    }
+
+    .salon-page .about-card,
+    .salon-page .map-card {
+        min-height: 300px;
+    }
+
+    .salon-page .feat {
+        gap: 7px;
+    }
+
+    .salon-page .m-filters {
+        grid-template-columns:
+            1fr;
+    }
+
+    .salon-page .modal {
+        max-height: 94vh;
+        padding: 21px 16px;
+        border-radius: 22px;
+    }
+
+    .salon-page .slots {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .salon-page .m-foot {
+        align-items: stretch;
+    }
+
+    .salon-page .btn-confirm {
+        width: 100%;
+    }
+
+    .salon-page .float-book {
+        display: block;
+    }
+
+    .salon-page footer {
+        padding-bottom: 86px;
+    }
+}
+
+
+@media (max-width: 440px) {
+
+    .salon-page .profile-actions {
+        display: grid;
+
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .salon-page .profile-actions .btn-diamond,
+    .salon-page .profile-actions .btn-ghost {
+        width: 100%;
+    }
+
+    .salon-page .related-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .salon-page .sec-head {
+        gap: 8px;
+    }
+
+    .salon-page .sec-head h3 {
+        font-size: .96rem;
+    }
+
+    .salon-page .sec-head .count {
+        font-size: .62rem;
+    }
+}
+
+
+/* ================================================================
+   REDUCED MOTION
+   ================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .salon-page *,
+    .salon-page *::before,
+    .salon-page *::after {
+
+        scroll-behavior: auto !important;
+
+        animation-duration:
+            .01ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        transition-duration:
+            .01ms !important;
+    }
+}

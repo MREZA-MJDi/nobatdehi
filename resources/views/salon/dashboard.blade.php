@@ -588,7 +588,7 @@
             {{-- Portfolio --}}
 
             <a
-                href="{{ route('salon.portfolio.index') }}"
+                href="{{ route('salon.posts.index') }}"
                 class="group overflow-hidden rounded-3xl border border-border bg-white shadow-soft transition hover:-translate-y-1 hover:border-violet-200 lg:col-span-1"
             >
 

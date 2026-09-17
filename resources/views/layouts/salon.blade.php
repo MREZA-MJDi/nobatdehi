@@ -439,39 +439,39 @@
 
 
             {{-- Portfolio --}}
+            {{-- Posts --}}
             <a
-                href="{{ route('salon.portfolio.index') }}"
+                href="{{ route('salon.posts.index') }}"
                 class="
-                    group
-                    mb-1
-                    flex
-                    items-center
-                    gap-3
-                    rounded-xl
-                    px-3
-                    py-3
-                    text-xs
-                    font-bold
-                    transition
+        group
+        mb-1
+        flex
+        items-center
+        gap-3
+        rounded-xl
+        px-3
+        py-3
+        text-xs
+        font-bold
+        transition
 
-                    {{ request()->routeIs('salon.portfolio.*')
-                        ? 'bg-accent-50 text-accent-700 dark:bg-accent-900/20 dark:text-accent-300'
-                        : 'text-content-soft hover:bg-primary-50 hover:text-content dark:hover:bg-primary-900/60'
-                    }}
+        {{ request()->routeIs('salon.posts.*')
+            ? 'bg-accent-50 text-accent-700 dark:bg-accent-900/20 dark:text-accent-300'
+            : 'text-content-soft hover:bg-primary-50 hover:text-content dark:hover:bg-primary-900/60'
+        }}
                     "
             >
-                <span
-                    class="flex h-5 w-5 items-center justify-center text-base"
-                    aria-hidden="true"
-                >
-                    ◫
-                </span>
+    <span
+        class="flex h-5 w-5 items-center justify-center text-base"
+        aria-hidden="true"
+    >
+        ◫
+    </span>
 
                 <span>
-                    نمونه‌کارها
-                </span>
+        پست‌ها
+    </span>
             </a>
-
 
             {{-- Reviews --}}
             <a

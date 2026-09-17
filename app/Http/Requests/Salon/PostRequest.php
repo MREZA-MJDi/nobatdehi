@@ -18,6 +18,7 @@ class PostRequest extends FormRequest
         $isCreate = $this->isMethod('POST');
 
         return [
+
             /*
             |--------------------------------------------------------------------------
             | Performer
@@ -36,6 +37,7 @@ class PostRequest extends FormRequest
                 'required_if:performed_by_owner,false',
             ],
 
+
             /*
             |--------------------------------------------------------------------------
             | Service
@@ -48,6 +50,7 @@ class PostRequest extends FormRequest
                 'exists:services,id',
             ],
 
+
             /*
             |--------------------------------------------------------------------------
             | Type
@@ -58,6 +61,7 @@ class PostRequest extends FormRequest
                 'required',
                 Rule::enum(PostType::class),
             ],
+
 
             /*
             |--------------------------------------------------------------------------
@@ -72,16 +76,9 @@ class PostRequest extends FormRequest
 
                 'max:10240',
 
-                'mimes:
-                    jpg,
-                    jpeg,
-                    png,
-                    webp,
-                    gif,
-                    mp4,
-                    webm,
-                    mov',
+                'mimes:jpg,jpeg,png,webp,gif,mp4,webm,mov',
             ],
+
 
             /*
             |--------------------------------------------------------------------------
@@ -98,6 +95,7 @@ class PostRequest extends FormRequest
 
                 'mimes:jpg,jpeg,png,webp',
             ],
+
 
             /*
             |--------------------------------------------------------------------------
@@ -117,6 +115,7 @@ class PostRequest extends FormRequest
                 'max:5000',
             ],
 
+
             /*
             |--------------------------------------------------------------------------
             | Visibility
@@ -127,6 +126,7 @@ class PostRequest extends FormRequest
                 'nullable',
                 'boolean',
             ],
+
 
             /*
             |--------------------------------------------------------------------------
@@ -143,11 +143,75 @@ class PostRequest extends FormRequest
         ];
     }
 
+
+    /**
+     * Validate media based on selected post type.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+
+            $type = $this->input('type');
+
+            $media = $this->file('media');
+
+            if (!$media) {
+                return;
+            }
+
+            $extension = strtolower(
+                $media->getClientOriginalExtension()
+            );
+
+            $allowed = match ($type) {
+
+                PostType::PHOTO->value => [
+                    'jpg',
+                    'jpeg',
+                    'png',
+                    'webp',
+                ],
+
+                PostType::GIF->value => [
+                    'gif',
+                ],
+
+                PostType::VIDEO->value,
+                PostType::REEL->value => [
+                    'mp4',
+                    'webm',
+                    'mov',
+                ],
+
+                default => [],
+            };
+
+            if (
+                $allowed &&
+                !in_array(
+                    $extension,
+                    $allowed,
+                    true
+                )
+            ) {
+                $validator->errors()->add(
+                    'media',
+                    'فرمت فایل با نوع محتوای انتخاب‌شده مطابقت ندارد.'
+                );
+            }
+        });
+    }
+
+
     public function messages(): array
     {
         return [
+
             'performed_by_owner.required' =>
                 'انجام‌دهنده پست را مشخص کنید.',
+
+            'performed_by_owner.boolean' =>
+                'مقدار انجام‌دهنده نامعتبر است.',
 
             'barber_id.required_if' =>
                 'آرایشگر انجام‌دهنده را انتخاب کنید.',
@@ -190,6 +254,18 @@ class PostRequest extends FormRequest
 
             'caption.max' =>
                 'کپشن نمی‌تواند بیشتر از ۵۰۰۰ کاراکتر باشد.',
+
+            'is_active.boolean' =>
+                'وضعیت انتشار نامعتبر است.',
+
+            'sort_order.integer' =>
+                'ترتیب نمایش باید عددی باشد.',
+
+            'sort_order.min' =>
+                'ترتیب نمایش نمی‌تواند منفی باشد.',
+
+            'sort_order.max' =>
+                'ترتیب نمایش بیش از حد مجاز است.',
         ];
     }
 }

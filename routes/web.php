@@ -17,15 +17,14 @@ use App\Http\Controllers\Customer\ReviewController as CustomerReviewController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
 
 use App\Http\Controllers\PublicSite\DiscoverController;
-use App\Http\Controllers\PublicSite\HomeController;
 use App\Http\Controllers\PublicSite\SalonController as PublicSalonController;
 
 use App\Http\Controllers\Salon\BarberController as SalonBarberController;
 use App\Http\Controllers\Salon\BookingController as SalonBookingController;
 use App\Http\Controllers\Salon\DashboardController as SalonDashboardController;
 use App\Http\Controllers\Salon\NotificationController as SalonNotificationController;
-use App\Http\Controllers\Salon\PortfolioItemController as SalonPortfolioController;
 use App\Http\Controllers\Salon\ReviewController as SalonReviewController;
+use App\Http\Controllers\Salon\PostController as SalonPostController;
 use App\Http\Controllers\Salon\ServiceController as SalonServiceController;
 use App\Http\Controllers\Salon\SettingsController;
 use App\Http\Controllers\Salon\WorkingHourController as SalonWorkingHourController;
@@ -339,9 +338,14 @@ Route::middleware('auth')->group(function () {
             )->name('bookings.status');
 
             Route::resource(
-                'portfolio',
-                SalonPortfolioController::class
+                'posts',
+                SalonPostController::class
             )->except('show');
+
+            Route::patch(
+                '/posts/{post}/toggle',
+                [SalonPostController::class, 'toggle']
+            )->name('posts.toggle');
 
             Route::get(
                 '/reviews',
