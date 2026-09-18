@@ -182,8 +182,9 @@ class SendBookingSms implements ShouldQueue
             'تاریخ: ' . $date,
             'ساعت: ' . $start,
             'کد نوبت: ' . $booking->id,
-            'برای تأیید: 1',
-            'برای لغو: 2',
+            'برای تأیید همین نوبت: 1',
+            'برای لغو همین نوبت: 2',
+            'اگر چند نوبت داری: 1-' . $booking->id . ' یا 2-' . $booking->id,
         ]);
     }
 }
