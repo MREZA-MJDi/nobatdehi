@@ -60,49 +60,100 @@
 
     /*
     |--------------------------------------------------------------------------
-    | Geolocation
+    | Nearby location modal
     |--------------------------------------------------------------------------
     */
 
-    const locationButton = document.querySelector('[data-discover-location]');
+    const locationModal = document.querySelector('#discoverLocationModal');
+    const locationAllow = document.querySelector('#discoverLocationAllow');
+    const locationMapState = document.querySelector('#discoverLocationState');
+    const locationMapFrame = document.querySelector('#discoverLocationMapFrame');
+    const locationTriggers = document.querySelectorAll('[data-discover-nearby], [data-discover-location], #discoverUseLocation');
 
-    if (locationButton) {
-        locationButton.addEventListener('click', () => {
-            if (!navigator.geolocation) {
-                window.alert('مرورگر شما از موقعیت مکانی پشتیبانی نمی‌کند.');
-                return;
-            }
+    const closeLocationModal = () => {
+        if (!locationModal) return;
+        locationModal.classList.remove('is-open');
+        locationModal.setAttribute('aria-hidden', 'true');
+        window.setTimeout(() => {
+            if (!locationModal.classList.contains('is-open')) locationModal.hidden = true;
+        }, 180);
+    };
 
-            locationButton.disabled = true;
-            locationButton.dataset.loading = 'true';
-            locationButton.textContent = 'در حال پیدا کردن...';
+    const openLocationModal = () => {
+        if (!locationModal) return;
+        locationModal.hidden = false;
+        requestAnimationFrame(() => locationModal.classList.add('is-open'));
+        locationModal.setAttribute('aria-hidden', 'false');
+    };
 
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const url = new URL(window.location.href);
+    const analyzeNearby = () => {
+        if (!navigator.geolocation) {
+            if (locationMapState) locationMapState.textContent = 'مرورگر شما موقعیت مکانی را پشتیبانی نمی‌کند.';
+            return;
+        }
 
-                    url.searchParams.set('lat', position.coords.latitude);
-                    url.searchParams.set('lng', position.coords.longitude);
-                    url.searchParams.set('radius', '15');
-                    url.searchParams.set('sort', 'distance');
-                    url.hash = 'results';
+        if (locationAllow) {
+            locationAllow.disabled = true;
+            locationAllow.textContent = 'در حال پیدا کردن موقعیت...';
+        }
 
-                    window.location.href = url.toString();
-                },
-                () => {
-                    locationButton.disabled = false;
-                    locationButton.dataset.loading = 'false';
-                    locationButton.textContent = 'نزدیک من';
-                    window.alert('دسترسی به موقعیت مکانی انجام نشد.');
-                },
-                {
-                    enableHighAccuracy: false,
-                    timeout: 8000,
-                    maximumAge: 300000,
+        if (locationMapState) {
+            locationMapState.innerHTML = '<span class="discover-location-map-pin">⌖</span><strong>در حال پیدا کردن موقعیت تو...</strong><small>بعد از پیدا شدن موقعیت، نزدیک‌ترین سالن‌ها را سریع مرتب می‌کنیم.</small>';
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = Number(position.coords.latitude);
+                const lng = Number(position.coords.longitude);
+
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+                if (locationMapFrame) {
+                    locationMapFrame.src = 'https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lng) + '&z=14&output=embed';
+                    locationMapFrame.hidden = false;
                 }
-            );
+
+                if (locationMapState) {
+                    locationMapState.innerHTML = '<span class="discover-location-map-pin">✓</span><strong>موقعیت پیدا شد</strong><small>در حال مرتب‌سازی سالن‌های نزدیک...</small>';
+                    locationMapState.style.background = 'rgba(8, 12, 10, .52)';
+                }
+
+                const url = new URL(window.location.href);
+                url.searchParams.set('lat', lat.toFixed(7));
+                url.searchParams.set('lng', lng.toFixed(7));
+                url.searchParams.set('radius', '15');
+                url.searchParams.set('sort', 'distance');
+                url.hash = 'results';
+                window.setTimeout(() => window.location.assign(url.toString()), 650);
+            },
+            () => {
+                if (locationAllow) {
+                    locationAllow.disabled = false;
+                    locationAllow.textContent = 'اجازه موقعیت و پیدا کردن نزدیک‌ترین‌ها';
+                }
+                if (locationMapState) {
+                    locationMapState.innerHTML = '<span class="discover-location-map-pin">!</span><strong>موقعیت مکانی در دسترس نبود</strong><small>اجازه Location را بده یا از جستجوی شهر و منطقه استفاده کن.</small>';
+                }
+            },
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 120000 }
+        );
+    };
+
+    locationTriggers.forEach((trigger) => {
+        trigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            openLocationModal();
         });
-    }
+    });
+
+    locationAllow?.addEventListener('click', analyzeNearby);
+    locationModal?.querySelectorAll('[data-discover-location-close]').forEach((button) => {
+        button.addEventListener('click', closeLocationModal);
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && locationModal?.classList.contains('is-open')) closeLocationModal();
+    });
 
     /*
     |--------------------------------------------------------------------------
