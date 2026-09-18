@@ -3,6 +3,7 @@
 
     const intro = document.getElementById('brandIntro');
     const enterButton = document.getElementById('brandEnter');
+    const progressBar = document.getElementById('brandProgressBar');
 
     if (!intro) {
         return;
@@ -20,8 +21,34 @@
     |--------------------------------------------------------------------------
     */
 
-    const INTRO_TIME = 4200;
+    const reducedMotion =
+        window.matchMedia?.(
+            '(prefers-reduced-motion: reduce)'
+        ).matches ?? false;
+
+    const INTRO_TIME =
+        reducedMotion
+            ? 1400
+            : 3200;
+
     const EXIT_TIME = 320;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PROGRESS
+    |--------------------------------------------------------------------------
+    */
+
+    intro.style.setProperty(
+        '--intro-duration',
+        `${INTRO_TIME}ms`
+    );
+
+    if (progressBar) {
+        progressBar.style.animationDuration =
+            `${INTRO_TIME}ms`;
+    }
 
 
     /*
@@ -36,6 +63,10 @@
         }
 
         redirected = true;
+
+        if (enterButton) {
+            enterButton.disabled = true;
+        }
 
         intro.classList.add('is-exiting');
 
@@ -52,25 +83,11 @@
     */
 
     if (enterButton) {
-        enterButton.addEventListener('click', goToDiscover);
+        enterButton.addEventListener(
+            'click',
+            goToDiscover
+        );
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CLICK ANYWHERE
-    |--------------------------------------------------------------------------
-    */
-
-    intro.addEventListener('click', (event) => {
-        if (
-            event.target.closest('#brandEnter')
-        ) {
-            return;
-        }
-
-        goToDiscover();
-    });
 
 
     /*
