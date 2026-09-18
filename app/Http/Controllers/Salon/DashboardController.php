@@ -34,6 +34,43 @@ class DashboardController extends Controller
         ]);
     }
 
+    private function persianWeekday(int $index): string
+    {
+        return [
+            0 => 'شنبه',
+            1 => 'یکشنبه',
+            2 => 'دوشنبه',
+            3 => 'سه‌شنبه',
+            4 => 'چهارشنبه',
+            5 => 'پنجشنبه',
+            6 => 'جمعه',
+        ][$index] ?? '';
+    }
+
+    private function persianMonthLabel(Carbon $date): string
+    {
+        $months = [
+            1 => 'فروردین',
+            2 => 'اردیبهشت',
+            3 => 'خرداد',
+            4 => 'تیر',
+            5 => 'مرداد',
+            6 => 'شهریور',
+            7 => 'مهر',
+            8 => 'آبان',
+            9 => 'آذر',
+            10 => 'دی',
+            11 => 'بهمن',
+            12 => 'اسفند',
+        ];
+
+        $jalali = jalali_date($date->toDateString());
+        $parts = explode('/', $jalali);
+        $month = isset($parts[1]) ? (int) $parts[1] : null;
+
+        return $months[$month] ?? $jalali;
+    }
+
     private function managedSalon(Request $request): Salon
     {
         return $request->user()
@@ -358,6 +395,7 @@ class DashboardController extends Controller
                                             ->toDateString()
                                     ] ?? 0
                                 ),
+                            'label' => $this->persianWeekday($offset),
                         ];
                     }
                 )
@@ -391,6 +429,8 @@ class DashboardController extends Controller
                                         $key
                                     ] ?? 0
                                 ),
+                            'label' =>
+                                $this->persianMonthLabel($month),
                         ];
                     }
                 )
