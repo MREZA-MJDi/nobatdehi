@@ -642,7 +642,7 @@
             </a>
         </header>
 
-        <div class="nd-activity-list">
+        <div class="nd-activity-list" data-dashboard-recent>
             @forelse($recentBookings as $booking)
                 @php([$label, $tone] = $status($booking->status))
                 <a class="nd-activity-row" href="{{ route('salon.bookings.show', $booking) }}">
