@@ -3523,3 +3523,37 @@
         margin-inline: 22px;
     }
 }
+
+/* Discover location modal state */
+.discover-location-modal {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+.discover-location-modal.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.discover-location-modal.is-open .discover-location-dialog {
+    transform: translateY(0) scale(1);
+}
+
+.discover-location-dialog {
+    transform: translateY(8px) scale(.985);
+    transition: transform 180ms ease;
+}
+
+@media (max-width: 760px) {
+    .discover-location-dialog {
+        max-height: calc(100dvh - 24px);
+        overflow-y: auto;
+    }
+
+    .discover-location-map {
+        min-height: 205px;
+    }
+}
