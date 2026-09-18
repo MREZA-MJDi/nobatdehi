@@ -12,6 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use App\Support\PhoneNumber;
 
 class SendBookingSms implements ShouldQueue
 {
@@ -117,8 +118,9 @@ class SendBookingSms implements ShouldQueue
         Booking $booking,
         string $recipientName
     ): string {
-        $date = $booking->booking_date?->format('Y/m/d')
-            ?? (string) $booking->booking_date;
+        $date = $booking->booking_date
+            ? jalali_date($booking->booking_date)
+            : (string) $booking->booking_date;
 
         $start = substr((string) $booking->start_time, 0, 5);
 
