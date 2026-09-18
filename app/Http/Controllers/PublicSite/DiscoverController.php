@@ -71,6 +71,7 @@ class DiscoverController extends Controller
             || $filters['service'] !== null
             || $filters['province'] !== ''
             || $filters['city'] !== ''
+            || $filters['location'] !== ''
             || $filters['district'] !== ''
             || (float) $filters['min_rating'] > 0
             || (
@@ -80,7 +81,6 @@ class DiscoverController extends Controller
             || $filters['open_now']
             || $filters['today']
             || $hasGeo
-            || $filters['gender'] !== null
             || $filters['sort'] !== 'recommended';
 
         /*
@@ -645,9 +645,6 @@ class DiscoverController extends Controller
 
             'radius' => $radius,
 
-            'gender' => $request->query(
-                'gender'
-            ),
         ];
     }
 
@@ -1256,7 +1253,9 @@ class DiscoverController extends Controller
                         ->where(
                             'is_closed',
                             false
-                        );
+                        )
+                        ->whereNotNull('start_time')
+                        ->whereNotNull('end_time');
                 }
             );
     }
