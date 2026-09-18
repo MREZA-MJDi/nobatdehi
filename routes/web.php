@@ -46,7 +46,9 @@ Route::get('/', function () {
 Route::get(
     '/salons/discover',
     [DiscoverController::class, 'index']
-)->name('salons.discover');
+)
+    ->middleware('throttle:120,1')
+    ->name('salons.discover');
 
 
 /*

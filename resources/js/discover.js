@@ -5,6 +5,9 @@
 
     if (!page) return;
 
+    let activeRequestController = null;
+    let activeRequestId = 0;
+
     const setLoading = (loading) => {
         page.classList.toggle('discover-results-loading', loading);
     };
@@ -25,8 +28,31 @@
             showOverlay = false,
         } = {}
     ) => {
-        const nextUrl = new URL(url, window.location.origin);
+        const nextUrl = new URL(
+            url,
+            window.location.origin
+        );
+
         nextUrl.hash = 'results';
+
+        const requestId = ++activeRequestId;
+        const requestUrl = nextUrl.toString();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Cancel stale requests
+        |--------------------------------------------------------------------------
+        |
+        | A fast filter interaction can otherwise leave multiple requests
+        | running at once. Only the latest request is allowed to update DOM,
+        | history or loading state.
+        |--------------------------------------------------------------------------
+        */
+
+        activeRequestController?.abort();
+
+        const controller = new AbortController();
+        activeRequestController = controller;
 
         setLoading(true);
 
@@ -35,66 +61,152 @@
         }
 
         try {
-            const response = await fetch(nextUrl.toString(), {
+            const response = await fetch(requestUrl, {
+                method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    Accept: 'text/html',
+                    'Accept': 'text/html',
                 },
                 credentials: 'same-origin',
+                signal: controller.signal,
             });
+
+            if (
+                controller.signal.aborted ||
+                requestId !== activeRequestId
+            ) {
+                return false;
+            }
 
             if (!response.ok) {
                 throw new Error('DISCOVER_REQUEST_FAILED');
             }
 
             const html = await response.text();
-            const parsed = new DOMParser().parseFromString(html, 'text/html');
-            const freshDynamic = parsed.querySelector('#discoverDynamicContent');
-            const currentDynamic = page.querySelector('#discoverDynamicContent');
 
-            if (!freshDynamic || !currentDynamic) {
-                throw new Error('DISCOVER_DYNAMIC_CONTENT_NOT_FOUND');
+            if (
+                controller.signal.aborted ||
+                requestId !== activeRequestId
+            ) {
+                return false;
             }
 
-            currentDynamic.replaceWith(freshDynamic);
+            const parsed = new DOMParser().parseFromString(
+                html,
+                'text/html'
+            );
 
-            if (push) {
-                window.history.pushState({}, '', nextUrl.toString());
+            const freshDynamic =
+                parsed.querySelector(
+                    '#discoverDynamicContent'
+                );
+
+            const currentDynamic =
+                page.querySelector(
+                    '#discoverDynamicContent'
+                );
+
+            if (
+                !freshDynamic ||
+                !currentDynamic
+            ) {
+                throw new Error(
+                    'DISCOVER_DYNAMIC_CONTENT_NOT_FOUND'
+                );
             }
 
-            syncHeroSearchInputs(nextUrl);
+            currentDynamic.replaceWith(
+                freshDynamic
+            );
+
+            if (
+                requestId !== activeRequestId
+            ) {
+                return false;
+            }
+
+            if (
+                push &&
+                window.location.href !== nextUrl.toString()
+            ) {
+                window.history.pushState(
+                    {},
+                    '',
+                    nextUrl.toString()
+                );
+            }
+
+            syncHeroSearchInputs(
+                nextUrl
+            );
+
             bindResultInteractions();
             observeReveals();
 
             if (showOverlay) {
-                const freshResults = freshDynamic.querySelector('#results');
+                const freshResults =
+                    freshDynamic.querySelector(
+                        '#results'
+                    );
 
                 if (freshResults) {
-                    renderSearchModal(freshResults);
+                    renderSearchModal(
+                        freshResults
+                    );
                 }
             }
 
-            if (scroll && !showOverlay) {
+            if (
+                scroll &&
+                !showOverlay &&
+                requestId === activeRequestId
+            ) {
                 requestAnimationFrame(() => {
-                    page.querySelector('#results')?.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start',
-                    });
+                    page
+                        .querySelector('#results')
+                        ?.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start',
+                        });
                 });
             }
 
             return true;
         } catch (error) {
+            if (
+                error?.name === 'AbortError' ||
+                controller.signal.aborted ||
+                requestId !== activeRequestId
+            ) {
+                return false;
+            }
+
             console.error(error);
 
-            if (showOverlay) {
+            if (
+                showOverlay &&
+                requestId === activeRequestId
+            ) {
                 closeSearchModal();
             }
 
-            notifyError('نتایج دریافت نشد. اتصال را بررسی کن و دوباره تلاش کن.');
+            notifyError(
+                'نتایج دریافت نشد. اتصال را بررسی کن و دوباره تلاش کن.'
+            );
+
             return false;
         } finally {
-            setLoading(false);
+            if (
+                requestId === activeRequestId
+            ) {
+                setLoading(false);
+
+                if (
+                    activeRequestController === controller
+                ) {
+                    activeRequestController = null;
+                }
+            }
         }
     };
 

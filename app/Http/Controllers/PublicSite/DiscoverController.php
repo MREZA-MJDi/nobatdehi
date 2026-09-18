@@ -8,6 +8,7 @@ use App\Models\Salon;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -30,6 +31,14 @@ class DiscoverController extends Controller
     private const DEFAULT_RADIUS_KM = 15.0;
 
     private const MAX_RADIUS_KM = 100.0;
+
+    private const CACHE_POPULAR_SECONDS = 120;
+
+    private const CACHE_OPTIONS_SECONDS = 600;
+
+    private const CACHE_STATS_SECONDS = 120;
+
+    private const CACHE_NEARBY_SECONDS = 30;
 
     private const NEARBY_RADII = [
         2.0,
@@ -231,28 +240,92 @@ class DiscoverController extends Controller
             )
             ->withQueryString();
 
+        $this->attachCardServices($salons);
+
         /*
         |--------------------------------------------------------------------------
-        | Popular salons
-        |
-        | مهم:
-        | این جدا از $salons است تا Viewهای Discover
-        | pagination اصلی را خراب نکنند.
+        | Nearby + filter options
         |--------------------------------------------------------------------------
         */
 
-        $popularSalons = $this->baseSalonQuery()
-            ->orderByDesc(
-                'reviews_avg_rating'
-            )
-            ->orderByDesc(
-                'reviews_count'
-            )
-            ->latest('id')
-            ->limit(
-                self::POPULAR_SALONS_LIMIT
-            )
-            ->get();
+        $nearbySalons = collect();
+        $nearbyRadius = null;
+
+        if ($hasGeo) {
+            $nearbyData = $this->nearbySalons($filters);
+
+            $nearbySalons = $nearbyData['items'];
+            $nearbyRadius = $nearbyData['radius'];
+        }
+
+        $serviceOptions = Cache::remember(
+            'discover:service-options:v3',
+            now()->addSeconds(self::CACHE_OPTIONS_SECONDS),
+            fn () => Service::query()
+                ->where('is_active', true)
+                ->whereHas('salon', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->whereNotNull('name')
+                ->where('name', '!=', '')
+                ->selectRaw('TRIM(name) AS name')
+                ->distinct()
+                ->orderBy('name')
+                ->limit(self::SERVICE_OPTIONS_LIMIT)
+                ->pluck('name')
+        );
+
+        $provinces = $this->provinces();
+
+        $cities = $this->cities(
+            $filters['province']
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | AJAX result response
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->ajax()) {
+            return view(
+                'customer.discover.partials.dynamic',
+                compact(
+                    'salons',
+                    'nearbySalons',
+                    'nearbyRadius',
+                    'serviceOptions',
+                    'provinces',
+                    'cities',
+                    'filters',
+                    'hasGeo',
+                    'isSearchMode'
+                )
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Popular salons
+        |--------------------------------------------------------------------------
+        */
+
+        $popularSalons = Cache::remember(
+            'discover:popular-salons:v3',
+            now()->addSeconds(self::CACHE_POPULAR_SECONDS),
+            function () {
+                $items = $this->baseSalonQuery()
+                    ->orderByDesc('reviews_avg_rating')
+                    ->orderByDesc('reviews_count')
+                    ->latest('id')
+                    ->limit(self::POPULAR_SALONS_LIMIT)
+                    ->get();
+
+                $this->attachCardServices($items);
+
+                return $items;
+            }
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -260,67 +333,7 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $featuredSalon = $this->baseSalonQuery()
-            ->orderByDesc(
-                'reviews_avg_rating'
-            )
-            ->orderByDesc(
-                'reviews_count'
-            )
-            ->latest('id')
-            ->first();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Nearby salons
-        |--------------------------------------------------------------------------
-        */
-
-        $nearbySalons = collect();
-
-        $nearbyRadius = null;
-
-        if ($hasGeo) {
-            $nearbyData = $this->nearbySalons(
-                $filters
-            );
-
-            $nearbySalons = $nearbyData['items'];
-
-            $nearbyRadius = $nearbyData['radius'];
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Service options
-        |
-        | برای select فیلترها
-        |--------------------------------------------------------------------------
-        */
-
-        $serviceOptions = Service::query()
-            ->where(
-                'is_active',
-                true
-            )
-            ->whereHas(
-                'salon',
-                function ($query) {
-                    $query->where(
-                        'is_active',
-                        true
-                    );
-                }
-            )
-            ->whereNotNull('name')
-            ->where('name', '!=', '')
-            ->selectRaw(
-                'TRIM(name) AS name'
-            )
-            ->distinct()
-            ->orderBy('name')
-            ->limit(self::SERVICE_OPTIONS_LIMIT)
-            ->pluck('name');
+        $featuredSalon = $popularSalons->first();
 
         /*
         |--------------------------------------------------------------------------
@@ -328,49 +341,34 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $popularServices = Service::query()
-            ->where(
-                'is_active',
-                true
-            )
-            ->whereHas(
-                'salon',
-                function ($query) {
-                    $query->where(
-                        'is_active',
-                        true
-                    );
-                }
-            )
-            ->select([
-                'id',
-                'salon_id',
-                'name',
-                'description',
-                'duration_minutes',
-                'price',
-                'image_path',
-            ])
-            ->with([
-                'salon:id,name,slug,code,city,district',
-            ])
-            ->withCount([
-                'bookings' => function ($query) {
-                    $query->where(
-                        'status',
-                        '!=',
-                        'cancelled'
-                    );
-                },
-            ])
-            ->orderByDesc(
-                'bookings_count'
-            )
-            ->latest('id')
-            ->limit(
-                self::POPULAR_SERVICES_LIMIT
-            )
-            ->get();
+        $popularServices = Cache::remember(
+            'discover:popular-services:v3',
+            now()->addSeconds(self::CACHE_POPULAR_SECONDS),
+            fn () => Service::query()
+                ->where('is_active', true)
+                ->whereHas('salon', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->select([
+                    'id',
+                    'salon_id',
+                    'name',
+                    'description',
+                    'duration_minutes',
+                    'price',
+                    'image_path',
+                ])
+                ->with(['salon:id,name,slug,code,city,district'])
+                ->withCount([
+                    'bookings' => function ($query) {
+                        $query->where('status', '!=', 'cancelled');
+                    },
+                ])
+                ->orderByDesc('bookings_count')
+                ->latest('id')
+                ->limit(self::POPULAR_SERVICES_LIMIT)
+                ->get()
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -378,48 +376,33 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $stylists = Barber::query()
-            ->where(
-                'is_active',
-                true
-            )
-            ->whereHas(
-                'salon',
-                function ($query) {
-                    $query->where(
-                        'is_active',
-                        true
-                    );
-                }
-            )
-            ->with([
-                'salon:id,name,slug,code,city,district',
-            ])
-            ->select([
-                'id',
-                'salon_id',
-                'name',
-                'specialty',
-                'bio',
-                'image_path',
-            ])
-            ->withCount([
-                'bookings' => function ($query) {
-                    $query->where(
-                        'status',
-                        '!=',
-                        'cancelled'
-                    );
-                },
-            ])
-            ->orderByDesc(
-                'bookings_count'
-            )
-            ->latest('id')
-            ->limit(
-                self::STYLIST_LIMIT
-            )
-            ->get();
+        $stylists = Cache::remember(
+            'discover:stylists:v3',
+            now()->addSeconds(self::CACHE_POPULAR_SECONDS),
+            fn () => Barber::query()
+                ->where('is_active', true)
+                ->whereHas('salon', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->with(['salon:id,name,slug,code,city,district'])
+                ->select([
+                    'id',
+                    'salon_id',
+                    'name',
+                    'specialty',
+                    'bio',
+                    'image_path',
+                ])
+                ->withCount([
+                    'bookings' => function ($query) {
+                        $query->where('status', '!=', 'cancelled');
+                    },
+                ])
+                ->orderByDesc('bookings_count')
+                ->latest('id')
+                ->limit(self::STYLIST_LIMIT)
+                ->get()
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -431,50 +414,19 @@ class DiscoverController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Provinces
-        |--------------------------------------------------------------------------
-        */
-
-        $provinces = $this->provinces();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Cities
-        |--------------------------------------------------------------------------
-        */
-
-        $cities = $this->cities(
-            $filters['province']
-        );
-
-        /*
-        |--------------------------------------------------------------------------
         | Stats
         |--------------------------------------------------------------------------
         */
 
-        $stats = [
-            'salons' => Salon::query()
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->count(),
-
-            'barbers' => Barber::query()
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->count(),
-
-            'services' => Service::query()
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->count(),
-        ];
+        $stats = Cache::remember(
+            'discover:stats:v3',
+            now()->addSeconds(self::CACHE_STATS_SECONDS),
+            fn () => [
+                'salons' => Salon::query()->where('is_active', true)->count(),
+                'barbers' => Barber::query()->where('is_active', true)->count(),
+                'services' => Service::query()->where('is_active', true)->count(),
+            ]
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -688,11 +640,22 @@ class DiscoverController extends Controller
     private function baseSalonQuery()
     {
         return Salon::query()
-            ->where(
+            ->select([
+                'id',
+                'name',
+                'slug',
+                'code',
+                'province',
+                'city',
+                'district',
+                'address',
+                'latitude',
+                'longitude',
+                'cover_path',
+                'logo_path',
                 'is_active',
-                true
-            )
-
+            ])
+            ->where('is_active', true)
             ->withCount([
                 'services' => function ($query) {
                     $query->where(
@@ -724,34 +687,53 @@ class DiscoverController extends Controller
                     );
                 },
             ], 'rating')
+;
+    }
 
-            /*
-             * عمداً limit روی relation نذاشتیم.
-             * View خودش take(3) می‌کند.
-             */
-            ->with([
-                'services' => function ($query) {
-                    $query
-                        ->where(
-                            'is_active',
-                            true
-                        )
-                        ->select([
-                            'id',
-                            'salon_id',
-                            'name',
-                            'price',
-                            'sort_order',
-                            'is_active',
-                        ])
-                        ->orderBy(
-                            'sort_order'
-                        )
-                        ->orderBy(
-                            'name'
-                        );
-                },
-            ]);
+    /**
+     * Load only the small service preview each salon card needs.
+     * This avoids eager-loading every active service for every salon.
+     */
+    private function attachCardServices($items): void
+    {
+        $collection = method_exists($items, 'getCollection')
+            ? $items->getCollection()
+            : $items;
+
+        $salonIds = $collection
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($salonIds->isEmpty()) {
+            return;
+        }
+
+        $servicesBySalon = Service::query()
+            ->whereIn('salon_id', $salonIds)
+            ->where('is_active', true)
+            ->select([
+                'id',
+                'salon_id',
+                'name',
+                'price',
+                'sort_order',
+                'is_active',
+            ])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->groupBy('salon_id');
+
+        foreach ($collection as $salon) {
+            $salon->setRelation(
+                'services',
+                collect($servicesBySalon->get($salon->id, []))
+                    ->take(self::CARD_SERVICES_LIMIT)
+                    ->values()
+            );
+        }
     }
 
     /*
@@ -1235,60 +1217,92 @@ class DiscoverController extends Controller
         array $filters
     ): void {
         $lat = (float) $filters['lat'];
-
         $lng = (float) $filters['lng'];
 
         $radius = (float) (
-        $filters['radius']
-            ?: self::DEFAULT_RADIUS_KM
+            $filters['radius']
+                ?: self::DEFAULT_RADIUS_KM
         );
 
         $radius = min(
             self::MAX_RADIUS_KM,
-            max(
-                0.1,
-                $radius
-            )
+            max(0.1, $radius)
         );
 
         /*
         |--------------------------------------------------------------------------
-        | Haversine
+        | Bounding box
+        |--------------------------------------------------------------------------
+        |
+        | Reduce candidate rows before the Haversine calculation.
         |--------------------------------------------------------------------------
         */
 
-        $haversine = '
-            (
-                6371 * ACOS(
-                    GREATEST(
-                        -1,
-                        LEAST(
-                            1,
-                            COS(RADIANS(?))
-                            * COS(RADIANS(salons.latitude))
-                            * COS(
-                                RADIANS(salons.longitude)
-                                - RADIANS(?)
-                            )
-                            + SIN(RADIANS(?))
-                            * SIN(RADIANS(salons.latitude))
+        $latDelta = $radius / 111.045;
+
+        $cosLatitude = max(
+            0.01,
+            abs(cos(deg2rad($lat)))
+        );
+
+        $lngDelta = min(
+            180.0,
+            $radius / (111.045 * $cosLatitude)
+        );
+
+        $minLat = max(-90.0, $lat - $latDelta);
+        $maxLat = min(90.0, $lat + $latDelta);
+        $minLng = $lng - $lngDelta;
+        $maxLng = $lng + $lngDelta;
+
+        $query
+            ->whereNotNull('salons.latitude')
+            ->whereNotNull('salons.longitude')
+            ->whereBetween(
+                'salons.latitude',
+                [$minLat, $maxLat]
+            );
+
+        if ($minLng >= -180.0 && $maxLng <= 180.0) {
+            $query->whereBetween(
+                'salons.longitude',
+                [$minLng, $maxLng]
+            );
+        } else {
+            $query->where(function ($query) use (
+                $minLng,
+                $maxLng
+            ) {
+                if ($minLng < -180.0) {
+                    $wrappedMin = $minLng + 360.0;
+
+                    $query
+                        ->whereBetween(
+                            'salons.longitude',
+                            [-180.0, $maxLng]
                         )
+                        ->orWhereBetween(
+                            'salons.longitude',
+                            [$wrappedMin, 180.0]
+                        );
+
+                    return;
+                }
+
+                $wrappedMax = $maxLng - 360.0;
+
+                $query
+                    ->whereBetween(
+                        'salons.longitude',
+                        [$minLng, 180.0]
                     )
-                )
-            )
-        ';
+                    ->orWhereBetween(
+                        'salons.longitude',
+                        [-180.0, $wrappedMax]
+                    );
+            });
+        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Distance
-        |--------------------------------------------------------------------------
-        */
-
-        /*
-        |--------------------------------------------------------------------------
-        | Keep Eloquent aggregate columns while adding distance.
-        |--------------------------------------------------------------------------
-        */
         $query
             ->addSelect(
                 DB::raw(
@@ -1308,24 +1322,10 @@ class DiscoverController extends Controller
                                     * SIN(RADIANS(salons.latitude))
                                 )
                             )
-                        )
-                    ) AS distance_km"
+                        ) AS distance_km"
                 )
             )
-
-            ->whereNotNull(
-                'salons.latitude'
-            )
-
-            ->whereNotNull(
-                'salons.longitude'
-            )
-
-            ->having(
-                'distance_km',
-                '<=',
-                $radius
-            );
+            ->having('distance_km', '<=', $radius);
     }
 
     /*
@@ -1456,118 +1456,76 @@ class DiscoverController extends Controller
             )
         );
 
-        $radii = collect(
-            self::NEARBY_RADII
-        )
-
-            ->filter(
-                function (
-                    $radius
-                ) use (
-                    $requestedRadius
-                ) {
-                    return $radius
-                        < $requestedRadius;
-                }
-            )
-
-            ->push(
-                $requestedRadius
-            )
-
+        $radii = collect(self::NEARBY_RADII)
+            ->filter(fn ($radius) => $radius < $requestedRadius)
+            ->push($requestedRadius)
             ->unique()
-
             ->sort()
-
             ->values();
 
-        foreach (
-            $radii as $radius
-        ) {
+        $cacheKey = sprintf(
+            'discover:nearby:v3:%0.4f:%0.4f:%0.1f',
+            (float) $filters['lat'],
+            (float) $filters['lng'],
+            $requestedRadius
+        );
 
-            $nearbyFilters = $filters;
-
-            $nearbyFilters['radius'] = $radius;
-
-            $query = $this->baseSalonQuery();
-
-            /*
-            |--------------------------------------------------------------------------
-            | Nearby barbers
-            |--------------------------------------------------------------------------
-            */
-
-            $query->with([
-                'barbers' => function (
-                    $query
-                ) {
-                    $query
-                        ->where(
-                            'is_active',
-                            true
-                        )
-                        ->select([
-                            'id',
-                            'salon_id',
-                            'name',
-                            'specialty',
-                            'image_path',
-                        ])
-                        ->orderBy(
-                            'name'
-                        );
-                },
-            ]);
-
-            /*
-            |--------------------------------------------------------------------------
-            | Geo
-            |--------------------------------------------------------------------------
-            */
-
-            $this->applyGeo(
-                $query,
-                $nearbyFilters
-            );
-
-            /*
-            |--------------------------------------------------------------------------
-            | Nearby ordering
-            |--------------------------------------------------------------------------
-            */
-
-            $results = $query
-
-                ->orderBy(
-                    'distance_km'
-                )
-
-                ->orderByDesc(
-                    'reviews_avg_rating'
-                )
-
-                ->limit(
-                    self::NEARBY_LIMIT
-                )
-
-                ->get();
-
-            if (
-                $results->isNotEmpty()
+        return Cache::remember(
+            $cacheKey,
+            now()->addSeconds(self::CACHE_NEARBY_SECONDS),
+            function () use (
+                $filters,
+                $radii,
+                $requestedRadius
             ) {
-                return [
-                    'items' => $results,
+                foreach ($radii as $radius) {
+                    $nearbyFilters = $filters;
+                    $nearbyFilters['radius'] = $radius;
 
-                    'radius' => $radius,
+                    $query = $this->baseSalonQuery();
+
+                    $query->with([
+                        'barbers' => function ($query) {
+                            $query
+                                ->where('is_active', true)
+                                ->select([
+                                    'id',
+                                    'salon_id',
+                                    'name',
+                                    'specialty',
+                                    'image_path',
+                                ])
+                                ->orderBy('name');
+                        },
+                    ]);
+
+                    $this->applyGeo(
+                        $query,
+                        $nearbyFilters
+                    );
+
+                    $results = $query
+                        ->orderBy('distance_km')
+                        ->orderByDesc('reviews_avg_rating')
+                        ->limit(self::NEARBY_LIMIT)
+                        ->get();
+
+                    if ($results->isNotEmpty()) {
+                        $this->attachCardServices($results);
+
+                        return [
+                            'items' => $results,
+                            'radius' => $radius,
+                        ];
+                    }
+                }
+
+                return [
+                    'items' => collect(),
+                    'radius' => $requestedRadius,
                 ];
             }
-        }
-
-        return [
-            'items' => collect(),
-
-            'radius' => $requestedRadius,
-        ];
+        );
     }
 
     /*
@@ -1638,36 +1596,18 @@ class DiscoverController extends Controller
 
     private function provinces()
     {
-        return Salon::query()
-
-            ->where(
-                'is_active',
-                true
-            )
-
-            ->whereNotNull(
-                'province'
-            )
-
-            ->where(
-                'province',
-                '!=',
-                ''
-            )
-
-            ->select(
-                'province'
-            )
-
-            ->distinct()
-
-            ->orderBy(
-                'province'
-            )
-
-            ->pluck(
-                'province'
-            );
+        return Cache::remember(
+            'discover:provinces:v3',
+            now()->addSeconds(self::CACHE_OPTIONS_SECONDS),
+            fn () => Salon::query()
+                ->where('is_active', true)
+                ->whereNotNull('province')
+                ->where('province', '!=', '')
+                ->select('province')
+                ->distinct()
+                ->orderBy('province')
+                ->pluck('province')
+        );
     }
 
     /*
@@ -1679,50 +1619,27 @@ class DiscoverController extends Controller
     private function cities(
         ?string $province
     ) {
-        return Salon::query()
+        $cacheKey = 'discover:cities:v3:' . (
+            $province !== null && $province !== ''
+                ? sha1($province)
+                : 'all'
+        );
 
-            ->where(
-                'is_active',
-                true
-            )
-
-            ->whereNotNull(
-                'city'
-            )
-
-            ->where(
-                'city',
-                '!=',
-                ''
-            )
-
-            ->when(
-                $province !== null
-                && $province !== '',
-                function (
-                    $query
-                ) use (
-                    $province
-                ) {
-                    $query->where(
-                        'province',
-                        $province
-                    );
-                }
-            )
-
-            ->select(
-                'city'
-            )
-
-            ->distinct()
-
-            ->orderBy(
-                'city'
-            )
-
-            ->pluck(
-                'city'
-            );
+        return Cache::remember(
+            $cacheKey,
+            now()->addSeconds(self::CACHE_OPTIONS_SECONDS),
+            fn () => Salon::query()
+                ->where('is_active', true)
+                ->whereNotNull('city')
+                ->where('city', '!=', '')
+                ->when(
+                    $province !== null && $province !== '',
+                    fn ($query) => $query->where('province', $province)
+                )
+                ->select('city')
+                ->distinct()
+                ->orderBy('city')
+                ->pluck('city')
+        );
     }
 }
