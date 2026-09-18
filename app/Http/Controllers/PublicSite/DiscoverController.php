@@ -343,9 +343,15 @@ class DiscoverController extends Controller
             ->with([
                 'salon:id,name,slug,code,city,district',
             ])
-            ->withCount(
-                'bookings'
-            )
+            ->withCount([
+                'bookings' => function ($query) {
+                    $query->where(
+                        'status',
+                        '!=',
+                        'cancelled'
+                    );
+                },
+            ])
             ->orderByDesc(
                 'bookings_count'
             )
@@ -681,13 +687,22 @@ class DiscoverController extends Controller
                     );
                 },
 
-                'reviews',
+                'reviews' => function ($query) {
+                    $query->where(
+                        'is_published',
+                        true
+                    );
+                },
             ])
 
-            ->withAvg(
-                'reviews',
-                'rating'
-            )
+            ->withAvg([
+                'reviews' => function ($query) {
+                    $query->where(
+                        'is_published',
+                        true
+                    );
+                },
+            ], 'rating')
 
             /*
              * عمداً limit روی relation نذاشتیم.
