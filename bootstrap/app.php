@@ -22,6 +22,7 @@ return Application::configure(
         $middleware->validateCsrfTokens(except: [
             'register/verify',
             'register/verify/resend',
+            'webhooks/sms/booking-reply',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
