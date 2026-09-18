@@ -1007,3 +1007,292 @@ html[data-theme="dark"] .salon-owner {
         animation-duration: .001ms !important;
     }
 }
+
+/* --------------------------------------------------------------------------
+   Dashboard operating workspace
+   -------------------------------------------------------------------------- */
+
+.salon-dashboard-command {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 20px;
+    background:
+        radial-gradient(300px 180px at 0 0, rgba(255,255,255,.11), transparent 72%),
+        linear-gradient(140deg, var(--owner-primary), color-mix(in srgb, var(--owner-primary) 58%, #111318));
+    color: #fff;
+    box-shadow: var(--owner-shadow-lg);
+}
+
+.salon-dashboard-command::after {
+    content: "";
+    position: absolute;
+    width: 170px;
+    height: 170px;
+    left: -90px;
+    bottom: -125px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 50%;
+}
+
+.salon-command-main,
+.salon-command-side {
+    position: relative;
+    z-index: 1;
+}
+
+.salon-command-main h2 {
+    max-width: 760px;
+    margin: 7px 0 0;
+    font-size: 1.04rem;
+    line-height: 1.58;
+    font-weight: 950;
+}
+
+.salon-command-main p {
+    max-width: 650px;
+    margin: 5px 0 12px;
+    color: rgba(255,255,255,.68);
+    font-size: 8px;
+    line-height: 1.95;
+}
+
+.salon-command-side {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 6px;
+}
+
+.salon-command-status {
+    min-width: 0;
+    padding: 8px 9px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 12px;
+    background: rgba(255,255,255,.06);
+}
+
+.salon-command-status span,
+.salon-command-status strong {
+    display: block;
+}
+
+.salon-command-status span {
+    color: rgba(255,255,255,.48);
+    font-size: 6.5px;
+}
+
+.salon-command-status strong {
+    overflow: hidden;
+    margin-top: 3px;
+    color: #fff;
+    font-size: 7.5px;
+    font-weight: 900;
+    line-height: 1.7;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-workspace-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.salon-workspace-card {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 34px minmax(0,1fr) 18px;
+    align-items: center;
+    gap: 9px;
+    min-height: 74px;
+    padding: 10px;
+    border: 1px solid var(--owner-border);
+    border-radius: 16px;
+    background: var(--owner-surface);
+    box-shadow: var(--owner-shadow);
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.salon-workspace-card:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--owner-primary) 20%, var(--owner-border));
+    box-shadow: var(--owner-shadow-lg);
+}
+
+.salon-workspace-card--primary {
+    border-color: color-mix(in srgb, var(--owner-primary) 20%, var(--owner-border));
+    background: linear-gradient(135deg, color-mix(in srgb, var(--owner-primary) 6%, var(--owner-surface)), var(--owner-surface));
+}
+
+.salon-workspace-icon {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: var(--owner-primary-soft);
+    color: var(--owner-primary);
+    font-size: 14px;
+}
+
+.salon-workspace-card > div:nth-child(2) {
+    min-width: 0;
+}
+
+.salon-workspace-card span,
+.salon-workspace-card strong,
+.salon-workspace-card small {
+    display: block;
+}
+
+.salon-workspace-card span {
+    color: var(--owner-muted);
+    font-size: 6.5px;
+    font-weight: 800;
+}
+
+.salon-workspace-card strong {
+    overflow: hidden;
+    margin-top: 2px;
+    color: var(--owner-text);
+    font-size: 8.5px;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-workspace-card small {
+    overflow: hidden;
+    margin-top: 2px;
+    color: var(--owner-faint);
+    font-size: 6.5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-workspace-card i {
+    color: var(--owner-faint);
+    font-size: 11px;
+    font-style: normal;
+    text-align: center;
+}
+
+.salon-overview-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 7px;
+}
+
+.salon-overview-strip > div {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--owner-border);
+    border-radius: 15px;
+    background: var(--owner-surface);
+    box-shadow: var(--owner-shadow);
+}
+
+.salon-overview-strip span,
+.salon-overview-strip strong,
+.salon-overview-strip small {
+    display: block;
+}
+
+.salon-overview-strip span {
+    color: var(--owner-muted);
+    font-size: 6.5px;
+}
+
+.salon-overview-strip strong {
+    overflow: hidden;
+    margin-top: 4px;
+    color: var(--owner-text);
+    font-size: 13px;
+    font-weight: 950;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-overview-strip a,
+.salon-overview-strip small {
+    display: block;
+    margin-top: 4px;
+    color: var(--owner-faint);
+    font-size: 6px;
+    font-weight: 700;
+}
+
+.salon-overview-strip a:hover {
+    color: var(--owner-primary);
+}
+
+.salon-secondary-tools {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 7px;
+}
+
+.salon-secondary-tools > a {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 30px minmax(0,1fr);
+    align-items: center;
+    gap: 7px;
+    padding: 9px 10px;
+    border: 1px solid var(--owner-border);
+    border-radius: 13px;
+    background: var(--owner-surface);
+}
+
+.salon-secondary-tools > a > span {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: var(--owner-primary-soft);
+    color: var(--owner-primary);
+    font-size: 12px;
+}
+
+.salon-secondary-tools strong,
+.salon-secondary-tools small {
+    display: block;
+}
+
+.salon-secondary-tools strong {
+    font-size: 7.5px;
+    font-weight: 900;
+}
+
+.salon-secondary-tools small {
+    margin-top: 2px;
+    color: var(--owner-faint);
+    font-size: 6px;
+}
+
+@media (min-width: 760px) {
+    .salon-dashboard-command {
+        grid-template-columns: minmax(0,1.3fr) minmax(280px,.7fr);
+        gap: 18px;
+        padding: 21px;
+        border-radius: 22px;
+    }
+
+    .salon-command-side {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-content: start;
+        gap: 7px;
+    }
+
+    .salon-workspace-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+    }
+
+    .salon-secondary-tools {
+        grid-template-columns: repeat(4, minmax(0,1fr));
+    }
+}
