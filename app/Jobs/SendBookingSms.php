@@ -123,15 +123,34 @@ class SendBookingSms implements ShouldQueue
         $start = substr((string) $booking->start_time, 0, 5);
 
         if ($this->recipientType === 'customer') {
-            return implode("\n", [
-                'نوبت NOBAT',
-                'سلام ' . $booking->customer?->name,
-                'نوبت شما در «' . ($booking->salon?->name ?? 'سالن') . '» ثبت شد.',
-                'خدمت: ' . ($booking->service?->name ?? 'خدمت'),
-                'تاریخ: ' . $date,
-                'ساعت: ' . $start,
-                'در انتظار تأیید متخصص است.',
-            ]);
+            $message = match ($booking->status->value) {
+                'confirmed' => [
+                    'نوبت NOBAT',
+                    'سلام ' . ($booking->customer?->name ?? ''),
+                    'نوبت شما در «' . ($booking->salon?->name ?? 'سالن') . '» تأیید شد.',
+                    'خدمت: ' . ($booking->service?->name ?? 'خدمت'),
+                    'تاریخ: ' . $date,
+                    'ساعت: ' . $start,
+                ],
+
+                'cancelled' => [
+                    'نوبت NOBAT',
+                    'سلام ' . ($booking->customer?->name ?? ''),
+                    'نوبت شما در «' . ($booking->salon?->name ?? 'سالن') . '» لغو شد.',
+                    'خدمت: ' . ($booking->service?->name ?? 'خدمت'),
+                    'تاریخ: ' . $date,
+                    'ساعت: ' . $start,
+                ],
+
+                'completed' => [
+                    'نوبت NOBAT',
+                    'نوبت شما در «' . ($booking->salon?->name ?? 'سالن') . '» تکمیل شد.',
+                ],
+
+                default => [],
+            };
+
+            return implode("\n", $message);
         }
 
         return implode("\n", [
