@@ -27,8 +27,7 @@
         'lat' => null,
         'lng' => null,
         'radius' => 15,
-        'gender' => null,
-    ], $filters);
+        ], $filters);
 
     /*
     |--------------------------------------------------------------------------
@@ -81,7 +80,6 @@
             is_numeric($filters['lat'])
             && is_numeric($filters['lng'])
         )
-        || $filters['gender'] !== null
         || $filters['sort'] !== 'recommended';
 
     /*
