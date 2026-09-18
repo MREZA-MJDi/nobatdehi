@@ -66,14 +66,36 @@ class SendBookingSms implements ShouldQueue
         try {
             $phone = PhoneNumber::normalize($recipient['phone']);
         } catch (\Throwable $exception) {
-            Log::warning('NOBAT booking SMS skipped: invalid phone', [
-                'booking_id' => $booking->id,
-                'recipient_type' => $this->recipientType,
-                'phone' => $recipient['phone'],
-                'error' => $exception->getMessage(),
-            ]);
+            if (
+                $this->recipientType === 'approver' &&
+                $booking->salon?->owner &&
+                $recipient['phone'] !== $booking->salon->owner->phone &&
+                filled($booking->salon->owner->phone)
+            ) {
+                try {
+                    $phone = PhoneNumber::normalize(
+                        $booking->salon->owner->phone
+                    );
 
-            return;
+                    $recipient['name'] = $booking->salon->owner->name;
+                } catch (\Throwable) {
+                    Log::warning('NOBAT booking SMS skipped: approver phones invalid', [
+                        'booking_id' => $booking->id,
+                        'recipient_type' => $this->recipientType,
+                    ]);
+
+                    return;
+                }
+            } else {
+                Log::warning('NOBAT booking SMS skipped: invalid phone', [
+                    'booking_id' => $booking->id,
+                    'recipient_type' => $this->recipientType,
+                    'phone' => $recipient['phone'],
+                    'error' => $exception->getMessage(),
+                ]);
+
+                return;
+            }
         }
 
         if ($this->recipientType === 'approver' && $booking->status->value !== 'pending') {
