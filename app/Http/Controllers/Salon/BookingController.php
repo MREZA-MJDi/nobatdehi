@@ -246,9 +246,6 @@ class BookingController extends Controller
         $customer = User::query()
             ->whereKey($data['customer_id'])
             ->where('role', 'customer')
-            ->whereHas('bookings', function ($query) use ($salon) {
-                $query->where('salon_id', $salon->id);
-            })
             ->first();
 
         if (!$customer) {
