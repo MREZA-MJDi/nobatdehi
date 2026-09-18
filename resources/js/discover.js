@@ -49,14 +49,14 @@
 
             const html = await response.text();
             const parsed = new DOMParser().parseFromString(html, 'text/html');
-            const freshResults = parsed.querySelector('#results');
-            const currentResults = page.querySelector('#results');
+            const freshDynamic = parsed.querySelector('#discoverDynamicContent');
+            const currentDynamic = page.querySelector('#discoverDynamicContent');
 
-            if (!freshResults || !currentResults) {
-                throw new Error('DISCOVER_RESULTS_NOT_FOUND');
+            if (!freshDynamic || !currentDynamic) {
+                throw new Error('DISCOVER_DYNAMIC_CONTENT_NOT_FOUND');
             }
 
-            currentResults.replaceWith(freshResults);
+            currentDynamic.replaceWith(freshDynamic);
 
             if (push) {
                 window.history.pushState({}, '', nextUrl.toString());
@@ -245,16 +245,16 @@
             '.discover-search-field input[name="q"]'
         );
 
-        const heroCity = page.querySelector(
-            '.discover-search-field input[name="city"]'
+        const heroLocation = page.querySelector(
+            '.discover-search-field input[name="location"]'
         );
 
         if (heroQuery) {
             heroQuery.value = url.searchParams.get('q') || '';
         }
 
-        if (heroCity) {
-            heroCity.value = url.searchParams.get('city') || '';
+        if (heroLocation) {
+            heroLocation.value = url.searchParams.get('location') || '';
         }
     };
 
