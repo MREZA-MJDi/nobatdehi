@@ -1,6 +1,6 @@
 <?php
 
-namespace AppHttpControllers\Salon;
+namespace App\Http\Controllers\Salon;
 
 use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
