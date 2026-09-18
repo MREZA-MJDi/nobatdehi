@@ -12,7 +12,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use App\Support\PhoneNumber;
 
 class SendBookingSms implements ShouldQueue
 {
@@ -81,7 +80,7 @@ class SendBookingSms implements ShouldQueue
             return;
         }
 
-        $message = $this->message($booking, $recipient['name']);
+        $message = $this->message($booking);
 
         $smsSender->send($phone, $message);
     }
@@ -115,8 +114,7 @@ class SendBookingSms implements ShouldQueue
     }
 
     private function message(
-        Booking $booking,
-        string $recipientName
+        Booking $booking
     ): string {
         $date = $booking->booking_date
             ? jalali_date($booking->booking_date)
