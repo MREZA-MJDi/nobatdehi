@@ -37,11 +37,11 @@
                     <span class="discover-search-icon" aria-hidden="true">◎</span>
                     <input
                         type="text"
-                        name="city"
-                        value="{{ $filters['city'] }}"
-                        placeholder="شهر یا منطقه"
+                        name="location"
+                        value="{{ $filters['location'] ?? '' }}"
+                        placeholder="شهر، منطقه یا محله..."
                         autocomplete="address-level2"
-                        aria-label="شهر یا منطقه"
+                        aria-label="شهر، منطقه یا محله"
                     >
                 </label>
 
