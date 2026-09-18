@@ -53,10 +53,17 @@ class RegisterController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $existing = User::query()
+            ->where('phone', $phone)
+            ->first();
+
         if (
-            User::query()
-                ->where('phone', $phone)
-                ->exists()
+            $existing &&
+            ! (
+                $existing->isCustomer() &&
+                $existing->password === null &&
+                $existing->phone_verified_at === null
+            )
         ) {
             return back()
                 ->withErrors([
@@ -239,9 +246,23 @@ class RegisterController extends Controller
                     */
 
                     if ($existing) {
-                        throw new RuntimeException(
-                            'این شماره موبایل قبلاً ثبت شده است.'
-                        );
+                        if (
+                            ! $existing->isCustomer() ||
+                            $existing->password !== null ||
+                            $existing->phone_verified_at !== null
+                        ) {
+                            throw new RuntimeException(
+                                'این شماره موبایل قبلاً ثبت شده است.'
+                            );
+                        }
+
+                        $existing->update([
+                            'name' => $pending['name'],
+                            'password' => $pending['password_hash'],
+                            'phone_verified_at' => now(),
+                        ]);
+
+                        return $existing->fresh();
                     }
 
                     return User::create([
@@ -252,12 +273,6 @@ class RegisterController extends Controller
                         'phone_verified_at' => now(),
 
                         'role' => UserRole::CUSTOMER,
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Already hashed before entering session.
-                        |--------------------------------------------------------------------------
-                        */
 
                         'password' =>
                             $pending['password_hash'],
