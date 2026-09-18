@@ -353,60 +353,71 @@ class BookingService
     }
 
     /**
-     * Change booking status.
+     * Change booking status atomically.
      */
     public function changeStatus(
         Booking $booking,
         BookingStatus $status
     ): Booking {
-        $allowed = match ($booking->status) {
-            BookingStatus::PENDING => [
-                BookingStatus::CONFIRMED,
-                BookingStatus::CANCELLED,
-            ],
-
-            BookingStatus::CONFIRMED => [
-                BookingStatus::COMPLETED,
-                BookingStatus::CANCELLED,
-            ],
-
-            BookingStatus::COMPLETED,
-            BookingStatus::CANCELLED => [],
-        };
-
-        if (
-            !in_array(
-                $status,
-                $allowed,
-                true
-            )
-        ) {
-            throw ValidationException::withMessages([
-                'status' =>
-                    'تغییر وضعیت این نوبت مجاز نیست.',
-            ]);
-        }
-
-        $from = $booking->status;
-
-        $booking->update([
-            'status' => $status,
-        ]);
-
-        $booking->load([
-            'salon',
-            'barber',
-            'service',
-            'customer',
-        ]);
-
-        BookingStatusChanged::dispatch(
+        return DB::transaction(function () use (
             $booking,
-            $from,
             $status
-        );
+        ): Booking {
+            $lockedBooking = Booking::query()
+                ->lockForUpdate()
+                ->with([
+                    'salon',
+                    'barber',
+                    'service',
+                    'customer',
+                ])
+                ->findOrFail($booking->id);
 
-        return $booking;
+            $allowed = match ($lockedBooking->status) {
+                BookingStatus::PENDING => [
+                    BookingStatus::CONFIRMED,
+                    BookingStatus::CANCELLED,
+                ],
+
+                BookingStatus::CONFIRMED => [
+                    BookingStatus::COMPLETED,
+                    BookingStatus::CANCELLED,
+                ],
+
+                BookingStatus::COMPLETED,
+                BookingStatus::CANCELLED => [],
+            };
+
+            if (!in_array($status, $allowed, true)) {
+                throw ValidationException::withMessages([
+                    'status' =>
+                        'تغییر وضعیت این نوبت مجاز نیست.',
+                ]);
+            }
+
+            $from = $lockedBooking->status;
+
+            $lockedBooking->update([
+                'status' => $status,
+            ]);
+
+            $lockedBooking->refresh();
+
+            $lockedBooking->load([
+                'salon',
+                'barber',
+                'service',
+                'customer',
+            ]);
+
+            BookingStatusChanged::dispatch(
+                $lockedBooking,
+                $from,
+                $status
+            );
+
+            return $lockedBooking;
+        });
     }
 
     /**
