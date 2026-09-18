@@ -4027,3 +4027,46 @@ body.salon-lightbox-open {
 .salon-page .c-stars > span:first-child {
     color: var(--salon-brand-secondary, var(--diamond-2));
 }
+
+/* Public salon final status / cover polish */
+.salon-page .cover {
+    min-height: 375px;
+}
+
+.salon-page .cover-fallback {
+    min-height: 375px;
+}
+
+.salon-page .cover-status {
+    top: auto;
+    bottom: 22px;
+    inset-inline-start: 22px;
+    border-color: rgba(255,255,255,.16);
+    background: rgba(8,9,11,.38);
+}
+
+.salon-page .pulse-dot {
+    background: var(--salon-brand-primary, var(--diamond-2));
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--salon-brand-primary, var(--diamond-2)) 13%, transparent);
+}
+
+.salon-page .pulse-dot.is-closed {
+    background: var(--diamond-3);
+    box-shadow: 0 0 0 6px rgba(255,255,255,.06);
+    animation: none;
+}
+
+@media (max-width: 700px) {
+    .salon-page .cover {
+        min-height: 275px;
+    }
+
+    .salon-page .cover-fallback {
+        min-height: 275px;
+    }
+
+    .salon-page .cover-status {
+        bottom: 16px;
+        inset-inline-start: 16px;
+    }
+}
