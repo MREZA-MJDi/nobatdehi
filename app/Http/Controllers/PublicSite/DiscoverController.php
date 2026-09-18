@@ -314,7 +314,9 @@ class DiscoverController extends Controller
             )
             ->whereNotNull('name')
             ->where('name', '!=', '')
-            ->select('name')
+            ->selectRaw(
+                'TRIM(name) AS name'
+            )
             ->distinct()
             ->orderBy('name')
             ->limit(self::SERVICE_OPTIONS_LIMIT)
