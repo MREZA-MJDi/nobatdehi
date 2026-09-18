@@ -7,7 +7,6 @@
 
     let activeRequestController = null;
     let activeRequestId = 0;
-    let activeRequestUrl = '';
 
     const setLoading = (loading) => {
         page.classList.toggle('discover-results-loading', loading);
@@ -54,7 +53,6 @@
 
         const controller = new AbortController();
         activeRequestController = controller;
-        activeRequestUrl = requestUrl;
 
         setLoading(true);
 
@@ -127,7 +125,10 @@
                 return false;
             }
 
-            if (push) {
+            if (
+                push &&
+                window.location.href !== nextUrl.toString()
+            ) {
                 window.history.pushState(
                     {},
                     '',
@@ -204,7 +205,6 @@
                     activeRequestController === controller
                 ) {
                     activeRequestController = null;
-                    activeRequestUrl = '';
                 }
             }
         }
