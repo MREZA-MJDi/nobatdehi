@@ -224,12 +224,12 @@
                     class="topnav"
                     aria-label="منوی سالن"
                 >
-                    @if($posts->isNotEmpty())
-                        <a href="#gallery">گالری</a>
-                    @endif
-
                     @if($services->isNotEmpty())
                         <a href="#services">خدمات</a>
+                    @endif
+
+                    @if($posts->isNotEmpty())
+                        <a href="#gallery">گالری</a>
                     @endif
 
                     @if($barbers->isNotEmpty())
@@ -255,12 +255,12 @@
 
 
             <div class="mobile-anchor-bar">
-                @if($posts->isNotEmpty())
-                    <a href="#gallery">گالری</a>
-                @endif
-
                 @if($services->isNotEmpty())
                     <a href="#services">خدمات</a>
+                @endif
+
+                @if($posts->isNotEmpty())
+                    <a href="#gallery">گالری</a>
                 @endif
 
                 @if($barbers->isNotEmpty())
@@ -580,6 +580,158 @@
 
 
             {{-- =======================================================
+                SERVICES
+            ======================================================== --}}
+
+            @if($services->isNotEmpty())
+
+                <section
+                    class="section reveal"
+                    id="services"
+                >
+
+                    <div class="section-topline">
+
+                        <div>
+
+                            <span class="section-kicker">
+                                01 — SERVICES
+                            </span>
+
+                            <h2>
+                                خدمات سالن
+                            </h2>
+
+                            <p>
+                                خدماتی که می‌توانی همین حالا برایشان نوبت بگیری.
+                            </p>
+
+                        </div>
+
+                        <div class="section-count">
+                            {{ number_format($servicesCount) }}
+                            خدمت
+                        </div>
+
+                    </div>
+
+
+                    <div class="services-grid">
+
+                        @foreach($services as $service)
+
+                            @php
+                                $serviceImage = $service->image_path
+                                    ? $resolveMediaUrl($service->image_path)
+                                    : null;
+                            @endphp
+
+
+                            <article class="service-card">
+
+                                <div class="service-media">
+
+                                    @if($serviceImage)
+
+                                        <img
+                                            src="{{ $serviceImage }}"
+                                            alt="{{ $service->name }}"
+                                            loading="lazy"
+                                            decoding="async"
+                                        >
+
+                                    @else
+
+                                        <div class="service-media-fallback">
+                                            <span>✦</span>
+                                        </div>
+
+                                    @endif
+
+                                    <div class="service-media-overlay"></div>
+
+                                    <span class="service-number">
+                                        {{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}
+                                    </span>
+
+                                </div>
+
+
+                                <div class="service-content">
+
+                                    <div class="service-title">
+                                        {{ $service->name }}
+                                    </div>
+
+
+                                    @if($service->description)
+
+                                        <p class="service-description">
+                                            {{ Str::limit($service->description, 105) }}
+                                        </p>
+
+                                    @endif
+
+
+                                    <div class="service-info">
+
+                                        <strong class="service-price">
+
+                                            @if(
+                                                $service->price !== null &&
+                                                (float) $service->price > 0
+                                            )
+                                                {{ number_format($service->price) }}
+                                                <small>تومان</small>
+                                            @else
+                                                توافقی
+                                            @endif
+
+                                        </strong>
+
+
+                                        <span class="service-duration">
+                                            ◷
+                                            {{ $service->duration_minutes }}
+                                            دقیقه
+                                        </span>
+
+                                    </div>
+
+
+                                    @if($bookingEnabled)
+
+                                        <button
+                                            type="button"
+                                            class="service-book"
+                                            data-open-booking
+                                            data-service-id="{{ $service->id }}"
+                                        >
+                                            <span>
+                                                انتخاب این خدمت
+                                            </span>
+
+                                            <span>
+                                                ←
+                                            </span>
+                                        </button>
+
+                                    @endif
+
+                                </div>
+
+                            </article>
+
+                        @endforeach
+
+                    </div>
+
+                </section>
+
+            @endif
+
+
+            {{-- =======================================================
                 GALLERY
             ======================================================== --}}
 
@@ -595,7 +747,7 @@
                         <div>
 
                             <span class="section-kicker">
-                                01 — WORK
+                                02 — WORK
                             </span>
 
                             <h2>
@@ -850,158 +1002,6 @@
                         <span>
                             یک دسته دیگر را امتحان کن.
                         </span>
-                    </div>
-
-                </section>
-
-            @endif
-
-
-            {{-- =======================================================
-                SERVICES
-            ======================================================== --}}
-
-            @if($services->isNotEmpty())
-
-                <section
-                    class="section reveal"
-                    id="services"
-                >
-
-                    <div class="section-topline">
-
-                        <div>
-
-                            <span class="section-kicker">
-                                02 — SERVICES
-                            </span>
-
-                            <h2>
-                                خدمات سالن
-                            </h2>
-
-                            <p>
-                                خدماتی که می‌توانی همین حالا برایشان نوبت بگیری.
-                            </p>
-
-                        </div>
-
-                        <div class="section-count">
-                            {{ number_format($servicesCount) }}
-                            خدمت
-                        </div>
-
-                    </div>
-
-
-                    <div class="services-grid">
-
-                        @foreach($services as $service)
-
-                            @php
-                                $serviceImage = $service->image_path
-                                    ? $resolveMediaUrl($service->image_path)
-                                    : null;
-                            @endphp
-
-
-                            <article class="service-card">
-
-                                <div class="service-media">
-
-                                    @if($serviceImage)
-
-                                        <img
-                                            src="{{ $serviceImage }}"
-                                            alt="{{ $service->name }}"
-                                            loading="lazy"
-                                            decoding="async"
-                                        >
-
-                                    @else
-
-                                        <div class="service-media-fallback">
-                                            <span>✦</span>
-                                        </div>
-
-                                    @endif
-
-                                    <div class="service-media-overlay"></div>
-
-                                    <span class="service-number">
-                                        {{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}
-                                    </span>
-
-                                </div>
-
-
-                                <div class="service-content">
-
-                                    <div class="service-title">
-                                        {{ $service->name }}
-                                    </div>
-
-
-                                    @if($service->description)
-
-                                        <p class="service-description">
-                                            {{ Str::limit($service->description, 105) }}
-                                        </p>
-
-                                    @endif
-
-
-                                    <div class="service-info">
-
-                                        <strong class="service-price">
-
-                                            @if(
-                                                $service->price !== null &&
-                                                (float) $service->price > 0
-                                            )
-                                                {{ number_format($service->price) }}
-                                                <small>تومان</small>
-                                            @else
-                                                توافقی
-                                            @endif
-
-                                        </strong>
-
-
-                                        <span class="service-duration">
-                                            ◷
-                                            {{ $service->duration_minutes }}
-                                            دقیقه
-                                        </span>
-
-                                    </div>
-
-
-                                    @if($bookingEnabled)
-
-                                        <button
-                                            type="button"
-                                            class="service-book"
-                                            data-open-booking
-                                            data-service-id="{{ $service->id }}"
-                                        >
-                                            <span>
-                                                انتخاب این خدمت
-                                            </span>
-
-                                            <span>
-                                                ←
-                                            </span>
-                                        </button>
-
-                                    @endif
-
-                                </div>
-
-                            </article>
-
-                        @endforeach
-
                     </div>
 
                 </section>
