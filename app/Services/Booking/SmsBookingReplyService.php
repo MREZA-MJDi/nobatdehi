@@ -7,7 +7,6 @@ use App\Models\Booking;
 use App\Models\SmsInboundMessage;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class SmsBookingReplyService
 {
@@ -76,12 +75,12 @@ class SmsBookingReplyService
                 'payload' => $payload ?: null,
             ]);
 
-            $booking = $this->resolveBooking(
+            $bookingId = $this->resolveBookingId(
                 $phone,
                 $reference
             );
 
-            if (!$booking) {
+            if (!$bookingId) {
                 $message->update([
                     'status' => 'rejected',
                     'error' => $reference === null
@@ -99,7 +98,30 @@ class SmsBookingReplyService
                 ];
             }
 
-            $booking->lockForUpdate();
+            $booking = Booking::query()
+                ->with([
+                    'salon.owner',
+                    'barber',
+                    'service',
+                    'customer',
+                ])
+                ->whereKey($bookingId)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$booking) {
+                $message->update([
+                    'status' => 'rejected',
+                    'error' => 'booking_not_found',
+                    'processed_at' => now(),
+                ]);
+
+                return [
+                    'ok' => false,
+                    'status' => 'rejected',
+                    'reason' => 'booking_not_found',
+                ];
+            }
 
             if ($booking->status !== BookingStatus::PENDING) {
                 $message->update([
@@ -142,19 +164,13 @@ class SmsBookingReplyService
         });
     }
 
-    private function resolveBooking(
+    private function resolveBookingId(
         string $phone,
         ?int $reference
-    ): ?Booking {
+    ): ?int {
         $variants = $this->phoneVariants($phone);
 
         $query = Booking::query()
-            ->with([
-                'salon.owner',
-                'barber',
-                'service',
-                'customer',
-            ])
             ->where(
                 'status',
                 BookingStatus::PENDING
@@ -182,15 +198,15 @@ class SmsBookingReplyService
         if ($reference !== null) {
             return $query
                 ->whereKey($reference)
-                ->first();
+                ->value('id');
         }
 
         $matches = $query
             ->limit(2)
-            ->get();
+            ->pluck('id');
 
         return $matches->count() === 1
-            ? $matches->first()
+            ? (int) $matches->first()
             : null;
     }
 
