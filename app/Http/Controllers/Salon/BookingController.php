@@ -267,17 +267,21 @@ class BookingController extends Controller
         $salon = $request->user()->managedSalons()->firstOrFail();
         $data = $request->validated();
 
-        $customer = User::query()
-            ->whereKey($data['customer_id'])
-            ->where('role', 'customer')
-            ->first();
+        $customer = null;
 
-        if (!$customer) {
-            return back()
-                ->withErrors([
-                    'customer_id' => 'این مشتری متعلق به مشتریان این سالن نیست.',
-                ])
-                ->withInput();
+        if (!empty($data['customer_id'])) {
+            $customer = User::query()
+                ->whereKey($data['customer_id'])
+                ->where('role', 'customer')
+                ->first();
+
+            if (!$customer) {
+                return back()
+                    ->withErrors([
+                        'customer_id' => 'مشتری انتخاب شده معتبر نیست.',
+                    ])
+                    ->withInput();
+            }
         }
 
         $bookingService->createManual(
