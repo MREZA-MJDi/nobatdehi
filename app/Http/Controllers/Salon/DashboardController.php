@@ -14,8 +14,11 @@ class DashboardController extends Controller
     {
         $timezone = config('app.timezone', 'Asia/Tehran');
         $today = Carbon::now($timezone)->startOfDay();
+
+        // Business week starts on Saturday (Jalali/Farsi convention).
+        $daysSinceSaturday = ($today->dayOfWeek + 1) % 7;
+        $weekStart = $today->copy()->subDays($daysSinceSaturday);
         $monthStart = $today->copy()->startOfMonth();
-        $weekStart = $today->copy()->startOfWeek();
 
         $salon = $request->user()
             ->managedSalons()
@@ -149,6 +152,13 @@ class DashboardController extends Controller
 
         $todayIsClosed = $todayHours->isEmpty();
 
+        $hasWorkingHours = $salon->workingHours->contains(
+            fn ($row) =>
+                !$row->is_closed &&
+                $row->start_time &&
+                $row->end_time
+        );
+
         return view('salon.dashboard', compact(
             'salon',
             'unreadNotifications',
@@ -169,6 +179,7 @@ class DashboardController extends Controller
             'today',
             'todayHours',
             'todayIsClosed',
+            'hasWorkingHours',
         ));
     }
 }
