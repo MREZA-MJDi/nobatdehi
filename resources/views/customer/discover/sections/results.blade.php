@@ -553,7 +553,7 @@
                         class="h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-accent-600)] focus:ring-[var(--color-accent-500)]"
                         >
 
-                        <span>امروز نوبت دارد</span>
+                        <span>امروز باز است</span>
                     </label>
 
                     {{-- Geolocation --}}
