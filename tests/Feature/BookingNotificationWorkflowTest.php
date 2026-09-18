@@ -16,7 +16,6 @@ use App\Models\User;
 use App\Models\WorkingHour;
 use App\Notifications\BookingNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
