@@ -442,40 +442,14 @@
 
 
                 <div class="chips">
-
-                    <span class="chip accent">
-                        ✦ سالن فعال
-                    </span>
-
-                    <span class="chip">
+<span class="chip">
                         {{ number_format($barbersCount) }} متخصص
                     </span>
 
                     <span class="chip">
                         {{ number_format($servicesCount) }} خدمت
                     </span>
-
-                    @if($isOpenNow)
-
-                        <span class="chip success">
-                            الان باز است
-                        </span>
-
-                    @elseif($isOpenToday)
-
-                        <span class="chip">
-                            امروز باز است
-                        </span>
-
-                    @else
-
-                        <span class="chip danger">
-                            امروز تعطیل
-                        </span>
-
-                    @endif
-
-                </div>
+</div>
 
             </section>
 
@@ -1430,15 +1404,7 @@
                                     خدمت
                                 </span>
                             </div>
-
-                            <div>
-                                <i>◷</i>
-                                <span>
-                                    {{ $statusText }}
-                                </span>
-                            </div>
-
-                        </div>
+</div>
 
 
                         <div class="hours">
@@ -1454,25 +1420,7 @@
                                 </strong>
 
                             </div>
-
-
-                            <span
-                                class="
-                                    open
-                                    {{ $isOpenNow ? '' : 'is-closed' }}
-                                    "
-                            >
-                                <span
-                                    class="
-                                        pulse-dot
-                                        {{ $isOpenNow ? '' : 'is-closed' }}
-                                        "
-                                ></span>
-
-                                {{ $isOpenNow ? 'الان باز' : 'بسته' }}
-                            </span>
-
-                        </div>
+</div>
 
                     </div>
 
