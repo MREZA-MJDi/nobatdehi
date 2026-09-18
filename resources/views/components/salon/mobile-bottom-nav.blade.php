@@ -1,6 +1,6 @@
 @php
     $isBookings = request()->routeIs('salon.bookings.*');
-    $isNotifications = request()->routeIs('salon.notifications.*');
+    $isWorkingHours = request()->routeIs('salon.working-hours.*');
     $isSettings = request()->routeIs('salon.settings.*');
     $isDashboard = request()->routeIs('salon.dashboard');
 @endphp
@@ -13,12 +13,7 @@
         </a>
 
         <a href="{{ route('salon.bookings.index') }}" class="salon-mobile-nav__item {{ $isBookings ? 'is-active' : '' }}">
-            <span class="salon-mobile-nav__icon">
-                ◷
-                @if(($pendingBookings ?? 0) > 0)
-                    <b>{{ min($pendingBookings, 9) }}</b>
-                @endif
-            </span>
+            <span class="salon-mobile-nav__icon">◷</span>
             <span>نوبت‌ها</span>
         </a>
 
@@ -26,14 +21,9 @@
             <span>＋</span>
         </a>
 
-        <a href="{{ route('salon.notifications.index') }}" class="salon-mobile-nav__item {{ $isNotifications ? 'is-active' : '' }}">
-            <span class="salon-mobile-nav__icon">
-                ◌
-                @if(($unreadNotifications ?? 0) > 0)
-                    <b>{{ min($unreadNotifications, 9) }}</b>
-                @endif
-            </span>
-            <span>اعلان‌ها</span>
+        <a href="{{ route('salon.working-hours.edit') }}" class="salon-mobile-nav__item {{ $isWorkingHours ? 'is-active' : '' }}">
+            <span class="salon-mobile-nav__icon">◴</span>
+            <span>ساعات</span>
         </a>
 
         <a href="{{ route('salon.settings.edit') }}" class="salon-mobile-nav__item {{ $isSettings ? 'is-active' : '' }}">

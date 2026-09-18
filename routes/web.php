@@ -315,6 +315,11 @@ Route::middleware('auth')->group(function () {
                 SalonDashboardController::class
             )->name('dashboard');
 
+            Route::get(
+                '/dashboard/data',
+                [SalonDashboardController::class, 'data']
+            )->name('dashboard.data');
+
             Route::resource(
                 'barbers',
                 SalonBarberController::class

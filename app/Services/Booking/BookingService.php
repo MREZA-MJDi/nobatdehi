@@ -10,6 +10,7 @@ use App\Models\Booking;
 use App\Models\Salon;
 use App\Models\Service;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -99,8 +100,42 @@ class BookingService
                 |--------------------------------------------------------------------------
                 */
 
+                $customer = $data['customer'] ?? null;
+
+                if (!$customer && !empty($data['new_customer_phone'])) {
+                    $phone = PhoneNumber::normalize(
+                        (string) $data['new_customer_phone']
+                    );
+
+                    $customer = User::query()
+                        ->where('phone', $phone)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($customer && !$customer->isCustomer()) {
+                        throw ValidationException::withMessages([
+                            'new_customer_phone' =>
+                                'این شماره موبایل برای حساب دیگری ثبت شده است.',
+                        ]);
+                    }
+
+                    if (!$customer) {
+                        $customer = User::create([
+                            'name' => trim(
+                                (string) ($data['new_customer_name'] ?? '')
+                            ),
+                            'phone' => $phone,
+                            'phone_verified_at' => null,
+                            'email' => null,
+                            'password' => null,
+                            'role' => \App\Enums\UserRole::CUSTOMER,
+                            'must_change_password' => false,
+                        ]);
+                    }
+                }
+
                 return $this->createBooking(
-                    $data['customer'] ?? null,
+                    $customer,
                     $data,
                     BookingStatus::CONFIRMED,
                     true,

@@ -47,10 +47,14 @@ class RegisterRequest extends FormRequest
                 'required',
                 'string',
                 'regex:/^09\d{9}$/',
-                Rule::unique(
-                    'users',
-                    'phone'
-                ),
+                Rule::unique('users', 'phone')->where(function ($query) {
+                    $query->where(function ($query) {
+                        $query
+                            ->where('role', '!=', 'customer')
+                            ->orWhereNotNull('password')
+                            ->orWhereNotNull('phone_verified_at');
+                    });
+                }),
             ],
 
             'password' => [

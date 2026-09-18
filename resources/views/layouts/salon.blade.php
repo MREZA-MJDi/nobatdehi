@@ -14,7 +14,7 @@
     </title>
 
     <meta name="description" content="@yield('meta_description', 'پنل مدیریت سالن NOBAT')">
-    <meta name="theme-color" content="#111318">
+    <meta name="theme-color" content="#4f46e5">
 
     <script>
         (() => {
@@ -25,9 +25,16 @@
         })();
     </script>
 
+    <style>
+        :root {
+            --owner-primary: var(--app-primary, #4f46e5);
+            --owner-secondary: var(--app-brand-to, #06b6d4);
+        }
+    </style>
+
     @vite([
         'resources/css/app.css',
-        'resources/css/salon.css',
+        'resources/css/salon-owner.css',
         'resources/js/app.js',
     ])
 
@@ -64,17 +71,14 @@
         </div>
 
         <nav class="salon-owner__nav" aria-label="ناوبری مدیریت سالن">
-            <div class="salon-owner__nav-label">عملیات روزانه</div>
+            <div class="salon-owner__nav-label">مدیریت</div>
 
             <a href="{{ route('salon.dashboard') }}" class="{{ request()->routeIs('salon.dashboard') ? 'is-active' : '' }}">
-                <span>⌂</span><strong>داشبورد</strong>
+                <span>⌂</span><strong>خانه</strong>
             </a>
 
             <a href="{{ route('salon.bookings.index') }}" class="{{ request()->routeIs('salon.bookings.*') ? 'is-active' : '' }}">
                 <span>◷</span><strong>نوبت‌ها</strong>
-                @if(($pendingBookings ?? 0) > 0)
-                    <em>{{ min($pendingBookings, 99) }}</em>
-                @endif
             </a>
 
             <a href="{{ route('salon.barbers.index') }}" class="{{ request()->routeIs('salon.barbers.*') ? 'is-active' : '' }}">
@@ -85,14 +89,7 @@
                 <span>✦</span><strong>خدمات</strong>
             </a>
 
-            <div class="salon-owner__nav-label">رشد و تنظیم</div>
-
-            <a href="{{ route('salon.notifications.index') }}" class="{{ request()->routeIs('salon.notifications.*') ? 'is-active' : '' }}">
-                <span>◌</span><strong>اعلان‌ها</strong>
-                @if(($unreadNotifications ?? 0) > 0)
-                    <em>{{ min($unreadNotifications, 99) }}</em>
-                @endif
-            </a>
+            <div class="salon-owner__nav-label">رشد</div>
 
             <a href="{{ route('salon.posts.index') }}" class="{{ request()->routeIs('salon.posts.*') ? 'is-active' : '' }}">
                 <span>▤</span><strong>محتوا</strong>
@@ -107,7 +104,7 @@
             </a>
 
             <a href="{{ route('salon.settings.edit') }}" class="{{ request()->routeIs('salon.settings.*') ? 'is-active' : '' }}">
-                <span>⚙</span><strong>تنظیمات سالن</strong>
+                <span>⚙</span><strong>تنظیمات</strong>
             </a>
         </nav>
 
@@ -128,10 +125,7 @@
             </div>
 
             <div class="salon-owner__topbar-actions">
-                <a href="{{ route('salon.notifications.index') }}" class="salon-owner__icon-button" aria-label="اعلان‌ها">
-                    ◌
-                    @if(($unreadNotifications ?? 0) > 0)<i></i>@endif
-                </a>
+                <a href="{{ route('salon.notifications.index') }}" class="salon-owner__icon-button" aria-label="اعلان‌ها">◌</a>
                 <x-theme-toggle />
             </div>
         </header>
