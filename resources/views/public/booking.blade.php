@@ -1,4 +1,6 @@
-@extends('layouts.public')
+@extends('layouts.customer')
+
+@section('customer_shell', 'standalone')
 
 @section('title', 'رزرو نوبت ' . $salon->name)
 
