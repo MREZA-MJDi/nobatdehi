@@ -448,6 +448,8 @@ class DashboardController extends Controller
                 ->max('value')
         );
 
+        $monthlyTotal = (int) $monthlyRevenueChart->sum('value');
+
         $data = [
             'salon' => $salon,
             'unreadNotifications' =>
