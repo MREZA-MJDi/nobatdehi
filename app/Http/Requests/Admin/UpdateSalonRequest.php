@@ -70,6 +70,13 @@ class UpdateSalonRequest extends FormRequest
                     ->ignore($ownerId),
             ],
 
+            'manager_password' => [
+                'nullable',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
+
             'email' => [
                 'nullable',
                 'email',
@@ -185,6 +192,12 @@ class UpdateSalonRequest extends FormRequest
 
             'manager_phone.unique' =>
                 'این شماره موبایل قبلاً برای حساب دیگری ثبت شده است.',
+
+            'manager_password.min' =>
+                'رمز عبور مسئول سالن باید حداقل ۸ کاراکتر باشد.',
+
+            'manager_password.confirmed' =>
+                'تکرار رمز عبور مسئول سالن یکسان نیست.',
 
             'email.email' =>
                 'ایمیل وارد شده معتبر نیست.',
