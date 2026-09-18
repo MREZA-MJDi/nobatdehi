@@ -4,6 +4,9 @@
 
 @push('head')
     @vite('resources/css/salon.css')
+@endpush
+
+@push('scripts')
     @vite('resources/js/salon.js')
 @endpush
 
