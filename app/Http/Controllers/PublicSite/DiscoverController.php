@@ -136,6 +136,11 @@ class DiscoverController extends Controller
                 function ($query) use ($cityLike) {
                     $query
                         ->where(
+                            'province',
+                            'like',
+                            $cityLike
+                        )
+                        ->orWhere(
                             'city',
                             'like',
                             $cityLike
