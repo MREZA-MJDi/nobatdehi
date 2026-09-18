@@ -94,6 +94,73 @@ class DashboardController extends Controller
             ])
             ->count();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Revenue chart data
+        |
+        | Same revenue rule as the dashboard KPIs:
+        | confirmed + completed bookings only.
+        | Aggregation is done in PHP so this stays DB-driver agnostic.
+        |--------------------------------------------------------------------------
+        */
+        $revenueStart = $monthStart->copy()->subMonths(5)->startOfMonth();
+
+        $revenueRows = $salon->bookings()
+            ->whereBetween('booking_date', [
+                $revenueStart->toDateString(),
+                $today->toDateString(),
+            ])
+            ->whereIn('status', [
+                BookingStatus::CONFIRMED,
+                BookingStatus::COMPLETED,
+            ])
+            ->get([
+                'booking_date',
+                'price',
+            ]);
+
+        $revenueByDay = $revenueRows
+            ->groupBy(fn ($booking) => Carbon::parse($booking->booking_date)->toDateString())
+            ->map(fn ($rows) => (int) $rows->sum('price'));
+
+        $weeklyRevenueChart = collect(range(0, 6))
+            ->map(function ($offset) use ($weekStart, $revenueByDay) {
+                $date = $weekStart->copy()->addDays($offset);
+
+                return [
+                    'date' => $date->toDateString(),
+                    'value' => (int) ($revenueByDay[$date->toDateString()] ?? 0),
+                ];
+            })
+            ->values();
+
+        $monthlyRevenueChart = collect(range(5, 0))
+            ->map(function ($monthsAgo) use ($today, $revenueRows) {
+                $month = $today->copy()->startOfMonth()->subMonths($monthsAgo);
+                $key = $month->format('Y-m');
+
+                $value = $revenueRows
+                    ->filter(fn ($booking) => Carbon::parse($booking->booking_date)->format('Y-m') === $key)
+                    ->sum('price');
+
+                return [
+                    'month' => $key,
+                    'date' => $month->toDateString(),
+                    'value' => (int) $value,
+                ];
+            })
+            ->values();
+
+        $weeklyRevenueMax = max(
+            1,
+            (int) $weeklyRevenueChart->max('value')
+        );
+
+        $monthlyRevenueMax = max(
+            1,
+            (int) $monthlyRevenueChart->max('value')
+        );
+
         $activeBarbers = $salon->barbers()
             ->where('is_active', true)
             ->count();
@@ -171,6 +238,10 @@ class DashboardController extends Controller
             'weekRevenue',
             'monthRevenue',
             'monthBookings',
+            'weeklyRevenueChart',
+            'monthlyRevenueChart',
+            'weeklyRevenueMax',
+            'monthlyRevenueMax',
             'activeBarbers',
             'activeServices',
             'upcomingBookings',
