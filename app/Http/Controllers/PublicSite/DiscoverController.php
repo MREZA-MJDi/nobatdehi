@@ -740,6 +740,7 @@ class DiscoverController extends Controller
                             'name',
                             'price',
                             'sort_order',
+                            'is_active',
                         ])
                         ->orderBy(
                             'sort_order'
