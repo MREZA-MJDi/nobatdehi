@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Salon;
 
 use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Salon;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -12,26 +14,74 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): View
     {
-        $timezone = config('app.timezone', 'Asia/Tehran');
+        $salon = $this->managedSalon($request);
+
+        $dashboard = $this->buildDashboardData($salon);
+
+        return view(
+            'salon.dashboard',
+            $dashboard
+        );
+    }
+
+    public function data(Request $request): JsonResponse
+    {
+        $salon = $this->managedSalon($request);
+
+        return response()->json([
+            'ok' => true,
+            'data' => $this->buildDashboardData($salon, true),
+        ]);
+    }
+
+    private function managedSalon(Request $request): Salon
+    {
+        return $request->user()
+            ->managedSalons()
+            ->with([
+                'workingHours',
+            ])
+            ->withCount([
+                'barbers',
+                'services',
+                'bookings',
+            ])
+            ->firstOrFail();
+    }
+
+    private function buildDashboardData(
+        Salon $salon,
+        bool $forApi = false
+    ): array {
+        $timezone = config(
+            'app.timezone',
+            'Asia/Tehran'
+        );
+
         $today = Carbon::now($timezone)->startOfDay();
 
-        // Business week starts on Saturday (Jalali/Farsi convention).
-        $daysSinceSaturday = ($today->dayOfWeek + 1) % 7;
-        $weekStart = $today->copy()->subDays($daysSinceSaturday);
-        $monthStart = $today->copy()->startOfMonth();
+        // Business week starts on Saturday.
+        $daysSinceSaturday =
+            ($today->dayOfWeek + 1) % 7;
 
-        $salon = $request->user()
-            ->managedSalons()
-            ->withCount(['barbers', 'services', 'bookings'])
-            ->with(['workingHours'])
-            ->firstOrFail();
+        $weekStart = $today
+            ->copy()
+            ->subDays($daysSinceSaturday);
 
-        $unreadNotifications = $request->user()
-            ->unreadNotifications()
-            ->count();
+        $monthStart = $today
+            ->copy()
+            ->startOfMonth();
+
+        $unreadNotifications =
+            auth()->user()
+                ->unreadNotifications()
+                ->count();
 
         $todayBookings = $salon->bookings()
-            ->whereDate('booking_date', $today->toDateString())
+            ->whereDate(
+                'booking_date',
+                $today->toDateString()
+            )
             ->whereIn('status', [
                 BookingStatus::PENDING,
                 BookingStatus::CONFIRMED,
@@ -39,134 +89,111 @@ class DashboardController extends Controller
             ->count();
 
         $pendingBookings = $salon->bookings()
-            ->where('status', BookingStatus::PENDING)
+            ->where(
+                'status',
+                BookingStatus::PENDING
+            )
             ->count();
 
         $confirmedToday = $salon->bookings()
-            ->whereDate('booking_date', $today->toDateString())
-            ->where('status', BookingStatus::CONFIRMED)
+            ->whereDate(
+                'booking_date',
+                $today->toDateString()
+            )
+            ->where(
+                'status',
+                BookingStatus::CONFIRMED
+            )
             ->count();
 
         $completedToday = $salon->bookings()
-            ->whereDate('booking_date', $today->toDateString())
-            ->where('status', BookingStatus::COMPLETED)
+            ->whereDate(
+                'booking_date',
+                $today->toDateString()
+            )
+            ->where(
+                'status',
+                BookingStatus::COMPLETED
+            )
             ->count();
 
         $cancelledToday = $salon->bookings()
-            ->whereDate('booking_date', $today->toDateString())
-            ->where('status', BookingStatus::CANCELLED)
+            ->whereDate(
+                'booking_date',
+                $today->toDateString()
+            )
+            ->where(
+                'status',
+                BookingStatus::CANCELLED
+            )
             ->count();
 
+        $revenueStatuses = [
+            BookingStatus::CONFIRMED,
+            BookingStatus::COMPLETED,
+        ];
+
         $todayRevenue = (int) $salon->bookings()
-            ->whereDate('booking_date', $today->toDateString())
-            ->whereIn('status', [
-                BookingStatus::CONFIRMED,
-                BookingStatus::COMPLETED,
-            ])
+            ->whereDate(
+                'booking_date',
+                $today->toDateString()
+            )
+            ->whereIn(
+                'status',
+                $revenueStatuses
+            )
             ->sum('price');
 
         $weekRevenue = (int) $salon->bookings()
-            ->whereBetween('booking_date', [
-                $weekStart->toDateString(),
-                $today->toDateString(),
-            ])
-            ->whereIn('status', [
-                BookingStatus::CONFIRMED,
-                BookingStatus::COMPLETED,
-            ])
+            ->whereBetween(
+                'booking_date',
+                [
+                    $weekStart->toDateString(),
+                    $today->toDateString(),
+                ]
+            )
+            ->whereIn(
+                'status',
+                $revenueStatuses
+            )
             ->sum('price');
 
         $monthRevenue = (int) $salon->bookings()
-            ->whereBetween('booking_date', [
-                $monthStart->toDateString(),
-                $today->toDateString(),
-            ])
-            ->whereIn('status', [
-                BookingStatus::CONFIRMED,
-                BookingStatus::COMPLETED,
-            ])
+            ->whereBetween(
+                'booking_date',
+                [
+                    $monthStart->toDateString(),
+                    $today->toDateString(),
+                ]
+            )
+            ->whereIn(
+                'status',
+                $revenueStatuses
+            )
             ->sum('price');
 
         $monthBookings = $salon->bookings()
-            ->whereBetween('booking_date', [
-                $monthStart->toDateString(),
-                $today->toDateString(),
-            ])
+            ->whereBetween(
+                'booking_date',
+                [
+                    $monthStart->toDateString(),
+                    $today->toDateString(),
+                ]
+            )
             ->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Revenue chart data
-        |
-        | Same revenue rule as the dashboard KPIs:
-        | confirmed + completed bookings only.
-        | Aggregation is done in PHP so this stays DB-driver agnostic.
-        |--------------------------------------------------------------------------
-        */
-        $revenueStart = $monthStart->copy()->subMonths(5)->startOfMonth();
-
-        $revenueRows = $salon->bookings()
-            ->whereBetween('booking_date', [
-                $revenueStart->toDateString(),
-                $today->toDateString(),
-            ])
-            ->whereIn('status', [
-                BookingStatus::CONFIRMED,
-                BookingStatus::COMPLETED,
-            ])
-            ->get([
-                'booking_date',
-                'price',
-            ]);
-
-        $revenueByDay = $revenueRows
-            ->groupBy(fn ($booking) => Carbon::parse($booking->booking_date)->toDateString())
-            ->map(fn ($rows) => (int) $rows->sum('price'));
-
-        $weeklyRevenueChart = collect(range(0, 6))
-            ->map(function ($offset) use ($weekStart, $revenueByDay) {
-                $date = $weekStart->copy()->addDays($offset);
-
-                return [
-                    'date' => $date->toDateString(),
-                    'value' => (int) ($revenueByDay[$date->toDateString()] ?? 0),
-                ];
-            })
-            ->values();
-
-        $monthlyRevenueChart = collect(range(5, 0))
-            ->map(function ($monthsAgo) use ($today, $revenueRows) {
-                $month = $today->copy()->startOfMonth()->subMonths($monthsAgo);
-                $key = $month->format('Y-m');
-
-                $value = $revenueRows
-                    ->filter(fn ($booking) => Carbon::parse($booking->booking_date)->format('Y-m') === $key)
-                    ->sum('price');
-
-                return [
-                    'month' => $key,
-                    'date' => $month->toDateString(),
-                    'value' => (int) $value,
-                ];
-            })
-            ->values();
-
-        $weeklyRevenueMax = max(
-            1,
-            (int) $weeklyRevenueChart->max('value')
-        );
-
-        $monthlyRevenueMax = max(
-            1,
-            (int) $monthlyRevenueChart->max('value')
-        );
-
         $activeBarbers = $salon->barbers()
-            ->where('is_active', true)
+            ->where(
+                'is_active',
+                true
+            )
             ->count();
 
         $activeServices = $salon->services()
-            ->where('is_active', true)
+            ->where(
+                'is_active',
+                true
+            )
             ->count();
 
         $upcomingBookings = $salon->bookings()
@@ -179,7 +206,11 @@ class DashboardController extends Controller
                 BookingStatus::PENDING,
                 BookingStatus::CONFIRMED,
             ])
-            ->whereDate('booking_date', '>=', $today->toDateString())
+            ->whereDate(
+                'booking_date',
+                '>=',
+                $today->toDateString()
+            )
             ->orderBy('booking_date')
             ->orderBy('start_time')
             ->orderBy('id')
@@ -198,59 +229,329 @@ class DashboardController extends Controller
 
         $nextBooking = $upcomingBookings->first();
 
-        $dayOfWeek = ($today->dayOfWeek + 1) % 7;
+        $dayOfWeek =
+            ($today->dayOfWeek + 1) % 7;
 
         $todayHours = $salon->workingHours
-            ->where('day_of_week', $dayOfWeek)
-            ->sortBy([
-                ['is_closed', 'asc'],
-                ['start_time', 'asc'],
-            ])
-            ->filter(fn ($row) =>
-                !$row->is_closed &&
-                $row->start_time &&
-                $row->end_time
+            ->where(
+                'day_of_week',
+                $dayOfWeek
             )
-            ->map(fn ($row) => [
-                'start' => substr((string) $row->start_time, 0, 5),
-                'end' => substr((string) $row->end_time, 0, 5),
+            ->sortBy([
+                [
+                    'is_closed',
+                    'asc',
+                ],
+                [
+                    'start_time',
+                    'asc',
+                ],
             ])
+            ->filter(
+                fn ($row) =>
+                    ! $row->is_closed &&
+                    $row->start_time &&
+                    $row->end_time
+            )
+            ->map(
+                fn ($row) => [
+                    'start' =>
+                        substr(
+                            (string) $row->start_time,
+                            0,
+                            5
+                        ),
+                    'end' =>
+                        substr(
+                            (string) $row->end_time,
+                            0,
+                            5
+                        ),
+                ]
+            )
             ->values();
 
-        $todayIsClosed = $todayHours->isEmpty();
+        $todayIsClosed =
+            $todayHours->isEmpty();
 
-        $hasWorkingHours = $salon->workingHours->contains(
-            fn ($row) =>
-                !$row->is_closed &&
-                $row->start_time &&
-                $row->end_time
+        $hasWorkingHours =
+            $salon->workingHours->contains(
+                fn ($row) =>
+                    ! $row->is_closed &&
+                    $row->start_time &&
+                    $row->end_time
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Revenue chart
+        |--------------------------------------------------------------------------
+        */
+
+        $chartStart = $today
+            ->copy()
+            ->subMonths(5)
+            ->startOfMonth();
+
+        $revenueRows = $salon->bookings()
+            ->whereBetween(
+                'booking_date',
+                [
+                    $chartStart->toDateString(),
+                    $today->toDateString(),
+                ]
+            )
+            ->whereIn(
+                'status',
+                $revenueStatuses
+            )
+            ->get([
+                'booking_date',
+                'price',
+            ]);
+
+        $revenueByDay = $revenueRows
+            ->groupBy(
+                fn ($booking) =>
+                    Carbon::parse(
+                        $booking->booking_date
+                    )->toDateString()
+            )
+            ->map(
+                fn ($rows) =>
+                    (int) $rows->sum('price')
+            );
+
+        $revenueByMonth = $revenueRows
+            ->groupBy(
+                fn ($booking) =>
+                    Carbon::parse(
+                        $booking->booking_date
+                    )->format('Y-m')
+            )
+            ->map(
+                fn ($rows) =>
+                    (int) $rows->sum('price')
+            );
+
+        $weeklyRevenueChart =
+            collect(range(0, 6))
+                ->map(
+                    function ($offset) use (
+                        $weekStart,
+                        $revenueByDay
+                    ) {
+                        $date =
+                            $weekStart
+                                ->copy()
+                                ->addDays(
+                                    $offset
+                                );
+
+                        return [
+                            'date' =>
+                                $date->toDateString(),
+                            'value' =>
+                                (int) (
+                                    $revenueByDay[
+                                        $date
+                                            ->toDateString()
+                                    ] ?? 0
+                                ),
+                        ];
+                    }
+                )
+                ->values();
+
+        $monthlyRevenueChart =
+            collect(range(5, 0))
+                ->map(
+                    function ($monthsAgo) use (
+                        $today,
+                        $revenueByMonth
+                    ) {
+                        $month =
+                            $today
+                                ->copy()
+                                ->startOfMonth()
+                                ->subMonths(
+                                    $monthsAgo
+                                );
+
+                        $key =
+                            $month->format('Y-m');
+
+                        return [
+                            'month' => $key,
+                            'date' =>
+                                $month->toDateString(),
+                            'value' =>
+                                (int) (
+                                    $revenueByMonth[
+                                        $key
+                                    ] ?? 0
+                                ),
+                        ];
+                    }
+                )
+                ->values();
+
+        $weeklyRevenueMax = max(
+            1,
+            (int) $weeklyRevenueChart
+                ->max('value')
         );
 
-        return view('salon.dashboard', compact(
-            'salon',
-            'unreadNotifications',
-            'pendingBookings',
-            'todayBookings',
-            'confirmedToday',
-            'completedToday',
-            'cancelledToday',
-            'todayRevenue',
-            'weekRevenue',
-            'monthRevenue',
-            'monthBookings',
-            'weeklyRevenueChart',
-            'monthlyRevenueChart',
-            'weeklyRevenueMax',
-            'monthlyRevenueMax',
-            'activeBarbers',
-            'activeServices',
-            'upcomingBookings',
-            'recentBookings',
-            'nextBooking',
-            'today',
-            'todayHours',
-            'todayIsClosed',
-            'hasWorkingHours',
-        ));
+        $monthlyRevenueMax = max(
+            1,
+            (int) $monthlyRevenueChart
+                ->max('value')
+        );
+
+        $data = [
+            'salon' => $salon,
+            'unreadNotifications' =>
+                $unreadNotifications,
+            'pendingBookings' =>
+                $pendingBookings,
+            'todayBookings' =>
+                $todayBookings,
+            'confirmedToday' =>
+                $confirmedToday,
+            'completedToday' =>
+                $completedToday,
+            'cancelledToday' =>
+                $cancelledToday,
+            'todayRevenue' =>
+                $todayRevenue,
+            'weekRevenue' =>
+                $weekRevenue,
+            'monthRevenue' =>
+                $monthRevenue,
+            'monthBookings' =>
+                $monthBookings,
+            'activeBarbers' =>
+                $activeBarbers,
+            'activeServices' =>
+                $activeServices,
+            'upcomingBookings' =>
+                $upcomingBookings,
+            'recentBookings' =>
+                $recentBookings,
+            'nextBooking' =>
+                $nextBooking,
+            'today' =>
+                $today,
+            'todayHours' =>
+                $todayHours,
+            'todayIsClosed' =>
+                $todayIsClosed,
+            'hasWorkingHours' =>
+                $hasWorkingHours,
+            'weeklyRevenueChart' =>
+                $weeklyRevenueChart,
+            'monthlyRevenueChart' =>
+                $monthlyRevenueChart,
+            'weeklyRevenueMax' =>
+                $weeklyRevenueMax,
+            'monthlyRevenueMax' =>
+                $monthlyRevenueMax,
+        ];
+
+        if (! $forApi) {
+            return $data;
+        }
+
+        return [
+            'date' =>
+                $today->toDateString(),
+            'timezone' =>
+                $timezone,
+            'metrics' => [
+                'todayBookings' =>
+                    $todayBookings,
+                'pendingBookings' =>
+                    $pendingBookings,
+                'confirmedToday' =>
+                    $confirmedToday,
+                'completedToday' =>
+                    $completedToday,
+                'cancelledToday' =>
+                    $cancelledToday,
+                'todayRevenue' =>
+                    $todayRevenue,
+                'weekRevenue' =>
+                    $weekRevenue,
+                'monthRevenue' =>
+                    $monthRevenue,
+                'monthBookings' =>
+                    $monthBookings,
+                'activeBarbers' =>
+                    $activeBarbers,
+                'activeServices' =>
+                    $activeServices,
+                'unreadNotifications' =>
+                    $unreadNotifications,
+            ],
+            'today' => [
+                'isClosed' =>
+                    $todayIsClosed,
+                'hours' =>
+                    $todayHours
+                        ->values()
+                        ->all(),
+            ],
+            'revenue' => [
+                'weekly' =>
+                    $weeklyRevenueChart
+                        ->values()
+                        ->all(),
+                'monthly' =>
+                    $monthlyRevenueChart
+                        ->values()
+                        ->all(),
+            ],
+            'upcomingBookings' =>
+                $upcomingBookings
+                    ->map(
+                        fn ($booking) => [
+                            'id' =>
+                                $booking->id,
+                            'date' =>
+                                $booking
+                                    ->booking_date,
+                            'startTime' =>
+                                substr(
+                                    (string)
+                                        $booking
+                                            ->start_time,
+                                    0,
+                                    5
+                                ),
+                            'customer' =>
+                                $booking
+                                    ->customer?->name
+                                    ?? 'مشتری',
+                            'service' =>
+                                $booking
+                                    ->service?->name
+                                    ?? 'خدمت',
+                            'barber' =>
+                                $booking
+                                    ->barber?->name
+                                    ?? 'متخصص',
+                            'status' =>
+                                $booking->status
+                                    instanceof BookingStatus
+                                        ? $booking
+                                            ->status
+                                            ->value
+                                        : (string)
+                                            $booking->status,
+                        ]
+                    )
+                    ->values()
+                    ->all(),
+        ];
     }
 }
