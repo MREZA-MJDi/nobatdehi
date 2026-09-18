@@ -3451,3 +3451,64 @@ body.discover-search-modal-open {
         animation: none;
     }
 }
+
+/* ==========================================================================
+   NOBAT DISCOVER — full-screen hero
+   ========================================================================== */
+
+.discover-page .discover-hero-immersive {
+    min-height: calc(100svh - 64px);
+    display: flex;
+    align-items: center;
+}
+
+.discover-page .discover-hero-inner {
+    width: 100%;
+}
+
+@media (min-width: 760px) {
+    .discover-page .discover-hero-immersive {
+        min-height: calc(100dvh - 72px);
+        padding-block: 34px;
+    }
+
+    .discover-page .discover-hero-inner {
+        min-height: calc(100dvh - 140px);
+    }
+}
+
+@media (min-width: 1080px) {
+    .discover-page .discover-search-box {
+        grid-template-columns:
+            minmax(0, 1.5fr)
+            minmax(170px, .78fr)
+            128px
+            128px;
+        align-items: stretch;
+    }
+
+    .discover-page .discover-search-nearby,
+    .discover-page .discover-search-submit {
+        grid-column: auto;
+    }
+
+    .discover-page .discover-search-field,
+    .discover-page .discover-search-nearby,
+    .discover-page .discover-search-submit {
+        min-height: 52px;
+    }
+
+    .discover-page .discover-hero-description {
+        max-width: 570px;
+    }
+}
+
+@media (max-width: 759px) {
+    .discover-page .discover-hero-immersive {
+        min-height: calc(100svh - 64px);
+    }
+
+    .discover-page .discover-hero-inner {
+        min-height: 0;
+    }
+}
