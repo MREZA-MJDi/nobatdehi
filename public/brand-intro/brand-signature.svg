@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 90" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">NOBAT signature mark</title>
+  <desc id="desc">A minimal handwritten signature mark.</desc>
+  <path d="M10 63C18 37 21 19 27 18C35 17 34 49 40 57C47 66 56 59 61 40C65 25 72 15 79 20C87 26 77 56 86 60C96 66 105 36 112 29C119 22 126 29 124 43C122 57 129 59 139 47" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M15 72C45 82 94 79 137 63" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+</svg>
