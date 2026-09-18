@@ -25,7 +25,6 @@ class SendBookingSms implements ShouldQueue
         public int $bookingId,
         public string $recipientType = 'approver'
     ) {
-        $this->onQueue('notifications');
     }
 
     public function middleware(): array
