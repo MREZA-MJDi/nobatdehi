@@ -1,16 +1,16 @@
-<section class="discovery-hero discovery-hero-immersive" id="hero">
-    <div class="discovery-container discovery-hero-inner">
-        <div class="discovery-hero-content">
-            <span class="discovery-eyebrow">
+<section class="discover-hero discover-hero-immersive" id="hero">
+    <div class="discover-container discover-hero-inner">
+        <div class="discover-hero-content">
+            <span class="discover-eyebrow">
                 پیدا کن · مقایسه کن · نوبت بگیر
             </span>
 
-            <h1 class="discovery-hero-title">
+            <h1 class="discover-hero-title">
                 سالن مناسب
                 <span>خودت را پیدا کن.</span>
             </h1>
 
-            <p class="discovery-hero-description">
+            <p class="discover-hero-description">
                 سالن، متخصص یا خدمت موردنظرت را جست‌وجو کن، نتیجه‌ها را مقایسه کن
                 و مستقیماً برای زمان مناسب نوبت بگیر.
             </p>
@@ -18,11 +18,11 @@
             <form
                 action="{{ route('salons.discover') }}#results"
                 method="GET"
-                class="discovery-search-box"
+                class="discover-search-box"
                 role="search"
             >
-                <label class="discovery-search-field">
-                    <span class="discovery-search-icon" aria-hidden="true">⌕</span>
+                <label class="discover-search-field">
+                    <span class="discover-search-icon" aria-hidden="true">⌕</span>
                     <input
                         type="search"
                         name="q"
@@ -33,8 +33,8 @@
                     >
                 </label>
 
-                <label class="discovery-search-field">
-                    <span class="discovery-search-icon" aria-hidden="true">◎</span>
+                <label class="discover-search-field">
+                    <span class="discover-search-icon" aria-hidden="true">◎</span>
                     <input
                         type="text"
                         name="city"
@@ -47,25 +47,25 @@
 
                 <button
                     type="button"
-                    class="discovery-search-nearby"
+                    class="discover-search-nearby"
                     data-discover-nearby
                 >
                     <span aria-hidden="true">⌖</span>
                     نزدیک من
                 </button>
 
-                <button type="submit" class="discovery-search-submit">
+                <button type="submit" class="discover-search-submit">
                     جستجو
                 </button>
             </form>
 
-            <div class="discovery-quick-search" aria-label="جستجوی سریع">
-                <span class="discovery-quick-label">محبوب:</span>
+            <div class="discover-quick-search" aria-label="جستجوی سریع">
+                <span class="discover-quick-label">محبوب:</span>
 
                 @foreach(['مو', 'ناخن', 'پوست', 'میکاپ', 'اصلاح', 'ماساژ'] as $item)
                     <a
                         href="{{ route('salons.discover', ['q' => $item]) }}#results"
-                        class="discovery-quick-link"
+                        class="discover-quick-link"
                     >
                         {{ $item }}
                     </a>
@@ -83,7 +83,7 @@
         @endphp
 
         <div
-            class="discovery-hero-media"
+            class="discover-hero-media"
             data-discover-hero-slider
             aria-label="سالن‌های منتخب"
         >
@@ -127,10 +127,10 @@
 
             <a
                 href="{{ $heroSlides->first() ? route('public.salons.show', $heroSlides->first()) : route('salons.discover') }}"
-                class="discovery-hero-media-badge"
+                class="discover-hero-media-badge"
                 data-hero-badge
             >
-                <span class="discovery-hero-media-badge-dot"></span>
+                <span class="discover-hero-media-badge-dot"></span>
                 <span data-hero-badge-text>
                     {{ $heroSlides->first()?->name ?? 'NOBAT' }}
                 </span>
