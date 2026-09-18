@@ -351,7 +351,7 @@
 
                         <select
                             name="province"
-                            id="discoverProvince"
+                            id="discover-filter-province"
                             class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
                         >
                             <option value="">همه استان‌ها</option>
@@ -373,6 +373,7 @@
 
                         <select
                             name="city"
+                            id="discover-filter-city"
                             class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
                         >
                             <option value="">همه شهرها</option>
@@ -485,15 +486,7 @@
                         </select>
                     </label>
                 </div>
-
-                {{-- Hidden state --}}
-                <input
-                    type="hidden"
-                    name="type"
-                    value="{{ $filters['type'] ?? '' }}"
-                >
-
-                @if (is_numeric($filters['lat']) && is_numeric($filters['lng']))
+@if (is_numeric($filters['lat']) && is_numeric($filters['lng']))
                     <input
                         type="hidden"
                         name="lat"
