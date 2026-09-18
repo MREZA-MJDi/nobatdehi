@@ -81,6 +81,25 @@
 
     const openLocationModal = () => {
         if (!locationModal) return;
+
+        if (locationAllow) {
+            locationAllow.disabled = false;
+            locationAllow.textContent = 'اجازه موقعیت و پیدا کردن نزدیک‌ترین‌ها';
+        }
+
+        if (locationMapFrame) {
+            locationMapFrame.hidden = true;
+            locationMapFrame.src = '';
+        }
+
+        if (locationMapState) {
+            locationMapState.style.background = '';
+            locationMapState.innerHTML =
+                '<span class="discover-location-map-pin">⌖</span>' +
+                '<strong>موقعیت خودت را مشخص کن</strong>' +
+                '<small>برای نمایش گزینه‌های اطراف، اجازه موقعیت مکانی مرورگر را بده.</small>';
+        }
+
         locationModal.hidden = false;
         requestAnimationFrame(() => locationModal.classList.add('is-open'));
         locationModal.setAttribute('aria-hidden', 'false');
