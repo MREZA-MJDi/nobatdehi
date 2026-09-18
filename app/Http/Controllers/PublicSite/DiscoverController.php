@@ -8,6 +8,7 @@ use App\Models\Salon;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DiscoverController extends Controller
@@ -133,6 +134,18 @@ class DiscoverController extends Controller
                 'city',
                 $filters['city']
             );
+        }
+
+        if ($filters['location'] !== '') {
+            $locationLike = '%' . $filters['location'] . '%';
+
+            $salonQuery->where(function ($query) use ($locationLike) {
+                $query
+                    ->where('province', 'like', $locationLike)
+                    ->orWhere('city', 'like', $locationLike)
+                    ->orWhere('district', 'like', $locationLike)
+                    ->orWhere('address', 'like', $locationLike);
+            });
         }
 
         if ($filters['district'] !== '') {
@@ -306,9 +319,7 @@ class DiscoverController extends Controller
                 'price',
             ])
             ->orderBy('name')
-            ->limit(
-                self::SERVICE_OPTIONS_LIMIT
-            )
+            ->orderBy('id')
             ->get();
 
         /*
@@ -594,6 +605,13 @@ class DiscoverController extends Controller
                 )
             ),
 
+            'location' => trim(
+                (string) $request->query(
+                    'location',
+                    ''
+                )
+            ),
+
             'district' => trim(
                 (string) $request->query(
                     'district',
@@ -783,6 +801,12 @@ class DiscoverController extends Controller
                     )
 
                     ->orWhere(
+                        'province',
+                        'like',
+                        $searchLike
+                    )
+
+                    ->orWhere(
                         'address',
                         'like',
                         $searchLike
@@ -967,10 +991,9 @@ class DiscoverController extends Controller
             return;
         }
 
-        $query->having(
-            'reviews_avg_rating',
-            '>=',
-            $minRating
+        $query->whereRaw(
+            '(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.salon_id = salons.id AND reviews.is_published = 1) >= ?',
+            [$minRating]
         );
     }
 
@@ -1018,14 +1041,13 @@ class DiscoverController extends Controller
             return;
         }
 
-        $this->applyMinimumServicePrice(
-            $query
-        );
-
-        $query->having(
-            'min_price',
-            '<=',
-            (int) $priceMax
+        $query->whereHas(
+            'services',
+            function ($query) use ($priceMax) {
+                $query
+                    ->where('is_active', true)
+                    ->where('price', '<=', (int) $priceMax);
+            }
         );
     }
 
@@ -1299,15 +1321,33 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        /*
+        |--------------------------------------------------------------------------
+        | Keep Eloquent aggregate columns while adding distance.
+        |--------------------------------------------------------------------------
+        */
         $query
-
-            ->selectRaw(
-                "salons.*, {$haversine} AS distance_km",
-                [
-                    $lat,
-                    $lng,
-                    $lat,
-                ]
+            ->addSelect(
+                DB::raw(
+                    "(
+                        6371 * ACOS(
+                            GREATEST(
+                                -1,
+                                LEAST(
+                                    1,
+                                    COS(RADIANS(" . $lat . "))
+                                    * COS(RADIANS(salons.latitude))
+                                    * COS(
+                                        RADIANS(salons.longitude)
+                                        - RADIANS(" . $lng . ")
+                                    )
+                                    + SIN(RADIANS(" . $lat . "))
+                                    * SIN(RADIANS(salons.latitude))
+                                )
+                            )
+                        )
+                    ) AS distance_km"
+                )
             )
 
             ->whereNotNull(
