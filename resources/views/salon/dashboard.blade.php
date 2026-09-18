@@ -362,8 +362,12 @@
                                 ? max(5, round(($point['value'] / $monthlyRevenueMax) * 100))
                                 : 5;
 
-                            $monthLabel = jalali_date(
-                                \Carbon\Carbon::parse($point['date'])
+                            $monthLabel = substr(
+                                jalali_date(
+                                    \Carbon\Carbon::parse($point['date'])
+                                ),
+                                0,
+                                7
                             );
                         @endphp
 
