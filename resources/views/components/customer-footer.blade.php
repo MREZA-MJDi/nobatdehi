@@ -72,11 +72,6 @@
                         جدیدترین سالن‌ها
                     </a>
 
-                    <a
-                        href="{{ route('salons.discover', ['sort' => 'distance']) }}"
-                    >
-                        نزدیک‌ترین‌ها
-                    </a>
                 </nav>
 
             </div>
