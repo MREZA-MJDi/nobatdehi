@@ -57,7 +57,7 @@ class SmsWebhookController extends Controller
 
         return response()->json(
             $result,
-            $result['ok'] ? 200 : 422
+            200
         );
     }
 
