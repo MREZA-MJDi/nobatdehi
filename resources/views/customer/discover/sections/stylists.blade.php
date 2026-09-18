@@ -1,108 +1,82 @@
 <section
-    class="discover-section"
+    class="discover-section discover-team-section"
     id="stylists"
 >
-
     <div class="discover-container">
+        <div class="discover-section-heading discover-section-heading-inline">
+            <div>
+                <span class="discover-kicker">
+                    تیم سالن
+                </span>
+                <h2>
+                    تیم‌های واقعی هر سالن
+                </h2>
+                <p>
+                    چند عضو از تیم را کوچک و جمع‌وجور می‌بینی؛ برای رزرو، وارد همان سالن شو.
+                </p>
+            </div>
 
-        <div class="discover-section-heading">
-
-            <span class="discover-kicker">
-                متخصص‌ها
-            </span>
-
-            <h2>
-                متخصص مناسب خودت را پیدا کن
-            </h2>
-
-            <p>
-                تخصص، تجربه و سالن هر متخصص را قبل از رزرو ببین.
-            </p>
-
+            <a
+                href="{{ route('salons.discover', ['type' => 'barber']) }}#results"
+                class="discover-section-link"
+            >
+                همه متخصص‌ها
+                ←
+            </a>
         </div>
 
+        <div class="discover-team-grid">
+            @forelse($stylists->groupBy('salon_id') as $salonId => $team)
+                @php
+                    $salon = $team->first()?->salon;
+                    $salonName = $salon?->name ?: 'سالن NOBAT';
+                    $salonUrl = $salon ? route('public.salons.show', $salon) : route('salons.discover', ['type' => 'barber']);
 
-        <div class="discover-stylist-grid">
+                    $teamImages = $team->take(5);
+                @endphp
 
-            @forelse(
-                $stylists as $barber
-            )
-
-                <a
-                    href="{{ route(
-                        'public.salons.show',
-                        $barber->salon
-                    ) }}"
-                    class="discover-stylist-card"
-                >
-
-                    <div class="discover-stylist-media">
-
-                        @if($barber->image_path)
-
-                            <img
-                                src="{{ $resolveImage(
-                                    $barber->image_path
-                                ) }}"
-                                alt="{{ $barber->name }}"
-                                loading="lazy"
-                            >
-
-                        @else
-
-                            <div class="discover-stylist-placeholder">
-                                {{ mb_substr(
-                                    trim($barber->name),
-                                    0,
-                                    1
-                                ) }}
-                            </div>
-
-                        @endif
-
-                    </div>
-
-
-                    <div class="discover-stylist-body">
-
-                        <span>
-                            متخصص
-                        </span>
-
-                        <h3>
-                            {{ $barber->name }}
-                        </h3>
-
-                        <p>
-                            {{ $barber->specialty
-                                ?: 'متخصص زیبایی'
-                            }}
-                        </p>
-
-                        <small>
-                            {{ $barber->salon?->name }}
-                        </small>
-
-
-                        <div class="discover-stylist-footer">
-                            مشاهده سالن
-                            ←
+                <a href="{{ $salonUrl }}" class="discover-team-card">
+                    <div class="discover-team-head">
+                        <div class="discover-team-copy">
+                            <span>تیم سالن</span>
+                            <strong>{{ $salonName }}</strong>
+                            <small>{{ number_format($team->count()) }} متخصص فعال</small>
                         </div>
 
+                        <span class="discover-team-arrow" aria-hidden="true">←</span>
                     </div>
 
+                    <div class="discover-team-avatars" aria-label="اعضای تیم سالن">
+                        @foreach($teamImages as $member)
+                            @if($member->image_path)
+                                <img
+                                    src="{{ $resolveImage($member->image_path) }}"
+                                    alt="{{ $member->name }}"
+                                    loading="lazy"
+                                    decoding="async"
+                                >
+                            @else
+                                <span class="discover-team-avatar-fallback" aria-hidden="true">
+                                    {{ mb_substr(trim($member->name), 0, 1) }}
+                                </span>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    <div class="discover-team-members">
+                        @foreach($teamImages->take(3) as $member)
+                            <span>{{ $member->name }}</span>
+                        @endforeach
+                        @if($team->count() > 3)
+                            <span>+{{ number_format($team->count() - 3) }}</span>
+                        @endif
+                    </div>
                 </a>
-
             @empty
-
                 <div class="discover-empty-inline">
-                    هنوز متخصصی برای نمایش وجود ندارد.
+                    هنوز تیم فعالی برای نمایش وجود ندارد.
                 </div>
-
             @endforelse
-
         </div>
-
     </div>
-
 </section>
