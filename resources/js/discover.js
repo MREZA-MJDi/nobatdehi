@@ -653,7 +653,7 @@
 
     const observeReveals = () => {
         const items = page.querySelectorAll(
-            '.discover-result-card, .discover-salon-card, .discover-service-card, .discover-stylist-card'
+            '.discover-result-card, .discover-salon-card, .discover-service-card, .discover-stylist-card, .discover-team-card'
         );
 
         if (!('IntersectionObserver' in window) || !items.length) return;
