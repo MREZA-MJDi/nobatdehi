@@ -312,15 +312,13 @@ class DiscoverController extends Controller
                     );
                 }
             )
-            ->select([
-                'id',
-                'salon_id',
-                'name',
-                'price',
-            ])
+            ->whereNotNull('name')
+            ->where('name', '!=', '')
+            ->select('name')
+            ->distinct()
             ->orderBy('name')
-            ->orderBy('id')
-            ->get();
+            ->limit(self::SERVICE_OPTIONS_LIMIT)
+            ->pluck('name');
 
         /*
         |--------------------------------------------------------------------------
@@ -1073,19 +1071,13 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $query->where(
+        $query->whereHas(
+            'workingHours',
             function ($query) use (
                 $dayOfWeek,
                 $previousDayOfWeek,
                 $time
             ) {
-
-                /*
-                |--------------------------------------------------------------------------
-                | Normal schedule
-                |--------------------------------------------------------------------------
-                */
-
                 $query->where(
                     function ($query) use (
                         $dayOfWeek,
@@ -1096,81 +1088,77 @@ class DiscoverController extends Controller
                                 'day_of_week',
                                 $dayOfWeek
                             )
-
                             ->where(
                                 'is_closed',
                                 false
                             )
-
+                            ->whereNotNull('start_time')
+                            ->whereNotNull('end_time')
                             ->whereColumn(
                                 'start_time',
                                 '<=',
                                 'end_time'
                             )
-
                             ->whereTime(
                                 'start_time',
                                 '<=',
                                 $time
                             )
-
                             ->whereTime(
                                 'end_time',
                                 '>=',
                                 $time
                             );
                     }
-                )
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Overnight schedule
-                    |--------------------------------------------------------------------------
-                    */
-
-                    ->orWhere(
-                        function ($query) use (
-                            $previousDayOfWeek,
-                            $time
-                        ) {
-                            $query
-                                ->where(
-                                    'day_of_week',
-                                    $previousDayOfWeek
-                                )
-
-                                ->where(
-                                    'is_closed',
-                                    false
-                                )
-
-                                ->whereColumn(
-                                    'start_time',
-                                    '>',
-                                    'end_time'
-                                )
-
-                                ->where(
-                                    function ($query) use (
-                                        $time
-                                    ) {
-                                        $query
-                                            ->whereTime(
-                                                'start_time',
-                                                '<=',
-                                                $time
-                                            )
-
-                                            ->orWhereTime(
-                                                'end_time',
-                                                '>=',
-                                                $time
-                                            );
-                                    }
-                                );
-                        }
-                    );
+                )->orWhere(
+                    function ($query) use (
+                        $previousDayOfWeek,
+                        $time
+                    ) {
+                        $query
+                            ->where(
+                                'day_of_week',
+                                $previousDayOfWeek
+                            )
+                            ->where(
+                                'is_closed',
+                                false
+                            )
+                            ->whereNotNull('start_time')
+                            ->whereNotNull('end_time')
+                            ->whereColumn(
+                                'start_time',
+                                '>',
+                                'end_time'
+                            )
+                            ->where(
+                                function ($query) use (
+                                    $time
+                                ) {
+                                    $query
+                                        ->whereTime(
+                                            'start_time',
+                                            '<=',
+                                            $time
+                                        )
+                                        ->orWhereTime(
+                                            'end_time',
+                                            '>=',
+                                            $time
+                                        );
+                                }
+                            );
+                    }
+                );
             }
+        )
+        ->whereHas(
+            'barbers',
+            fn ($query) => $query->where('is_active', true)
+        )
+        ->whereHas(
+            'services',
+            fn ($query) => $query->where('is_active', true)
         );
     }
 
