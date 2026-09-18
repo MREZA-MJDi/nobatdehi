@@ -8,6 +8,7 @@ use App\Models\Salon;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -30,6 +31,14 @@ class DiscoverController extends Controller
     private const DEFAULT_RADIUS_KM = 15.0;
 
     private const MAX_RADIUS_KM = 100.0;
+
+    private const CACHE_POPULAR_SECONDS = 120;
+
+    private const CACHE_OPTIONS_SECONDS = 600;
+
+    private const CACHE_STATS_SECONDS = 120;
+
+    private const CACHE_NEARBY_SECONDS = 30;
 
     private const NEARBY_RADII = [
         2.0,
@@ -231,6 +240,8 @@ class DiscoverController extends Controller
             )
             ->withQueryString();
 
+        $this->attachCardServices($salons);
+
         /*
         |--------------------------------------------------------------------------
         | Popular salons
@@ -241,34 +252,34 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $popularSalons = $this->baseSalonQuery()
-            ->orderByDesc(
-                'reviews_avg_rating'
-            )
-            ->orderByDesc(
-                'reviews_count'
-            )
-            ->latest('id')
-            ->limit(
-                self::POPULAR_SALONS_LIMIT
-            )
-            ->get();
+        $popularSalons = Cache::remember(
+            'discover:popular-salons:v3',
+            now()->addSeconds(self::CACHE_POPULAR_SECONDS),
+            function () {
+                $items = $this->baseSalonQuery()
+                    ->orderByDesc('reviews_avg_rating')
+                    ->orderByDesc('reviews_count')
+                    ->latest('id')
+                    ->limit(self::POPULAR_SALONS_LIMIT)
+                    ->get();
+
+                $this->attachCardServices($items);
+
+                return $items;
+            }
+        );
 
         /*
         |--------------------------------------------------------------------------
         | Featured salon
         |--------------------------------------------------------------------------
+        |
+        | The featured card is already the first popular salon, so do not issue
+        | another full aggregate query for the same data.
+        |
         */
 
-        $featuredSalon = $this->baseSalonQuery()
-            ->orderByDesc(
-                'reviews_avg_rating'
-            )
-            ->orderByDesc(
-                'reviews_count'
-            )
-            ->latest('id')
-            ->first();
+        $featuredSalon = $popularSalons->first();
 
         /*
         |--------------------------------------------------------------------------
@@ -298,29 +309,22 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $serviceOptions = Service::query()
-            ->where(
-                'is_active',
-                true
-            )
-            ->whereHas(
-                'salon',
-                function ($query) {
-                    $query->where(
-                        'is_active',
-                        true
-                    );
-                }
-            )
-            ->whereNotNull('name')
-            ->where('name', '!=', '')
-            ->selectRaw(
-                'TRIM(name) AS name'
-            )
-            ->distinct()
-            ->orderBy('name')
-            ->limit(self::SERVICE_OPTIONS_LIMIT)
-            ->pluck('name');
+        $serviceOptions = Cache::remember(
+            'discover:service-options:v3',
+            now()->addSeconds(self::CACHE_OPTIONS_SECONDS),
+            fn () => Service::query()
+                ->where('is_active', true)
+                ->whereHas('salon', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->whereNotNull('name')
+                ->where('name', '!=', '')
+                ->selectRaw('TRIM(name) AS name')
+                ->distinct()
+                ->orderBy('name')
+                ->limit(self::SERVICE_OPTIONS_LIMIT)
+                ->pluck('name')
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -328,49 +332,34 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $popularServices = Service::query()
-            ->where(
-                'is_active',
-                true
-            )
-            ->whereHas(
-                'salon',
-                function ($query) {
-                    $query->where(
-                        'is_active',
-                        true
-                    );
-                }
-            )
-            ->select([
-                'id',
-                'salon_id',
-                'name',
-                'description',
-                'duration_minutes',
-                'price',
-                'image_path',
-            ])
-            ->with([
-                'salon:id,name,slug,code,city,district',
-            ])
-            ->withCount([
-                'bookings' => function ($query) {
-                    $query->where(
-                        'status',
-                        '!=',
-                        'cancelled'
-                    );
-                },
-            ])
-            ->orderByDesc(
-                'bookings_count'
-            )
-            ->latest('id')
-            ->limit(
-                self::POPULAR_SERVICES_LIMIT
-            )
-            ->get();
+        $popularServices = Cache::remember(
+            'discover:popular-services:v3',
+            now()->addSeconds(self::CACHE_POPULAR_SECONDS),
+            fn () => Service::query()
+                ->where('is_active', true)
+                ->whereHas('salon', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->select([
+                    'id',
+                    'salon_id',
+                    'name',
+                    'description',
+                    'duration_minutes',
+                    'price',
+                    'image_path',
+                ])
+                ->with(['salon:id,name,slug,code,city,district'])
+                ->withCount([
+                    'bookings' => function ($query) {
+                        $query->where('status', '!=', 'cancelled');
+                    },
+                ])
+                ->orderByDesc('bookings_count')
+                ->latest('id')
+                ->limit(self::POPULAR_SERVICES_LIMIT)
+                ->get()
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -378,48 +367,33 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $stylists = Barber::query()
-            ->where(
-                'is_active',
-                true
-            )
-            ->whereHas(
-                'salon',
-                function ($query) {
-                    $query->where(
-                        'is_active',
-                        true
-                    );
-                }
-            )
-            ->with([
-                'salon:id,name,slug,code,city,district',
-            ])
-            ->select([
-                'id',
-                'salon_id',
-                'name',
-                'specialty',
-                'bio',
-                'image_path',
-            ])
-            ->withCount([
-                'bookings' => function ($query) {
-                    $query->where(
-                        'status',
-                        '!=',
-                        'cancelled'
-                    );
-                },
-            ])
-            ->orderByDesc(
-                'bookings_count'
-            )
-            ->latest('id')
-            ->limit(
-                self::STYLIST_LIMIT
-            )
-            ->get();
+        $stylists = Cache::remember(
+            'discover:stylists:v3',
+            now()->addSeconds(self::CACHE_POPULAR_SECONDS),
+            fn () => Barber::query()
+                ->where('is_active', true)
+                ->whereHas('salon', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->with(['salon:id,name,slug,code,city,district'])
+                ->select([
+                    'id',
+                    'salon_id',
+                    'name',
+                    'specialty',
+                    'bio',
+                    'image_path',
+                ])
+                ->withCount([
+                    'bookings' => function ($query) {
+                        $query->where('status', '!=', 'cancelled');
+                    },
+                ])
+                ->orderByDesc('bookings_count')
+                ->latest('id')
+                ->limit(self::STYLIST_LIMIT)
+                ->get()
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -453,28 +427,15 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $stats = [
-            'salons' => Salon::query()
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->count(),
-
-            'barbers' => Barber::query()
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->count(),
-
-            'services' => Service::query()
-                ->where(
-                    'is_active',
-                    true
-                )
-                ->count(),
-        ];
+        $stats = Cache::remember(
+            'discover:stats:v3',
+            now()->addSeconds(self::CACHE_STATS_SECONDS),
+            fn () => [
+                'salons' => Salon::query()->where('is_active', true)->count(),
+                'barbers' => Barber::query()->where('is_active', true)->count(),
+                'services' => Service::query()->where('is_active', true)->count(),
+            ]
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -688,11 +649,22 @@ class DiscoverController extends Controller
     private function baseSalonQuery()
     {
         return Salon::query()
-            ->where(
+            ->select([
+                'id',
+                'name',
+                'slug',
+                'code',
+                'province',
+                'city',
+                'district',
+                'address',
+                'latitude',
+                'longitude',
+                'cover_path',
+                'logo_path',
                 'is_active',
-                true
-            )
-
+            ])
+            ->where('is_active', true)
             ->withCount([
                 'services' => function ($query) {
                     $query->where(
@@ -724,34 +696,53 @@ class DiscoverController extends Controller
                     );
                 },
             ], 'rating')
+;
+    }
 
-            /*
-             * عمداً limit روی relation نذاشتیم.
-             * View خودش take(3) می‌کند.
-             */
-            ->with([
-                'services' => function ($query) {
-                    $query
-                        ->where(
-                            'is_active',
-                            true
-                        )
-                        ->select([
-                            'id',
-                            'salon_id',
-                            'name',
-                            'price',
-                            'sort_order',
-                            'is_active',
-                        ])
-                        ->orderBy(
-                            'sort_order'
-                        )
-                        ->orderBy(
-                            'name'
-                        );
-                },
-            ]);
+    /**
+     * Load only the small service preview each salon card needs.
+     * This avoids eager-loading every active service for every salon.
+     */
+    private function attachCardServices($items): void
+    {
+        $collection = method_exists($items, 'getCollection')
+            ? $items->getCollection()
+            : $items;
+
+        $salonIds = $collection
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($salonIds->isEmpty()) {
+            return;
+        }
+
+        $servicesBySalon = Service::query()
+            ->whereIn('salon_id', $salonIds)
+            ->where('is_active', true)
+            ->select([
+                'id',
+                'salon_id',
+                'name',
+                'price',
+                'sort_order',
+                'is_active',
+            ])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->groupBy('salon_id');
+
+        foreach ($collection as $salon) {
+            $salon->setRelation(
+                'services',
+                collect($servicesBySalon->get($salon->id, []))
+                    ->take(self::CARD_SERVICES_LIMIT)
+                    ->values()
+            );
+        }
     }
 
     /*
