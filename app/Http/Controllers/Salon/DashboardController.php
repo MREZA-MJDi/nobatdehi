@@ -567,6 +567,23 @@ class DashboardController extends Controller
                 'note' =>
                     $todayDailyStatus?->note,
             ],
+            'readiness' => [
+                'salonActive' =>
+                    (bool) $salon->is_active,
+                'hasWorkingHours' =>
+                    $hasWorkingHours,
+                'activeBarbers' =>
+                    $activeBarbers,
+                'activeServices' =>
+                    $activeServices,
+                'readyToTakeBooking' =>
+                    (bool) (
+                        $salon->is_active
+                        && $hasWorkingHours
+                        && $activeBarbers > 0
+                        && $activeServices > 0
+                    ),
+            ],
             'revenue' => [
                 'weekly' =>
                     $weeklyRevenueChart
