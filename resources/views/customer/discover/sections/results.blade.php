@@ -17,6 +17,7 @@
         'service' => null,
         'province' => '',
         'city' => '',
+        'location' => '',
         'district' => '',
         'sort' => 'recommended',
         'min_rating' => 0,
@@ -67,6 +68,7 @@
         || $filters['service'] !== null
         || $filters['province'] !== ''
         || $filters['city'] !== ''
+        || $filters['location'] !== ''
         || $filters['district'] !== ''
         || (float) $filters['min_rating'] > 0
         || (
@@ -387,6 +389,20 @@
                                 </option>
                             @endforeach
                         </select>
+                    </label>
+
+                    {{-- Location --}}
+                    <label class="block">
+                        <span class="sr-only">شهر، منطقه یا محله</span>
+
+                        <input
+                            type="text"
+                            name="location"
+                            value="{{ $filters['location'] }}"
+                            placeholder="شهر، منطقه یا محله"
+                            autocomplete="address-level2"
+                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition placeholder:text-[var(--color-content-muted)] focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
+                        >
                     </label>
 
                     {{-- District --}}
