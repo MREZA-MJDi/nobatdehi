@@ -3,6 +3,8 @@
 namespace App\Services\Booking;
 
 use App\Enums\BookingStatus;
+use App\Events\BookingCreated;
+use App\Events\BookingStatusChanged;
 use App\Models\Barber;
 use App\Models\Booking;
 use App\Models\Salon;
@@ -236,12 +238,15 @@ class BookingService
         |--------------------------------------------------------------------------
         */
 
+        $timezone = config('app.timezone', 'Asia/Tehran');
+
         $date = Carbon::createFromFormat(
             'Y-m-d',
-            $data['booking_date']
+            $data['booking_date'],
+            $timezone
         )->startOfDay();
 
-        if ($date->isBefore(today())) {
+        if ($date->lt(now($timezone)->startOfDay())) {
             throw ValidationException::withMessages([
                 'booking_date' =>
                     'امکان رزرو برای تاریخ گذشته وجود ندارد.',
@@ -334,44 +339,16 @@ class BookingService
 
         /*
         |--------------------------------------------------------------------------
-        | Customer notification
-        |--------------------------------------------------------------------------
-        */
-
-        if ($booking->customer) {
-            $booking->customer->notify(
-                new BookingNotification(
-                    $booking,
-                    'created'
-                )
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Owner notification
+        | Post-commit notification pipeline
         |--------------------------------------------------------------------------
         |
-        | Manual booking is created by owner himself,
-        | so there is no need to notify owner about approval.
+        | BookingCreated implements ShouldDispatchAfterCommit, so the
+        | notification pipeline cannot run before the booking transaction
+        | has actually committed.
         |
         */
 
-        if (
-            !$manual &&
-            $booking->salon?->owner &&
-            $status === BookingStatus::PENDING
-        ) {
-            $booking
-                ->salon
-                ->owner
-                ->notify(
-                    new BookingNotification(
-                        $booking,
-                        'created'
-                    )
-                );
-        }
+        BookingCreated::dispatch($booking);
 
         return $booking;
     }
@@ -411,9 +388,10 @@ class BookingService
             ]);
         }
 
+        $from = $booking->status;
+
         $booking->update([
-            'status' =>
-                $status,
+            'status' => $status,
         ]);
 
         $booking->load([
@@ -423,14 +401,11 @@ class BookingService
             'customer',
         ]);
 
-        if ($booking->customer) {
-            $booking->customer->notify(
-                new BookingNotification(
-                    $booking,
-                    'status_changed'
-                )
-            );
-        }
+        BookingStatusChanged::dispatch(
+            $booking,
+            $from,
+            $status
+        );
 
         return $booking;
     }
