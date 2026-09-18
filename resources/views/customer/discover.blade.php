@@ -87,6 +87,71 @@
 
         @include('customer.discover.sections.owner-cta')
 
+        <div
+            class="discover-location-modal"
+            id="discoverLocationModal"
+            aria-hidden="true"
+            hidden
+        >
+            <div class="discover-location-backdrop" data-discover-location-close></div>
+
+            <div
+                class="discover-location-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="discoverLocationTitle"
+            >
+                <button
+                    type="button"
+                    class="discover-location-close"
+                    data-discover-location-close
+                    aria-label="بستن"
+                >×</button>
+
+                <div class="discover-location-kicker">NEARBY SEARCH</div>
+
+                <h2 id="discoverLocationTitle">سالن‌های نزدیکت را پیدا کنیم؟</h2>
+
+                <p class="discover-location-copy">
+                    موقعیت مکانی‌ات فقط برای پیدا کردن سالن‌های اطراف استفاده می‌شود.
+                    بعد از پیدا شدن موقعیت، نتیجه‌ها بر اساس فاصله مرتب می‌شوند.
+                </p>
+
+                <div class="discover-location-map" id="discoverLocationMap">
+                    <div class="discover-location-map-state" id="discoverLocationState">
+                        <span class="discover-location-map-pin">⌖</span>
+                        <strong>موقعیت خودت را مشخص کن</strong>
+                        <small>برای نمایش گزینه‌های اطراف، اجازه موقعیت مکانی مرورگر را بده.</small>
+                    </div>
+
+                    <iframe
+                        id="discoverLocationMapFrame"
+                        title="موقعیت مکانی"
+                        loading="lazy"
+                        hidden
+                    ></iframe>
+                </div>
+
+                <div class="discover-location-actions">
+                    <button
+                        type="button"
+                        class="discover-location-primary"
+                        id="discoverLocationAllow"
+                    >
+                        اجازه موقعیت و پیدا کردن نزدیک‌ترین‌ها
+                    </button>
+
+                    <button
+                        type="button"
+                        class="discover-location-secondary"
+                        data-discover-location-close
+                    >
+                        فعلاً نه
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 @endsection
