@@ -14,7 +14,7 @@
     </title>
 
     <meta name="description" content="@yield('meta_description', 'پنل مدیریت سالن NOBAT')">
-    <meta name="theme-color" content="{{ $salon?->primary_color ?? '#6757E8' }}">
+    <meta name="theme-color" content="#4f46e5">
 
     <script>
         (() => {
@@ -27,8 +27,8 @@
 
     <style>
         :root {
-            --owner-primary: {{ $salon?->primary_color ?? '#6757E8' }};
-            --owner-secondary: {{ $salon?->secondary_color ?? '#37B8C8' }};
+            --owner-primary: var(--app-primary, #4f46e5);
+            --owner-secondary: var(--app-brand-to, #06b6d4);
         }
     </style>
 
