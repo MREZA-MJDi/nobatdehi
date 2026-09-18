@@ -3,6 +3,7 @@
 use App\Enums\UserRole;
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\SmsWebhookController;
 use App\Http\Controllers\Admin\SalonController as AdminSalonController;
 
 use App\Http\Controllers\Auth\LoginController;
@@ -77,6 +78,12 @@ Route::prefix('salons/{salon}')
             [CustomerBookingController::class, 'prepare']
         )->name('booking.prepare');
     });
+
+
+Route::post(
+    '/webhooks/sms/booking-reply',
+    [SmsWebhookController::class, 'bookingReply']
+)->name('webhooks.sms.booking-reply');
 
 
 /*
