@@ -1296,3 +1296,388 @@ html[data-theme="dark"] .salon-owner {
         grid-template-columns: repeat(4, minmax(0,1fr));
     }
 }
+
+/* --------------------------------------------------------------------------
+   Shared owner workspace pages: bookings / notifications
+   -------------------------------------------------------------------------- */
+
+.salon-page-header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.salon-page-header h1 {
+    margin: 5px 0 0;
+    color: var(--owner-text);
+    font-size: 1.35rem;
+    line-height: 1.3;
+    font-weight: 950;
+}
+
+.salon-page-header p {
+    max-width: 650px;
+    margin: 6px 0 0;
+    color: var(--owner-muted);
+    font-size: 8px;
+    line-height: 1.9;
+}
+
+.salon-filter-bar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding: 10px;
+    margin-bottom: 13px;
+    border: 1px solid var(--owner-border);
+    border-radius: 17px;
+    background: var(--owner-surface);
+    box-shadow: var(--owner-shadow);
+}
+
+.salon-filter-field {
+    display: grid;
+    gap: 4px;
+}
+
+.salon-filter-field > span {
+    color: var(--owner-faint);
+    font-size: 6.5px;
+    font-weight: 800;
+}
+
+.salon-filter-field input,
+.salon-filter-field select {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid var(--owner-border);
+    border-radius: 11px;
+    background: var(--owner-surface-soft);
+    color: var(--owner-text);
+    outline: 0;
+    padding: 0 10px;
+    font-size: 8px;
+}
+
+.salon-filter-field input:focus,
+.salon-filter-field select:focus {
+    border-color: color-mix(in srgb, var(--owner-primary) 30%, var(--owner-border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--owner-primary) 7%, transparent);
+}
+
+.salon-btn--dark {
+    background: var(--owner-surface-strong);
+    color: var(--owner-bg);
+}
+
+.salon-booking-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 13px;
+}
+
+.salon-booking-summary > a,
+.salon-booking-summary__today {
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid var(--owner-border);
+    border-radius: 13px;
+    background: var(--owner-surface);
+}
+
+.salon-booking-summary > a strong,
+.salon-booking-summary > a span {
+    display: block;
+}
+
+.salon-booking-summary > a strong {
+    color: var(--owner-text);
+    font-size: 14px;
+    font-weight: 950;
+}
+
+.salon-booking-summary > a span,
+.salon-booking-summary__today {
+    color: var(--owner-muted);
+    font-size: 6.5px;
+}
+
+.salon-booking-summary__today {
+    grid-column: 1 / -1;
+}
+
+.salon-bookings-table {
+    display: grid;
+}
+
+.salon-booking-item {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 9px;
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--owner-border);
+}
+
+.salon-booking-item:last-child {
+    border-bottom: 0;
+}
+
+.salon-booking-item__date strong,
+.salon-booking-item__date span,
+.salon-booking-item__customer strong,
+.salon-booking-item__customer span,
+.salon-booking-item__service strong,
+.salon-booking-item__service span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-booking-item__date strong {
+    color: var(--owner-text);
+    font-size: 10px;
+    font-weight: 950;
+}
+
+.salon-booking-item__date span,
+.salon-booking-item__customer span,
+.salon-booking-item__service span {
+    margin-top: 2px;
+    color: var(--owner-faint);
+    font-size: 6.5px;
+}
+
+.salon-booking-item__customer strong,
+.salon-booking-item__service strong {
+    color: var(--owner-text);
+    font-size: 8px;
+    font-weight: 900;
+}
+
+.salon-booking-item__service {
+    grid-column: 2;
+    margin-top: -2px;
+}
+
+.salon-booking-item > .salon-status {
+    grid-column: 2;
+    justify-self: start;
+}
+
+.salon-booking-item__actions {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.salon-booking-item__actions form {
+    margin: 0;
+}
+
+.salon-mini-action {
+    min-height: 29px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    border: 1px solid var(--owner-border);
+    border-radius: 9px;
+    background: var(--owner-surface);
+    color: var(--owner-muted);
+    font-size: 6.5px;
+    font-weight: 900;
+}
+
+.salon-mini-action--success {
+    border-color: color-mix(in srgb, var(--owner-primary) 20%, var(--owner-border));
+    color: var(--owner-primary);
+    background: var(--owner-primary-soft);
+}
+
+.salon-mini-action--link:hover,
+.salon-mini-action--success:hover,
+.salon-mini-action:hover {
+    border-color: color-mix(in srgb, var(--owner-primary) 24%, var(--owner-border));
+}
+
+.salon-notification {
+    display: grid;
+    grid-template-columns: 34px minmax(0,1fr);
+    gap: 9px;
+    padding: 12px;
+    border-bottom: 1px solid var(--owner-border);
+}
+
+.salon-notification:last-child {
+    border-bottom: 0;
+}
+
+.salon-notification.is-unread {
+    background: var(--owner-primary-soft);
+}
+
+.salon-notification__icon {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: var(--owner-surface-soft);
+    color: var(--owner-primary);
+    font-size: 12px;
+}
+
+.salon-notification__body {
+    min-width: 0;
+}
+
+.salon-notification__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.salon-notification__top strong {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--owner-text);
+    font-size: 8px;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-notification__top time {
+    flex: 0 0 auto;
+    color: var(--owner-faint);
+    font-size: 6px;
+}
+
+.salon-notification__body p {
+    margin: 4px 0 0;
+    color: var(--owner-muted);
+    font-size: 7px;
+    line-height: 1.9;
+}
+
+.salon-notification__meta,
+.salon-notification__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.salon-notification__meta {
+    margin-top: 6px;
+}
+
+.salon-notification__meta > span {
+    display: inline-flex;
+    min-height: 20px;
+    align-items: center;
+    padding: 0 7px;
+    border: 1px solid var(--owner-border);
+    border-radius: 999px;
+    color: var(--owner-faint);
+    background: var(--owner-surface);
+    font-size: 6px;
+    font-weight: 800;
+}
+
+.salon-notification__meta > span.is-new {
+    color: var(--owner-primary);
+    border-color: color-mix(in srgb, var(--owner-primary) 18%, var(--owner-border));
+}
+
+.salon-notification__actions {
+    grid-column: 2;
+    margin-top: 2px;
+}
+
+.salon-empty-state {
+    padding: 38px 18px;
+    text-align: center;
+    border: 1px solid var(--owner-border);
+    border-radius: 17px;
+    background: var(--owner-surface);
+    box-shadow: var(--owner-shadow);
+}
+
+.salon-empty-state__icon {
+    width: 46px;
+    height: 46px;
+    margin: 0 auto 10px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: var(--owner-primary-soft);
+    color: var(--owner-primary);
+}
+
+.salon-empty-state h2 {
+    margin: 0;
+    color: var(--owner-text);
+    font-size: 11px;
+    font-weight: 950;
+}
+
+.salon-empty-state p {
+    max-width: 410px;
+    margin: 6px auto 13px;
+    color: var(--owner-muted);
+    font-size: 7px;
+    line-height: 1.9;
+}
+
+.salon-pagination {
+    margin-top: 12px;
+    overflow-x: auto;
+}
+
+@media (min-width: 760px) {
+    .salon-filter-bar {
+        grid-template-columns: repeat(4, minmax(0,1fr));
+    }
+
+    .salon-filter-field--search {
+        grid-column: span 2;
+    }
+
+    .salon-booking-item {
+        grid-template-columns: 84px minmax(160px,1fr) minmax(130px, .8fr) auto;
+        align-items: center;
+    }
+
+    .salon-booking-item__service,
+    .salon-booking-item > .salon-status,
+    .salon-booking-item__actions {
+        grid-column: auto;
+        margin-top: 0;
+    }
+
+    .salon-booking-item__actions {
+        justify-self: end;
+    }
+
+    .salon-notification {
+        grid-template-columns: 38px minmax(0,1fr) auto;
+        align-items: center;
+    }
+
+    .salon-notification__icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .salon-notification__actions {
+        grid-column: auto;
+        margin-top: 0;
+        justify-self: end;
+    }
+}
