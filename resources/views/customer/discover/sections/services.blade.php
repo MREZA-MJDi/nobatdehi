@@ -124,7 +124,7 @@
                     <a
                         href="{{ route(
                             'salons.discover',
-                            ['service' => $serviceName]
+                            ['service' => $service->id]
                         ) }}#results"
                         class="discover-service-card"
                     >
