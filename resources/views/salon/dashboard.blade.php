@@ -367,7 +367,7 @@
             <div class="nd-chart-summary">
                 <div>
                     <span>۶ ماه اخیر</span>
-                    <strong>{{ $money($monthlyTotal) }}</strong>
+                    <strong>{{ $money($monthlyTotal ?? $monthlyRevenueChart->sum('value')) }}</strong>
                 </div>
 
                 <span>ماهانه</span>
