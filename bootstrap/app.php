@@ -13,17 +13,19 @@ return Application::configure(
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
-
     ->withMiddleware(function (Middleware $middleware) {
 
         $middleware->alias([
             'role' => EnsureUserRole::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'register/verify',
+            'register/verify/resend',
+            'webhooks/sms/booking-reply',
+        ]);
     })
-
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })
-
     ->create();

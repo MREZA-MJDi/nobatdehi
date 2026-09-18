@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,19 +10,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Salon extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'name',
+        'slug',
         'code',
         'description',
+
+        'owner_id',
 
         'phone',
         'email',
 
         'logo_path',
         'cover_path',
-
         'primary_color',
         'secondary_color',
 
@@ -37,7 +39,6 @@ class Salon extends Model
 
         'qr_code_path',
 
-        'manager_barber_id',
         'created_by',
 
         'is_active',
@@ -48,32 +49,37 @@ class Salon extends Model
         return [
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
-
             'is_active' => 'boolean',
         ];
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | Manager Barber
+    | Owner
     |--------------------------------------------------------------------------
     */
 
-    public function manager(): BelongsTo
+    public function owner(): BelongsTo
     {
         return $this->belongsTo(
-            Barber::class,
-            'manager_barber_id'
+            User::class,
+            'owner_id'
         );
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | Creator - Super Admin
+    | Creator
     |--------------------------------------------------------------------------
     */
+    /**
+     * @param $query
+     * @return mixed
+     */
+    public function Active($query)
+    {
+        return $query->where('is_active', true);
+    }
 
     public function creator(): BelongsTo
     {
@@ -82,7 +88,6 @@ class Salon extends Model
             'created_by'
         );
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -98,85 +103,69 @@ class Salon extends Model
         );
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | Scopes
+    | Route Binding
     |--------------------------------------------------------------------------
     */
 
-    public function scopeActive(
-        Builder $query
-    ): Builder {
-        return $query->where(
-            'is_active',
-            true
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Accessors
-    |--------------------------------------------------------------------------
-    */
-
-    public function getLogoUrlAttribute(): ?string
+    public function getRouteKeyName(): string
     {
-        if (!$this->logo_path) {
-            return null;
-        }
-
-        return asset(
-            'storage/' . $this->logo_path
-        );
+        return 'slug';
     }
-
-
-    public function getCoverUrlAttribute(): ?string
+    public function dailyStatuses(): HasMany
     {
-        if (!$this->cover_path) {
-            return null;
-        }
-
-        return asset(
-            'storage/' . $this->cover_path
+        return $this->hasMany(
+            SalonDailyStatus::class,
+            'salon_id'
         );
     }
-
-
-    public function getQrCodeUrlAttribute(): ?string
+    public function posts(): HasMany
     {
-        if (!$this->qr_code_path) {
-            return null;
-        }
-
-        return asset(
-            'storage/' . $this->qr_code_path
-        );
+        return $this->hasMany(
+            Post::class,
+            'salon_id'
+        )
+            ->orderBy('sort_order')
+            ->latest('id');
     }
-
-
-    public function getPublicUrlAttribute(): string
+    public function services(): HasMany
     {
-        return route(
-            'salons.show',
-            [
-                'salon' => $this->code,
-            ]
+        return $this->hasMany(
+            Service::class,
+            'salon_id'
+        );
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function workingHours(): HasMany
+    {
+        return $this->hasMany(
+            WorkingHour::class,
+            'salon_id'
+        )->orderBy('day_of_week')
+            ->orderBy('sort_order');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(
+            Booking::class,
+            'salon_id'
         );
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Manager Check
-    |--------------------------------------------------------------------------
-    */
-
-    public function isManagedBy(
-        User $user
-    ): bool {
-        return $this->manager?->user_id === $user->id;
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(
+            Review::class,
+            'salon_id'
+        );
     }
 }

@@ -2,19 +2,22 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Requests\Auth\LoginVerifyRequest;
-use App\Models\User;
-use App\Services\Auth\OtpService;
-use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use RuntimeException;
 
 class LoginController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Login Page
+    |--------------------------------------------------------------------------
+    */
+
     public function create(): View
     {
         return view('auth.login');
@@ -23,268 +26,169 @@ class LoginController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Send OTP
+    | Login
     |--------------------------------------------------------------------------
     */
 
     public function store(
-        LoginRequest $request,
-        OtpService $otp
+        LoginRequest $request
     ): RedirectResponse {
-        $phone = $request->validated('phone');
+        $credentials = [
+            'phone' => $request->validated('phone'),
+            'password' => $request->validated('password'),
+        ];
+
+        $remember = $request->boolean('remember');
 
 
         /*
         |--------------------------------------------------------------------------
-        | User must exist
+        | Authenticate
         |--------------------------------------------------------------------------
         */
 
-        $user = User::query()
-            ->where('phone', $phone)
-            ->first();
-
-
-        if (!$user) {
+        if (!Auth::attempt(
+            $credentials,
+            $remember
+        )) {
             return back()
                 ->withErrors([
                     'phone' =>
-                        'برای این شماره حسابی پیدا نشد. ابتدا ثبت‌نام کنید.',
+                        'شماره موبایل یا رمز عبور اشتباه است.',
                 ])
-                ->withInput();
+                ->withInput(
+                    $request->only([
+                        'phone',
+                        'remember',
+                    ])
+                );
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Store pending authentication
+        | Prevent Session Fixation
         |--------------------------------------------------------------------------
         */
 
-        $request->session()->put(
-            'auth.otp',
-            [
-                'purpose' => 'login',
-
-                'phone' => $phone,
-
-                'remember' =>
-                    $request->boolean('remember'),
-            ]
-        );
+        $request->session()->regenerate();
 
 
-        try {
-
-            $otp->send(
-                $phone,
-                'login',
-                $request->ip()
-            );
-
-        } catch (RuntimeException $e) {
-
-            return back()
-                ->withErrors([
-                    'phone' => $e->getMessage(),
-                ])
-                ->withInput();
-        }
-
-
-        return redirect()
-            ->route('login.verify');
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Verify Page
-    |--------------------------------------------------------------------------
-    */
-
-    public function showVerify(
-        \Illuminate\Http\Request $request
-    ): View|RedirectResponse {
-        $pending =
-            $request->session()->get(
-                'auth.otp'
-            );
-
+        /*
+        |--------------------------------------------------------------------------
+        | Invalid Barber Account
+        |--------------------------------------------------------------------------
+        */
 
         if (
-            !$pending ||
-            ($pending['purpose'] ?? null) !== 'login' ||
-            empty($pending['phone'])
+            $request->user()->role ===
+            UserRole::BARBER
         ) {
-            return redirect()
-                ->route('login');
-        }
+            Auth::logout();
 
-
-        return view(
-            'auth.login-verify',
-            [
-                'phone' =>
-                    PhoneNumber::mask(
-                        $pending['phone']
-                    ),
-            ]
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Verify OTP
-    |--------------------------------------------------------------------------
-    */
-
-    public function verify(
-        LoginVerifyRequest $request,
-        OtpService $otp
-    ): RedirectResponse {
-        $pending =
-            $request->session()->get(
-                'auth.otp'
-            );
-
-
-        if (
-            !$pending ||
-            ($pending['purpose'] ?? null) !== 'login' ||
-            empty($pending['phone'])
-        ) {
-            return redirect()
-                ->route('login');
-        }
-
-
-        $verified = $otp->verify(
-            $pending['phone'],
-            'login',
-            $request->validated('code')
-        );
-
-
-        if (!$verified) {
-            return back()
-                ->withErrors([
-                    'code' =>
-                        'کد تأیید نادرست یا منقضی شده است.',
-                ]);
-        }
-
-
-        $user = User::query()
-            ->where(
-                'phone',
-                $pending['phone']
-            )
-            ->first();
-
-
-        if (!$user) {
-            $request->session()->forget(
-                'auth.otp'
-            );
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
             return redirect()
                 ->route('login')
                 ->withErrors([
                     'phone' =>
-                        'حساب کاربری پیدا نشد.',
+                        'آرایشگر حساب ورود ندارد.',
                 ]);
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Mark phone verified
+        | Booking Flow
         |--------------------------------------------------------------------------
+        |
+        | Customer started a booking before login.
+        |
         */
-
-        if (!$user->phone_verified_at) {
-            $user->forceFill([
-                'phone_verified_at' => now(),
-            ])->save();
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Login
-        |--------------------------------------------------------------------------
-        */
-
-        Auth::login(
-            $user,
-            (bool) ($pending['remember'] ?? false)
-        );
-
-
-        $request->session()->regenerate();
-
-        $request->session()->forget(
-            'auth.otp'
-        );
-
-
-        return redirect()
-            ->intended(url('/'))
-            ->with(
-                'success',
-                'خوش آمدید.'
-            );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Resend
-    |--------------------------------------------------------------------------
-    */
-
-    public function resend(
-        \Illuminate\Http\Request $request,
-        OtpService $otp
-    ): RedirectResponse {
-        $pending =
-            $request->session()->get(
-                'auth.otp'
-            );
-
 
         if (
-            !$pending ||
-            ($pending['purpose'] ?? null) !== 'login'
+            $request->user()->role ===
+            UserRole::CUSTOMER &&
+            $request->session()->has(
+                'booking.pending'
+            )
         ) {
             return redirect()
-                ->route('login');
+                ->route(
+                    'customer.bookings.confirm'
+                )
+                ->with(
+                    'success',
+                    'ورود موفق بود. نوبت خود را بررسی و نهایی کنید.'
+                );
         }
 
 
-        try {
+        /*
+        |--------------------------------------------------------------------------
+        | Clear Invalid Booking Intent
+        |--------------------------------------------------------------------------
+        */
 
-            $otp->send(
-                $pending['phone'],
-                'login',
-                $request->ip()
+        if (
+            $request->session()->has(
+                'booking.pending'
+            )
+        ) {
+            $request->session()->forget(
+                'booking.pending'
             );
-
-        } catch (RuntimeException $e) {
-
-            return back()
-                ->withErrors([
-                    'code' => $e->getMessage(),
-                ]);
         }
 
 
-        return back()
-            ->with(
-                'status',
-                'کد جدید ارسال شد.'
-            );
+        /*
+        |--------------------------------------------------------------------------
+        | Role Redirect
+        |--------------------------------------------------------------------------
+        */
+
+        return match (
+        $request->user()->role
+        ) {
+
+            UserRole::SUPER_ADMIN =>
+            redirect()
+                ->route(
+                    'admin.dashboard'
+                )
+                ->with(
+                    'success',
+                    'خوش آمدید.'
+                ),
+
+            UserRole::SALON_OWNER =>
+            redirect()
+                ->route(
+                    'salon.dashboard'
+                )
+                ->with(
+                    'success',
+                    'خوش آمدید.'
+                ),
+
+            UserRole::CUSTOMER =>
+            redirect()
+                ->route(
+                    'customer.dashboard'
+                )
+                ->with(
+                    'success',
+                    'خوش آمدید.'
+                ),
+
+            default =>
+            redirect()
+                ->route('brand.intro')
+                ->with(
+                    'error',
+                    'نقش حساب کاربری معتبر نیست.'
+                ),
+        };
     }
 }

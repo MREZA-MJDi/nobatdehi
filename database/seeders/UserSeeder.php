@@ -4,24 +4,18 @@ namespace Database\Seeders;
 
 use App\Enums\UserRole;
 use App\Models\User;
-use App\Support\PhoneNumber;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $phone = PhoneNumber::normalize(
-            env(
-                'SUPER_ADMIN_PHONE',
-                '09121234567'
-            )
-        );
-
-
         User::updateOrCreate(
             [
-                'phone' => $phone,
+                'phone' => env(
+                    'SUPER_ADMIN_PHONE',
+                    '09121234567'
+                ),
             ],
             [
                 'name' => env(
@@ -34,13 +28,19 @@ class UserSeeder extends Seeder
                     'admin@nobatdehi.test'
                 ),
 
-                'password' => null,
+                'password' => env(
+                    'SUPER_ADMIN_PASSWORD',
+                    'change-me-12345678'
+                ),
 
-                'role' => UserRole::SUPER_ADMIN,
+                'role' =>
+                    UserRole::SUPER_ADMIN,
 
-                'phone_verified_at' => now(),
+                'phone_verified_at' =>
+                    now(),
 
-                'email_verified_at' => now(),
+                'email_verified_at' =>
+                    now(),
             ]
         );
     }

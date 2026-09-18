@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -30,30 +29,11 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-
             'phone_verified_at' => 'datetime',
-
             'password' => 'hashed',
-
             'role' => UserRole::class,
         ];
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relations
-    |--------------------------------------------------------------------------
-    */
-
-    public function barberProfile(): HasOne
-    {
-        return $this->hasOne(
-            Barber::class,
-            'user_id'
-        );
-    }
-
 
     public function createdSalons(): HasMany
     {
@@ -63,6 +43,13 @@ class User extends Authenticatable
         );
     }
 
+    public function managedSalons(): HasMany
+    {
+        return $this->hasMany(
+            Salon::class,
+            'owner_id'
+        );
+    }
 
     public function phoneOtps(): HasMany
     {
@@ -73,30 +60,25 @@ class User extends Authenticatable
         );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Role Helpers
-    |--------------------------------------------------------------------------
-    */
-
     public function isSuperAdmin(): bool
     {
         return $this->role === UserRole::SUPER_ADMIN;
     }
 
+    public function isSalonOwner(): bool
+    {
+        return $this->role === UserRole::SALON_OWNER;
+    }
 
     public function isBarber(): bool
     {
         return $this->role === UserRole::BARBER;
     }
 
-
     public function isCustomer(): bool
     {
         return $this->role === UserRole::CUSTOMER;
     }
-
 
     public function hasRole(
         UserRole|string $role
@@ -109,7 +91,6 @@ class User extends Authenticatable
             && $this->role === $role;
     }
 
-
     public function hasAnyRole(
         array $roles
     ): bool {
@@ -120,5 +101,24 @@ class User extends Authenticatable
         }
 
         return false;
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(
+            Booking::class,
+            'customer_id'
+        );
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(
+            Review::class,
+            'customer_id'
+        );
     }
 }

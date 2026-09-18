@@ -9,12 +9,6 @@ use RuntimeException;
 
 class OtpService
 {
-    /*
-    |--------------------------------------------------------------------------
-    | OTP Configuration
-    |--------------------------------------------------------------------------
-    */
-
     private const CODE_LENGTH = 6;
 
     private const EXPIRE_MINUTES = 2;
@@ -27,12 +21,6 @@ class OtpService
 
     private const IP_SEND_LIMIT = 20;
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Constructor
-    |--------------------------------------------------------------------------
-    */
 
     public function __construct(
         private readonly SmsSender $sms
@@ -52,14 +40,41 @@ class OtpService
         ?string $ip = null
     ): void {
 
+        $phone =
+            $this->normalizePhone(
+                $phone
+            );
+
+
         /*
         |--------------------------------------------------------------------------
-        | Rate Limit - Phone
+        | Keys
         |--------------------------------------------------------------------------
         */
 
         $phoneKey =
             "otp:send:{$purpose}:phone:{$phone}";
+
+
+        $cooldownKey =
+            "otp:cooldown:{$purpose}:{$phone}";
+
+
+        $ipKey = null;
+
+
+        if ($ip) {
+
+            $ipKey =
+                "otp:send:{$purpose}:ip:{$ip}";
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Phone Rate Limit
+        |--------------------------------------------------------------------------
+        */
 
         if (
             RateLimiter::tooManyAttempts(
@@ -67,10 +82,12 @@ class OtpService
                 self::PHONE_SEND_LIMIT
             )
         ) {
+
             $seconds =
                 RateLimiter::availableIn(
                     $phoneKey
                 );
+
 
             throw new RuntimeException(
                 "تعداد درخواست‌ها بیش از حد مجاز است. {$seconds} ثانیه دیگر دوباره تلاش کنید."
@@ -80,27 +97,21 @@ class OtpService
 
         /*
         |--------------------------------------------------------------------------
-        | Rate Limit - IP
+        | IP Rate Limit
         |--------------------------------------------------------------------------
         */
 
-        $ipKey = null;
+        if (
+            $ipKey &&
+            RateLimiter::tooManyAttempts(
+                $ipKey,
+                self::IP_SEND_LIMIT
+            )
+        ) {
 
-        if ($ip) {
-
-            $ipKey =
-                "otp:send:{$purpose}:ip:{$ip}";
-
-            if (
-                RateLimiter::tooManyAttempts(
-                    $ipKey,
-                    self::IP_SEND_LIMIT
-                )
-            ) {
-                throw new RuntimeException(
-                    'تعداد درخواست‌ها از این IP بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.'
-                );
-            }
+            throw new RuntimeException(
+                'تعداد درخواست‌ها از این IP بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.'
+            );
         }
 
 
@@ -110,19 +121,18 @@ class OtpService
         |--------------------------------------------------------------------------
         */
 
-        $cooldownKey =
-            "otp:cooldown:{$purpose}:{$phone}";
-
         if (
             RateLimiter::tooManyAttempts(
                 $cooldownKey,
                 1
             )
         ) {
+
             $seconds =
                 RateLimiter::availableIn(
                     $cooldownKey
                 );
+
 
             throw new RuntimeException(
                 "ارسال مجدد تا {$seconds} ثانیه دیگر امکان‌پذیر نیست."
@@ -132,67 +142,149 @@ class OtpService
 
         /*
         |--------------------------------------------------------------------------
-        | Invalidate Previous OTPs
+        | Generate OTP
         |--------------------------------------------------------------------------
         */
 
-        PhoneOtp::query()
-            ->where('phone', $phone)
-            ->where('purpose', $purpose)
-            ->whereNull('consumed_at')
-            ->update([
-                'consumed_at' => now(),
+        $code =
+            str_pad(
+                (string) random_int(
+                    0,
+                    999999
+                ),
+                self::CODE_LENGTH,
+                '0',
+                STR_PAD_LEFT
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Save New OTP
+        |--------------------------------------------------------------------------
+        |
+        | IMPORTANT:
+        | Previous OTP is NOT invalidated yet.
+        | It will be invalidated only after SMS succeeds.
+        |
+        */
+
+        $newOtp =
+            PhoneOtp::create([
+                'phone' =>
+                    $phone,
+
+                'purpose' =>
+                    $purpose,
+
+                'code' =>
+                    $code,
+
+                'attempts' =>
+                    0,
+
+                'expires_at' =>
+                    now()->addMinutes(
+                        self::EXPIRE_MINUTES
+                    ),
+
+                'sent_at' =>
+                    now(),
+
+                'ip_address' =>
+                    $ip,
             ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Generate 6 Digit OTP
+        | Message
         |--------------------------------------------------------------------------
         */
 
-        $code = str_pad(
-            (string) random_int(0, 999999),
-            self::CODE_LENGTH,
-            '0',
-            STR_PAD_LEFT
-        );
+        $message =
+            match ($purpose) {
+
+                'login' =>
+                "کد ورود شما: {$code}\nاین کد تا ۲ دقیقه معتبر است.",
+
+                'register' =>
+                "کد ثبت‌نام: {$code}\nاین کد تا ۲ دقیقه معتبر است.",
+
+                default =>
+                "کد تأیید شما: {$code}\nاین کد تا ۲ دقیقه معتبر است.",
+
+            };
 
 
         /*
         |--------------------------------------------------------------------------
-        | Save OTP
+        | Send SMS
         |--------------------------------------------------------------------------
-        |
-        | Development version:
-        | code is stored directly so we can inspect it easily.
-        |
-        | Before production we should switch this to a hashed value.
-        |
         */
 
-        PhoneOtp::create([
-            'phone' => $phone,
+        try {
 
-            'purpose' => $purpose,
+            $this->sms->send(
+                $phone,
+                $message
+            );
 
-            'code' => $code,
+        } catch (\Throwable) {
 
-            'attempts' => 0,
+            /*
+            |--------------------------------------------------------------------------
+            | Remove New OTP
+            |--------------------------------------------------------------------------
+            */
 
-            'expires_at' => now()->addMinutes(
-                self::EXPIRE_MINUTES
-            ),
+            $newOtp->delete();
 
-            'sent_at' => now(),
 
-            'ip_address' => $ip,
-        ]);
+            /*
+            |--------------------------------------------------------------------------
+            | Do NOT consume previous OTP
+            |--------------------------------------------------------------------------
+            */
+
+            throw new RuntimeException(
+                'ارسال پیامک انجام نشد. لطفاً دوباره تلاش کنید.'
+            );
+        }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Mark Rate Limits
+        | Success -> Invalidate Previous OTPs
+        |--------------------------------------------------------------------------
+        */
+
+        PhoneOtp::query()
+            ->where(
+                'phone',
+                $phone
+            )
+            ->where(
+                'purpose',
+                $purpose
+            )
+            ->where(
+                'id',
+                '!=',
+                $newOtp->id
+            )
+            ->whereNull(
+                'consumed_at'
+            )
+            ->update([
+                'consumed_at' =>
+                    now(),
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Rate Limits
         |--------------------------------------------------------------------------
         */
 
@@ -203,6 +295,7 @@ class OtpService
 
 
         if ($ipKey) {
+
             RateLimiter::hit(
                 $ipKey,
                 600
@@ -213,37 +306,6 @@ class OtpService
         RateLimiter::hit(
             $cooldownKey,
             self::RESEND_SECONDS
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Build SMS Message
-        |--------------------------------------------------------------------------
-        */
-
-        $message = match ($purpose) {
-
-            'login' =>
-            "کد ورود شما: {$code}\nاین کد تا ۲ دقیقه معتبر است.",
-
-            'register' =>
-            "کد ثبت‌نام نوبت‌دهی: {$code}\nاین کد تا ۲ دقیقه معتبر است.",
-
-            default =>
-            "کد تأیید شما: {$code}\nاین کد تا ۲ دقیقه معتبر است.",
-        };
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Send SMS
-        |--------------------------------------------------------------------------
-        */
-
-        $this->sms->send(
-            $phone,
-            $message
         );
     }
 
@@ -260,27 +322,66 @@ class OtpService
         string $code
     ): bool {
 
+        $phone =
+            $this->normalizePhone(
+                $phone
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Normalize Code
+        |--------------------------------------------------------------------------
+        */
+
+        $code =
+            $this->normalizeDigits(
+                $code
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Exact 6 Digits
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !preg_match(
+                '/^\d{6}$/',
+                $code
+            )
+        ) {
+
+            return false;
+        }
+
+
         /*
         |--------------------------------------------------------------------------
         | Get Latest Active OTP
         |--------------------------------------------------------------------------
         */
 
-        $otp = PhoneOtp::query()
-            ->where('phone', $phone)
-            ->where('purpose', $purpose)
-            ->whereNull('consumed_at')
-            ->latest('id')
-            ->first();
+        $otp =
+            PhoneOtp::query()
+                ->where(
+                    'phone',
+                    $phone
+                )
+                ->where(
+                    'purpose',
+                    $purpose
+                )
+                ->whereNull(
+                    'consumed_at'
+                )
+                ->latest('id')
+                ->first();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | No OTP Found
-        |--------------------------------------------------------------------------
-        */
 
         if (!$otp) {
+
             return false;
         }
 
@@ -296,9 +397,12 @@ class OtpService
                 $otp->expires_at
             )
         ) {
+
             $otp->update([
-                'consumed_at' => now(),
+                'consumed_at' =>
+                    now(),
             ]);
+
 
             return false;
         }
@@ -306,7 +410,7 @@ class OtpService
 
         /*
         |--------------------------------------------------------------------------
-        | Maximum Attempts
+        | Attempts
         |--------------------------------------------------------------------------
         */
 
@@ -314,9 +418,12 @@ class OtpService
             $otp->attempts >=
             self::MAX_ATTEMPTS
         ) {
+
             $otp->update([
-                'consumed_at' => now(),
+                'consumed_at' =>
+                    now(),
             ]);
+
 
             return false;
         }
@@ -324,25 +431,11 @@ class OtpService
 
         /*
         |--------------------------------------------------------------------------
-        | Normalize Incoming Code
-        |--------------------------------------------------------------------------
-        */
-
-        $code = preg_replace(
-            '/\D/',
-            '',
-            $code
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Verify
+        | Compare
         |--------------------------------------------------------------------------
         */
 
         if (
-            !is_string($code) ||
             !hash_equals(
                 (string) $otp->code,
                 $code
@@ -354,18 +447,14 @@ class OtpService
             );
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | Consume after too many attempts
-            |--------------------------------------------------------------------------
-            */
-
             if (
                 $otp->attempts >=
                 self::MAX_ATTEMPTS
             ) {
+
                 $otp->update([
-                    'consumed_at' => now(),
+                    'consumed_at' =>
+                        now(),
                 ]);
             }
 
@@ -381,13 +470,14 @@ class OtpService
         */
 
         $otp->update([
-            'consumed_at' => now(),
+            'consumed_at' =>
+                now(),
         ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Clear Phone Rate Limit
+        | Clear Phone Send Rate
         |--------------------------------------------------------------------------
         */
 
@@ -398,10 +488,120 @@ class OtpService
 
         /*
         |--------------------------------------------------------------------------
-        | Return Success
+        | Clear Cooldown
         |--------------------------------------------------------------------------
         */
 
+        RateLimiter::clear(
+            "otp:cooldown:{$purpose}:{$phone}"
+        );
+
+
         return true;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Normalize Phone
+    |--------------------------------------------------------------------------
+    */
+
+    private function normalizePhone(
+        string $phone
+    ): string {
+
+        $phone =
+            $this->normalizeDigits(
+                $phone
+            );
+
+
+        $phone =
+            preg_replace(
+                '/[\s\-\(\)]/',
+                '',
+                $phone
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | +98xxxxxxxxxx
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            str_starts_with(
+                $phone,
+                '+98'
+            )
+        ) {
+
+            $phone =
+                '0' .
+                substr(
+                    $phone,
+                    3
+                );
+
+        } elseif (
+            str_starts_with(
+                $phone,
+                '0098'
+            )
+        ) {
+
+            $phone =
+                '0' .
+                substr(
+                    $phone,
+                    4
+                );
+        }
+
+
+        return $phone;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Normalize Digits
+    |--------------------------------------------------------------------------
+    */
+
+    private function normalizeDigits(
+        string $value
+    ): string {
+
+        return strtr(
+            $value,
+            [
+
+                '۰' => '0',
+                '۱' => '1',
+                '۲' => '2',
+                '۳' => '3',
+                '۴' => '4',
+                '۵' => '5',
+                '۶' => '6',
+                '۷' => '7',
+                '۸' => '8',
+                '۹' => '9',
+
+                '٠' => '0',
+                '١' => '1',
+                '٢' => '2',
+                '٣' => '3',
+                '٤' => '4',
+                '٥' => '5',
+                '٦' => '6',
+                '٧' => '7',
+                '٨' => '8',
+                '٩' => '9',
+
+            ]
+        );
     }
 }

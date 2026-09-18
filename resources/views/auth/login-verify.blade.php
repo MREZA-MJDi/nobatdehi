@@ -13,7 +13,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="mb-6 inline-flex items-center gap-2 text-xs font-bold text-content-muted hover:text-accent-600"
+                class="mb-6 inline-flex items-center gap-2 text-xs font-bold text-content-muted transition hover:text-accent-600"
             >
                 ← تغییر شماره
             </a>
@@ -58,14 +58,18 @@
 
 
                 <p class="mt-2 text-xs leading-6 text-content-muted">
+
                     کد ۶ رقمی برای شماره
+
                     <span
                         class="font-bold text-content"
                         dir="ltr"
                     >
-                    {{ $phone }}
-                </span>
+                        {{ $phone }}
+                    </span>
+
                     ارسال شد.
+
                 </p>
 
             </div>
@@ -141,7 +145,7 @@
 
 
             <form
-                action="{{ route('login.resend') }}"
+                action="{{ route('login.verify.resend') }}"
                 method="POST"
                 class="mt-4 text-center"
             >
@@ -150,7 +154,7 @@
 
                 <button
                     type="submit"
-                    class="text-xs font-bold text-accent-600 hover:text-accent-700"
+                    class="text-xs font-bold text-accent-600 transition hover:text-accent-700"
                 >
                     ارسال مجدد کد
                 </button>

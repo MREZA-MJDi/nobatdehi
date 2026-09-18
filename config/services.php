@@ -35,4 +35,24 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | NOBAT SMS webhook
+    |--------------------------------------------------------------------------
+    */
+
+    'nobat_sms' => [
+        'webhook_secret' => env('NOBAT_SMS_WEBHOOK_SECRET'),
+
+        'approver_sms' => (bool) env(
+            'NOBAT_BOOKING_APPROVER_SMS',
+            true
+        ),
+
+        'customer_status_sms' => (bool) env(
+            'NOBAT_BOOKING_CUSTOMER_STATUS_SMS',
+            false
+        ),
+    ],
+
 ];

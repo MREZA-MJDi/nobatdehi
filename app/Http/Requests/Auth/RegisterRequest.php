@@ -15,17 +15,22 @@ class RegisterRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $rawPhone = (string) $this->input(
+            'phone',
+            ''
+        );
+
         try {
             $phone = PhoneNumber::normalize(
-                $this->input('phone', '')
+                $rawPhone
             );
-
-            $this->merge([
-                'phone' => $phone,
-            ]);
         } catch (\Throwable) {
-            //
+            $phone = $rawPhone;
         }
+
+        $this->merge([
+            'phone' => $phone,
+        ]);
     }
 
     public function rules(): array
@@ -35,11 +40,12 @@ class RegisterRequest extends FormRequest
                 'required',
                 'string',
                 'min:2',
-                'max:100',
+                'max:120',
             ],
 
             'phone' => [
                 'required',
+                'string',
                 'regex:/^09\d{9}$/',
                 Rule::unique(
                     'users',
@@ -47,7 +53,15 @@ class RegisterRequest extends FormRequest
                 ),
             ],
 
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
+
             'terms' => [
+                'required',
                 'accepted',
             ],
         ];
@@ -57,10 +71,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name.required' =>
-                'نام الزامی است.',
-
-            'name.min' =>
-                'نام باید حداقل ۲ کاراکتر باشد.',
+                'نام و نام خانوادگی الزامی است.',
 
             'phone.required' =>
                 'شماره موبایل الزامی است.',
@@ -69,7 +80,16 @@ class RegisterRequest extends FormRequest
                 'شماره موبایل معتبر نیست.',
 
             'phone.unique' =>
-                'این شماره قبلاً ثبت شده است. وارد حساب خود شوید.',
+                'این شماره قبلاً ثبت شده است.',
+
+            'password.required' =>
+                'رمز عبور الزامی است.',
+
+            'password.min' =>
+                'رمز عبور باید حداقل ۸ کاراکتر باشد.',
+
+            'password.confirmed' =>
+                'تکرار رمز عبور یکسان نیست.',
 
             'terms.accepted' =>
                 'پذیرش قوانین الزامی است.',

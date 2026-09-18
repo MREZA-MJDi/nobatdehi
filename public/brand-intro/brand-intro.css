@@ -1,0 +1,857 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600&family=Vazirmatn:wght@300;400;500;600;700&display=swap");
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+
+html,
+body {
+    width: 100%;
+    min-width: 320px;
+    height: 100%;
+    margin: 0;
+}
+
+
+body {
+    overflow: hidden;
+
+    background: #090908;
+
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+
+/* =========================================================
+   INTRO
+========================================================= */
+
+.brand-intro {
+    position: fixed;
+    inset: 0;
+
+    z-index: 9999;
+
+    display: grid;
+    place-items: center;
+
+    overflow: hidden;
+
+    background: rgba(11, 11, 11, 0.53);
+    color: #efeee8;
+
+    isolation: isolate;
+
+    user-select: none;
+
+    touch-action: manipulation;
+
+    cursor: default;
+
+    clip-path: inset(0 0 0 0);
+
+    transition:
+        clip-path 1050ms cubic-bezier(0.76, 0, 0.24, 1),
+        opacity 500ms ease 650ms;
+}
+
+
+/* =========================================================
+   SUBTLE FILM GRAIN
+========================================================= */
+
+.brand-intro::before {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    pointer-events: none;
+
+    opacity: 0.032;
+
+    background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+
+    mix-blend-mode: soft-light;
+}
+
+
+/* =========================================================
+   FRAME
+========================================================= */
+
+.brand-intro::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    pointer-events: none;
+
+    border: 1px solid rgba(255, 255, 255, 0.025);
+}
+
+
+/* =========================================================
+   STAGE
+========================================================= */
+
+.brand-stage {
+    position: relative;
+
+    width: min(1100px, 92vw);
+    height: min(700px, 80vh);
+
+    display: grid;
+    place-items: center;
+
+    transform-origin: center center;
+
+    will-change: transform;
+}
+
+
+/* =========================================================
+   MAIN COMPOSITION
+========================================================= */
+
+.brand-composition {
+    position: relative;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    transform: translateY(-3vh);
+}
+
+
+/* =========================================================
+   NOBAT
+========================================================= */
+
+.brand-word-wrap {
+    position: relative;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+}
+
+
+.brand-word {
+    position: relative;
+
+    z-index: 5;
+
+    display: block;
+
+    font-family:
+        "Vazirmatn",
+        sans-serif;
+
+    font-size:
+        clamp(
+            2.7rem,
+            6.2vw,
+            5.2rem
+        );
+
+    font-weight: 500;
+
+    line-height: 0.9;
+
+    letter-spacing: 0.19em;
+
+    padding-left: 0.19em;
+
+    color: #f0efe9;
+
+    opacity: 0;
+
+    transform:
+        translate3d(0, 22px, 0)
+        scaleX(1.08);
+
+    filter: blur(5px);
+
+    animation:
+        brand-word-in
+        1100ms
+        cubic-bezier(0.16, 1, 0.3, 1)
+        80ms
+        forwards;
+}
+
+
+@keyframes brand-word-in {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translate3d(0, 22px, 0)
+            scaleX(1.08);
+
+        filter: blur(5px);
+    }
+
+    100% {
+        opacity: 1;
+
+        transform:
+            translate3d(0, 0, 0)
+            scaleX(1);
+
+        filter: blur(0);
+    }
+}
+
+
+/* =========================================================
+   KINETIC FRAME
+========================================================= */
+
+.kinetic-frame {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: 560px;
+    height: 170px;
+
+    transform:
+        translate(-50%, -50%);
+
+    pointer-events: none;
+}
+
+
+.line {
+    position: absolute;
+
+    display: block;
+
+    height: 1px;
+
+    background:
+        rgba(239, 238, 232, 0.72);
+
+    opacity: 0;
+
+    will-change:
+        transform,
+        opacity;
+}
+
+
+/* ---------------------------------------------------------
+   SIDE LINES
+--------------------------------------------------------- */
+
+.line-left {
+    width: 115px;
+
+    left: 0;
+    top: 50%;
+
+    transform:
+        translateX(55px)
+        scaleX(0);
+
+    transform-origin: right center;
+
+    animation:
+        line-left-in
+        900ms
+        cubic-bezier(0.16, 1, 0.3, 1)
+        900ms
+        forwards;
+}
+
+
+.line-right {
+    width: 115px;
+
+    right: 0;
+    top: 50%;
+
+    transform:
+        translateX(-55px)
+        scaleX(0);
+
+    transform-origin: left center;
+
+    animation:
+        line-right-in
+        900ms
+        cubic-bezier(0.16, 1, 0.3, 1)
+        900ms
+        forwards;
+}
+
+
+/* ---------------------------------------------------------
+   LOWER LINES
+--------------------------------------------------------- */
+
+.line-bottom-left {
+    width: 170px;
+
+    left: 74px;
+    bottom: 17px;
+
+    transform:
+        translateY(-28px)
+        scaleX(0);
+
+    transform-origin: right center;
+
+    animation:
+        bottom-left-in
+        900ms
+        cubic-bezier(0.16, 1, 0.3, 1)
+        900ms
+        forwards;
+}
+
+
+.line-bottom-right {
+    width: 170px;
+
+    right: 74px;
+    bottom: 17px;
+
+    transform:
+        translateY(-28px)
+        scaleX(0);
+
+    transform-origin: left center;
+
+    animation:
+        bottom-right-in
+        900ms
+        cubic-bezier(0.16, 1, 0.3, 1)
+        900ms
+        forwards;
+}
+
+
+/* =========================================================
+   LINE ANIMATIONS
+========================================================= */
+
+@keyframes line-left-in {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translateX(55px)
+            scaleX(0);
+    }
+
+    100% {
+        opacity: 1;
+
+        transform:
+            translateX(0)
+            scaleX(1);
+    }
+}
+
+
+@keyframes line-right-in {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translateX(-55px)
+            scaleX(0);
+    }
+
+    100% {
+        opacity: 1;
+
+        transform:
+            translateX(0)
+            scaleX(1);
+    }
+}
+
+
+@keyframes bottom-left-in {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translateY(-28px)
+            scaleX(0);
+    }
+
+    100% {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scaleX(1);
+    }
+}
+
+
+@keyframes bottom-right-in {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translateY(-28px)
+            scaleX(0);
+    }
+
+    100% {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scaleX(1);
+    }
+}
+
+
+/* =========================================================
+   PERSIAN TAGLINE
+========================================================= */
+
+.brand-tagline {
+    position: relative;
+
+    z-index: 4;
+
+    margin-top: 34px;
+
+    direction: rtl;
+
+    font-family:
+        "Noto Nastaliq Urdu",
+        serif;
+
+    font-size:
+        clamp(
+            0.95rem,
+            2.1vw,
+            1.35rem
+        );
+
+    font-weight: 400;
+
+    line-height: 2;
+
+    white-space: nowrap;
+
+    text-align: center;
+
+    color:
+        rgba(239, 238, 232, 0.9);
+
+    opacity: 0;
+
+    transform:
+        translate3d(0, 24px, 0)
+        skewX(-5deg);
+
+    filter: blur(4px);
+
+    animation:
+        tagline-in
+        850ms
+        cubic-bezier(0.16, 1, 0.3, 1)
+        2050ms
+        forwards;
+}
+
+
+@keyframes tagline-in {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translate3d(0, 24px, 0)
+            skewX(-5deg);
+
+        filter: blur(4px);
+    }
+
+    100% {
+        opacity: 1;
+
+        transform:
+            translate3d(0, 0, 0)
+            skewX(0);
+
+        filter: blur(0);
+    }
+}
+
+
+/* =========================================================
+   EDITORIAL DETAILS
+========================================================= */
+
+.editorial-index {
+    position: absolute;
+
+    left: 0;
+    top: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    font-family:
+        "Vazirmatn",
+        sans-serif;
+
+    font-size: 8px;
+
+    letter-spacing: 0.22em;
+
+    color:
+        rgba(239, 238, 232, 0.25);
+
+    opacity: 0;
+
+    animation:
+        editorial-in
+        700ms
+        ease
+        2600ms
+        forwards;
+}
+
+
+.editorial-index i {
+    display: block;
+
+    width: 28px;
+    height: 1px;
+
+    background:
+        rgba(239, 238, 232, 0.2);
+}
+
+
+.editorial-corner {
+    position: absolute;
+
+    right: 0;
+    bottom: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    gap: 5px;
+
+    font-family:
+        "Vazirmatn",
+        sans-serif;
+
+    font-size: 7px;
+
+    letter-spacing: 0.24em;
+
+    color:
+        rgba(239, 238, 232, 0.2);
+
+    opacity: 0;
+
+    animation:
+        editorial-in
+        700ms
+        ease
+        2700ms
+        forwards;
+}
+
+
+@keyframes editorial-in {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translate3d(0, 10px, 0);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translate3d(0, 0, 0);
+    }
+}
+
+
+/* =========================================================
+   FINAL BRAND COLLAPSE
+========================================================= */
+
+.brand-intro.is-collapsing {
+    clip-path:
+        inset(
+            50% 50% 50% 50%
+        );
+
+    opacity: 0;
+}
+
+
+.brand-intro.is-collapsing .brand-word {
+
+    transform:
+        translate3d(0, -4px, 0)
+        scale(0.84);
+
+    opacity: 0.82;
+
+    transition:
+        transform
+        700ms
+        cubic-bezier(0.16, 1, 0.3, 1),
+
+        opacity
+        700ms
+        ease;
+}
+
+
+.brand-intro.is-collapsing .brand-tagline {
+
+    transform:
+        translate3d(0, -18px, 0)
+        scale(0.86);
+
+    opacity: 0.25;
+
+    transition:
+        transform
+        650ms
+        cubic-bezier(0.16, 1, 0.3, 1),
+
+        opacity
+        650ms
+        ease;
+}
+
+
+.brand-intro.is-collapsing .line-left {
+
+    transform:
+        translateX(105px)
+        scaleX(0.08)
+        rotate(3deg);
+
+    opacity: 0.55;
+
+    transition:
+        transform
+        650ms
+        cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+.brand-intro.is-collapsing .line-right {
+
+    transform:
+        translateX(-105px)
+        scaleX(0.08)
+        rotate(-3deg);
+
+    opacity: 0.55;
+
+    transition:
+        transform
+        650ms
+        cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+.brand-intro.is-collapsing .line-bottom-left {
+
+    transform:
+        translate(65px, -44px)
+        scaleX(0.08)
+        rotate(-10deg);
+
+    opacity: 0.45;
+}
+
+
+.brand-intro.is-collapsing .line-bottom-right {
+
+    transform:
+        translate(-65px, -44px)
+        scaleX(0.08)
+        rotate(10deg);
+
+    opacity: 0.45;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 640px) {
+
+    .brand-stage {
+        width: 100vw;
+
+        height: 80vh;
+    }
+
+
+    .brand-composition {
+        transform:
+            translateY(-2vh);
+    }
+
+
+    .brand-word {
+
+        font-size:
+            clamp(
+                2.45rem,
+                13vw,
+                4rem
+            );
+
+        letter-spacing: 0.12em;
+
+        padding-left: 0.12em;
+    }
+
+
+    .kinetic-frame {
+
+        width: 330px;
+
+        height: 145px;
+    }
+
+
+    .line-left,
+    .line-right {
+
+        width: 58px;
+    }
+
+
+    .line-bottom-left,
+    .line-bottom-right {
+
+        width: 95px;
+    }
+
+
+    .line-bottom-left {
+        left: 45px;
+    }
+
+
+    .line-bottom-right {
+        right: 45px;
+    }
+
+
+    .brand-tagline {
+
+        margin-top: 27px;
+
+        max-width: 90vw;
+
+        white-space: normal;
+
+        font-size:
+            clamp(
+                0.88rem,
+                4vw,
+                1.08rem
+            );
+
+        line-height: 2;
+    }
+
+
+    .editorial-index {
+
+        left: 20px;
+
+        top: 20px;
+    }
+
+
+    .editorial-corner {
+
+        right: 20px;
+
+        bottom: 20px;
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .brand-intro *,
+    .brand-intro {
+
+        animation-duration: 1ms !important;
+
+        transition-duration: 1ms !important;
+    }
+}
+.brand-intro.is-exiting {
+    pointer-events: none;
+
+    animation:
+        intro-exit
+        320ms
+        cubic-bezier(.76, 0, .24, 1)
+        forwards;
+}
+
+@keyframes intro-exit {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(.985);
+    }
+}

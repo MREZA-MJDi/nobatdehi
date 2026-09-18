@@ -9,7 +9,13 @@ use Illuminate\Support\Facades\Auth;
 
 class LogoutController extends Controller
 {
-    public function store(
+    /*
+    |--------------------------------------------------------------------------
+    | Logout
+    |--------------------------------------------------------------------------
+    */
+
+    public function destroy(
         Request $request
     ): RedirectResponse {
         Auth::logout();
@@ -18,11 +24,10 @@ class LogoutController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect()
-            ->route('login')
+        return redirect('/')
             ->with(
                 'success',
-                'با موفقیت خارج شدید.'
+                'با موفقیت از حساب کاربری خارج شدید.'
             );
     }
 }
