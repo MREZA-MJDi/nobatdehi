@@ -284,6 +284,214 @@
     let lightboxItems = [];
     let lightboxIndex = 0;
 
+    function formatMediaTime(seconds) {
+        if (!Number.isFinite(seconds) || seconds < 0) {
+            return '00:00';
+        }
+
+        const total = Math.floor(seconds);
+        const minutes = Math.floor(total / 60);
+        const remaining = total % 60;
+
+        return `${pad2(minutes)}:${pad2(remaining)}`;
+    }
+
+    function buildCustomVideoPlayer(src, poster, title) {
+        const player = document.createElement('div');
+        player.className = 'custom-video-player';
+        player.setAttribute('data-video-player', '');
+
+        const video = document.createElement('video');
+        video.src = src;
+        video.playsInline = true;
+        video.autoplay = true;
+        video.muted = true;
+        video.preload = 'metadata';
+        video.setAttribute('aria-label', title || 'ویدیوی نمونه‌کار');
+
+        if (poster) {
+            video.poster = poster;
+        }
+
+        const centerPlay = document.createElement('button');
+        centerPlay.type = 'button';
+        centerPlay.className = 'cvp-center-play';
+        centerPlay.setAttribute('aria-label', 'پخش ویدیو');
+        centerPlay.innerHTML = '<span>▶</span>';
+
+        const chrome = document.createElement('div');
+        chrome.className = 'cvp-chrome';
+
+        const progress = document.createElement('input');
+        progress.type = 'range';
+        progress.min = '0';
+        progress.max = '1000';
+        progress.value = '0';
+        progress.step = '1';
+        progress.className = 'cvp-progress';
+        progress.setAttribute('aria-label', 'موقعیت ویدیو');
+
+        const controls = document.createElement('div');
+        controls.className = 'cvp-controls';
+
+        const playButton = document.createElement('button');
+        playButton.type = 'button';
+        playButton.className = 'cvp-button';
+        playButton.setAttribute('aria-label', 'پخش');
+        playButton.textContent = '▶';
+
+        const time = document.createElement('span');
+        time.className = 'cvp-time';
+        time.textContent = '00:00 / 00:00';
+
+        const muteButton = document.createElement('button');
+        muteButton.type = 'button';
+        muteButton.className = 'cvp-button';
+        muteButton.setAttribute('aria-label', 'روشن کردن صدا');
+        muteButton.textContent = '🔇';
+
+        const speedButton = document.createElement('button');
+        speedButton.type = 'button';
+        speedButton.className = 'cvp-button cvp-speed';
+        speedButton.setAttribute('aria-label', 'سرعت پخش');
+        speedButton.textContent = '1×';
+
+        const fullscreenButton = document.createElement('button');
+        fullscreenButton.type = 'button';
+        fullscreenButton.className = 'cvp-button';
+        fullscreenButton.setAttribute('aria-label', 'تمام صفحه');
+        fullscreenButton.textContent = '⛶';
+
+        const left = document.createElement('div');
+        left.className = 'cvp-control-group';
+        left.append(playButton, time);
+
+        const right = document.createElement('div');
+        right.className = 'cvp-control-group';
+        right.append(muteButton, speedButton, fullscreenButton);
+
+        controls.append(left, right);
+        chrome.append(progress, controls);
+        player.append(video, centerPlay, chrome);
+
+        const speeds = [1, 1.25, 1.5, 2];
+        let speedIndex = 0;
+
+        const syncPlaybackUI = () => {
+            const playing = !video.paused && !video.ended;
+
+            playButton.textContent = playing ? '❚❚' : '▶';
+            playButton.setAttribute(
+                'aria-label',
+                playing ? 'توقف موقت' : 'پخش'
+            );
+
+            centerPlay.classList.toggle('is-hidden', playing);
+            player.classList.toggle('is-playing', playing);
+        };
+
+        const syncTime = () => {
+            const duration = Number.isFinite(video.duration)
+                ? video.duration
+                : 0;
+
+            time.textContent =
+                `${formatMediaTime(video.currentTime)} / ${formatMediaTime(duration)}`;
+
+            progress.value =
+                duration > 0
+                    ? String(Math.round((video.currentTime / duration) * 1000))
+                    : '0';
+        };
+
+        const togglePlayback = () => {
+            if (video.paused || video.ended) {
+                video.play().catch(() => {});
+            } else {
+                video.pause();
+            }
+        };
+
+        playButton.addEventListener('click', togglePlayback);
+        centerPlay.addEventListener('click', togglePlayback);
+        video.addEventListener('click', togglePlayback);
+
+        video.addEventListener('play', syncPlaybackUI);
+        video.addEventListener('pause', syncPlaybackUI);
+
+        video.addEventListener('ended', () => {
+            video.currentTime = 0;
+            syncTime();
+            syncPlaybackUI();
+        });
+
+        video.addEventListener('timeupdate', syncTime);
+
+        video.addEventListener('loadedmetadata', () => {
+            player.classList.toggle(
+                'is-portrait',
+                video.videoHeight > video.videoWidth
+            );
+
+            syncTime();
+        });
+
+        progress.addEventListener('input', () => {
+            const duration = Number.isFinite(video.duration)
+                ? video.duration
+                : 0;
+
+            if (duration > 0) {
+                video.currentTime =
+                    (Number(progress.value) / 1000) * duration;
+            }
+        });
+
+        muteButton.addEventListener('click', () => {
+            video.muted = !video.muted;
+            muteButton.textContent = video.muted ? '🔇' : '🔊';
+            muteButton.setAttribute(
+                'aria-label',
+                video.muted ? 'روشن کردن صدا' : 'بی‌صدا کردن'
+            );
+        });
+
+        speedButton.addEventListener('click', () => {
+            speedIndex = (speedIndex + 1) % speeds.length;
+            const speed = speeds[speedIndex];
+
+            video.playbackRate = speed;
+            speedButton.textContent = `${speed}×`;
+        });
+
+        fullscreenButton.addEventListener('click', async () => {
+            try {
+                if (document.fullscreenElement) {
+                    await document.exitFullscreen();
+                } else if (player.requestFullscreen) {
+                    await player.requestFullscreen();
+                } else {
+                    video.webkitEnterFullscreen?.();
+                }
+            } catch (_) {
+                // Browser may block fullscreen.
+            }
+        });
+
+        video.addEventListener('dblclick', () => {
+            fullscreenButton.click();
+        });
+
+        syncPlaybackUI();
+        syncTime();
+
+        window.setTimeout(() => {
+            video.play().catch(() => {});
+        }, 0);
+
+        return player;
+    }
+
     function buildLightboxMedia(tile) {
         if (!lightboxMedia) {
             return;
@@ -294,6 +502,7 @@
         const src = tile.dataset.src || '';
         const poster = tile.dataset.poster || '';
         const type = tile.dataset.type || 'image';
+        const title = tile.dataset.title || 'رسانه سالن';
 
         if (!src) {
             const fallback = document.createElement('div');
@@ -306,15 +515,11 @@
             return;
         }
 
-        if (
-            type === 'image' ||
-            type === 'gif'
-        ) {
+        if (type === 'image' || type === 'gif') {
             const image = document.createElement('img');
 
             image.src = src;
-            image.alt =
-                tile.dataset.title || 'رسانه سالن';
+            image.alt = title;
             image.decoding = 'async';
 
             lightboxMedia.appendChild(image);
@@ -322,22 +527,13 @@
             return;
         }
 
-        const video = document.createElement('video');
-
-        video.src = src;
-        video.controls = true;
-        video.autoplay = true;
-        video.muted = true;
-        video.playsInline = true;
-        video.preload = 'metadata';
-
-        if (poster) {
-            video.poster = poster;
-        }
-
-        lightboxMedia.appendChild(video);
-
-        video.play().catch(() => {});
+        lightboxMedia.appendChild(
+            buildCustomVideoPlayer(
+                src,
+                poster,
+                title
+            )
+        );
     }
 
     function updateLightbox() {

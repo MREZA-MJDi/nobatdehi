@@ -113,65 +113,23 @@
 
         /*
         |--------------------------------------------------------------------------
-        | Today's hours
+        | Booking availability
+        |--------------------------------------------------------------------------
+        |
+        | The controller is the single source of truth for today's schedule.
+        | It already applies the app timezone and today's explicit close status.
         |--------------------------------------------------------------------------
         */
 
-        $todayDow = (now()->dayOfWeek + 1) % 7;
-
-        $todayHours = ($salon->workingHours ?? collect())
-            ->where('day_of_week', $todayDow)
-            ->where('is_closed', false)
-            ->values();
-
-        $isOpenToday = $todayHours->isNotEmpty();
-
-        $isOpenNow = false;
-
-        if ($isOpenToday) {
-            $nowTime = now();
-
-            foreach ($todayHours as $todayHour) {
-                $start = now()->setTimeFromTimeString(
-                    substr((string) $todayHour->start_time, 0, 8)
-                );
-
-                $end = now()->setTimeFromTimeString(
-                    substr((string) $todayHour->end_time, 0, 8)
-                );
-
-                if ($end->lessThan($start)) {
-                    $end->addDay();
-                }
-
-                if ($nowTime->betweenIncluded($start, $end)) {
-                    $isOpenNow = true;
-                    break;
-                }
-            }
-        }
-
-        $statusText = $isOpenNow
-            ? 'الان باز است'
-            : ($isOpenToday ? 'امروز باز است' : 'امروز تعطیل');
+        $todayHours ??= collect();
+        $todayHoursText ??= 'امروز ساعات کاری ثبت نشده';
+        $statusText ??= 'امروز وضعیت سالن مشخص نشده';
+        $isOpenToday = (bool) ($isOpenToday ?? false);
+        $isOpenNow = (bool) ($isOpenNow ?? false);
 
         $bookingEnabled =
             $barbers->isNotEmpty() &&
             $services->isNotEmpty();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Today's hour text
-        |--------------------------------------------------------------------------
-        */
-
-        $todayHoursText = $todayHours
-            ->map(function ($hour) {
-                return substr((string) $hour->start_time, 0, 5)
-                    . ' تا '
-                    . substr((string) $hour->end_time, 0, 5);
-            })
-            ->join('  •  ');
     @endphp
 
     <div
@@ -1475,7 +1433,7 @@
                             <div>
                                 <i>◷</i>
                                 <span>
-                                    {{ $isOpenToday ? 'امروز فعال' : 'امروز تعطیل' }}
+                                    {{ $statusText }}
                                 </span>
                             </div>
 
