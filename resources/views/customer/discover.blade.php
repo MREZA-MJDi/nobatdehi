@@ -11,6 +11,9 @@
 
 @push('head')
     @vite('resources/css/discovery.css')
+@endpush
+
+@push('scripts')
     @vite('resources/js/discover.js')
 @endpush
 
