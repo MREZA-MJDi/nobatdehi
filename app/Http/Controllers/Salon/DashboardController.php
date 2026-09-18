@@ -14,6 +14,8 @@ class DashboardController extends Controller
     {
         $timezone = config('app.timezone', 'Asia/Tehran');
         $today = Carbon::now($timezone)->startOfDay();
+        $monthStart = $today->copy()->startOfMonth();
+        $weekStart = $today->copy()->startOfWeek();
 
         $salon = $request->user()
             ->managedSalons()
@@ -42,6 +44,16 @@ class DashboardController extends Controller
             ->where('status', BookingStatus::CONFIRMED)
             ->count();
 
+        $completedToday = $salon->bookings()
+            ->whereDate('booking_date', $today->toDateString())
+            ->where('status', BookingStatus::COMPLETED)
+            ->count();
+
+        $cancelledToday = $salon->bookings()
+            ->whereDate('booking_date', $today->toDateString())
+            ->where('status', BookingStatus::CANCELLED)
+            ->count();
+
         $todayRevenue = (int) $salon->bookings()
             ->whereDate('booking_date', $today->toDateString())
             ->whereIn('status', [
@@ -49,6 +61,35 @@ class DashboardController extends Controller
                 BookingStatus::COMPLETED,
             ])
             ->sum('price');
+
+        $weekRevenue = (int) $salon->bookings()
+            ->whereBetween('booking_date', [
+                $weekStart->toDateString(),
+                $today->toDateString(),
+            ])
+            ->whereIn('status', [
+                BookingStatus::CONFIRMED,
+                BookingStatus::COMPLETED,
+            ])
+            ->sum('price');
+
+        $monthRevenue = (int) $salon->bookings()
+            ->whereBetween('booking_date', [
+                $monthStart->toDateString(),
+                $today->toDateString(),
+            ])
+            ->whereIn('status', [
+                BookingStatus::CONFIRMED,
+                BookingStatus::COMPLETED,
+            ])
+            ->sum('price');
+
+        $monthBookings = $salon->bookings()
+            ->whereBetween('booking_date', [
+                $monthStart->toDateString(),
+                $today->toDateString(),
+            ])
+            ->count();
 
         $activeBarbers = $salon->barbers()
             ->where('is_active', true)
@@ -114,7 +155,12 @@ class DashboardController extends Controller
             'pendingBookings',
             'todayBookings',
             'confirmedToday',
+            'completedToday',
+            'cancelledToday',
             'todayRevenue',
+            'weekRevenue',
+            'monthRevenue',
+            'monthBookings',
             'activeBarbers',
             'activeServices',
             'upcomingBookings',
