@@ -44,7 +44,6 @@ class HandleBookingCreated implements ShouldQueue, ShouldBeUnique
         }
 
         if (
-            $booking->status->blocksAvailability() &&
             $booking->status->value === 'pending' &&
             $booking->salon?->owner
         ) {
@@ -52,10 +51,12 @@ class HandleBookingCreated implements ShouldQueue, ShouldBeUnique
                 new BookingNotification($booking, 'created')
             );
 
-            SendBookingSms::dispatch(
-                $booking->id,
-                'approver'
-            );
+            if (config('services.nobat_sms.approver_sms', true)) {
+                SendBookingSms::dispatch(
+                    $booking->id,
+                    'approver'
+                );
+            }
         }
     }
 }
