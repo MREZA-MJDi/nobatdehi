@@ -87,7 +87,7 @@
             <div class="discover-service-grid">
 
                 @forelse(
-                    $popularServices->take(6)
+                    $popularServices->take(4)
                     as $service
                 )
 
