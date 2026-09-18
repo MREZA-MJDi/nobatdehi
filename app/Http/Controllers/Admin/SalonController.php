@@ -235,6 +235,8 @@ class SalonController extends Controller
                         'password' =>
                             $data['manager_password'],
 
+                        'must_change_password' => true,
+
                         'role' =>
                             UserRole::SALON_OWNER,
 
@@ -662,6 +664,8 @@ class SalonController extends Controller
                 ) {
                     $ownerData['password'] =
                         $data['manager_password'];
+
+                    $ownerData['must_change_password'] = true;
                 }
 
 
