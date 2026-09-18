@@ -3647,3 +3647,89 @@ body.discover-search-modal-open {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
+
+
+/* ==========================================================================
+   NOBAT DISCOVER — ending gallery / team polish
+   ========================================================================== */
+
+.discover-page .discover-team-card,
+.discover-page .discover-end-salon {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.discover-page .discover-team-card {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.discover-page .discover-team-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+        opacity .45s ease,
+        transform .45s ease,
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+
+.discover-page .discover-end-salon-strip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 14px;
+    direction: rtl;
+}
+
+.discover-page .discover-end-salon {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 2px solid var(--discover-surface);
+    border-radius: 999px;
+    background: var(--discover-surface-soft);
+    box-shadow: 0 0 0 1px var(--discover-border);
+    text-decoration: none;
+    transition: transform .18s ease;
+}
+
+.discover-page .discover-end-salon:hover {
+    transform: translateY(-2px);
+}
+
+.discover-page .discover-end-salon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.discover-page .discover-end-salon span {
+    color: var(--discover-primary);
+    font-size: 12px;
+    font-weight: 950;
+}
+
+@media (max-width: 759px) {
+    .discover-page .discover-owner-cta {
+        gap: 13px;
+    }
+
+    .discover-page .discover-end-salon-strip {
+        margin-top: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .discover-page .discover-team-card {
+        opacity: 1;
+        transform: none;
+    }
+
+    .discover-page .discover-end-salon {
+        transition: none;
+    }
+}
