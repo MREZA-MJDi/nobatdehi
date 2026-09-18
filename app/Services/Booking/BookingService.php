@@ -10,7 +10,6 @@ use App\Models\Booking;
 use App\Models\Salon;
 use App\Models\Service;
 use App\Models\User;
-use App\Notifications\BookingNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
