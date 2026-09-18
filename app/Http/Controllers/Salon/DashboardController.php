@@ -77,6 +77,7 @@ class DashboardController extends Controller
             ->managedSalons()
             ->with([
                 'workingHours',
+                'dailyStatuses',
             ])
             ->withCount([
                 'barbers',
@@ -233,6 +234,8 @@ class DashboardController extends Controller
             )
             ->count();
 
+        $nowTime = Carbon::now($timezone)->format('H:i:s');
+
         $upcomingBookings = $salon->bookings()
             ->with([
                 'customer:id,name,phone',
@@ -243,11 +246,15 @@ class DashboardController extends Controller
                 BookingStatus::PENDING,
                 BookingStatus::CONFIRMED,
             ])
-            ->whereDate(
-                'booking_date',
-                '>=',
-                $today->toDateString()
-            )
+            ->where(function ($query) use ($today, $nowTime) {
+                $query
+                    ->whereDate('booking_date', '>', $today->toDateString())
+                    ->orWhere(function ($query) use ($today, $nowTime) {
+                        $query
+                            ->whereDate('booking_date', $today->toDateString())
+                            ->where('start_time', '>=', $nowTime);
+                    });
+            })
             ->orderBy('booking_date')
             ->orderBy('start_time')
             ->orderBy('id')
@@ -268,6 +275,12 @@ class DashboardController extends Controller
 
         $dayOfWeek =
             ($today->dayOfWeek + 1) % 7;
+
+        $todayDailyStatus = $salon->dailyStatuses
+            ->firstWhere(
+                fn ($status) =>
+                    optional($status->date)->toDateString() === $today->toDateString()
+            );
 
         $todayHours = $salon->workingHours
             ->where(
@@ -309,7 +322,12 @@ class DashboardController extends Controller
             ->values();
 
         $todayIsClosed =
-            $todayHours->isEmpty();
+            (bool) ($todayDailyStatus?->is_closed)
+            || $todayHours->isEmpty();
+
+        if ($todayDailyStatus?->is_closed) {
+            $todayHours = collect();
+        }
 
         $hasWorkingHours =
             $salon->workingHours->contains(
@@ -488,8 +506,12 @@ class DashboardController extends Controller
                 $todayHours,
             'todayIsClosed' =>
                 $todayIsClosed,
+            'todayDailyNote' =>
+                $todayDailyStatus?->note,
             'hasWorkingHours' =>
                 $hasWorkingHours,
+            'salonIsActive' =>
+                (bool) $salon->is_active,
             'weeklyRevenueChart' =>
                 $weeklyRevenueChart,
             'monthlyRevenueChart' =>
@@ -542,6 +564,8 @@ class DashboardController extends Controller
                     $todayHours
                         ->values()
                         ->all(),
+                'note' =>
+                    $todayDailyStatus?->note,
             ],
             'revenue' => [
                 'weekly' =>
@@ -553,6 +577,23 @@ class DashboardController extends Controller
                         ->values()
                         ->all(),
             ],
+            'recentBookings' =>
+                $recentBookings
+                    ->map(
+                        fn ($booking) => [
+                            'id' => $booking->id,
+                            'date' => $booking->booking_date,
+                            'startTime' => substr((string) $booking->start_time, 0, 5),
+                            'customer' => $booking->customer?->name ?? 'مشتری',
+                            'service' => $booking->service?->name ?? 'خدمت',
+                            'barber' => $booking->barber?->name ?? 'متخصص',
+                            'status' => $booking->status instanceof BookingStatus
+                                ? $booking->status->value
+                                : (string) $booking->status,
+                        ]
+                    )
+                    ->values()
+                    ->all(),
             'upcomingBookings' =>
                 $upcomingBookings
                     ->map(
