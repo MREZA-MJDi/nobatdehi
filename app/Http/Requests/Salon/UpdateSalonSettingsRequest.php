@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Salon;
 
+use App\Support\PhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,6 +12,26 @@ class UpdateSalonSettingsRequest extends FormRequest
     {
         return $this->user() !== null;
     }
+
+    protected function prepareForValidation(): void
+    {
+        $rawPhone = (string) $this->input('phone', '');
+
+        if (trim($rawPhone) === '') {
+            return;
+        }
+
+        try {
+            $phone = PhoneNumber::normalize($rawPhone);
+        } catch (\Throwable) {
+            $phone = $rawPhone;
+        }
+
+        $this->merge([
+            'phone' => $phone,
+        ]);
+    }
+
 
     public function rules(): array
     {
