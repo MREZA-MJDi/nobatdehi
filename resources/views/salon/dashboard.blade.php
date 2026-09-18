@@ -2,6 +2,10 @@
 
 @section('title', 'داشبورد سالن')
 
+@push('head')
+    @vite('resources/css/salon-dashboard.css')
+@endpush
+
 @section('content')
 @php
     $days = [
@@ -19,7 +23,8 @@
         '5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹',
     ]);
 
-    $money = fn ($value) => number_format((int) $value) . ' تومان';
+    $money = fn ($value) =>
+        number_format((int) $value) . ' تومان';
 
     $status = fn ($value) => match (
         $value instanceof \App\Enums\BookingStatus
@@ -36,83 +41,95 @@
     $todaySchedule = $todayIsClosed
         ? 'امروز تعطیل'
         : $todayHours->map(
-            fn ($hour) => $hour['start'] . ' تا ' . $hour['end']
+            fn ($hour) =>
+                $hour['start'] . ' تا ' . $hour['end']
         )->join(' · ');
-
-    $weeklyTotal = (int) $weeklyRevenueChart->sum('value');
-    $monthlyTotal = (int) $monthlyRevenueChart->sum('value');
-
-    $owner = auth()->user();
 @endphp
 
-<div class="salon-page-wrap salon-dashboard-page">
+<div
+    class="nd-dashboard"
+    data-dashboard
+    data-dashboard-endpoint="{{ route('salon.dashboard.data') }}"
+    data-today="{{ $today->toDateString() }}"
+    data-stale-label="آخرین اطلاعات دریافت‌شده از سرور"
+>
 
-    <section class="salon-dashboard-hero">
-        <div class="salon-dashboard-hero-copy">
-            <span class="salon-overline">
-                امروز · {{ jalali_date($today) }}
-            </span>
+    <section class="nd-dashboard-hero">
+        <div class="nd-dashboard-hero-copy">
+            <div class="nd-dashboard-eyebrow">
+                <span class="nd-dot"></span>
+                <span>مرکز مدیریت سالن</span>
+            </div>
 
             <h1>
-                سلام {{ $owner->name }} 👋
+                سلام {{ auth()->user()->name }} 👋
             </h1>
 
             <p>
                 {{ $days[($today->dayOfWeek + 1) % 7] }}
                 ·
-                {{ $todaySchedule }}
+                {{ jalali_date($today) }}
                 ·
-                امروز {{ $money($todayRevenue) }} درآمد ثبت شده.
+                {{ $todaySchedule }}
             </p>
         </div>
 
-        <div class="salon-dashboard-hero-actions">
+        <div class="nd-dashboard-hero-actions">
             <a
                 href="{{ route('salon.bookings.create') }}"
-                class="salon-btn salon-btn--primary"
+                class="nd-btn nd-btn-primary"
             >
-                ＋ نوبت دستی
+                <span>＋</span>
+                نوبت دستی
             </a>
+
+            <button
+                type="button"
+                class="nd-btn nd-btn-ghost"
+                data-dashboard-refresh
+            >
+                <span class="nd-refresh-icon">↻</span>
+                به‌روزرسانی
+            </button>
 
             <a
                 href="{{ route('public.salons.show', $salon) }}"
                 target="_blank"
                 rel="noopener"
-                class="salon-btn salon-btn--quiet"
+                class="nd-btn nd-btn-ghost"
             >
-                صفحه عمومی
+                مشاهده صفحه عمومی
+                <span>↗</span>
             </a>
         </div>
     </section>
 
 
-    <section class="salon-dashboard-command">
+    <section class="nd-dashboard-alert">
 
-        <div class="salon-command-main">
-            <span class="salon-overline salon-overline--light">
-                مرکز عملیات امروز
-            </span>
+        <div class="nd-dashboard-alert-main">
+
+            <div class="nd-kicker">وضعیت عملیات امروز</div>
 
             @if($pendingBookings > 0)
-
                 <h2>
                     {{ $fa($pendingBookings) }}
                     نوبت منتظر رسیدگی است.
                 </h2>
 
                 <p>
-                    اول درخواست‌های در انتظار را بررسی کن تا برنامه امروز مرتب بماند.
+                    درخواست‌های معطل را بررسی کن تا برنامه‌ی سالن مرتب بماند.
                 </p>
 
                 <a
                     href="{{ route('salon.bookings.index', ['status' => 'pending']) }}"
-                    class="salon-btn salon-btn--light"
+                    class="nd-alert-action"
                 >
-                    نوبت‌های منتظر
+                    بررسی نوبت‌های منتظر
+                    <span>←</span>
                 </a>
 
             @elseif($nextBooking)
-
                 <h2>
                     نوبت بعدی ساعت
                     {{ substr((string) $nextBooking->start_time, 0, 5) }}
@@ -128,430 +145,559 @@
 
                 <a
                     href="{{ route('salon.bookings.show', $nextBooking) }}"
-                    class="salon-btn salon-btn--light"
+                    class="nd-alert-action"
                 >
                     باز کردن نوبت
+                    <span>←</span>
                 </a>
-
             @else
-
                 <h2>
                     امروز نوبت بعدی ثبت نشده.
                 </h2>
 
                 <p>
-                    ساعات کاری و خدماتت آماده‌اند؛ برای مشتری حضوری می‌توانی همین حالا نوبت دستی ثبت کنی.
+                    برای مشتری حضوری یا ثبت رزرو از قبل، می‌توانی همین حالا نوبت دستی ثبت کنی.
                 </p>
 
                 <a
                     href="{{ route('salon.bookings.create') }}"
-                    class="salon-btn salon-btn--light"
+                    class="nd-alert-action"
                 >
                     ثبت نوبت دستی
+                    <span>←</span>
                 </a>
-
             @endif
         </div>
 
-        <div class="salon-command-side">
-            <div class="salon-command-status">
-                <span>برنامه امروز</span>
-                <strong>{{ $todaySchedule }}</strong>
-            </div>
-
-            <div class="salon-command-status">
-                <span>درآمد امروز</span>
-                <strong>{{ $money($todayRevenue) }}</strong>
-            </div>
-
-            <div class="salon-command-status">
-                <span>اعلان</span>
-                <strong>
-                    {{ $unreadNotifications > 0
-                        ? $fa($unreadNotifications) . ' اعلان خوانده‌نشده'
-                        : 'همه خوانده شده' }}
+        <div class="nd-dashboard-alert-meta">
+            <div>
+                <span>امروز</span>
+                <strong data-dashboard-metric="todayBookings">
+                    {{ $fa($todayBookings) }}
                 </strong>
+                <small>نوبت فعال</small>
+            </div>
+
+            <div>
+                <span>درآمد امروز</span>
+                <strong data-dashboard-money="todayRevenue">
+                    {{ $money($todayRevenue) }}
+                </strong>
+                <small>تأیید + انجام‌شده</small>
+            </div>
+
+            <div>
+                <span>اعلان</span>
+                <strong data-dashboard-metric="unreadNotifications">
+                    {{ $unreadNotifications > 0 ? $fa($unreadNotifications) : '۰' }}
+                </strong>
+                <small>خوانده‌نشده</small>
             </div>
         </div>
     </section>
 
 
-    <section class="salon-workspace-grid">
+    <section class="nd-kpi-grid">
 
         <a
             href="{{ route('salon.bookings.index') }}"
-            class="salon-workspace-card salon-workspace-card--primary"
+            class="nd-kpi nd-kpi-featured"
         >
-            <div class="salon-workspace-icon">◷</div>
-
-            <div>
-                <span>مرکز نوبت‌ها</span>
-                <strong>{{ $fa($todayBookings) }} نوبت فعال امروز</strong>
-                <small>
-                    {{ $pendingBookings > 0
-                        ? $fa($pendingBookings) . ' مورد نیازمند رسیدگی'
-                        : 'درخواستی منتظر نیست' }}
-                </small>
-            </div>
-
-            <i>←</i>
+            <span class="nd-kpi-icon">◷</span>
+            <span class="nd-kpi-label">نوبت‌های امروز</span>
+            <strong data-dashboard-metric="todayBookings">
+                {{ $fa($todayBookings) }}
+            </strong>
+            <small>
+                {{ $pendingBookings > 0
+                    ? $fa($pendingBookings) . ' در انتظار رسیدگی'
+                    : 'مورد منتظر ندارید' }}
+            </small>
         </a>
 
-        <a
-            href="{{ route('salon.working-hours.edit') }}"
-            class="salon-workspace-card"
-        >
-            <div class="salon-workspace-icon">◴</div>
+        <div class="nd-kpi">
+            <span class="nd-kpi-icon">✓</span>
+            <span class="nd-kpi-label">تأیید شده امروز</span>
+            <strong data-dashboard-metric="confirmedToday">
+                {{ $fa($confirmedToday) }}
+            </strong>
+            <small>نوبت‌های تأیید شده</small>
+        </div>
 
-            <div>
-                <span>ساعات کاری</span>
-                <strong>
-                    {{ $hasWorkingHours
-                        ? 'برنامه هفتگی ثبت شده'
-                        : 'هنوز تنظیم نشده' }}
-                </strong>
-                <small>{{ $todaySchedule }}</small>
-            </div>
+        <div class="nd-kpi">
+            <span class="nd-kpi-icon">◆</span>
+            <span class="nd-kpi-label">انجام شده امروز</span>
+            <strong data-dashboard-metric="completedToday">
+                {{ $fa($completedToday) }}
+            </strong>
+            <small>نوبت‌های تکمیل‌شده</small>
+        </div>
 
-            <i>←</i>
-        </a>
+        <div class="nd-kpi">
+            <span class="nd-kpi-icon">⌁</span>
+            <span class="nd-kpi-label">لغو شده امروز</span>
+            <strong data-dashboard-metric="cancelledToday">
+                {{ $fa($cancelledToday) }}
+            </strong>
+            <small>لغوهای ثبت‌شده</small>
+        </div>
 
-        <a
-            href="{{ route('salon.settings.edit') }}"
-            class="salon-workspace-card"
-        >
-            <div class="salon-workspace-icon">⚙</div>
+        <div class="nd-kpi">
+            <span class="nd-kpi-icon">₮</span>
+            <span class="nd-kpi-label">درآمد این هفته</span>
+            <strong data-dashboard-money="weekRevenue">
+                {{ $money($weekRevenue) }}
+            </strong>
+            <small>از شنبه تا امروز</small>
+        </div>
 
-            <div>
-                <span>تنظیمات سالن</span>
-                <strong>اطلاعات و برند سالن</strong>
-                <small>تماس، مکان، اطلاعات عمومی و ظاهر</small>
-            </div>
+        <div class="nd-kpi">
+            <span class="nd-kpi-icon">▣</span>
+            <span class="nd-kpi-label">درآمد این ماه</span>
+            <strong data-dashboard-money="monthRevenue">
+                {{ $money($monthRevenue) }}
+            </strong>
+            <small data-dashboard-metric="monthBookings">
+                {{ $fa($monthBookings) }} نوبت این ماه
+            </small>
+        </div>
 
-            <i>←</i>
-        </a>
+        <div class="nd-kpi">
+            <span class="nd-kpi-icon">♙</span>
+            <span class="nd-kpi-label">تیم فعال</span>
+            <strong data-dashboard-metric="activeBarbers">
+                {{ $fa($activeBarbers) }}
+            </strong>
+            <small>متخصص فعال</small>
+        </div>
 
-        <a
-            href="{{ route('salon.notifications.index') }}"
-            class="salon-workspace-card"
-        >
-            <div class="salon-workspace-icon">◌</div>
+        <div class="nd-kpi">
+            <span class="nd-kpi-icon">✦</span>
+            <span class="nd-kpi-label">خدمات فعال</span>
+            <strong data-dashboard-metric="activeServices">
+                {{ $fa($activeServices) }}
+            </strong>
+            <small>خدمت قابل رزرو</small>
+        </div>
 
-            <div>
-                <span>اعلان‌ها</span>
-                <strong>
-                    {{ $unreadNotifications > 0
-                        ? $fa($unreadNotifications) . ' اعلان جدید'
-                        : 'اعلان جدیدی نیست' }}
-                </strong>
-                <small>رویدادهای مرتبط با نوبت‌ها و حساب</small>
-            </div>
-
-            <i>←</i>
-        </a>
     </section>
 
 
-    <section class="salon-overview-strip">
+    <section class="nd-revenue">
 
-        <div>
-            <span>تیم فعال</span>
-            <strong>{{ $fa($activeBarbers) }}</strong>
-            <a href="{{ route('salon.barbers.index') }}">مدیریت تیم</a>
-        </div>
-
-        <div>
-            <span>خدمات فعال</span>
-            <strong>{{ $fa($activeServices) }}</strong>
-            <a href="{{ route('salon.services.index') }}">مدیریت خدمات</a>
-        </div>
-
-        <div>
-            <span>نوبت‌های این ماه</span>
-            <strong>{{ $fa($monthBookings) }}</strong>
-            <small>{{ $money($monthRevenue) }} درآمد</small>
-        </div>
-
-        <div>
-            <span>این هفته</span>
-            <strong>{{ $money($weekRevenue) }}</strong>
-            <small>درآمد ثبت‌شده</small>
-        </div>
-    </section>
-
-
-    {{-- Revenue analytics --}}
-    <section class="salon-revenue-card">
-
-        <header class="salon-revenue-head">
+        <header class="nd-section-head">
             <div>
-                <span class="salon-overline">تحلیل درآمد</span>
-
-                <h2>
-                    درآمد هفته و ماه
-                </h2>
-
+                <span class="nd-section-kicker">تحلیل مالی</span>
+                <h2>درآمد سالن</h2>
                 <p>
-                    فقط نوبت‌های تأییدشده و انجام‌شده در این نمودار محاسبه شده‌اند.
+                    فقط نوبت‌های تأییدشده و انجام‌شده در محاسبه درآمد قرار می‌گیرند.
                 </p>
             </div>
 
-            <div class="salon-revenue-highlight">
-                <span>این ماه</span>
-                <strong>{{ $money($monthRevenue) }}</strong>
+            <div class="nd-chart-controls" role="tablist" aria-label="بازه نمودار">
+                <button
+                    type="button"
+                    class="is-active"
+                    data-chart-tab="weekly"
+                    role="tab"
+                    aria-selected="true"
+                >
+                    هفته
+                </button>
+
+                <button
+                    type="button"
+                    data-chart-tab="monthly"
+                    role="tab"
+                    aria-selected="false"
+                >
+                    ماه
+                </button>
             </div>
         </header>
 
-        <div class="salon-revenue-grid">
-
-            <div class="salon-revenue-chart-card">
-                <div class="salon-chart-card-head">
-                    <div>
-                        <span>۷ روز اخیرِ هفته جاری</span>
-                        <strong>{{ $money($weeklyTotal) }}</strong>
-                    </div>
-
-                    <span class="salon-chart-badge">هفتگی</span>
+        <div class="nd-chart-panel is-active" data-chart-panel="weekly">
+            <div class="nd-chart-summary">
+                <div>
+                    <span>جمع هفته جاری</span>
+                    <strong>{{ $money($weekRevenue) }}</strong>
                 </div>
 
-                <div class="salon-chart-bars salon-chart-bars--weekly">
-                    @foreach($weeklyRevenueChart as $index => $point)
-                        @php
-                            $height = $weeklyRevenueMax > 0
-                                ? max(5, round(($point['value'] / $weeklyRevenueMax) * 100))
-                                : 5;
-                        @endphp
-
-                        <div class="salon-chart-column">
-                            <div class="salon-chart-value">
-                                {{ $point['value'] > 0 ? $money($point['value']) : '—' }}
-                            </div>
-
-                            <div class="salon-chart-track">
-                                <div
-                                    class="salon-chart-fill"
-                                    style="height: {{ $height }}%;"
-                                    title="{{ $money($point['value']) }}"
-                                ></div>
-                            </div>
-
-                            <span>
-                                {{ $days[$index] }}
-                            </span>
-                        </div>
-                    @endforeach
-                </div>
+                <span>۷ روز</span>
             </div>
 
+            <div class="nd-bars nd-bars-weekly">
+                @foreach($weeklyRevenueChart as $index => $point)
+                    @php
+                        $height = $weeklyRevenueMax > 0
+                            ? max(
+                                4,
+                                round(
+                                    ($point['value'] / $weeklyRevenueMax) * 100
+                                )
+                            )
+                            : 4;
+                    @endphp
 
-            <div class="salon-revenue-chart-card">
+                    <div class="nd-bar-column">
+                        <span class="nd-bar-value">
+                            {{ $point['value'] > 0
+                                ? $money($point['value'])
+                                : '—' }}
+                        </span>
 
-                <div class="salon-chart-card-head">
-                    <div>
-                        <span>۶ ماه اخیر</span>
-                        <strong>{{ $money($monthlyTotal) }}</strong>
-                    </div>
-
-                    <span class="salon-chart-badge">ماهانه</span>
-                </div>
-
-                <div class="salon-chart-bars salon-chart-bars--monthly">
-                    @foreach($monthlyRevenueChart as $point)
-                        @php
-                            $height = $monthlyRevenueMax > 0
-                                ? max(5, round(($point['value'] / $monthlyRevenueMax) * 100))
-                                : 5;
-
-                            $monthLabel = substr(
-                                jalali_date(
-                                    \Carbon\Carbon::parse($point['date'])
-                                ),
-                                0,
-                                7
-                            );
-                        @endphp
-
-                        <div class="salon-chart-column">
-                            <div class="salon-chart-value">
-                                {{ $point['value'] > 0 ? $money($point['value']) : '—' }}
-                            </div>
-
-                            <div class="salon-chart-track">
-                                <div
-                                    class="salon-chart-fill"
-                                    style="height: {{ $height }}%;"
-                                    title="{{ $money($point['value']) }}"
-                                ></div>
-                            </div>
-
-                            <span title="{{ $monthLabel }}">
-                                {{ $monthLabel }}
-                            </span>
+                        <div class="nd-bar-track">
+                            <div
+                                class="nd-bar-fill"
+                                data-bar-value="{{ $point['value'] }}"
+                                style="height: {{ $height }}%;"
+                            ></div>
                         </div>
-                    @endforeach
+
+                        <span class="nd-bar-label">
+                            {{ $days[$index] }}
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+
+        <div class="nd-chart-panel" data-chart-panel="monthly" hidden>
+            <div class="nd-chart-summary">
+                <div>
+                    <span>۶ ماه اخیر</span>
+                    <strong>{{ $money($monthlyTotal) }}</strong>
                 </div>
+
+                <span>ماهانه</span>
             </div>
 
+            <div class="nd-bars nd-bars-monthly">
+                @foreach($monthlyRevenueChart as $point)
+                    @php
+                        $height = $monthlyRevenueMax > 0
+                            ? max(
+                                4,
+                                round(
+                                    ($point['value'] / $monthlyRevenueMax) * 100
+                                )
+                            )
+                            : 4;
+
+                        $monthLabel = substr(
+                            jalali_date(
+                                \Carbon\Carbon::parse($point['date'])
+                            ),
+                            0,
+                            7
+                        );
+                    @endphp
+
+                    <div class="nd-bar-column">
+                        <span class="nd-bar-value">
+                            {{ $point['value'] > 0
+                                ? $money($point['value'])
+                                : '—' }}
+                        </span>
+
+                        <div class="nd-bar-track">
+                            <div
+                                class="nd-bar-fill"
+                                data-bar-value="{{ $point['value'] }}"
+                                style="height: {{ $height }}%;"
+                            ></div>
+                        </div>
+
+                        <span
+                            class="nd-bar-label"
+                            title="{{ $monthLabel }}"
+                        >
+                            {{ $monthLabel }}
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="nd-chart-note">
+            آخرین بروزرسانی:
+            <strong data-dashboard-updated>همین حالا</strong>
+            <span class="nd-api-state" data-dashboard-api-state>متصل</span>
         </div>
     </section>
 
 
-    <section class="salon-dashboard-columns">
+    <section class="nd-main-grid">
 
-        <section class="salon-card salon-card--flush">
-            <div class="salon-card-head">
+        <section class="nd-panel">
+            <header class="nd-section-head nd-panel-head">
                 <div>
-                    <span class="salon-overline">صف رزرو</span>
+                    <span class="nd-section-kicker">برنامه</span>
                     <h2>نوبت‌های پیش‌رو</h2>
                 </div>
 
                 <a href="{{ route('salon.bookings.index') }}">
-                    همه نوبت‌ها ←
+                    همه نوبت‌ها
+                    <span>←</span>
                 </a>
-            </div>
+            </header>
 
-            @if($upcomingBookings->isNotEmpty())
+            <div
+                class="nd-booking-list"
+                data-dashboard-upcoming
+            >
+                @forelse($upcomingBookings as $booking)
+                    @php([$label, $tone] = $status($booking->status))
 
-                <div class="salon-booking-list">
-                    @foreach($upcomingBookings as $booking)
-                        @php([$label, $tone] = $status($booking->status))
+                    <a
+                        class="nd-booking-row"
+                        href="{{ route('salon.bookings.show', $booking) }}"
+                    >
+                        <div class="nd-booking-time">
+                            <strong>
+                                {{ substr((string) $booking->start_time, 0, 5) }}
+                            </strong>
 
-                        <a
-                            class="salon-booking-row"
-                            href="{{ route('salon.bookings.show', $booking) }}"
-                        >
-                            <div class="salon-booking-time">
-                                <strong>
-                                    {{ substr((string) $booking->start_time, 0, 5) }}
-                                </strong>
-
-                                <span>
-                                    {{ jalali_date($booking->booking_date) }}
-                                </span>
-                            </div>
-
-                            <div class="salon-booking-main">
-                                <strong>
-                                    {{ $booking->customer?->name ?? 'مشتری حذف شده' }}
-                                </strong>
-
-                                <span>
-                                    {{ $booking->service?->name ?? 'خدمت' }}
-                                    ·
-                                    {{ $booking->barber?->name ?? 'متخصص' }}
-                                </span>
-                            </div>
-
-                            <span class="salon-status salon-status--{{ $tone }}">
-                                {{ $label }}
+                            <span>
+                                {{ jalali_date($booking->booking_date) }}
                             </span>
-                        </a>
-                    @endforeach
-                </div>
+                        </div>
 
-            @else
+                        <div class="nd-booking-main">
+                            <strong>
+                                {{ $booking->customer?->name ?? 'مشتری' }}
+                            </strong>
 
-                <div class="salon-empty-inline">
-                    <strong>نوبتی در صف نیست.</strong>
-                    <span>برای مشتری حضوری از «نوبت دستی» استفاده کن.</span>
-                </div>
+                            <span>
+                                {{ $booking->service?->name ?? 'خدمت' }}
+                                ·
+                                {{ $booking->barber?->name ?? 'متخصص' }}
+                            </span>
+                        </div>
 
-            @endif
+                        <span class="nd-status nd-status--{{ $tone }}">
+                            {{ $label }}
+                        </span>
+                    </a>
+                @empty
+                    <div class="nd-empty">
+                        <strong>هنوز نوبت پیش‌رویی ندارید.</strong>
+                        <span>
+                            برای رزرو حضوری از «نوبت دستی» استفاده کنید.
+                        </span>
+                    </div>
+                @endforelse
+            </div>
         </section>
 
 
-        <section class="salon-card salon-card--flush">
-
-            <div class="salon-card-head">
+        <section class="nd-panel">
+            <header class="nd-section-head nd-panel-head">
                 <div>
-                    <span class="salon-overline">فعالیت</span>
-                    <h2>آخرین نوبت‌ها</h2>
+                    <span class="nd-section-kicker">دسترسی سریع</span>
+                    <h2>کارهای پرتکرار</h2>
                 </div>
+            </header>
+
+            <div class="nd-quick-grid">
+
+                <a
+                    href="{{ route('salon.bookings.create') }}"
+                    class="nd-quick nd-quick-primary"
+                >
+                    <span>＋</span>
+                    <div>
+                        <strong>نوبت دستی</strong>
+                        <small>برای مشتری حضوری</small>
+                    </div>
+                    <i>←</i>
+                </a>
+
+                <a
+                    href="{{ route('salon.bookings.index', ['status' => 'pending']) }}"
+                    class="nd-quick"
+                >
+                    <span>◷</span>
+                    <div>
+                        <strong>درخواست‌های منتظر</strong>
+                        <small>
+                            {{ $fa($pendingBookings) }} مورد
+                        </small>
+                    </div>
+                    <i>←</i>
+                </a>
+
+                <a
+                    href="{{ route('salon.working-hours.edit') }}"
+                    class="nd-quick"
+                >
+                    <span>◴</span>
+                    <div>
+                        <strong>ساعات کاری</strong>
+                        <small>{{ $todaySchedule }}</small>
+                    </div>
+                    <i>←</i>
+                </a>
+
+                <a
+                    href="{{ route('salon.settings.edit') }}"
+                    class="nd-quick"
+                >
+                    <span>⚙</span>
+                    <div>
+                        <strong>تنظیمات سالن</strong>
+                        <small>اطلاعات و ظاهر سالن</small>
+                    </div>
+                    <i>←</i>
+                </a>
+
+                <a
+                    href="{{ route('salon.barbers.index') }}"
+                    class="nd-quick"
+                >
+                    <span>♙</span>
+                    <div>
+                        <strong>تیم</strong>
+                        <small>{{ $fa($activeBarbers) }} متخصص فعال</small>
+                    </div>
+                    <i>←</i>
+                </a>
+
+                <a
+                    href="{{ route('salon.services.index') }}"
+                    class="nd-quick"
+                >
+                    <span>✦</span>
+                    <div>
+                        <strong>خدمات</strong>
+                        <small>{{ $fa($activeServices) }} خدمت فعال</small>
+                    </div>
+                    <i>←</i>
+                </a>
+
+                <a
+                    href="{{ route('salon.posts.index') }}"
+                    class="nd-quick"
+                >
+                    <span>▤</span>
+                    <div>
+                        <strong>محتوا</strong>
+                        <small>معرفی و پست‌های سالن</small>
+                    </div>
+                    <i>←</i>
+                </a>
+
+                <a
+                    href="{{ route('salon.reviews.index') }}"
+                    class="nd-quick"
+                >
+                    <span>♡</span>
+                    <div>
+                        <strong>نظرات</strong>
+                        <small>بازخورد مشتریان</small>
+                    </div>
+                    <i>←</i>
+                </a>
+
+                <a
+                    href="{{ route('salon.notifications.index') }}"
+                    class="nd-quick"
+                >
+                    <span>◌</span>
+                    <div>
+                        <strong>اعلان‌ها</strong>
+                        <small>
+                            {{ $unreadNotifications > 0
+                                ? $fa($unreadNotifications) . ' جدید'
+                                : 'همه خوانده شده' }}
+                        </small>
+                    </div>
+                    <i>←</i>
+                </a>
+
             </div>
-
-            @if($recentBookings->isNotEmpty())
-
-                <div class="salon-recent-grid">
-                    @foreach($recentBookings as $booking)
-                        @php([$label, $tone] = $status($booking->status))
-
-                        <a
-                            href="{{ route('salon.bookings.show', $booking) }}"
-                            class="salon-recent-item"
-                        >
-                            <div>
-                                <strong>
-                                    {{ $booking->customer?->name ?? 'مشتری حذف شده' }}
-                                </strong>
-
-                                <span>
-                                    {{ $booking->service?->name ?? 'خدمت' }}
-                                    ·
-                                    {{ $booking->barber?->name ?? 'متخصص' }}
-                                </span>
-                            </div>
-
-                            <div>
-                                <small>
-                                    {{ jalali_date($booking->booking_date) }}
-                                    ·
-                                    {{ substr((string) $booking->start_time, 0, 5) }}
-                                </small>
-
-                                <span class="salon-status salon-status--{{ $tone }}">
-                                    {{ $label }}
-                                </span>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-
-            @else
-
-                <div class="salon-empty-inline">
-                    هنوز فعالیتی ثبت نشده است.
-                </div>
-
-            @endif
         </section>
 
     </section>
 
 
-    <section class="salon-secondary-tools">
+    <section class="nd-dashboard-footer-grid">
 
-        <a href="{{ route('salon.barbers.index') }}">
-            <span>♙</span>
+        <div class="nd-health-card">
             <div>
-                <strong>تیم</strong>
-                <small>{{ $fa($activeBarbers) }} متخصص فعال</small>
+                <span class="nd-section-kicker">آمادگی سالن</span>
+                <h2>وضعیت امروز</h2>
             </div>
+
+            <div class="nd-health-list">
+                <div class="{{ $hasWorkingHours ? 'is-ready' : '' }}">
+                    <span class="nd-health-icon">
+                        {{ $hasWorkingHours ? '✓' : '!' }}
+                    </span>
+                    <div>
+                        <strong>ساعات کاری</strong>
+                        <small>
+                            {{ $hasWorkingHours
+                                ? 'برنامه هفتگی فعال است'
+                                : 'نیاز به تنظیم دارد' }}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="{{ $activeBarbers > 0 ? 'is-ready' : '' }}">
+                    <span class="nd-health-icon">
+                        {{ $activeBarbers > 0 ? '✓' : '!' }}
+                    </span>
+                    <div>
+                        <strong>تیم</strong>
+                        <small>
+                            {{ $activeBarbers > 0
+                                ? $fa($activeBarbers) . ' متخصص فعال'
+                                : 'متخصص فعالی ثبت نشده' }}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="{{ $activeServices > 0 ? 'is-ready' : '' }}">
+                    <span class="nd-health-icon">
+                        {{ $activeServices > 0 ? '✓' : '!' }}
+                    </span>
+                    <div>
+                        <strong>خدمات</strong>
+                        <small>
+                            {{ $activeServices > 0
+                                ? $fa($activeServices) . ' خدمت فعال'
+                                : 'خدمت فعالی ثبت نشده' }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <a
+            href="{{ route('salon.notifications.index') }}"
+            class="nd-notification-card"
+        >
+            <span class="nd-section-kicker">صندوق ورودی</span>
+
+            <strong>
+                {{ $unreadNotifications > 0
+                    ? $fa($unreadNotifications) . ' اعلان جدید دارید'
+                    : 'اعلان جدیدی ندارید' }}
+            </strong>
+
+            <span>
+                مشاهده اعلان‌ها
+                <b>←</b>
+            </span>
         </a>
 
-        <a href="{{ route('salon.services.index') }}">
-            <span>✦</span>
-            <div>
-                <strong>خدمات</strong>
-                <small>{{ $fa($activeServices) }} خدمت فعال</small>
-            </div>
-        </a>
-
-        <a href="{{ route('salon.posts.index') }}">
-            <span>▤</span>
-            <div>
-                <strong>محتوا</strong>
-                <small>پست‌ها و معرفی خدمات</small>
-            </div>
-        </a>
-
-        <a href="{{ route('salon.reviews.index') }}">
-            <span>♡</span>
-            <div>
-                <strong>نظرات</strong>
-                <small>بازخورد مشتریان</small>
-            </div>
-        </a>
     </section>
 
 </div>
 @endsection
+
+@push('scripts')
+    @vite('resources/js/salon-dashboard.js')
+@endpush
