@@ -1,4 +1,4 @@
-<section class="discovery-hero" id="hero">
+<section class="discovery-hero discovery-hero-immersive" id="hero">
     <div class="discovery-container discovery-hero-inner">
         <div class="discovery-hero-content">
             <span class="discovery-eyebrow">
@@ -44,6 +44,15 @@
                         aria-label="شهر یا منطقه"
                     >
                 </label>
+
+                <button
+                    type="button"
+                    class="discovery-search-nearby"
+                    data-discover-nearby
+                >
+                    <span aria-hidden="true">⌖</span>
+                    نزدیک من
+                </button>
 
                 <button type="submit" class="discovery-search-submit">
                     جستجو
