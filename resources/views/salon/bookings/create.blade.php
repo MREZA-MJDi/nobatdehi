@@ -53,6 +53,9 @@
 
                 customerSearch: '',
                 customerOpen: false,
+                customerMode: 'existing',
+                newCustomerName: '',
+                newCustomerPhone: '',
 
                 calendarOpen: false,
                 calendarAnchorIso: '',
@@ -532,6 +535,10 @@
                 },
 
                 get selectedCustomer() {
+                    if (this.customerMode !== 'existing') {
+                        return null;
+                    }
+
                     return this.customers.find(
                         customer =>
                             String(customer.id) ===
@@ -556,10 +563,56 @@
                 },
 
                 selectCustomer(id) {
-                    this.customerId =
-                        String(id);
-
+                    this.customerMode = 'existing';
+                    this.customerId = String(id);
+                    this.newCustomerName = '';
+                    this.newCustomerPhone = '';
                     this.customerOpen = false;
+                },
+
+                setCustomerMode(mode) {
+                    this.customerMode = mode;
+
+                    if (mode === 'new') {
+                        this.customerId = '';
+                        this.customerOpen = false;
+                    } else {
+                        this.newCustomerName = '';
+                        this.newCustomerPhone = '';
+                    }
+                },
+
+                normalizePhone(value) {
+                    return String(value || '')
+                        .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+                        .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+                        .replace(/[\\s\\-\\(\\)]/g, '');
+                },
+
+                get existingCustomerByPhone() {
+                    const phone = this.normalizePhone(this.newCustomerPhone);
+
+                    if (!phone) {
+                        return null;
+                    }
+
+                    return this.customers.find(
+                        customer =>
+                            this.normalizePhone(customer.phone) === phone
+                    ) || null;
+                },
+
+                get newCustomerReady() {
+                    const nameReady =
+                        String(this.newCustomerName || '').trim().length >= 2;
+
+                    const phone =
+                        this.normalizePhone(this.newCustomerPhone);
+
+                    return (
+                        nameReady &&
+                        /^09\\d{9}$/.test(phone)
+                    );
                 },
 
                 selectBarber(id) {
@@ -652,8 +705,16 @@
                 },
 
                 get canSubmit() {
+                    const customerReady =
+                        this.customerMode === 'existing'
+                            ? Boolean(this.customerId)
+                            : Boolean(
+                                this.newCustomerReady &&
+                                !this.existingCustomerByPhone
+                            );
+
                     return Boolean(
-                        this.customerId &&
+                        customerReady &&
                         this.barberId &&
                         this.serviceId &&
                         this.selectedDate &&
@@ -940,7 +1001,32 @@
 
                         <div class="p-5">
 
-                            @if($customers->count())
+                            <div class="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-background p-1">
+                                <button
+                                    type="button"
+                                    @click="setCustomerMode('existing')"
+                                    class="min-h-10 rounded-xl px-3 text-xs font-black transition"
+                                    :class="customerMode === 'existing'
+                                        ? 'bg-content text-background shadow-sm'
+                                        : 'text-content-muted hover:bg-surface'"
+                                >
+                                    مشتری موجود
+                                </button>
+
+                                <button
+                                    type="button"
+                                    @click="setCustomerMode('new')"
+                                    class="min-h-10 rounded-xl px-3 text-xs font-black transition"
+                                    :class="customerMode === 'new'
+                                        ? 'bg-content text-background shadow-sm'
+                                        : 'text-content-muted hover:bg-surface'"
+                                >
+                                    + مشتری جدید
+                                </button>
+                            </div>
+
+                            <div x-show="customerMode === 'existing'" x-cloak>
+                                @if($customers->count())
 
                                 <div class="relative">
 
@@ -1071,11 +1157,99 @@
                                 </div>
 
                             @endif
+                            </div>
+
+                            <div
+                                x-show="customerMode === 'new'"
+                                x-cloak
+                                class="rounded-2xl border border-border bg-background p-4"
+                            >
+                                <div class="mb-4">
+                                    <div class="text-xs font-black text-content">
+                                        مشتری جدید
+                                    </div>
+
+                                    <p class="mt-1 text-[10px] leading-5 text-content-muted">
+                                        نام و موبایل را وارد کن؛ مشتری همزمان با همین نوبت در NOBAT ثبت می‌شود.
+                                    </p>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <label class="block">
+                                        <span class="mb-2 block text-[10px] font-black text-content-muted">
+                                            نام و نام خانوادگی
+                                        </span>
+
+                                        <input
+                                            type="text"
+                                            name="new_customer_name"
+                                            x-model="newCustomerName"
+                                            autocomplete="name"
+                                            placeholder="مثلاً علی رضایی"
+                                            class="h-12 w-full rounded-xl border border-border bg-surface px-4 text-xs font-bold text-content outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10"
+                                        >
+                                    </label>
+
+                                    <label class="block">
+                                        <span class="mb-2 block text-[10px] font-black text-content-muted">
+                                            شماره موبایل
+                                        </span>
+
+                                        <input
+                                            type="tel"
+                                            name="new_customer_phone"
+                                            x-model="newCustomerPhone"
+                                            inputmode="tel"
+                                            dir="ltr"
+                                            autocomplete="tel"
+                                            placeholder="۰۹۱۲۱۲۳۴۵۶۷"
+                                            class="h-12 w-full rounded-xl border border-border bg-surface px-4 text-xs font-bold text-content outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10"
+                                        >
+                                    </label>
+
+                                    <div
+                                        x-show="existingCustomerByPhone"
+                                        x-cloak
+                                        class="rounded-xl border border-warning-200 bg-warning-50 p-3 dark:border-warning-800/40 dark:bg-warning-900/10"
+                                    >
+                                        <div class="text-[10px] font-black text-warning-800 dark:text-warning-300">
+                                            این شماره قبلاً ثبت شده است.
+                                        </div>
+
+                                        <div class="mt-1 text-[10px] leading-5 text-warning-700 dark:text-warning-400">
+                                            <span x-text="existingCustomerByPhone?.name"></span>
+                                            <span>قبلاً در NOBAT وجود دارد.</span>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            @click="selectCustomer(existingCustomerByPhone.id)"
+                                            class="mt-2 min-h-9 rounded-lg bg-warning-100 px-3 text-[10px] font-black text-warning-800 dark:bg-warning-900/30 dark:text-warning-200"
+                                        >
+                                            انتخاب همین مشتری
+                                        </button>
+                                    </div>
+
+                                    <div
+                                        x-show="newCustomerReady && !existingCustomerByPhone"
+                                        x-cloak
+                                        class="rounded-xl border border-success-200 bg-success-50 p-3 dark:border-success-800/40 dark:bg-success-900/10"
+                                    >
+                                        <div class="text-[10px] font-black text-success-700 dark:text-success-300">
+                                            آماده ثبت
+                                        </div>
+
+                                        <div class="mt-1 text-[10px] leading-5 text-success-700/80 dark:text-success-400">
+                                            این مشتری همراه با نوبت ساخته می‌شود و فعلاً نیاز به مرحله جداگانه ندارد.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <input
                                 type="hidden"
                                 name="customer_id"
-                                :value="customerId"
+                                :value="customerMode === 'existing' ? customerId : ''"
                             >
 
                         </div>
