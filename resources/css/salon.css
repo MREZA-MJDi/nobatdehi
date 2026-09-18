@@ -3942,3 +3942,88 @@ body.salon-lightbox-open {
         padding-inline: 9px;
     }
 }
+
+
+/* ================================================================
+   SALON BRAND THEME — SAFE ACCENT OVERRIDE
+   Base graphite surfaces and text remain fixed for reliable contrast.
+   Owner colors affect accents, links, borders, and subtle highlights.
+   ================================================================ */
+
+.salon-page {
+    --diamond: var(--salon-brand-primary, #edf3f8);
+    --diamond-2: var(--salon-brand-secondary, #c4d0dc);
+    --diamond-3: color-mix(
+        in srgb,
+        var(--salon-brand-secondary, #94a4b5) 72%,
+        #ffffff 28%
+    );
+}
+
+.salon-page .verified-live {
+    color: var(--salon-brand-primary, var(--diamond));
+    border-color: color-mix(
+        in srgb,
+        var(--salon-brand-primary, #edf3f8) 24%,
+        transparent
+    );
+    background: color-mix(
+        in srgb,
+        var(--salon-brand-primary, #edf3f8) 7%,
+        transparent
+    );
+}
+
+.salon-page .section-kicker,
+.salon-page .bk-text .eyebrow,
+.salon-page .rating-score,
+.salon-page .about-kicker,
+.salon-page .service-price,
+.salon-page .t-role,
+.salon-page .t-rating strong {
+    color: var(--salon-brand-primary, var(--diamond));
+}
+
+.salon-page .section-count,
+.salon-page .cover-status,
+.salon-page .hero-meta i {
+    color: var(--salon-brand-secondary, var(--diamond-2));
+}
+
+.salon-page .chip.accent,
+.salon-page .service-book:hover,
+.salon-page .tab:not(.active):hover,
+.salon-page .cal-nav button:hover,
+.salon-page .day:hover:not(.off):not(.empty),
+.salon-page .slot:hover:not(.taken),
+.salon-page .btn-ghost:hover {
+    border-color: color-mix(
+        in srgb,
+        var(--salon-brand-primary, #edf3f8) 34%,
+        var(--line-strong)
+    );
+}
+
+.salon-page .chip.accent,
+.salon-page .service-book:hover {
+    background: color-mix(
+        in srgb,
+        var(--salon-brand-primary, #edf3f8) 8%,
+        transparent
+    );
+}
+
+.salon-page .tab.active,
+.salon-page .day.sel,
+.salon-page .slot.sel {
+    border-color: color-mix(
+        in srgb,
+        var(--salon-brand-primary, #edf3f8) 46%,
+        transparent
+    );
+}
+
+.salon-page .rating-stars,
+.salon-page .c-stars > span:first-child {
+    color: var(--salon-brand-secondary, var(--diamond-2));
+}
