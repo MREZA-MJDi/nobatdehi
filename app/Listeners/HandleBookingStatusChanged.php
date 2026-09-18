@@ -44,9 +44,11 @@ class HandleBookingStatusChanged implements ShouldQueue, ShouldBeUnique
             )
         );
 
-        SendBookingSms::dispatch(
-            $booking->id,
-            'customer'
-        );
+        if (config('services.nobat_sms.customer_status_sms', false)) {
+            SendBookingSms::dispatch(
+                $booking->id,
+                'customer'
+            );
+        }
     }
 }
