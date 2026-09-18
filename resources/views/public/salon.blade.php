@@ -1,4 +1,14 @@
-@extends('layouts.public')
+@extends('layouts.customer')
+
+@section('customer_shell', 'standalone')
+
+@push('head')
+    @vite('resources/css/salon.css')
+@endpush
+
+@push('scripts')
+    @vite('resources/js/salon.js')
+@endpush
 
 @section('title', $salon->name . ' | رزرو نوبت آنلاین')
 

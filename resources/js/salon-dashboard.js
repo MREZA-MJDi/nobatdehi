@@ -92,6 +92,26 @@
         });
     };
 
+    const renderRecent = bookings => {
+        const list = root.querySelector('[data-dashboard-recent]');
+        if (!list) return;
+
+        const items = Array.isArray(bookings) ? bookings : [];
+        if (!items.length) {
+            list.innerHTML = '<div class="nd-empty"><strong>هنوز فعالیتی ثبت نشده.</strong><span>بعد از اولین رزرو، تاریخچه اینجا نمایش داده می‌شود.</span></div>';
+            return;
+        }
+
+        list.innerHTML = items.map(booking => {
+            const pair = statusMap[booking.status] || ['نامشخص', 'default'];
+            return '<a class="nd-activity-row" href="/salon/bookings/' + encodeURIComponent(booking.id) + '">' +
+                '<div class="nd-activity-dot nd-activity-dot--' + pair[1] + '"></div>' +
+                '<div class="nd-activity-main"><strong>' + escapeHtml(booking.customer || 'مشتری') + '</strong><span>' + escapeHtml(booking.service || 'خدمت') + ' · ' + escapeHtml(booking.barber || 'متخصص') + '</span></div>' +
+                '<div class="nd-activity-meta"><strong>' + escapeHtml(booking.startTime || '—') + '</strong><span>' + escapeHtml(jalaliDate(booking.date)) + '</span></div>' +
+                '<span class="nd-status nd-status--' + pair[1] + '">' + pair[0] + '</span></a>';
+        }).join('');
+    };
+
     const renderUpcoming = bookings => {
         const list = root.querySelector('[data-dashboard-upcoming]');
         if (!list) return;
@@ -169,6 +189,7 @@
             if (monthlyStrong) monthlyStrong.textContent = money(month);
 
             renderUpcoming(data.upcomingBookings || []);
+            renderRecent(data.recentBookings || []);
             updateAlert(data);
             updateClock();
             setApiState(true, 'متصل');

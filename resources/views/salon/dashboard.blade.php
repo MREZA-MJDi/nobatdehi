@@ -44,6 +44,14 @@
             fn ($hour) =>
                 $hour['start'] . ' تا ' . $hour['end']
         )->join(' · ');
+
+    $monthlyTotal = (int) ($monthlyRevenueChart ?? collect())->sum('value');
+
+    $readyToTakeBooking =
+        (bool) ($salon->is_active ?? false)
+        && $hasWorkingHours
+        && $activeBarbers > 0
+        && $activeServices > 0;
 @endphp
 
 <div
@@ -622,6 +630,47 @@
     </section>
 
 
+    <section class="nd-activity-panel nd-panel">
+        <header class="nd-section-head nd-panel-head">
+            <div>
+                <span class="nd-section-kicker">فعالیت اخیر</span>
+                <h2>آخرین نوبت‌ها</h2>
+            </div>
+            <a href="{{ route('salon.bookings.index') }}">
+                همه نوبت‌ها
+                <span>←</span>
+            </a>
+        </header>
+
+        <div class="nd-activity-list" data-dashboard-recent>
+            @forelse($recentBookings as $booking)
+                @php([$label, $tone] = $status($booking->status))
+                <a class="nd-activity-row" href="{{ route('salon.bookings.show', $booking) }}">
+                    <div class="nd-activity-dot nd-activity-dot--{{ $tone }}"></div>
+                    <div class="nd-activity-main">
+                        <strong>{{ $booking->customer?->name ?? 'مشتری' }}</strong>
+                        <span>
+                            {{ $booking->service?->name ?? 'خدمت' }}
+                            ·
+                            {{ $booking->barber?->name ?? 'متخصص' }}
+                        </span>
+                    </div>
+                    <div class="nd-activity-meta">
+                        <strong>{{ substr((string) $booking->start_time, 0, 5) }}</strong>
+                        <span>{{ jalali_date($booking->booking_date) }}</span>
+                    </div>
+                    <span class="nd-status nd-status--{{ $tone }}">{{ $label }}</span>
+                </a>
+            @empty
+                <div class="nd-empty">
+                    <strong>هنوز فعالیتی ثبت نشده.</strong>
+                    <span>بعد از اولین رزرو، تاریخچه اینجا نمایش داده می‌شود.</span>
+                </div>
+            @endforelse
+        </div>
+    </section>
+
+
     <section class="nd-dashboard-footer-grid">
 
         <div class="nd-health-card">
@@ -669,6 +718,20 @@
                             {{ $activeServices > 0
                                 ? $fa($activeServices) . ' خدمت فعال'
                                 : 'خدمت فعالی ثبت نشده' }}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="{{ $readyToTakeBooking ? 'is-ready' : '' }}">
+                    <span class="nd-health-icon">
+                        {{ $readyToTakeBooking ? '✓' : '!' }}
+                    </span>
+                    <div>
+                        <strong>آماده دریافت نوبت</strong>
+                        <small>
+                            {{ $readyToTakeBooking
+                                ? 'سالن آماده رزرو آنلاین است'
+                                : 'ساعات، تیم، خدمات یا وضعیت سالن را بررسی کن' }}
                         </small>
                     </div>
                 </div>

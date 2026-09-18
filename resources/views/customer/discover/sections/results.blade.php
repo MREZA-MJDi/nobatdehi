@@ -17,6 +17,7 @@
         'service' => null,
         'province' => '',
         'city' => '',
+        'location' => '',
         'district' => '',
         'sort' => 'recommended',
         'min_rating' => 0,
@@ -26,8 +27,7 @@
         'lat' => null,
         'lng' => null,
         'radius' => 15,
-        'gender' => null,
-    ], $filters);
+        ], $filters);
 
     /*
     |--------------------------------------------------------------------------
@@ -67,6 +67,7 @@
         || $filters['service'] !== null
         || $filters['province'] !== ''
         || $filters['city'] !== ''
+        || $filters['location'] !== ''
         || $filters['district'] !== ''
         || (float) $filters['min_rating'] > 0
         || (
@@ -79,7 +80,6 @@
             is_numeric($filters['lat'])
             && is_numeric($filters['lng'])
         )
-        || $filters['gender'] !== null
         || $filters['sort'] !== 'recommended';
 
     /*
@@ -100,6 +100,10 @@
         $resultTitle = 'سالن‌های این خدمت';
 
         $resultDescription = 'سالن‌هایی که این خدمت را ارائه می‌دهند.';
+    } elseif ($filters['location'] !== '') {
+        $resultTitle = 'نتایج «' . $filters['location'] . '»';
+
+        $resultDescription = 'سالن‌های فعال در این شهر، منطقه یا محله.';
     } elseif ($filters['city'] !== '') {
         $resultTitle = 'سالن‌های ' . $filters['city'];
 
@@ -327,21 +331,17 @@
                         >
                             <option value="">همه خدمات</option>
 
-                            @foreach (($serviceOptions ?? collect()) as $serviceOption)
+                            @foreach (($serviceOptions ?? collect()) as $serviceOptionName)
                                 @php
-                                    $serviceOptionName = trim(
-                                        (string) data_get($serviceOption, 'name')
-                                    );
+                                    $serviceOptionName = trim((string) $serviceOptionName);
                                 @endphp
 
                                 @if ($serviceOptionName !== '')
                                     <option
                                         value="{{ $serviceOptionName }}"
-                                        @selected(
-                                            trim((string) $filters['service']) === $serviceOptionName
-                                        )
+                                        @selected((string) $filters['service'] === $serviceOptionName)
                                     >
-                                    {{ $serviceOptionName }}
+                                        {{ $serviceOptionName }}
                                     </option>
                                 @endif
                             @endforeach
@@ -390,6 +390,20 @@
                                 </option>
                             @endforeach
                         </select>
+                    </label>
+
+                    {{-- Location --}}
+                    <label class="block">
+                        <span class="sr-only">شهر، منطقه یا محله</span>
+
+                        <input
+                            type="text"
+                            name="location"
+                            value="{{ $filters['location'] }}"
+                            placeholder="شهر، منطقه یا محله"
+                            autocomplete="address-level2"
+                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition placeholder:text-[var(--color-content-muted)] focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
+                        >
                     </label>
 
                     {{-- District --}}
@@ -538,7 +552,7 @@
                         class="h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-accent-600)] focus:ring-[var(--color-accent-500)]"
                         >
 
-                        <span>امروز امکان رزرو دارد</span>
+                        <span>امروز باز است</span>
                     </label>
 
                     {{-- Geolocation --}}

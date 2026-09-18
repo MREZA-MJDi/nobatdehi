@@ -1,4 +1,6 @@
-@extends('layouts.auth')
+@extends('layouts.customer')
+
+@section('customer_shell', 'auth')
 
 @section('title', 'ورود')
 

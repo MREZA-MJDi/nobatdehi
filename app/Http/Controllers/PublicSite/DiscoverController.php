@@ -8,6 +8,7 @@ use App\Models\Salon;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DiscoverController extends Controller
@@ -20,7 +21,7 @@ class DiscoverController extends Controller
 
     private const POPULAR_SERVICES_LIMIT = 8;
 
-    private const STYLIST_LIMIT = 8;
+    private const STYLIST_LIMIT = 18;
 
     private const CARD_SERVICES_LIMIT = 3;
 
@@ -70,6 +71,7 @@ class DiscoverController extends Controller
             || $filters['service'] !== null
             || $filters['province'] !== ''
             || $filters['city'] !== ''
+            || $filters['location'] !== ''
             || $filters['district'] !== ''
             || (float) $filters['min_rating'] > 0
             || (
@@ -79,7 +81,6 @@ class DiscoverController extends Controller
             || $filters['open_now']
             || $filters['today']
             || $hasGeo
-            || $filters['gender'] !== null
             || $filters['sort'] !== 'recommended';
 
         /*
@@ -129,43 +130,28 @@ class DiscoverController extends Controller
         }
 
         if ($filters['city'] !== '') {
-            $city = trim($filters['city']);
-            $cityLike = '%' . $city . '%';
-
             $salonQuery->where(
-                function ($query) use ($cityLike) {
-                    $query
-                        ->where(
-                            'province',
-                            'like',
-                            $cityLike
-                        )
-                        ->orWhere(
-                            'city',
-                            'like',
-                            $cityLike
-                        )
-                        ->orWhere(
-                            'district',
-                            'like',
-                            $cityLike
-                        )
-                        ->orWhere(
-                            'address',
-                            'like',
-                            $cityLike
-                        );
-                }
+                'city',
+                $filters['city']
             );
         }
 
-        if ($filters['district'] !== '') {
-            $districtLike = '%' . trim($filters['district']) . '%';
+        if ($filters['location'] !== '') {
+            $locationLike = '%' . $filters['location'] . '%';
 
+            $salonQuery->where(function ($query) use ($locationLike) {
+                $query
+                    ->where('province', 'like', $locationLike)
+                    ->orWhere('city', 'like', $locationLike)
+                    ->orWhere('district', 'like', $locationLike)
+                    ->orWhere('address', 'like', $locationLike);
+            });
+        }
+
+        if ($filters['district'] !== '') {
             $salonQuery->where(
                 'district',
-                'like',
-                $districtLike
+                $filters['district']
             );
         }
 
@@ -326,15 +312,15 @@ class DiscoverController extends Controller
                     );
                 }
             )
+            ->whereNotNull('name')
+            ->where('name', '!=', '')
             ->selectRaw(
                 'TRIM(name) AS name'
             )
             ->distinct()
             ->orderBy('name')
-            ->limit(
-                self::SERVICE_OPTIONS_LIMIT
-            )
-            ->get();
+            ->limit(self::SERVICE_OPTIONS_LIMIT)
+            ->pluck('name');
 
         /*
         |--------------------------------------------------------------------------
@@ -619,6 +605,13 @@ class DiscoverController extends Controller
                 )
             ),
 
+            'location' => trim(
+                (string) $request->query(
+                    'location',
+                    ''
+                )
+            ),
+
             'district' => trim(
                 (string) $request->query(
                     'district',
@@ -652,9 +645,6 @@ class DiscoverController extends Controller
 
             'radius' => $radius,
 
-            'gender' => $request->query(
-                'gender'
-            ),
         ];
     }
 
@@ -752,6 +742,7 @@ class DiscoverController extends Controller
                             'name',
                             'price',
                             'sort_order',
+                            'is_active',
                         ])
                         ->orderBy(
                             'sort_order'
@@ -769,122 +760,97 @@ class DiscoverController extends Controller
     |--------------------------------------------------------------------------
     */
 
+    private function normalizeSearchTerm(string $value): string
+    {
+        $value = trim(
+            preg_replace('/\\s+/u', ' ', $value) ?? $value
+        );
+
+        return str_replace(
+            [
+                'ي',
+                'ى',
+                'ك',
+                'ة',
+                'ۀ',
+            ],
+            [
+                'ی',
+                'ی',
+                'ک',
+                'ه',
+                'ه',
+            ],
+            $value
+        );
+    }
+
     private function applySearch(
         $query,
         string $search
     ): void {
+        $search = trim($search);
+
         if ($search === '') {
             return;
         }
 
-        $searchLike = '%' . $search . '%';
+        $terms = collect([
+            $search,
+            $this->normalizeSearchTerm($search),
+        ])
+            ->map(fn ($term) => trim((string) $term))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
 
-        $query->where(
-            function ($query) use ($searchLike) {
+        $query->where(function ($query) use ($terms) {
+            foreach ($terms as $index => $term) {
+                $searchLike = '%' . $term . '%';
 
-                $query
-                    ->where(
-                        'name',
-                        'like',
-                        $searchLike
-                    )
+                $method = $index === 0
+                    ? 'where'
+                    : 'orWhere';
 
-                    ->orWhere(
-                        'code',
-                        'like',
-                        $searchLike
-                    )
-
-                    ->orWhere(
-                        'city',
-                        'like',
-                        $searchLike
-                    )
-
-                    ->orWhere(
-                        'district',
-                        'like',
-                        $searchLike
-                    )
-
-                    ->orWhere(
-                        'address',
-                        'like',
-                        $searchLike
-                    )
-
-                    ->orWhereHas(
-                        'services',
-                        function ($query) use (
-                            $searchLike
-                        ) {
-                            $query
-                                ->where(
-                                    'is_active',
-                                    true
-                                )
-
-                                ->where(
-                                    function ($query) use (
-                                        $searchLike
-                                    ) {
+                $query->{$method}(function ($query) use ($searchLike) {
+                    $query
+                        ->where('name', 'like', $searchLike)
+                        ->orWhere('code', 'like', $searchLike)
+                        ->orWhere('city', 'like', $searchLike)
+                        ->orWhere('district', 'like', $searchLike)
+                        ->orWhere('province', 'like', $searchLike)
+                        ->orWhere('address', 'like', $searchLike)
+                        ->orWhereHas(
+                            'services',
+                            function ($query) use ($searchLike) {
+                                $query
+                                    ->where('is_active', true)
+                                    ->where(function ($query) use ($searchLike) {
                                         $query
-                                            ->where(
-                                                'name',
-                                                'like',
-                                                $searchLike
-                                            )
-
-                                            ->orWhere(
-                                                'description',
-                                                'like',
-                                                $searchLike
-                                            );
-                                    }
-                                );
-                        }
-                    )
-
-                    ->orWhereHas(
-                        'barbers',
-                        function ($query) use (
-                            $searchLike
-                        ) {
-                            $query
-                                ->where(
-                                    'is_active',
-                                    true
-                                )
-
-                                ->where(
-                                    function ($query) use (
-                                        $searchLike
-                                    ) {
+                                            ->where('name', 'like', $searchLike)
+                                            ->orWhere('description', 'like', $searchLike);
+                                    });
+                            }
+                        )
+                        ->orWhereHas(
+                            'barbers',
+                            function ($query) use ($searchLike) {
+                                $query
+                                    ->where('is_active', true)
+                                    ->where(function ($query) use ($searchLike) {
                                         $query
-                                            ->where(
-                                                'name',
-                                                'like',
-                                                $searchLike
-                                            )
-
-                                            ->orWhere(
-                                                'specialty',
-                                                'like',
-                                                $searchLike
-                                            )
-
-                                            ->orWhere(
-                                                'bio',
-                                                'like',
-                                                $searchLike
-                                            );
-                                    }
-                                );
-                        }
-                    );
+                                            ->where('name', 'like', $searchLike)
+                                            ->orWhere('specialty', 'like', $searchLike)
+                                            ->orWhere('bio', 'like', $searchLike);
+                                    });
+                            }
+                        );
+                });
             }
-        );
+        });
     }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -944,49 +910,40 @@ class DiscoverController extends Controller
             return;
         }
 
-        $serviceName = trim((string) $service);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Backward compatibility
-        |--------------------------------------------------------------------------
-        |
-        | لینک‌های قدیمی Discover ممکن است service=<id> داشته باشند.
-        | ID را به نام واقعی سرویس resolve می‌کنیم تا همه سالن‌هایی که
-        | همان خدمت را ارائه می‌دهند دیده شوند؛ نه فقط همان رکورد سرویس.
-        |--------------------------------------------------------------------------
-        */
-
-        if (is_numeric($service)) {
-            $serviceName = trim(
-                (string) (
-                    Service::query()
-                        ->where('is_active', true)
-                        ->whereKey((int) $service)
-                        ->value('name')
-                    ?? ''
-                )
-            );
-
-            if ($serviceName === '') {
-                $query->whereRaw('1 = 0');
-
-                return;
-            }
-        }
-
         $query->whereHas(
             'services',
-            function ($query) use ($serviceName) {
-                $query
-                    ->where(
-                        'is_active',
-                        true
+            function ($query) use (
+                $service
+            ) {
+                $query->where(
+                    'is_active',
+                    true
+                );
+
+                if (
+                    is_numeric(
+                        $service
                     )
-                    ->whereRaw(
-                        'TRIM(name) = ?',
-                        [$serviceName]
+                ) {
+                    $query->where(
+                        'id',
+                        (int) $service
                     );
+
+                    return;
+                }
+
+                $serviceName = $this->normalizeSearchTerm(
+                    trim((string) $service)
+                );
+
+                $query->where(
+                    function ($query) use ($serviceName, $service) {
+                        $query
+                            ->where('name', 'like', '%' . trim((string) $service) . '%')
+                            ->orWhere('name', 'like', '%' . $serviceName . '%');
+                    }
+                );
             }
         );
     }
@@ -1005,10 +962,9 @@ class DiscoverController extends Controller
             return;
         }
 
-        $query->having(
-            'reviews_avg_rating',
-            '>=',
-            $minRating
+        $query->whereRaw(
+            '(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.salon_id = salons.id AND reviews.is_published = 1) >= ?',
+            [$minRating]
         );
     }
 
@@ -1056,14 +1012,13 @@ class DiscoverController extends Controller
             return;
         }
 
-        $this->applyMinimumServicePrice(
-            $query
-        );
-
-        $query->having(
-            'min_price',
-            '<=',
-            (int) $priceMax
+        $query->whereHas(
+            'services',
+            function ($query) use ($priceMax) {
+                $query
+                    ->where('is_active', true)
+                    ->where('price', '<=', (int) $priceMax);
+            }
         );
     }
 
@@ -1119,19 +1074,13 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $query->where(
+        $query->whereHas(
+            'workingHours',
             function ($query) use (
                 $dayOfWeek,
                 $previousDayOfWeek,
                 $time
             ) {
-
-                /*
-                |--------------------------------------------------------------------------
-                | Normal schedule
-                |--------------------------------------------------------------------------
-                */
-
                 $query->where(
                     function ($query) use (
                         $dayOfWeek,
@@ -1142,81 +1091,77 @@ class DiscoverController extends Controller
                                 'day_of_week',
                                 $dayOfWeek
                             )
-
                             ->where(
                                 'is_closed',
                                 false
                             )
-
+                            ->whereNotNull('start_time')
+                            ->whereNotNull('end_time')
                             ->whereColumn(
                                 'start_time',
                                 '<=',
                                 'end_time'
                             )
-
                             ->whereTime(
                                 'start_time',
                                 '<=',
                                 $time
                             )
-
                             ->whereTime(
                                 'end_time',
                                 '>=',
                                 $time
                             );
                     }
-                )
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Overnight schedule
-                    |--------------------------------------------------------------------------
-                    */
-
-                    ->orWhere(
-                        function ($query) use (
-                            $previousDayOfWeek,
-                            $time
-                        ) {
-                            $query
-                                ->where(
-                                    'day_of_week',
-                                    $previousDayOfWeek
-                                )
-
-                                ->where(
-                                    'is_closed',
-                                    false
-                                )
-
-                                ->whereColumn(
-                                    'start_time',
-                                    '>',
-                                    'end_time'
-                                )
-
-                                ->where(
-                                    function ($query) use (
-                                        $time
-                                    ) {
-                                        $query
-                                            ->whereTime(
-                                                'start_time',
-                                                '<=',
-                                                $time
-                                            )
-
-                                            ->orWhereTime(
-                                                'end_time',
-                                                '>=',
-                                                $time
-                                            );
-                                    }
-                                );
-                        }
-                    );
+                )->orWhere(
+                    function ($query) use (
+                        $previousDayOfWeek,
+                        $time
+                    ) {
+                        $query
+                            ->where(
+                                'day_of_week',
+                                $previousDayOfWeek
+                            )
+                            ->where(
+                                'is_closed',
+                                false
+                            )
+                            ->whereNotNull('start_time')
+                            ->whereNotNull('end_time')
+                            ->whereColumn(
+                                'start_time',
+                                '>',
+                                'end_time'
+                            )
+                            ->where(
+                                function ($query) use (
+                                    $time
+                                ) {
+                                    $query
+                                        ->whereTime(
+                                            'start_time',
+                                            '<=',
+                                            $time
+                                        )
+                                        ->orWhereTime(
+                                            'end_time',
+                                            '>=',
+                                            $time
+                                        );
+                                }
+                            );
+                    }
+                );
             }
+        )
+        ->whereHas(
+            'barbers',
+            fn ($query) => $query->where('is_active', true)
+        )
+        ->whereHas(
+            'services',
+            fn ($query) => $query->where('is_active', true)
         );
     }
 
@@ -1225,8 +1170,9 @@ class DiscoverController extends Controller
     | Has slot today
     |--------------------------------------------------------------------------
     |
-    | امروز سالن باز باشد و حداقل یک متخصص و یک خدمت فعال
-    | همراه با working hour معتبر داشته باشد.
+    | فعلاً تخمینی است.
+    | یعنی:
+    | امروز بسته نباشد + working hour فعال داشته باشد.
     |--------------------------------------------------------------------------
     */
 
@@ -1273,32 +1219,7 @@ class DiscoverController extends Controller
                             false
                         )
                         ->whereNotNull('start_time')
-                        ->whereNotNull('end_time')
-                        ->whereColumn(
-                            'start_time',
-                            '<',
-                            'end_time'
-                        );
-                }
-            )
-
-            ->whereHas(
-                'barbers',
-                function ($query) {
-                    $query->where(
-                        'is_active',
-                        true
-                    );
-                }
-            )
-
-            ->whereHas(
-                'services',
-                function ($query) {
-                    $query->where(
-                        'is_active',
-                        true
-                    );
+                        ->whereNotNull('end_time');
                 }
             );
     }
@@ -1363,15 +1284,33 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        /*
+        |--------------------------------------------------------------------------
+        | Keep Eloquent aggregate columns while adding distance.
+        |--------------------------------------------------------------------------
+        */
         $query
-
-            ->selectRaw(
-                "salons.*, {$haversine} AS distance_km",
-                [
-                    $lat,
-                    $lng,
-                    $lat,
-                ]
+            ->addSelect(
+                DB::raw(
+                    "(
+                        6371 * ACOS(
+                            GREATEST(
+                                -1,
+                                LEAST(
+                                    1,
+                                    COS(RADIANS(" . $lat . "))
+                                    * COS(RADIANS(salons.latitude))
+                                    * COS(
+                                        RADIANS(salons.longitude)
+                                        - RADIANS(" . $lng . ")
+                                    )
+                                    + SIN(RADIANS(" . $lat . "))
+                                    * SIN(RADIANS(salons.latitude))
+                                )
+                            )
+                        )
+                    ) AS distance_km"
+                )
             )
 
             ->whereNotNull(

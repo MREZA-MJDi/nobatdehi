@@ -2937,7 +2937,7 @@
     display: none !important;
 }
 
-.discover-page.discover-results-loading #discover-live-results {
+.discover-page.discover-results-loading #results {
     opacity: .56;
     transform: translateY(2px);
     transition: opacity .16s ease, transform .16s ease;
@@ -2978,8 +2978,8 @@
     }
 
     .discover-page .discover-hero-inner {
-        grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr);
-        gap: 46px;
+        grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr);
+        gap: 30px;
         align-items: center;
         direction: ltr;
     }
@@ -2996,18 +2996,17 @@
 
     .discover-page .discover-hero-media {
         order: 0;
-        min-height: 590px;
+        min-height: 510px;
         border-radius: 28px;
     }
 
     .discover-page .discover-search-box {
-        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 128px 112px;
-        align-items: stretch;
+        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
     }
 
     .discover-page .discover-search-nearby,
     .discover-page .discover-search-submit {
-        grid-column: auto;
+        grid-column: span 1;
     }
 
     .discover-page .discover-results .grid {
@@ -3511,5 +3510,226 @@ body.discover-search-modal-open {
 
     .discover-page .discover-hero-inner {
         min-height: 0;
+    }
+}
+
+
+/* ==========================================================================
+   NOBAT DISCOVER — compact salon teams
+   ========================================================================== */
+
+.discover-page .discover-team-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.discover-page .discover-team-card {
+    display: block;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--discover-border);
+    border-radius: 18px;
+    background: var(--discover-surface);
+    color: var(--discover-text);
+    text-decoration: none;
+    box-shadow: var(--discover-shadow-sm);
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.discover-page .discover-team-card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--discover-primary) 30%, var(--discover-border));
+    box-shadow: 0 18px 42px rgba(0,0,0,.10);
+}
+
+.discover-page .discover-team-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.discover-page .discover-team-copy {
+    min-width: 0;
+}
+
+.discover-page .discover-team-copy > span,
+.discover-page .discover-team-copy > small {
+    display: block;
+    color: var(--discover-muted);
+    font-size: 8px;
+    line-height: 1.7;
+}
+
+.discover-page .discover-team-copy > strong {
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 950;
+}
+
+.discover-page .discover-team-arrow {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--discover-border);
+    border-radius: 10px;
+    background: var(--discover-surface-soft);
+    color: var(--discover-primary);
+    font-size: 14px;
+}
+
+.discover-page .discover-team-avatars {
+    display: flex;
+    align-items: center;
+    margin-top: 13px;
+    min-height: 38px;
+}
+
+.discover-page .discover-team-avatars img,
+.discover-page .discover-team-avatar-fallback {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    margin-inline-start: -7px;
+    border: 2px solid var(--discover-surface);
+    border-radius: 999px;
+    object-fit: cover;
+    background: var(--discover-surface-soft);
+    color: var(--discover-text);
+}
+
+.discover-page .discover-team-avatars > :first-child {
+    margin-inline-start: 0;
+}
+
+.discover-page .discover-team-avatar-fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.discover-page .discover-team-members {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 9px;
+    overflow: hidden;
+    white-space: nowrap;
+    color: var(--discover-text-soft);
+    font-size: 8px;
+    line-height: 1.7;
+}
+
+.discover-page .discover-team-members span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (min-width: 760px) {
+    .discover-page .discover-team-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+}
+
+@media (min-width: 1080px) {
+    .discover-page .discover-team-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+
+/* ==========================================================================
+   NOBAT DISCOVER — ending gallery / team polish
+   ========================================================================== */
+
+.discover-page .discover-team-card,
+.discover-page .discover-end-salon {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.discover-page .discover-team-card {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.discover-page .discover-team-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+        opacity .45s ease,
+        transform .45s ease,
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+
+.discover-page .discover-end-salon-strip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 14px;
+    direction: rtl;
+}
+
+.discover-page .discover-end-salon {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 2px solid var(--discover-surface);
+    border-radius: 999px;
+    background: var(--discover-surface-soft);
+    box-shadow: 0 0 0 1px var(--discover-border);
+    text-decoration: none;
+    transition: transform .18s ease;
+}
+
+.discover-page .discover-end-salon:hover {
+    transform: translateY(-2px);
+}
+
+.discover-page .discover-end-salon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.discover-page .discover-end-salon span {
+    color: var(--discover-primary);
+    font-size: 12px;
+    font-weight: 950;
+}
+
+@media (max-width: 759px) {
+    .discover-page .discover-owner-cta {
+        gap: 13px;
+    }
+
+    .discover-page .discover-end-salon-strip {
+        margin-top: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .discover-page .discover-team-card {
+        opacity: 1;
+        transform: none;
+    }
+
+    .discover-page .discover-end-salon {
+        transition: none;
     }
 }

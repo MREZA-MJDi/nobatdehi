@@ -49,14 +49,14 @@
 
             const html = await response.text();
             const parsed = new DOMParser().parseFromString(html, 'text/html');
-            const freshLiveResults = parsed.querySelector('#discover-live-results');
-            const currentLiveResults = page.querySelector('#discover-live-results');
+            const freshDynamic = parsed.querySelector('#discoverDynamicContent');
+            const currentDynamic = page.querySelector('#discoverDynamicContent');
 
-            if (!freshLiveResults || !currentLiveResults) {
-                throw new Error('DISCOVER_LIVE_RESULTS_NOT_FOUND');
+            if (!freshDynamic || !currentDynamic) {
+                throw new Error('DISCOVER_DYNAMIC_CONTENT_NOT_FOUND');
             }
 
-            currentLiveResults.replaceWith(freshLiveResults);
+            currentDynamic.replaceWith(freshDynamic);
 
             if (push) {
                 window.history.pushState({}, '', nextUrl.toString());
@@ -67,7 +67,11 @@
             observeReveals();
 
             if (showOverlay) {
-                renderSearchModal(freshLiveResults);
+                const freshResults = freshDynamic.querySelector('#results');
+
+                if (freshResults) {
+                    renderSearchModal(freshResults);
+                }
             }
 
             if (scroll && !showOverlay) {
@@ -179,20 +183,14 @@
         }, 180);
     };
 
-    const renderSearchModal = (freshLiveResults) => {
+    const renderSearchModal = (freshResults) => {
         if (!searchModal || !searchModalBody) return;
-
-        const freshResults = freshLiveResults.querySelector('#results');
-
-        if (!freshResults) {
-            return;
-        }
 
         const title =
             freshResults
                 .querySelector('#discover-results-title')
                 ?.textContent
-                ?.replace(/\s+/g, ' ')
+                ?.replace(/\\s+/g, ' ')
                 ?.trim()
             || 'نتایج جستجو';
 
@@ -204,30 +202,28 @@
             freshResults
                 .querySelector('.mb-5')
                 ?.textContent
-                ?.replace(/\s+/g, ' ')
+                ?.replace(/\\s+/g, ' ')
                 ?.trim();
 
-        if (searchModalTitle) {
-            searchModalTitle.textContent = title;
-        }
-
-        if (searchModalMeta) {
+        searchModalTitle && (searchModalTitle.textContent = title);
+        searchModalMeta && (
             searchModalMeta.textContent =
                 cards.length > 0
-                    ? (totalText || ('نمایش ' + cards.length + ' نتیجه'))
-                    : 'برای این جستجو نتیجه‌ای پیدا نشد.';
-        }
+                    ? (totalText || `${cards.length} سالن در این صفحه`)
+                    : 'برای این جستجو نتیجه‌ای پیدا نشد.'
+        );
 
         searchModalBody.innerHTML = '';
         searchModalBody.setAttribute('aria-busy', 'false');
 
         if (!cards.length) {
-            searchModalBody.innerHTML =
-                '<div class="discover-search-empty">' +
-                    '<div class="discover-search-empty-icon">⌕</div>' +
-                    '<strong>نتیجه‌ای پیدا نشد</strong>' +
-                    '<p>عبارت جستجو یا فیلترها را کمی تغییر بده و دوباره امتحان کن.</p>' +
-                '</div>';
+            searchModalBody.innerHTML = `
+                <div class="discover-search-empty">
+                    <div class="discover-search-empty-icon">⌕</div>
+                    <strong>نتیجه‌ای پیدا نشد</strong>
+                    <p>عبارت جستجو یا فیلترها را کمی تغییر بده و دوباره امتحان کن.</p>
+                </div>
+            `;
         } else {
             const grid = document.createElement('div');
             grid.className = 'discover-search-results-grid';
@@ -253,16 +249,16 @@
             '.discover-search-field input[name="q"]'
         );
 
-        const heroCity = page.querySelector(
-            '.discover-search-field input[name="city"]'
+        const heroLocation = page.querySelector(
+            '.discover-search-field input[name="location"]'
         );
 
         if (heroQuery) {
             heroQuery.value = url.searchParams.get('q') || '';
         }
 
-        if (heroCity) {
-            heroCity.value = url.searchParams.get('city') || '';
+        if (heroLocation) {
+            heroLocation.value = url.searchParams.get('location') || '';
         }
     };
 
@@ -284,64 +280,21 @@
     });
 
     const bindResultInteractions = () => {
-        const liveRegion = page.querySelector('#discover-live-results');
-        const resultForm = liveRegion?.querySelector(
-            '#results form[action*="salons/discover"]'
-        );
+        const resultForm = page.querySelector('#results form[action*="salons/discover"]');
 
         if (resultForm && !resultForm.dataset.discoverBound) {
             resultForm.dataset.discoverBound = '1';
 
             resultForm.addEventListener('submit', (event) => {
                 event.preventDefault();
-
-                submitDiscoverForm(
-                    resultForm,
-                    {
-                        showOverlay: false,
-                        scroll: true,
-                    }
-                );
+                submitDiscoverForm(resultForm, {
+                    showOverlay: false,
+                    scroll: true,
+                });
             });
-
-            resultForm
-                .querySelectorAll('select, input[type="checkbox"]')
-                .forEach((control) => {
-                    control.addEventListener('change', () => {
-                        submitDiscoverForm(
-                            resultForm,
-                            {
-                                showOverlay: false,
-                                scroll: true,
-                            }
-                        );
-                    });
-                });
-
-            resultForm
-                .querySelectorAll(
-                    'input[type="search"], input[type="text"], input[type="number"]'
-                )
-                .forEach((control) => {
-                    control.addEventListener('keydown', (event) => {
-                        if (event.key !== 'Enter') return;
-
-                        event.preventDefault();
-
-                        submitDiscoverForm(
-                            resultForm,
-                            {
-                                showOverlay: false,
-                                scroll: true,
-                            }
-                        );
-                    });
-                });
         }
 
-        liveRegion?.querySelectorAll(
-            '#results a[href*="salons/discover"]'
-        ).forEach((link) => {
+        page.querySelectorAll('#results a[href*="salons/discover"]').forEach((link) => {
             if (link.dataset.discoverBound) return;
 
             link.dataset.discoverBound = '1';
@@ -352,16 +305,34 @@
                 if (url.pathname !== window.location.pathname) return;
 
                 event.preventDefault();
+                requestDiscover(url);
+            });
+        });
 
-                requestDiscover(
-                    url,
+        const province = page.querySelector('#discover-filter-province');
+        const city = page.querySelector('#discover-filter-city');
+
+        if (province && city && !province.dataset.discoverBound) {
+            province.dataset.discoverBound = '1';
+
+            province.addEventListener('change', () => {
+                city.disabled = true;
+
+                submitDiscoverForm(
+                    province.form,
                     {
                         showOverlay: false,
                         scroll: true,
                     }
-                );
+                ).finally(() => {
+                    const freshCity = page.querySelector('#discover-filter-city');
+
+                    if (freshCity) {
+                        freshCity.disabled = false;
+                    }
+                });
             });
-        });
+        }
     };
 
     page.querySelectorAll('form[action*="salons/discover"]').forEach((form) => {
@@ -491,17 +462,6 @@
         locationModal.setAttribute('aria-hidden', 'false');
     };
 
-    page.addEventListener('click', (event) => {
-        const trigger = event.target.closest(
-            '[data-discover-nearby], [data-discover-location], #discoverUseLocation'
-        );
-
-        if (!trigger || !page.contains(trigger)) return;
-
-        event.preventDefault();
-        openLocationModal();
-    });
-
     const applyNearbyLocation = async (lat, lng) => {
         const url = new URL(window.location.href);
 
@@ -589,6 +549,19 @@
             }
         );
     };
+
+    page.addEventListener('click', (event) => {
+        const trigger = event.target.closest(
+            '[data-discover-nearby], [data-discover-location], #discoverUseLocation'
+        );
+
+        if (!trigger || !page.contains(trigger)) {
+            return;
+        }
+
+        event.preventDefault();
+        openLocationModal();
+    });
 
     locationAllow?.addEventListener('click', analyzeNearby);
 
@@ -686,7 +659,7 @@
 
     const observeReveals = () => {
         const items = page.querySelectorAll(
-            '.discover-result-card, .discover-salon-card, .discover-service-card, .discover-stylist-card'
+            '.discover-result-card, .discover-salon-card, .discover-service-card, .discover-stylist-card, .discover-team-card'
         );
 
         if (!('IntersectionObserver' in window) || !items.length) return;

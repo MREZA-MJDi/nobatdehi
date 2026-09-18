@@ -11,6 +11,9 @@
 
 @push('head')
     @vite('resources/css/discovery.css')
+@endpush
+
+@push('scripts')
     @vite('resources/js/discover.js')
 @endpush
 
@@ -63,14 +66,14 @@
 
         @include('customer.discover.sections.hero')
 
-        <div id="discover-live-results">
-            @if($hasGeo && $nearbySalons->isNotEmpty())
+        <div id="discoverDynamicContent">
+            @if($hasGeo)
                 @include('customer.discover.sections.nearby')
             @endif
 
-            {{-- =========================================================
+            {{-- =====================================================
                 MAIN SEARCH RESULTS
-            ========================================================== --}}
+            ====================================================== --}}
             @include('customer.discover.sections.results')
         </div>
 
