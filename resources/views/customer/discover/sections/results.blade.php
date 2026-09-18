@@ -331,18 +331,17 @@
                         >
                             <option value="">همه خدمات</option>
 
-                            @foreach (($serviceOptions ?? collect()) as $serviceOption)
+                            @foreach (($serviceOptions ?? collect()) as $serviceOptionName)
                                 @php
-                                    $serviceOptionId = data_get($serviceOption, 'id');
-                                    $serviceOptionName = data_get($serviceOption, 'name');
+                                    $serviceOptionName = trim((string) $serviceOptionName);
                                 @endphp
 
-                                @if ($serviceOptionId && $serviceOptionName)
+                                @if ($serviceOptionName !== '')
                                     <option
-                                        value="{{ $serviceOptionId }}"
-                                        @selected((string) $filters['service'] === (string) $serviceOptionId)
+                                        value="{{ $serviceOptionName }}"
+                                        @selected((string) $filters['service'] === $serviceOptionName)
                                     >
-                                    {{ $serviceOptionName }}
+                                        {{ $serviceOptionName }}
                                     </option>
                                 @endif
                             @endforeach
