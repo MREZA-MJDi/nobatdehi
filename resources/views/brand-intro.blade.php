@@ -20,7 +20,17 @@
 
     <meta
         name="robots"
-        content="noindex,nofollow"
+        content="index,follow"
+    >
+
+    <meta
+        name="description"
+        content="NOBAT؛ پیدا کن، انتخاب کن، نوبت بگیر."
+    >
+
+    <link
+        rel="canonical"
+        href="{{ route('salons.discover') }}"
     >
 
     <title>
@@ -62,7 +72,7 @@
             TOP LEFT EDITORIAL INFO
         ====================================================== --}}
 
-        <div class="brand-meta brand-meta-top">
+        <div class="editorial-index" aria-hidden="true">
 
             <span>
                 NOBAT
@@ -122,7 +132,7 @@
             BOTTOM RIGHT EDITORIAL INFO
         ====================================================== --}}
 
-        <div class="brand-meta brand-meta-bottom">
+        <div class="editorial-corner" aria-hidden="true">
 
             <span>
                 DISCOVER
@@ -145,6 +155,7 @@
             type="button"
             class="brand-enter"
             id="brandEnter"
+            aria-label="ورود به NOBAT"
         >
 
             <span class="brand-enter-label">
