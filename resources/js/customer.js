@@ -19,6 +19,9 @@
     const IS_AUTH = root.dataset.isAuth === '1';
     const LOGIN_URL = root.dataset.loginUrl;
     const CSRF = root.dataset.csrf;
+    const TODAY_ISO =
+        root.dataset.today ||
+        new Date().toISOString().slice(0, 10);
 
     const ROUTES = {
         availability: root.dataset.availabilityUrl,
@@ -598,7 +601,7 @@
         const filterService =
             document.getElementById('filterService');
 
-        const today = new Date();
+        const today = new Date(TODAY_ISO + 'T12:00:00');
 
         /*
         |--------------------------------------------------------------------------
@@ -883,6 +886,10 @@
 
             confirmBtn.disabled = true;
             sumTime.textContent = '—';
+
+            if (slotScheduleEl) {
+                slotScheduleEl.textContent = '';
+            }
 
             modalMain.style.display = 'block';
             successBox.classList.remove('show');
@@ -1552,6 +1559,22 @@
                         ? await response.json()
                         : null;
 
+                /*
+                |--------------------------------------------------------------------------
+                | Backend may redirect guests to Login after saving the
+                | pending booking in session. Handle redirect before
+                | treating HTTP 401/403 as a generic error.
+                |--------------------------------------------------------------------------
+                */
+
+                if (data?.redirect && (data?.requires_auth || response.ok)) {
+                    window.location.assign(
+                        data.redirect
+                    );
+
+                    return;
+                }
+
                 if (!response.ok) {
                     throw new Error(
                         data?.message ||
@@ -1561,12 +1584,6 @@
                         'خطا در آماده‌سازی رزرو'
                     );
                 }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Backend returns confirm-page redirect for AJAX requests.
-                |--------------------------------------------------------------------------
-                */
 
                 if (data?.redirect) {
                     window.location.assign(
