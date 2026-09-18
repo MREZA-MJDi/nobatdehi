@@ -1652,4 +1652,3 @@ class DiscoverController extends Controller
         );
     }
 }
-}
