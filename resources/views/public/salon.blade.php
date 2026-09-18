@@ -185,6 +185,7 @@
         data-prepare-url="{{ route('public.salons.booking.prepare', $salon) }}"
         data-csrf="{{ csrf_token() }}"
         data-booking-enabled="{{ $bookingEnabled ? '1' : '0' }}"
+        data-today="{{ now(config('app.timezone', 'Asia/Tehran'))->toDateString() }}"
         dir="rtl"
     >
 
@@ -1957,6 +1958,11 @@
                                     <span id="slotDate">
                                         یک روز انتخاب کن
                                     </span>
+
+                                    <small
+                                        id="slotSchedule"
+                                        class="slot-schedule"
+                                    ></small>
 
                                 </div>
 
