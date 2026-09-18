@@ -1681,3 +1681,716 @@ html[data-theme="dark"] .salon-owner {
         justify-self: end;
     }
 }
+
+/* ==========================================================================
+   NOBAT OWNER — application theme / readability / all-tabs compatibility
+   ========================================================================== */
+
+.salon-owner {
+    --owner-bg: var(--app-background, #f7f8fc);
+    --owner-surface: var(--app-surface, #ffffff);
+    --owner-surface-soft: var(--app-surface-soft, #f1f4f9);
+    --owner-surface-strong: var(--app-content, #111827);
+    --owner-text: var(--app-content, #111827);
+    --owner-muted: var(--app-content-muted, #6b7280);
+    --owner-faint: var(--app-content-faint, #9ca3af);
+    --owner-border: var(--app-border, #e2e8f0);
+    --owner-border-strong: var(--app-border-strong, #cbd5e1);
+    --owner-primary: var(--app-primary, #4f46e5);
+    --owner-secondary: var(--app-brand-to, #06b6d4);
+    --owner-primary-soft: color-mix(in srgb, var(--owner-primary) 9%, transparent);
+    --owner-secondary-soft: color-mix(in srgb, var(--owner-secondary) 8%, transparent);
+    --owner-shadow: var(--app-shadow-sm, 0 8px 24px rgb(15 23 42 / 7%));
+    --owner-shadow-lg: var(--app-shadow-lg, 0 16px 40px rgb(15 23 42 / 10%));
+}
+
+html[data-theme="dark"] .salon-owner {
+    --owner-bg: var(--app-background, #0b1020);
+    --owner-surface: var(--app-surface, #121827);
+    --owner-surface-soft: var(--app-surface-soft, #192131);
+    --owner-surface-strong: var(--app-content, #f3f4f6);
+    --owner-text: var(--app-content, #f3f4f6);
+    --owner-muted: var(--app-content-muted, #aab2c0);
+    --owner-faint: var(--app-content-faint, #727c8d);
+    --owner-border: var(--app-border, rgb(148 163 184 / 15%));
+    --owner-border-strong: var(--app-border-strong, rgb(148 163 184 / 25%));
+    --owner-primary: var(--app-primary, #818cf8);
+    --owner-secondary: var(--app-brand-to, #22d3ee);
+    --owner-primary-soft: color-mix(in srgb, var(--owner-primary) 13%, transparent);
+    --owner-secondary-soft: color-mix(in srgb, var(--owner-secondary) 10%, transparent);
+}
+
+.salon-owner__main > div {
+    min-width: 0;
+}
+
+.salon-owner__main input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+.salon-owner__main select,
+.salon-owner__main textarea {
+    color: var(--owner-text);
+    background-color: var(--app-control-bg, var(--owner-surface));
+    border-color: var(--app-control-border, var(--owner-border));
+}
+
+.salon-owner__main input::placeholder,
+.salon-owner__main textarea::placeholder {
+    color: var(--app-control-placeholder, var(--owner-faint));
+}
+
+.salon-owner__main input:focus,
+.salon-owner__main select:focus,
+.salon-owner__main textarea:focus {
+    border-color: var(--app-control-border-focus, var(--owner-primary)) !important;
+    box-shadow: 0 0 0 4px var(--app-ring, rgb(79 70 229 / 14%)) !important;
+}
+
+.salon-owner__main input[type="checkbox"],
+.salon-owner__main input[type="radio"] {
+    accent-color: var(--owner-primary);
+}
+
+.salon-owner [class~="bg-white"] {
+    background-color: var(--owner-surface) !important;
+}
+
+.salon-owner [class~="bg-gray-50"],
+.salon-owner [class~="bg-slate-50"],
+.salon-owner [class~="bg-zinc-50"] {
+    background-color: var(--owner-surface-soft) !important;
+}
+
+.salon-owner [class~="border-slate-200"],
+.salon-owner [class~="border-gray-200"],
+.salon-owner [class~="border-zinc-200"] {
+    border-color: var(--owner-border) !important;
+}
+
+.salon-owner [class~="text-slate-950"],
+.salon-owner [class~="text-slate-900"],
+.salon-owner [class~="text-gray-950"],
+.salon-owner [class~="text-gray-900"] {
+    color: var(--owner-text) !important;
+}
+
+.salon-owner [class~="text-slate-700"],
+.salon-owner [class~="text-slate-600"],
+.salon-owner [class~="text-gray-700"],
+.salon-owner [class~="text-gray-600"] {
+    color: var(--owner-muted) !important;
+}
+
+.salon-owner .salon-page-wrap {
+    gap: 18px;
+}
+
+.salon-owner__main h1,
+.salon-owner__main h2,
+.salon-owner__main h3 {
+    text-rendering: optimizeLegibility;
+}
+
+.salon-owner__main h1 {
+    font-size: clamp(1.55rem, 2.4vw, 2rem) !important;
+    line-height: 1.35 !important;
+    font-weight: 900 !important;
+}
+
+.salon-owner__main h2 {
+    line-height: 1.45 !important;
+    font-weight: 900 !important;
+}
+
+.salon-owner__main p {
+    line-height: 1.9;
+}
+
+.salon-owner .salon-page-header p {
+    font-size: .82rem !important;
+    line-height: 1.9;
+}
+
+.salon-owner .salon-page-header h1 {
+    font-size: clamp(1.6rem, 2.8vw, 2.1rem) !important;
+}
+
+.salon-owner .salon-overline {
+    font-size: .68rem;
+    letter-spacing: .11em;
+}
+
+.salon-owner .salon-btn {
+    min-height: 44px;
+    padding-inline: 15px;
+    border-radius: 12px;
+    font-size: .78rem;
+}
+
+.salon-owner .salon-filter-field > span {
+    font-size: .68rem;
+}
+
+.salon-owner .salon-filter-field input,
+.salon-owner .salon-filter-field select {
+    min-height: 46px;
+    padding-inline: 12px;
+    border-radius: 12px;
+    font-size: .8rem;
+}
+
+.salon-owner .salon-mini-action {
+    min-height: 34px;
+    padding-inline: 11px;
+    border-radius: 10px;
+    font-size: .7rem;
+}
+
+.salon-owner .salon-notification__top strong,
+.salon-owner .salon-booking-item__customer strong,
+.salon-owner .salon-booking-item__service strong {
+    font-size: .78rem;
+}
+
+.salon-owner .salon-notification__body p,
+.salon-owner .salon-empty-state p {
+    font-size: .72rem;
+}
+
+.salon-owner .salon-notification__meta > span {
+    font-size: .67rem;
+}
+
+.salon-owner .salon-empty-state h2 {
+    font-size: 1rem;
+}
+
+.salon-owner .salon-empty-state p {
+    max-width: 520px;
+}
+
+
+/* ==========================================================================
+   Dashboard — readable application hierarchy
+   ========================================================================== */
+
+.salon-dashboard-page {
+    gap: 18px;
+}
+
+.salon-owner .salon-dashboard-hero {
+    gap: 16px;
+    padding-block: 2px 0;
+}
+
+.salon-owner .salon-dashboard-hero h1 {
+    font-size: clamp(1.7rem, 3vw, 2.45rem) !important;
+    line-height: 1.28 !important;
+    letter-spacing: -.045em;
+}
+
+.salon-owner .salon-dashboard-hero p {
+    margin-top: 8px;
+    font-size: .8rem;
+}
+
+.salon-owner .salon-dashboard-hero-actions {
+    gap: 9px;
+}
+
+.salon-owner .salon-dashboard-command {
+    min-height: 190px;
+    padding: 22px;
+    border-radius: 22px;
+}
+
+.salon-owner .salon-command-main h2 {
+    font-size: clamp(1.15rem, 2vw, 1.55rem) !important;
+    line-height: 1.55 !important;
+}
+
+.salon-owner .salon-command-main p {
+    font-size: .78rem;
+    line-height: 1.9;
+}
+
+.salon-owner .salon-command-status span {
+    font-size: .68rem;
+}
+
+.salon-owner .salon-command-status strong {
+    font-size: .78rem;
+}
+
+.salon-owner .salon-workspace-grid {
+    gap: 10px;
+}
+
+.salon-owner .salon-workspace-card {
+    min-height: 88px;
+    padding: 12px;
+    border-radius: 17px;
+}
+
+.salon-owner .salon-workspace-card span {
+    font-size: .68rem;
+}
+
+.salon-owner .salon-workspace-card strong {
+    font-size: .86rem;
+}
+
+.salon-owner .salon-workspace-card small {
+    font-size: .68rem;
+}
+
+.salon-owner .salon-overview-strip {
+    gap: 9px;
+}
+
+.salon-owner .salon-overview-strip > div {
+    padding: 14px;
+    border-radius: 16px;
+}
+
+.salon-owner .salon-overview-strip span {
+    font-size: .68rem;
+}
+
+.salon-owner .salon-overview-strip strong {
+    font-size: 1.15rem;
+}
+
+.salon-owner .salon-overview-strip a,
+.salon-owner .salon-overview-strip small {
+    font-size: .67rem;
+}
+
+
+/* ==========================================================================
+   Revenue chart
+   ========================================================================== */
+
+.salon-revenue-card {
+    overflow: hidden;
+    border: 1px solid var(--owner-border);
+    border-radius: 20px;
+    background: var(--owner-surface);
+    box-shadow: var(--owner-shadow);
+}
+
+.salon-revenue-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px;
+    border-bottom: 1px solid var(--owner-border);
+}
+
+.salon-revenue-head h2 {
+    margin: 5px 0 0;
+    font-size: 1.15rem;
+    font-weight: 950;
+    color: var(--owner-text);
+}
+
+.salon-revenue-head p {
+    margin: 5px 0 0;
+    color: var(--owner-muted);
+    font-size: .72rem;
+}
+
+.salon-revenue-highlight {
+    flex: 0 0 auto;
+    padding: 11px 13px;
+    border: 1px solid color-mix(in srgb, var(--owner-primary) 18%, var(--owner-border));
+    border-radius: 13px;
+    background: var(--owner-primary-soft);
+    text-align: left;
+}
+
+.salon-revenue-highlight span,
+.salon-revenue-highlight strong {
+    display: block;
+}
+
+.salon-revenue-highlight span {
+    color: var(--owner-muted);
+    font-size: .64rem;
+}
+
+.salon-revenue-highlight strong {
+    margin-top: 3px;
+    color: var(--owner-primary);
+    font-size: .82rem;
+    font-weight: 950;
+}
+
+.salon-revenue-grid {
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+}
+
+.salon-revenue-chart-card {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--owner-border);
+    border-radius: 16px;
+    background: var(--owner-surface-soft);
+}
+
+.salon-chart-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.salon-chart-card-head > div {
+    min-width: 0;
+}
+
+.salon-chart-card-head span:first-child {
+    display: block;
+    color: var(--owner-muted);
+    font-size: .68rem;
+}
+
+.salon-chart-card-head strong {
+    display: block;
+    margin-top: 3px;
+    color: var(--owner-text);
+    font-size: .92rem;
+    font-weight: 950;
+}
+
+.salon-chart-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 9px;
+    border: 1px solid color-mix(in srgb, var(--owner-primary) 18%, var(--owner-border));
+    border-radius: 999px;
+    color: var(--owner-primary);
+    background: var(--owner-primary-soft);
+    font-size: .62rem;
+    font-weight: 900;
+}
+
+.salon-chart-bars {
+    display: grid;
+    align-items: end;
+    gap: 7px;
+    min-height: 190px;
+    padding-top: 9px;
+}
+
+.salon-chart-bars--weekly {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.salon-chart-bars--monthly {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.salon-chart-column {
+    min-width: 0;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 24px minmax(95px, 1fr) 28px;
+    align-items: end;
+    gap: 5px;
+    text-align: center;
+}
+
+.salon-chart-value {
+    overflow: hidden;
+    color: var(--owner-muted);
+    font-size: .58rem;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-chart-track {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: end;
+    overflow: hidden;
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--owner-border) 52%, transparent);
+}
+
+.salon-chart-fill {
+    width: 100%;
+    min-height: 6px;
+    border-radius: 9px 9px 5px 5px;
+    background: linear-gradient(180deg, var(--owner-secondary), var(--owner-primary));
+    box-shadow: 0 7px 18px color-mix(in srgb, var(--owner-primary) 16%, transparent);
+    transition: height .35s ease;
+}
+
+.salon-chart-column > span {
+    overflow: hidden;
+    color: var(--owner-muted);
+    font-size: .62rem;
+    line-height: 1.45;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* ==========================================================================
+   Manual booking — mobile-first repair
+   ========================================================================== */
+
+.salon-manual-booking {
+    width: min(100%, 1440px);
+    margin-inline: auto;
+    padding: 6px 0 96px;
+    color: var(--owner-text);
+}
+
+.salon-manual-booking > form > .grid {
+    align-items: start;
+}
+
+.salon-manual-booking section {
+    border-color: var(--owner-border) !important;
+    background: var(--owner-surface) !important;
+    box-shadow: var(--owner-shadow) !important;
+}
+
+.salon-manual-booking section > div:first-child {
+    border-color: var(--owner-border) !important;
+}
+
+.salon-manual-booking section h2 {
+    font-size: 1rem !important;
+}
+
+.salon-manual-booking section [class~="text-[10px]"] {
+    font-size: .68rem !important;
+}
+
+.salon-manual-booking section [class~="text-[9px]"] {
+    font-size: .67rem !important;
+}
+
+.salon-manual-booking section [class~="text-xs"] {
+    font-size: .76rem !important;
+}
+
+.salon-manual-booking section input:not([type="hidden"]),
+.salon-manual-booking section textarea,
+.salon-manual-booking section select {
+    min-height: 46px;
+    border-radius: 12px;
+}
+
+.salon-manual-booking section textarea {
+    min-height: 120px;
+    padding: 12px 13px;
+    font-size: .78rem;
+}
+
+.salon-manual-booking .salon-manual-booking-header h1 {
+    margin: 0;
+}
+
+.salon-manual-booking .salon-manual-customer-trigger {
+    min-height: 62px;
+}
+
+.salon-manual-booking .salon-manual-slot-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+}
+
+.salon-manual-booking .salon-manual-slot-grid button {
+    min-height: 54px;
+    border-radius: 11px;
+}
+
+.salon-manual-booking > form > aside {
+    min-width: 0;
+}
+
+.salon-manual-booking > form > aside > section {
+    border-radius: 20px !important;
+}
+
+.salon-manual-booking > form > aside .text-sm {
+    font-size: .82rem !important;
+}
+
+.salon-manual-booking > form > aside .text-base {
+    font-size: .95rem !important;
+}
+
+.salon-manual-booking .salon-manual-mobile-action {
+    border-color: var(--owner-border) !important;
+    background: color-mix(in srgb, var(--owner-surface) 94%, transparent) !important;
+    box-shadow: 0 -12px 34px rgba(0,0,0,.10);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.salon-manual-booking .salon-manual-mobile-action button {
+    min-height: 46px;
+    border-radius: 12px;
+}
+
+@media (min-width: 760px) {
+    .salon-owner__main {
+        padding: 30px 28px 52px;
+    }
+
+    .salon-owner .salon-dashboard-hero {
+        grid-template-columns: minmax(0,1fr) auto;
+        align-items: end;
+    }
+
+    .salon-owner .salon-dashboard-hero-actions {
+        min-width: 260px;
+        grid-template-columns: auto auto;
+    }
+
+    .salon-owner .salon-command-main {
+        padding-block: 5px;
+    }
+
+    .salon-revenue-head {
+        padding: 21px 22px;
+    }
+
+    .salon-revenue-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        padding: 12px;
+    }
+
+    .salon-chart-bars {
+        min-height: 230px;
+    }
+
+    .salon-manual-booking {
+        padding-top: 8px;
+        padding-bottom: 40px;
+    }
+
+    .salon-manual-booking > form > .grid {
+        grid-template-columns: minmax(0, 1fr) 340px;
+    }
+
+    .salon-manual-booking section {
+        border-radius: 20px !important;
+    }
+}
+
+@media (min-width: 1060px) {
+    .salon-owner__main {
+        padding: 34px 34px 54px;
+    }
+
+    .salon-revenue-grid {
+        gap: 14px;
+        padding: 14px;
+    }
+
+    .salon-manual-booking > form > .grid {
+        grid-template-columns: minmax(0, 1fr) 370px;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 759px) {
+    .salon-dashboard-page .salon-dashboard-command {
+        gap: 14px;
+    }
+
+    .salon-dashboard-page .salon-command-side {
+        grid-template-columns: 1fr;
+        gap: 7px;
+    }
+
+    .salon-dashboard-page .salon-command-status {
+        padding: 10px 11px;
+    }
+
+    .salon-revenue-head {
+        flex-direction: column;
+        padding: 16px;
+    }
+
+    .salon-revenue-highlight {
+        width: 100%;
+        text-align: right;
+    }
+
+    .salon-chart-value {
+        display: none;
+    }
+
+    .salon-chart-bars {
+        min-height: 175px;
+        gap: 5px;
+    }
+
+    .salon-chart-column {
+        grid-template-rows: minmax(100px, 1fr) 29px;
+    }
+
+    .salon-chart-column > span {
+        font-size: .58rem;
+    }
+
+    .salon-manual-booking {
+        padding-inline: 0;
+    }
+
+    .salon-manual-booking .salon-manual-booking-header h1 {
+        font-size: 1.55rem !important;
+    }
+
+    .salon-manual-booking > form > .grid {
+        display: block;
+    }
+
+    .salon-manual-booking > form > .grid > main {
+        display: grid;
+        gap: 12px !important;
+    }
+
+    .salon-manual-booking > form > .grid > main > section {
+        border-radius: 18px !important;
+    }
+
+    .salon-manual-booking > form > .grid > aside {
+        margin-top: 12px;
+    }
+}
+
+@media (max-width: 420px) {
+    .salon-owner__main {
+        padding-inline: 11px;
+    }
+
+    .salon-owner .salon-dashboard-hero h1 {
+        font-size: 1.55rem !important;
+    }
+
+    .salon-revenue-card,
+    .salon-revenue-chart-card {
+        border-radius: 16px;
+    }
+
+    .salon-chart-bars {
+        min-height: 155px;
+    }
+
+    .salon-manual-booking .salon-manual-slot-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    }
+}
