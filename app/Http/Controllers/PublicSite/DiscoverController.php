@@ -1019,7 +1019,7 @@ class DiscoverController extends Controller
     ): void {
         $now = Carbon::now();
 
-        $dayOfWeek = (int) $now->dayOfWeek;
+        $dayOfWeek = ($now->dayOfWeek + 1) % 7;
 
         $previousDayOfWeek = $dayOfWeek === 0
             ? 6
@@ -1177,7 +1177,7 @@ class DiscoverController extends Controller
     ): void {
         $now = Carbon::now();
 
-        $dayOfWeek = (int) $now->dayOfWeek;
+        $dayOfWeek = ($now->dayOfWeek + 1) % 7;
 
         $today = $now->toDateString();
 
