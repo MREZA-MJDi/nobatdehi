@@ -1485,13 +1485,6 @@
                 return;
             }
 
-            if (!IS_AUTH) {
-                window.location.href =
-                    LOGIN_URL;
-
-                return;
-            }
-
             const originalText =
                 confirmBtn.textContent;
 
