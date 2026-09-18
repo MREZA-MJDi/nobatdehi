@@ -135,6 +135,7 @@
     <div
         class="salon-page"
         id="salonPage"
+        style="--salon-brand-primary: {{ $salon->primary_color ?: '#6757E8' }}; --salon-brand-secondary: {{ $salon->secondary_color ?: '#37B8C8' }};"
         data-salon-id="{{ $salon->id }}"
         data-salon-name="{{ $salon->name }}"
         data-is-auth="{{ auth()->check() ? '1' : '0' }}"
