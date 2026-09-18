@@ -63,14 +63,16 @@
 
         @include('customer.discover.sections.hero')
 
-        @if($hasGeo && $nearbySalons->isNotEmpty())
-            @include('customer.discover.sections.nearby')
-        @endif
+        <div id="discover-live-results">
+            @if($hasGeo && $nearbySalons->isNotEmpty())
+                @include('customer.discover.sections.nearby')
+            @endif
 
-        {{-- =========================================================
-            MAIN SEARCH RESULTS
-        ========================================================== --}}
-        @include('customer.discover.sections.results')
+            {{-- =========================================================
+                MAIN SEARCH RESULTS
+            ========================================================== --}}
+            @include('customer.discover.sections.results')
+        </div>
 
         {{-- =========================================================
             SECONDARY DISCOVERY CONTENT
