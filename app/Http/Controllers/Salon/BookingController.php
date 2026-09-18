@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Salon;
+namespace AppHttpControllers\Salon;
 
 use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
@@ -10,12 +10,12 @@ use App\Http\Requests\Salon\ManualBookingRequest;
 use App\Models\Booking;
 use App\Models\User;
 use App\Services\Booking\AvailabilityService;
-use App\Services\Booking\BookingService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Services\Booking\BookingService;
 
 class BookingController extends Controller
 {
@@ -25,7 +25,9 @@ class BookingController extends Controller
 
         $status = $request->string('status')->toString();
         $search = trim($request->string('q')->toString());
-        $date = $request->string('date')->toString();
+        $dateInput = trim($request->string('date')->toString());
+        $date = null;
+        $dateError = null;
 
         $query = $salon->bookings()->with([
             'customer:id,name,phone',
@@ -58,8 +60,23 @@ class BookingController extends Controller
             });
         }
 
-        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            $query->whereDate('booking_date', $date);
+        if ($dateInput !== '') {
+            $rawDate = trim(strtr($dateInput, [
+                '۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4',
+                '۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9',
+                '٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4',
+                '٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9',
+            ]));
+
+            $date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $rawDate)
+                ? $rawDate
+                : gregorian_date($rawDate);
+
+            if ($date) {
+                $query->whereDate('booking_date', $date);
+            } else {
+                $dateError = 'تاریخ را به‌صورت شمسی معتبر مثل ۱۴۰۵/۰۷/۰۱ وارد کنید.';
+            }
         }
 
         $bookings = $query
@@ -77,7 +94,7 @@ class BookingController extends Controller
             'cancelled' => $salon->bookings()->where('status', BookingStatus::CANCELLED)->count(),
         ];
 
-        $today = now(config('app.timezone'));
+        $today = now(config('app.timezone', 'Asia/Tehran'));
 
         $todayBookingsCount = $salon->bookings()
             ->whereDate('booking_date', $today->toDateString())
@@ -86,7 +103,16 @@ class BookingController extends Controller
 
         return view(
             'salon.bookings.index',
-            compact('salon', 'bookings', 'stats', 'todayBookingsCount', 'status', 'search', 'date')
+            compact(
+                'salon',
+                'bookings',
+                'stats',
+                'todayBookingsCount',
+                'status',
+                'search',
+                'dateInput',
+                'dateError'
+            )
         );
     }
 
@@ -204,8 +230,6 @@ class BookingController extends Controller
             ->values()
             ->all();
 
-        // A day is weekly-closed only when every row is explicitly closed.
-        // Multiple open intervals are valid and must keep the day open.
         $isWeeklyClosed =
             $workingHours === [] &&
             $dayRows->isNotEmpty() &&
