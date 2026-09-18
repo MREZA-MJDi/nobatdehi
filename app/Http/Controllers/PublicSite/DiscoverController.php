@@ -21,7 +21,7 @@ class DiscoverController extends Controller
 
     private const POPULAR_SERVICES_LIMIT = 8;
 
-    private const STYLIST_LIMIT = 8;
+    private const STYLIST_LIMIT = 18;
 
     private const CARD_SERVICES_LIMIT = 3;
 
@@ -759,128 +759,97 @@ class DiscoverController extends Controller
     |--------------------------------------------------------------------------
     */
 
+    private function normalizeSearchTerm(string $value): string
+    {
+        $value = trim(
+            preg_replace('/\\s+/u', ' ', $value) ?? $value
+        );
+
+        return str_replace(
+            [
+                'ي',
+                'ى',
+                'ك',
+                'ة',
+                'ۀ',
+            ],
+            [
+                'ی',
+                'ی',
+                'ک',
+                'ه',
+                'ه',
+            ],
+            $value
+        );
+    }
+
     private function applySearch(
         $query,
         string $search
     ): void {
+        $search = trim($search);
+
         if ($search === '') {
             return;
         }
 
-        $searchLike = '%' . $search . '%';
+        $terms = collect([
+            $search,
+            $this->normalizeSearchTerm($search),
+        ])
+            ->map(fn ($term) => trim((string) $term))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
 
-        $query->where(
-            function ($query) use ($searchLike) {
+        $query->where(function ($query) use ($terms) {
+            foreach ($terms as $index => $term) {
+                $searchLike = '%' . $term . '%';
 
-                $query
-                    ->where(
-                        'name',
-                        'like',
-                        $searchLike
-                    )
+                $method = $index === 0
+                    ? 'where'
+                    : 'orWhere';
 
-                    ->orWhere(
-                        'code',
-                        'like',
-                        $searchLike
-                    )
-
-                    ->orWhere(
-                        'city',
-                        'like',
-                        $searchLike
-                    )
-
-                    ->orWhere(
-                        'district',
-                        'like',
-                        $searchLike
-                    )
-
-                    ->orWhere(
-                        'province',
-                        'like',
-                        $searchLike
-                    )
-
-                    ->orWhere(
-                        'address',
-                        'like',
-                        $searchLike
-                    )
-
-                    ->orWhereHas(
-                        'services',
-                        function ($query) use (
-                            $searchLike
-                        ) {
-                            $query
-                                ->where(
-                                    'is_active',
-                                    true
-                                )
-
-                                ->where(
-                                    function ($query) use (
-                                        $searchLike
-                                    ) {
+                $query->{$method}(function ($query) use ($searchLike) {
+                    $query
+                        ->where('name', 'like', $searchLike)
+                        ->orWhere('code', 'like', $searchLike)
+                        ->orWhere('city', 'like', $searchLike)
+                        ->orWhere('district', 'like', $searchLike)
+                        ->orWhere('province', 'like', $searchLike)
+                        ->orWhere('address', 'like', $searchLike)
+                        ->orWhereHas(
+                            'services',
+                            function ($query) use ($searchLike) {
+                                $query
+                                    ->where('is_active', true)
+                                    ->where(function ($query) use ($searchLike) {
                                         $query
-                                            ->where(
-                                                'name',
-                                                'like',
-                                                $searchLike
-                                            )
-
-                                            ->orWhere(
-                                                'description',
-                                                'like',
-                                                $searchLike
-                                            );
-                                    }
-                                );
-                        }
-                    )
-
-                    ->orWhereHas(
-                        'barbers',
-                        function ($query) use (
-                            $searchLike
-                        ) {
-                            $query
-                                ->where(
-                                    'is_active',
-                                    true
-                                )
-
-                                ->where(
-                                    function ($query) use (
-                                        $searchLike
-                                    ) {
+                                            ->where('name', 'like', $searchLike)
+                                            ->orWhere('description', 'like', $searchLike);
+                                    });
+                            }
+                        )
+                        ->orWhereHas(
+                            'barbers',
+                            function ($query) use ($searchLike) {
+                                $query
+                                    ->where('is_active', true)
+                                    ->where(function ($query) use ($searchLike) {
                                         $query
-                                            ->where(
-                                                'name',
-                                                'like',
-                                                $searchLike
-                                            )
-
-                                            ->orWhere(
-                                                'specialty',
-                                                'like',
-                                                $searchLike
-                                            )
-
-                                            ->orWhere(
-                                                'bio',
-                                                'like',
-                                                $searchLike
-                                            );
-                                    }
-                                );
-                        }
-                    );
+                                            ->where('name', 'like', $searchLike)
+                                            ->orWhere('specialty', 'like', $searchLike)
+                                            ->orWhere('bio', 'like', $searchLike);
+                                    });
+                            }
+                        );
+                });
             }
-        );
+        });
     }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -963,12 +932,16 @@ class DiscoverController extends Controller
                     return;
                 }
 
+                $serviceName = $this->normalizeSearchTerm(
+                    trim((string) $service)
+                );
+
                 $query->where(
-                    'name',
-                    'like',
-                    '%' . trim(
-                        (string) $service
-                    ) . '%'
+                    function ($query) use ($serviceName, $service) {
+                        $query
+                            ->where('name', 'like', '%' . trim((string) $service) . '%')
+                            ->orWhere('name', 'like', '%' . $serviceName . '%');
+                    }
                 );
             }
         );
