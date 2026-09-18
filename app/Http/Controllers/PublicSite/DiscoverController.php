@@ -244,11 +244,69 @@ class DiscoverController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | Nearby + filter options
+        |--------------------------------------------------------------------------
+        */
+
+        $nearbySalons = collect();
+        $nearbyRadius = null;
+
+        if ($hasGeo) {
+            $nearbyData = $this->nearbySalons($filters);
+
+            $nearbySalons = $nearbyData['items'];
+            $nearbyRadius = $nearbyData['radius'];
+        }
+
+        $serviceOptions = Cache::remember(
+            'discover:service-options:v3',
+            now()->addSeconds(self::CACHE_OPTIONS_SECONDS),
+            fn () => Service::query()
+                ->where('is_active', true)
+                ->whereHas('salon', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->whereNotNull('name')
+                ->where('name', '!=', '')
+                ->selectRaw('TRIM(name) AS name')
+                ->distinct()
+                ->orderBy('name')
+                ->limit(self::SERVICE_OPTIONS_LIMIT)
+                ->pluck('name')
+        );
+
+        $provinces = $this->provinces();
+
+        $cities = $this->cities(
+            $filters['province']
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | AJAX result response
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->ajax()) {
+            return view(
+                'customer.discover.partials.dynamic',
+                compact(
+                    'salons',
+                    'nearbySalons',
+                    'nearbyRadius',
+                    'serviceOptions',
+                    'provinces',
+                    'cities',
+                    'filters',
+                    'hasGeo',
+                    'isSearchMode'
+                )
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | Popular salons
-        |
-        | مهم:
-        | این جدا از $salons است تا Viewهای Discover
-        | pagination اصلی را خراب نکنند.
         |--------------------------------------------------------------------------
         */
 
@@ -273,58 +331,9 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         | Featured salon
         |--------------------------------------------------------------------------
-        |
-        | The featured card is already the first popular salon, so do not issue
-        | another full aggregate query for the same data.
-        |
         */
 
         $featuredSalon = $popularSalons->first();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Nearby salons
-        |--------------------------------------------------------------------------
-        */
-
-        $nearbySalons = collect();
-
-        $nearbyRadius = null;
-
-        if ($hasGeo) {
-            $nearbyData = $this->nearbySalons(
-                $filters
-            );
-
-            $nearbySalons = $nearbyData['items'];
-
-            $nearbyRadius = $nearbyData['radius'];
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Service options
-        |
-        | برای select فیلترها
-        |--------------------------------------------------------------------------
-        */
-
-        $serviceOptions = Cache::remember(
-            'discover:service-options:v3',
-            now()->addSeconds(self::CACHE_OPTIONS_SECONDS),
-            fn () => Service::query()
-                ->where('is_active', true)
-                ->whereHas('salon', function ($query) {
-                    $query->where('is_active', true);
-                })
-                ->whereNotNull('name')
-                ->where('name', '!=', '')
-                ->selectRaw('TRIM(name) AS name')
-                ->distinct()
-                ->orderBy('name')
-                ->limit(self::SERVICE_OPTIONS_LIMIT)
-                ->pluck('name')
-        );
 
         /*
         |--------------------------------------------------------------------------
@@ -402,24 +411,6 @@ class DiscoverController extends Controller
         */
 
         $serviceCategories = $this->serviceCategories();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Provinces
-        |--------------------------------------------------------------------------
-        */
-
-        $provinces = $this->provinces();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Cities
-        |--------------------------------------------------------------------------
-        */
-
-        $cities = $this->cities(
-            $filters['province']
-        );
 
         /*
         |--------------------------------------------------------------------------
