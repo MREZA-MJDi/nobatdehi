@@ -62,6 +62,10 @@
 
         @include('customer.discover.sections.hero')
 
+        @if($hasGeo && $nearbySalons->isNotEmpty())
+            @include('customer.discover.sections.nearby')
+        @endif
+
         {{-- =========================================================
             MAIN SEARCH RESULTS
         ========================================================== --}}
@@ -75,13 +79,7 @@
 
         @include('customer.discover.sections.popular-salons')
 
-        @include('customer.discover.sections.featured')
-
         @include('customer.discover.sections.stylists')
-
-        @if($hasGeo && $nearbySalons->isNotEmpty())
-            @include('customer.discover.sections.nearby')
-        @endif
 
         @include('customer.discover.sections.stats')
 
