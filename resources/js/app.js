@@ -186,47 +186,4 @@ Alpine.data('otpForm', () => ({
     },
 }));
 
-/*
- |----------------------------------------------------------------------
- | Manual salon booking submission
- |----------------------------------------------------------------------
- | The manual booking page keeps the selected slot in Alpine state. Make
- | sure the native form also receives that exact value as start_time.
- */
-document.addEventListener('submit', (event) => {
-    const form = event.target;
-
-    if (!(form instanceof HTMLFormElement)) {
-        return;
-    }
-
-    const manualBookingRoot = form.querySelector(
-        '[x-data="salonManualBooking()"]'
-    );
-
-    if (!manualBookingRoot) {
-        return;
-    }
-
-    const state = manualBookingRoot._x_dataStack?.[0];
-    const selectedTime = String(state?.selectedTime ?? '')
-        .trim()
-        .slice(0, 5);
-
-    if (!selectedTime) {
-        return;
-    }
-
-    let input = form.querySelector('input[name="start_time"]');
-
-    if (!input) {
-        input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'start_time';
-        form.appendChild(input);
-    }
-
-    input.value = selectedTime;
-}, false);
-
 Alpine.start();
