@@ -574,6 +574,9 @@
         const slotDateEl =
             document.getElementById('slotDate');
 
+        const slotScheduleEl =
+            document.getElementById('slotSchedule');
+
         const confirmBtn =
             document.getElementById('confirmBtn');
 
@@ -1345,6 +1348,22 @@
                         )[0]?.[0] ||
                         'خطا در دریافت زمان‌های خالی'
                     );
+                }
+
+                const schedule = data?.schedule || null;
+
+                if (slotScheduleEl) {
+                    if (schedule?.status === 'closed') {
+                        slotScheduleEl.textContent = 'امروز سالن تعطیل است';
+                    } else if (schedule?.status === 'not_configured') {
+                        slotScheduleEl.textContent = 'ساعات کاری این روز تنظیم نشده';
+                    } else if (Array.isArray(schedule?.intervals) && schedule.intervals.length) {
+                        slotScheduleEl.textContent = schedule.intervals
+                            .map((range) => fa(range.start) + ' تا ' + fa(range.end))
+                            .join('  •  ');
+                    } else {
+                        slotScheduleEl.textContent = '';
+                    }
                 }
 
                 renderSlots(
