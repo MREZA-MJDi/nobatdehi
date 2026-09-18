@@ -65,6 +65,18 @@
                     >
                         محبوب‌ترین‌ها
                     </a>
+
+                    <a
+                        href="{{ route('salons.discover', ['sort' => 'newest']) }}"
+                    >
+                        جدیدترین سالن‌ها
+                    </a>
+
+                    <a
+                        href="{{ route('salons.discover', ['sort' => 'distance']) }}"
+                    >
+                        نزدیک‌ترین‌ها
+                    </a>
                 </nav>
 
             </div>
