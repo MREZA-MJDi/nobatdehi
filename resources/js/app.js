@@ -1,6 +1,4 @@
 import './bootstrap';
-import './customer';
-import './discover';
 
 import Alpine from 'alpinejs';
 
