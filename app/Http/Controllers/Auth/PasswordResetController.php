@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
@@ -50,6 +51,11 @@ class PasswordResetController extends Controller
 
         $user = User::query()
             ->where('phone', $phone)
+            ->whereIn('role', [
+                UserRole::SUPER_ADMIN->value,
+                UserRole::SALON_OWNER->value,
+                UserRole::CUSTOMER->value,
+            ])
             ->first();
 
         if (!$user) {
@@ -167,6 +173,11 @@ class PasswordResetController extends Controller
 
         $user = User::query()
             ->where('phone', $phone)
+            ->whereIn('role', [
+                UserRole::SUPER_ADMIN->value,
+                UserRole::SALON_OWNER->value,
+                UserRole::CUSTOMER->value,
+            ])
             ->first();
 
         if (!$user) {
