@@ -109,13 +109,8 @@ class BookingController extends Controller
 
         $customers = User::query()
             ->where('role', 'customer')
-            ->whereHas('bookings', function ($query) use ($salon) {
-                $query->where('salon_id', $salon->id);
-            })
             ->orderBy('name')
-            ->get(['id', 'name', 'phone'])
-            ->unique('id')
-            ->values();
+            ->get(['id', 'name', 'phone']);
 
         return view(
             'salon.bookings.create',
