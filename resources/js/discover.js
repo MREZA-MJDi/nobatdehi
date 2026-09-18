@@ -17,11 +17,22 @@
         }
     };
 
-    const requestDiscover = async (url, { push = true, scroll = true } = {}) => {
+    const requestDiscover = async (
+        url,
+        {
+            push = true,
+            scroll = true,
+            showOverlay = false,
+        } = {}
+    ) => {
         const nextUrl = new URL(url, window.location.origin);
         nextUrl.hash = 'results';
 
         setLoading(true);
+
+        if (showOverlay) {
+            openSearchModal({ loading: true });
+        }
 
         try {
             const response = await fetch(nextUrl.toString(), {
@@ -51,9 +62,15 @@
                 window.history.pushState({}, '', nextUrl.toString());
             }
 
+            syncHeroSearchInputs(nextUrl);
             bindResultInteractions();
+            observeReveals();
 
-            if (scroll) {
+            if (showOverlay) {
+                renderSearchModal(freshResults);
+            }
+
+            if (scroll && !showOverlay) {
                 requestAnimationFrame(() => {
                     page.querySelector('#results')?.scrollIntoView({
                         behavior: 'smooth',
@@ -65,6 +82,11 @@
             return true;
         } catch (error) {
             console.error(error);
+
+            if (showOverlay) {
+                closeSearchModal();
+            }
+
             notifyError('نتایج دریافت نشد. اتصال را بررسی کن و دوباره تلاش کن.');
             return false;
         } finally {
@@ -89,10 +111,169 @@
         return url;
     };
 
-    const submitDiscoverForm = (form) => {
+    const submitDiscoverForm = (
+        form,
+        options = {}
+    ) => {
         if (!form) return Promise.resolve(false);
-        return requestDiscover(formToUrl(form));
+
+        return requestDiscover(
+            formToUrl(form),
+            options
+        );
     };
+
+    /* -----------------------------------------------------------------------
+       Hero search result modal
+       ----------------------------------------------------------------------- */
+
+    const searchModal = page.querySelector('#discoverSearchModal');
+    const searchModalBody = page.querySelector('#discoverSearchResults');
+    const searchModalTitle = page.querySelector('#discoverSearchTitle');
+    const searchModalMeta = page.querySelector('#discoverSearchMeta');
+    const searchModalSeeAll = page.querySelector('#discoverSearchSeeAll');
+
+    const openSearchModal = ({ loading = false } = {}) => {
+        if (!searchModal) return;
+
+        searchModal.hidden = false;
+        searchModal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('discover-search-modal-open');
+
+        if (loading && searchModalBody) {
+            searchModalBody.setAttribute('aria-busy', 'true');
+            searchModalBody.innerHTML = `
+                <div class="discover-search-loading">
+                    <span class="discover-search-spinner" aria-hidden="true"></span>
+                    <strong>داریم بهترین گزینه‌ها را پیدا می‌کنیم...</strong>
+                    <small>نتیجه واقعی از سیستم NOBAT دریافت می‌شود.</small>
+                </div>
+            `;
+
+            if (searchModalTitle) {
+                searchModalTitle.textContent = 'در حال جستجو';
+            }
+
+            if (searchModalMeta) {
+                searchModalMeta.textContent = 'چند لحظه...';
+            }
+        }
+
+        requestAnimationFrame(() => {
+            searchModal.classList.add('is-open');
+            searchModal.querySelector('#discoverSearchClose')?.focus();
+        });
+    };
+
+    const closeSearchModal = () => {
+        if (!searchModal) return;
+
+        searchModal.classList.remove('is-open');
+        searchModal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('discover-search-modal-open');
+
+        window.setTimeout(() => {
+            if (!searchModal.classList.contains('is-open')) {
+                searchModal.hidden = true;
+            }
+        }, 180);
+    };
+
+    const renderSearchModal = (freshResults) => {
+        if (!searchModal || !searchModalBody) return;
+
+        const title =
+            freshResults
+                .querySelector('#discover-results-title')
+                ?.textContent
+                ?.replace(/\\s+/g, ' ')
+                ?.trim()
+            || 'نتایج جستجو';
+
+        const cards = Array.from(
+            freshResults.querySelectorAll('.discover-result-card')
+        ).slice(0, 6);
+
+        const totalText =
+            freshResults
+                .querySelector('.mb-5')
+                ?.textContent
+                ?.replace(/\\s+/g, ' ')
+                ?.trim();
+
+        searchModalTitle && (searchModalTitle.textContent = title);
+        searchModalMeta && (
+            searchModalMeta.textContent =
+                cards.length > 0
+                    ? (totalText || `${cards.length} سالن در این صفحه`)
+                    : 'برای این جستجو نتیجه‌ای پیدا نشد.'
+        );
+
+        searchModalBody.innerHTML = '';
+        searchModalBody.setAttribute('aria-busy', 'false');
+
+        if (!cards.length) {
+            searchModalBody.innerHTML = `
+                <div class="discover-search-empty">
+                    <div class="discover-search-empty-icon">⌕</div>
+                    <strong>نتیجه‌ای پیدا نشد</strong>
+                    <p>عبارت جستجو یا فیلترها را کمی تغییر بده و دوباره امتحان کن.</p>
+                </div>
+            `;
+        } else {
+            const grid = document.createElement('div');
+            grid.className = 'discover-search-results-grid';
+
+            cards.forEach((card) => {
+                grid.appendChild(card.cloneNode(true));
+            });
+
+            searchModalBody.appendChild(grid);
+        }
+
+        openSearchModal();
+
+        requestAnimationFrame(() => {
+            searchModalBody
+                .querySelector('a')
+                ?.focus({ preventScroll: true });
+        });
+    };
+
+    const syncHeroSearchInputs = (url) => {
+        const heroQuery = page.querySelector(
+            '.discover-search-field input[name="q"]'
+        );
+
+        const heroCity = page.querySelector(
+            '.discover-search-field input[name="city"]'
+        );
+
+        if (heroQuery) {
+            heroQuery.value = url.searchParams.get('q') || '';
+        }
+
+        if (heroCity) {
+            heroCity.value = url.searchParams.get('city') || '';
+        }
+    };
+
+    page.querySelectorAll('[data-discover-search-close]').forEach((button) => {
+        button.addEventListener('click', closeSearchModal);
+    });
+
+    searchModalSeeAll?.addEventListener('click', () => {
+        closeSearchModal();
+
+        requestAnimationFrame(() => {
+            const results = page.querySelector('#results');
+
+            results?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        });
+    });
 
     const bindResultInteractions = () => {
         const resultForm = page.querySelector('#results form[action*="salons/discover"]');
@@ -102,7 +283,10 @@
 
             resultForm.addEventListener('submit', (event) => {
                 event.preventDefault();
-                submitDiscoverForm(resultForm);
+                submitDiscoverForm(resultForm, {
+                    showOverlay: false,
+                    scroll: true,
+                });
             });
         }
 
@@ -130,7 +314,13 @@
             province.addEventListener('change', () => {
                 city.disabled = true;
 
-                submitDiscoverForm(province.form).finally(() => {
+                submitDiscoverForm(
+                    province.form,
+                    {
+                        showOverlay: false,
+                        scroll: true,
+                    }
+                ).finally(() => {
                     const freshCity = page.querySelector('#discover-filter-city');
 
                     if (freshCity) {
@@ -150,11 +340,56 @@
 
         form.addEventListener('submit', (event) => {
             event.preventDefault();
-            submitDiscoverForm(form);
+
+            submitDiscoverForm(
+                form,
+                {
+                    showOverlay: true,
+                    scroll: false,
+                }
+            );
         });
     });
 
     bindResultInteractions();
+
+    /*
+     |--------------------------------------------------------------------------
+     | Search shortcuts
+     |--------------------------------------------------------------------------
+     */
+
+    page.querySelectorAll(
+        '.discover-quick-link, .discover-category-card, .discover-service-card'
+    ).forEach((link) => {
+        if (link.dataset.discoverSearchLinkBound) return;
+
+        link.dataset.discoverSearchLinkBound = '1';
+
+        link.addEventListener('click', (event) => {
+            const url = new URL(
+                link.href,
+                window.location.origin
+            );
+
+            if (
+                url.pathname !== window.location.pathname
+                || ! url.search
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+
+            requestDiscover(
+                url,
+                {
+                    showOverlay: true,
+                    scroll: false,
+                }
+            );
+        });
+    });
 
     /*
      |--------------------------------------------------------------------------
@@ -329,7 +564,14 @@
     });
 
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && locationModal?.classList.contains('is-open')) {
+        if (event.key !== 'Escape') return;
+
+        if (searchModal?.classList.contains('is-open')) {
+            closeSearchModal();
+            return;
+        }
+
+        if (locationModal?.classList.contains('is-open')) {
             closeLocationModal();
         }
     });
@@ -440,6 +682,7 @@
         requestDiscover(window.location.href, {
             push: false,
             scroll: false,
+            showOverlay: false,
         });
     });
 })();
