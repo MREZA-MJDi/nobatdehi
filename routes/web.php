@@ -168,6 +168,26 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
 
+    /*
+    |--------------------------------------------------------------------------
+    | ROLE-AWARE DASHBOARD ENTRY
+    |--------------------------------------------------------------------------
+    |
+    | Provides one stable authenticated entry point for guest middleware,
+    | old links and direct /dashboard visits. It never renders another role's UI.
+    |
+    */
+
+    Route::get('/dashboard', function () {
+        return match (request()->user()->role) {
+            UserRole::SUPER_ADMIN => redirect()->route('admin.dashboard'),
+            UserRole::SALON_OWNER => redirect()->route('salon.dashboard'),
+            UserRole::CUSTOMER => redirect()->route('customer.dashboard'),
+            UserRole::BARBER => redirect()->route('brand.intro'),
+            default => redirect()->route('brand.intro'),
+        };
+    })->name('dashboard');
+
     Route::post(
         '/logout',
         [LogoutController::class, 'destroy']
