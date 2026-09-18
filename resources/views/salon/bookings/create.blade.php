@@ -832,12 +832,12 @@
         x-data="salonManualBooking()"
         x-init="init()"
         dir="rtl"
-        class="mx-auto w-full max-w-7xl px-4 py-6 pb-28 sm:px-6 lg:px-8 lg:py-8"
+        class="salon-manual-booking mx-auto w-full max-w-7xl px-4 py-6 pb-28 sm:px-6 lg:px-8 lg:py-8"
     >
 
 
         {{-- HEADER --}}
-        <header class="mb-6">
+        <header class="salon-manual-booking-header mb-6">
 
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
@@ -1500,7 +1500,7 @@
 
 
                             {{-- Quick dates --}}
-                            <div class="mt-4 flex min-w-0 gap-2 overflow-x-auto pb-1">
+                            <div class="salon-manual-quick-dates mt-4 flex min-w-0 gap-2 overflow-x-auto pb-1">
 
                                 <template
                                     x-for="date in quickDates"
@@ -1751,7 +1751,7 @@
                                 "
                                 >
 
-                                    <div class="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+                                    <div class="salon-manual-slot-grid mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
 
                                         <template
                                             x-for="slot in slots"
@@ -2086,7 +2086,7 @@
 
 
             {{-- MOBILE ACTION --}}
-            <div class="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 p-3 backdrop-blur-xl xl:hidden">
+            <div class="salon-manual-mobile-action fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 p-3 backdrop-blur-xl xl:hidden">
 
                 <div class="mx-auto flex max-w-3xl items-center gap-3">
 
