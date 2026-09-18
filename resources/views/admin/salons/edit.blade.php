@@ -239,58 +239,30 @@
                             </div>
 
 
-                            {{-- Owner --}}
+                            {{-- Manager Name --}}
 
-                            <div class="form-group sm:col-span-2">
+                            <div class="form-group">
 
                                 <label
-                                    for="owner_id"
+                                    for="manager_name"
                                     class="form-label"
                                 >
-                                    حساب کنترل‌کننده سالن
+                                    نام مسئول سالن
                                     <span class="text-danger-600">*</span>
                                 </label>
 
-                                <select
-                                    id="owner_id"
-                                    name="owner_id"
+                                <input
+                                    id="manager_name"
+                                    type="text"
+                                    name="manager_name"
+                                    value="{{ old('manager_name', $salon->owner?->name) }}"
                                     class="form-control"
+                                    placeholder="نام مسئول سالن"
+                                    maxlength="120"
                                     required
                                 >
 
-                                    <option value="">
-                                        انتخاب حساب
-                                    </option>
-
-                                    @foreach($users as $user)
-
-                                        <option
-                                            value="{{ $user->id }}"
-                                            @selected(
-                                            old(
-                                        'owner_id',
-                                        $salon->owner_id
-                                        ) == $user->id
-                                        )
-                                        >
-                                        {{ $user->name }}
-
-                                        @if($user->phone)
-                                            — {{ $user->phone }}
-                                        @elseif($user->email)
-                                            — {{ $user->email }}
-                                            @endif
-                                            </option>
-
-                                            @endforeach
-
-                                </select>
-
-                                <div class="form-help">
-                                    این حساب کنترل و مدیریت این سالن را بر عهده دارد.
-                                </div>
-
-                                @error('owner_id')
+                                @error('manager_name')
                                 <div class="form-error">
                                     {{ $message }}
                                 </div>
@@ -299,29 +271,103 @@
                             </div>
 
 
-                            {{-- Phone --}}
+                            {{-- Manager Phone --}}
 
                             <div class="form-group">
 
                                 <label
-                                    for="phone"
+                                    for="manager_phone"
                                     class="form-label"
                                 >
-                                    شماره تماس
+                                    موبایل ورود مسئول سالن
+                                    <span class="text-danger-600">*</span>
                                 </label>
 
                                 <input
-                                    id="phone"
-                                    type="text"
-                                    name="phone"
-                                    value="{{ old('phone', $salon->phone) }}"
+                                    id="manager_phone"
+                                    type="tel"
+                                    name="manager_phone"
+                                    value="{{ old('manager_phone', $salon->owner?->phone) }}"
                                     class="form-control"
-                                    placeholder="021..."
+                                    placeholder="0912 123 4567"
+                                    inputmode="tel"
+                                    autocomplete="tel"
                                     dir="ltr"
-                                    maxlength="30"
+                                    maxlength="11"
+                                    required
                                 >
 
-                                @error('phone')
+                                <div class="form-help">
+                                    همین شماره شناسه ورود مسئول سالن است.
+                                </div>
+
+                                @error('manager_phone')
+                                <div class="form-error">
+                                    {{ $message }}
+                                </div>
+                                @enderror
+
+                            </div>
+
+
+                            {{-- New Manager Password --}}
+
+                            <div class="form-group">
+
+                                <label
+                                    for="manager_password"
+                                    class="form-label"
+                                >
+                                    رمز جدید مسئول سالن
+                                </label>
+
+                                <input
+                                    id="manager_password"
+                                    type="password"
+                                    name="manager_password"
+                                    class="form-control"
+                                    placeholder="فقط در صورت نیاز تغییر دهید"
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                    dir="ltr"
+                                >
+
+                                <div class="form-help">
+                                    در صورت تغییر، مسئول سالن در ورود بعدی باید رمز جدید را تأیید و استفاده کند.
+                                </div>
+
+                                @error('manager_password')
+                                <div class="form-error">
+                                    {{ $message }}
+                                </div>
+                                @enderror
+
+                            </div>
+
+
+                            {{-- Password Confirmation --}}
+
+                            <div class="form-group">
+
+                                <label
+                                    for="manager_password_confirmation"
+                                    class="form-label"
+                                >
+                                    تکرار رمز جدید
+                                </label>
+
+                                <input
+                                    id="manager_password_confirmation"
+                                    type="password"
+                                    name="manager_password_confirmation"
+                                    class="form-control"
+                                    placeholder="تکرار رمز جدید"
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                    dir="ltr"
+                                >
+
+                                @error('manager_password_confirmation')
                                 <div class="form-error">
                                     {{ $message }}
                                 </div>
@@ -331,6 +377,8 @@
 
 
                             {{-- Email --}}
+
+{{-- Email --}}
 
                             <div class="form-group">
 
