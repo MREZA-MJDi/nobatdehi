@@ -129,16 +129,43 @@ class DiscoverController extends Controller
         }
 
         if ($filters['city'] !== '') {
+            $city = trim($filters['city']);
+            $cityLike = '%' . $city . '%';
+
             $salonQuery->where(
-                'city',
-                $filters['city']
+                function ($query) use ($cityLike) {
+                    $query
+                        ->where(
+                            'province',
+                            'like',
+                            $cityLike
+                        )
+                        ->orWhere(
+                            'city',
+                            'like',
+                            $cityLike
+                        )
+                        ->orWhere(
+                            'district',
+                            'like',
+                            $cityLike
+                        )
+                        ->orWhere(
+                            'address',
+                            'like',
+                            $cityLike
+                        );
+                }
             );
         }
 
         if ($filters['district'] !== '') {
+            $districtLike = '%' . trim($filters['district']) . '%';
+
             $salonQuery->where(
                 'district',
-                $filters['district']
+                'like',
+                $districtLike
             );
         }
 
@@ -299,12 +326,10 @@ class DiscoverController extends Controller
                     );
                 }
             )
-            ->select([
-                'id',
-                'salon_id',
-                'name',
-                'price',
-            ])
+            ->selectRaw(
+                'TRIM(name) AS name'
+            )
+            ->distinct()
             ->orderBy('name')
             ->limit(
                 self::SERVICE_OPTIONS_LIMIT
@@ -919,36 +944,49 @@ class DiscoverController extends Controller
             return;
         }
 
+        $serviceName = trim((string) $service);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Backward compatibility
+        |--------------------------------------------------------------------------
+        |
+        | لینک‌های قدیمی Discover ممکن است service=<id> داشته باشند.
+        | ID را به نام واقعی سرویس resolve می‌کنیم تا همه سالن‌هایی که
+        | همان خدمت را ارائه می‌دهند دیده شوند؛ نه فقط همان رکورد سرویس.
+        |--------------------------------------------------------------------------
+        */
+
+        if (is_numeric($service)) {
+            $serviceName = trim(
+                (string) (
+                    Service::query()
+                        ->where('is_active', true)
+                        ->whereKey((int) $service)
+                        ->value('name')
+                    ?? ''
+                )
+            );
+
+            if ($serviceName === '') {
+                $query->whereRaw('1 = 0');
+
+                return;
+            }
+        }
+
         $query->whereHas(
             'services',
-            function ($query) use (
-                $service
-            ) {
-                $query->where(
-                    'is_active',
-                    true
-                );
-
-                if (
-                    is_numeric(
-                        $service
+            function ($query) use ($serviceName) {
+                $query
+                    ->where(
+                        'is_active',
+                        true
                     )
-                ) {
-                    $query->where(
-                        'id',
-                        (int) $service
+                    ->whereRaw(
+                        'TRIM(name) = ?',
+                        [$serviceName]
                     );
-
-                    return;
-                }
-
-                $query->where(
-                    'name',
-                    'like',
-                    '%' . trim(
-                        (string) $service
-                    ) . '%'
-                );
             }
         );
     }
@@ -1187,9 +1225,8 @@ class DiscoverController extends Controller
     | Has slot today
     |--------------------------------------------------------------------------
     |
-    | فعلاً تخمینی است.
-    | یعنی:
-    | امروز بسته نباشد + working hour فعال داشته باشد.
+    | امروز سالن باز باشد و حداقل یک متخصص و یک خدمت فعال
+    | همراه با working hour معتبر داشته باشد.
     |--------------------------------------------------------------------------
     */
 
@@ -1234,7 +1271,34 @@ class DiscoverController extends Controller
                         ->where(
                             'is_closed',
                             false
+                        )
+                        ->whereNotNull('start_time')
+                        ->whereNotNull('end_time')
+                        ->whereColumn(
+                            'start_time',
+                            '<',
+                            'end_time'
                         );
+                }
+            )
+
+            ->whereHas(
+                'barbers',
+                function ($query) {
+                    $query->where(
+                        'is_active',
+                        true
+                    );
+                }
+            )
+
+            ->whereHas(
+                'services',
+                function ($query) {
+                    $query->where(
+                        'is_active',
+                        true
+                    );
                 }
             );
     }

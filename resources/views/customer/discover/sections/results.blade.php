@@ -329,14 +329,17 @@
 
                             @foreach (($serviceOptions ?? collect()) as $serviceOption)
                                 @php
-                                    $serviceOptionId = data_get($serviceOption, 'id');
-                                    $serviceOptionName = data_get($serviceOption, 'name');
+                                    $serviceOptionName = trim(
+                                        (string) data_get($serviceOption, 'name')
+                                    );
                                 @endphp
 
-                                @if ($serviceOptionId && $serviceOptionName)
+                                @if ($serviceOptionName !== '')
                                     <option
-                                        value="{{ $serviceOptionId }}"
-                                        @selected((string) $filters['service'] === (string) $serviceOptionId)
+                                        value="{{ $serviceOptionName }}"
+                                        @selected(
+                                            trim((string) $filters['service']) === $serviceOptionName
+                                        )
                                     >
                                     {{ $serviceOptionName }}
                                     </option>
@@ -535,7 +538,7 @@
                         class="h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-accent-600)] focus:ring-[var(--color-accent-500)]"
                         >
 
-                        <span>امروز نوبت دارد</span>
+                        <span>امروز امکان رزرو دارد</span>
                     </label>
 
                     {{-- Geolocation --}}
