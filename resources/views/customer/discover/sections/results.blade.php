@@ -102,6 +102,10 @@
         $resultTitle = 'سالن‌های این خدمت';
 
         $resultDescription = 'سالن‌هایی که این خدمت را ارائه می‌دهند.';
+    } elseif ($filters['location'] !== '') {
+        $resultTitle = 'نتایج «' . $filters['location'] . '»';
+
+        $resultDescription = 'سالن‌های فعال در این شهر، منطقه یا محله.';
     } elseif ($filters['city'] !== '') {
         $resultTitle = 'سالن‌های ' . $filters['city'];
 
