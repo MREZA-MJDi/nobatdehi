@@ -7,12 +7,20 @@ use App\Jobs\SendBookingSms;
 use App\Models\Booking;
 use App\Notifications\BookingNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 
-class HandleBookingCreated implements ShouldQueue
+class HandleBookingCreated implements ShouldQueue, ShouldBeUnique
 {
     public int $tries = 5;
 
+    public int $uniqueFor = 300;
+
     public array $backoff = [5, 15, 60, 180];
+
+    public function uniqueId(BookingCreated $event): string
+    {
+        return 'booking-created:' . $event->booking->id;
+    }
 
     public function handle(BookingCreated $event): void
     {
