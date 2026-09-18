@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureUserRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,7 @@ return Application::configure(
 
         $middleware->alias([
             'role' => EnsureUserRole::class,
+            'password.changed' => EnsurePasswordChanged::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
