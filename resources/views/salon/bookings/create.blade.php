@@ -1489,7 +1489,13 @@
                             <input
                                 type="hidden"
                                 name="booking_date"
-                                :value="selectedDate"
+                                x-model="selectedDate"
+                            >
+
+                            <input
+                                type="hidden"
+                                name="start_time"
+                                x-model="selectedTime"
                             >
 
 
