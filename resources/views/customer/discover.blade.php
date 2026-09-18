@@ -86,6 +86,65 @@
 
         @include('customer.discover.sections.owner-cta')
 
+
+        <div
+            class="discover-search-modal"
+            id="discoverSearchModal"
+            aria-hidden="true"
+            hidden
+        >
+            <div class="discover-search-backdrop" data-discover-search-close></div>
+
+            <section
+                class="discover-search-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="discoverSearchTitle"
+            >
+                <header class="discover-search-dialog-head">
+                    <div class="min-w-0">
+                        <span class="discover-search-kicker">LIVE DISCOVERY</span>
+                        <h2 id="discoverSearchTitle">نتایج جستجو</h2>
+                        <p id="discoverSearchMeta">در حال پیدا کردن سالن‌ها...</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="discover-search-close"
+                        id="discoverSearchClose"
+                        data-discover-search-close
+                        aria-label="بستن نتایج"
+                    >×</button>
+                </header>
+
+                <div
+                    class="discover-search-dialog-body"
+                    id="discoverSearchResults"
+                    aria-live="polite"
+                    aria-busy="true"
+                >
+                    <div class="discover-search-loading" id="discoverSearchLoading">
+                        <span class="discover-search-spinner" aria-hidden="true"></span>
+                        <strong>داریم بهترین گزینه‌ها را پیدا می‌کنیم...</strong>
+                        <small>نتیجه واقعی از سیستم NOBAT دریافت می‌شود.</small>
+                    </div>
+                </div>
+
+                <footer class="discover-search-dialog-foot">
+                    <span>نتایج با همان فیلترهای واقعی Discover به‌روز شده‌اند.</span>
+
+                    <button
+                        type="button"
+                        class="discover-search-see-all"
+                        id="discoverSearchSeeAll"
+                    >
+                        دیدن همه نتایج
+                        <span aria-hidden="true">←</span>
+                    </button>
+                </footer>
+            </section>
+        </div>
+
         <div
             class="discover-location-modal"
             id="discoverLocationModal"
