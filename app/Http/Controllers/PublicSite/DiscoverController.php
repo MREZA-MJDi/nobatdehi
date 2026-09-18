@@ -392,9 +392,15 @@ class DiscoverController extends Controller
                 'bio',
                 'image_path',
             ])
-            ->withCount(
-                'bookings'
-            )
+            ->withCount([
+                'bookings' => function ($query) {
+                    $query->where(
+                        'status',
+                        '!=',
+                        'cancelled'
+                    );
+                },
+            ])
             ->orderByDesc(
                 'bookings_count'
             )
