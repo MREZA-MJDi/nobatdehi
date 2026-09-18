@@ -24,6 +24,7 @@ use App\Http\Controllers\Salon\BarberController as SalonBarberController;
 use App\Http\Controllers\Salon\BookingController as SalonBookingController;
 use App\Http\Controllers\Salon\DashboardController as SalonDashboardController;
 use App\Http\Controllers\Salon\NotificationController as SalonNotificationController;
+use App\Http\Controllers\Salon\PasswordController as SalonPasswordController;
 use App\Http\Controllers\Salon\ReviewController as SalonReviewController;
 use App\Http\Controllers\Salon\PostController as SalonPostController;
 use App\Http\Controllers\Salon\ServiceController as SalonServiceController;
@@ -284,6 +285,31 @@ Route::middleware('auth')->group(function () {
         ->name('salon.')
         ->group(function () {
 
+            /*
+            |--------------------------------------------------------------------------
+            | Initial Password
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                '/password',
+                [SalonPasswordController::class, 'edit']
+            )->name('password.edit');
+
+            Route::put(
+                '/password',
+                [SalonPasswordController::class, 'update']
+            )->name('password.update');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Salon Owner Application
+            |--------------------------------------------------------------------------
+            */
+
+            Route::middleware('password.changed')->group(function () {
+
             Route::get(
                 '/dashboard',
                 SalonDashboardController::class
@@ -387,6 +413,8 @@ Route::middleware('auth')->group(function () {
                 '/settings',
                 [SettingsController::class, 'update']
             )->name('settings.update');
+            });
+
         });
 
 
