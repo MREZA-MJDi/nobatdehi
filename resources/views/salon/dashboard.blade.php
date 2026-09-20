@@ -296,9 +296,9 @@
         <header class="nd-section-head">
             <div>
                 <span class="nd-section-kicker">تحلیل مالی</span>
-                <h2>درآمد سالن</h2>
+                <h2>درآمد واقعی سالن</h2>
                 <p>
-                    فقط نوبت‌های تأییدشده و انجام‌شده در محاسبه درآمد قرار می‌گیرند.
+                    فقط نوبت‌های تکمیل‌شده در درآمد لحاظ می‌شوند؛ تأیید شدن نوبت به‌تنهایی درآمد محسوب نمی‌شود.
                 </p>
             </div>
 
@@ -306,11 +306,11 @@
                 <button
                     type="button"
                     class="is-active"
-                    data-chart-tab="weekly"
+                    data-chart-tab="daily"
                     role="tab"
                     aria-selected="true"
                 >
-                    هفته
+                    روزانه
                 </button>
 
                 <button
@@ -319,29 +319,146 @@
                     role="tab"
                     aria-selected="false"
                 >
-                    ماه
+                    ماهانه
+                </button>
+
+                <button
+                    type="button"
+                    data-chart-tab="yearly"
+                    role="tab"
+                    aria-selected="false"
+                >
+                    سالانه
                 </button>
             </div>
         </header>
 
-        <div class="nd-chart-panel is-active" data-chart-panel="weekly">
+        <div class="nd-chart-panel is-active" data-chart-panel="daily">
             <div class="nd-chart-summary">
                 <div>
-                    <span>جمع هفته جاری</span>
-                    <strong>{{ $money($weekRevenue) }}</strong>
+                    <span>۷ روز اخیر</span>
+                    <strong>{{ $money($dailyTotal) }}</strong>
                 </div>
 
-                <span>۷ روز</span>
+                <span>روزانه</span>
             </div>
 
-            <div class="nd-bars nd-bars-weekly">
-                @foreach($weeklyRevenueChart as $index => $point)
+            <div class="nd-bars nd-bars-daily">
+                @foreach($dailyRevenueChart as $point)
                     @php
-                        $height = $weeklyRevenueMax > 0
+                        $height = $dailyRevenueMax > 0
                             ? max(
                                 4,
                                 round(
-                                    ($point['value'] / $weeklyRevenueMax) * 100
+                                    ($point['value'] / $dailyRevenueMax) * 100
+                                )
+                            )
+                            : 4;
+
+                        $label = substr(
+                            jalali_date(
+                                \Carbon\Carbon::parse($point['date'])
+                            ),
+                            5,
+                            5
+                        );
+                    @endphp
+
+                    <div class="nd-bar-column">
+                        <span class="nd-bar-value">
+                            {{ $point['value'] > 0
+                                ? $money($point['value'])
+                                : '—' }}
+                        </span>
+
+                        <div class="nd-bar-track">
+                            <div
+                                class="nd-bar-fill"
+                                data-bar-value="{{ $point['value'] }}"
+                                style="height: {{ $height }}%;"
+                            ></div>
+                        </div>
+
+                        <span
+                            class="nd-bar-label"
+                            title="{{ jalali_date(\Carbon\Carbon::parse($point['date'])) }}"
+                        >
+                            {{ $label }}
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="nd-chart-panel" data-chart-panel="monthly" hidden>
+            <div class="nd-chart-summary">
+                <div>
+                    <span>۱۲ ماه اخیر</span>
+                    <strong>{{ $money($monthlyTotal) }}</strong>
+                </div>
+
+                <span>ماهانه</span>
+            </div>
+
+            <div class="nd-bars nd-bars-monthly">
+                @foreach($monthlyRevenueChart as $point)
+                    @php
+                        $height = $monthlyRevenueMax > 0
+                            ? max(
+                                4,
+                                round(
+                                    ($point['value'] / $monthlyRevenueMax) * 100
+                                )
+                            )
+                            : 4;
+
+                        $label = substr($point['label'], 5, 2);
+                    @endphp
+
+                    <div class="nd-bar-column">
+                        <span class="nd-bar-value">
+                            {{ $point['value'] > 0
+                                ? $money($point['value'])
+                                : '—' }}
+                        </span>
+
+                        <div class="nd-bar-track">
+                            <div
+                                class="nd-bar-fill"
+                                data-bar-value="{{ $point['value'] }}"
+                                style="height: {{ $height }}%;"
+                            ></div>
+                        </div>
+
+                        <span
+                            class="nd-bar-label"
+                            title="{{ $point['label'] }}"
+                        >
+                            {{ $label }}
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="nd-chart-panel" data-chart-panel="yearly" hidden>
+            <div class="nd-chart-summary">
+                <div>
+                    <span>۵ سال اخیر</span>
+                    <strong>{{ $money($yearlyTotal) }}</strong>
+                </div>
+
+                <span>سالانه</span>
+            </div>
+
+            <div class="nd-bars nd-bars-yearly">
+                @foreach($yearlyRevenueChart as $point)
+                    @php
+                        $height = $yearlyRevenueMax > 0
+                            ? max(
+                                4,
+                                round(
+                                    ($point['value'] / $yearlyRevenueMax) * 100
                                 )
                             )
                             : 4;
@@ -363,65 +480,7 @@
                         </div>
 
                         <span class="nd-bar-label">
-                            {{ $days[$index] }}
-                        </span>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-
-
-        <div class="nd-chart-panel" data-chart-panel="monthly" hidden>
-            <div class="nd-chart-summary">
-                <div>
-                    <span>۶ ماه اخیر</span>
-                    <strong>{{ $money($monthlyTotal) }}</strong>
-                </div>
-
-                <span>ماهانه</span>
-            </div>
-
-            <div class="nd-bars nd-bars-monthly">
-                @foreach($monthlyRevenueChart as $point)
-                    @php
-                        $height = $monthlyRevenueMax > 0
-                            ? max(
-                                4,
-                                round(
-                                    ($point['value'] / $monthlyRevenueMax) * 100
-                                )
-                            )
-                            : 4;
-
-                        $monthLabel = substr(
-                            jalali_date(
-                                \Carbon\Carbon::parse($point['date'])
-                            ),
-                            0,
-                            7
-                        );
-                    @endphp
-
-                    <div class="nd-bar-column">
-                        <span class="nd-bar-value">
-                            {{ $point['value'] > 0
-                                ? $money($point['value'])
-                                : '—' }}
-                        </span>
-
-                        <div class="nd-bar-track">
-                            <div
-                                class="nd-bar-fill"
-                                data-bar-value="{{ $point['value'] }}"
-                                style="height: {{ $height }}%;"
-                            ></div>
-                        </div>
-
-                        <span
-                            class="nd-bar-label"
-                            title="{{ $monthLabel }}"
-                        >
-                            {{ $monthLabel }}
+                            {{ $point['label'] }}
                         </span>
                     </div>
                 @endforeach
