@@ -166,8 +166,8 @@ class DashboardController extends Controller
             )
             ->count();
 
+        // Realized revenue: only completed appointments count as revenue.
         $revenueStatuses = [
-            BookingStatus::CONFIRMED,
             BookingStatus::COMPLETED,
         ];
 
@@ -339,14 +339,21 @@ class DashboardController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Revenue chart
+        | Revenue charts
+        |--------------------------------------------------------------------------
+        |
+        | Revenue is realized only when a booking becomes COMPLETED.
+        | We expose three business views:
+        | - daily: last 7 calendar days
+        | - monthly: last 12 Jalali months
+        | - yearly: last 5 Jalali years
         |--------------------------------------------------------------------------
         */
 
         $chartStart = $today
             ->copy()
-            ->subMonths(5)
-            ->startOfMonth();
+            ->subYears(5)
+            ->startOfYear();
 
         $revenueRows = $salon->bookings()
             ->whereBetween(
@@ -373,35 +380,46 @@ class DashboardController extends Controller
                     )->toDateString()
             )
             ->map(
-                fn ($rows) =>
-                    (int) $rows->sum('price')
+                fn ($rows) => (int) $rows->sum('price')
             );
 
-        $revenueByMonth = $revenueRows
+        $revenueByJalaliMonth = $revenueRows
             ->groupBy(
                 fn ($booking) =>
-                    Carbon::parse(
-                        $booking->booking_date
-                    )->format('Y-m')
+                    substr(
+                        jalali_date($booking->booking_date),
+                        0,
+                        7
+                    )
             )
             ->map(
-                fn ($rows) =>
-                    (int) $rows->sum('price')
+                fn ($rows) => (int) $rows->sum('price')
             );
 
-        $weeklyRevenueChart =
-            collect(range(0, 6))
+        $revenueByJalaliYear = $revenueRows
+            ->groupBy(
+                fn ($booking) =>
+                    substr(
+                        jalali_date($booking->booking_date),
+                        0,
+                        4
+                    )
+            )
+            ->map(
+                fn ($rows) => (int) $rows->sum('price')
+            );
+
+        $dailyRevenueChart =
+            collect(range(6, 0))
                 ->map(
-                    function ($offset) use (
-                        $weekStart,
+                    function ($daysAgo) use (
+                        $today,
                         $revenueByDay
                     ) {
                         $date =
-                            $weekStart
+                            $today
                                 ->copy()
-                                ->addDays(
-                                    $offset
-                                );
+                                ->subDays($daysAgo);
 
                         return [
                             'date' =>
@@ -409,33 +427,36 @@ class DashboardController extends Controller
                             'value' =>
                                 (int) (
                                     $revenueByDay[
-                                        $date
-                                            ->toDateString()
+                                        $date->toDateString()
                                     ] ?? 0
                                 ),
-                            'label' => $this->persianWeekday($offset),
+                            'label' => jalali_date($date),
                         ];
                     }
                 )
                 ->values();
 
         $monthlyRevenueChart =
-            collect(range(5, 0))
+            collect(range(11, 0))
                 ->map(
                     function ($monthsAgo) use (
                         $today,
-                        $revenueByMonth
+                        $revenueByJalaliMonth
                     ) {
                         $month =
                             $today
                                 ->copy()
                                 ->startOfMonth()
-                                ->subMonths(
-                                    $monthsAgo
-                                );
+                                ->subMonths($monthsAgo);
+
+                        $jalali = explode(
+                            '/',
+                            jalali_date($month)
+                        );
 
                         $key =
-                            $month->format('Y-m');
+                            ($jalali[0] ?? '') . '/' .
+                            ($jalali[1] ?? '');
 
                         return [
                             'month' => $key,
@@ -443,30 +464,69 @@ class DashboardController extends Controller
                                 $month->toDateString(),
                             'value' =>
                                 (int) (
-                                    $revenueByMonth[
+                                    $revenueByJalaliMonth[
                                         $key
                                     ] ?? 0
                                 ),
-                            'label' =>
-                                $this->persianMonthLabel($month),
+                            'label' => $key,
                         ];
                     }
                 )
                 ->values();
 
-        $weeklyRevenueMax = max(
+        $jalaliToday =
+            explode(
+                '/',
+                jalali_date($today)
+            );
+
+        $currentJalaliYear =
+            (int) ($jalaliToday[0] ?? 0);
+
+        $yearlyRevenueChart =
+            collect(range(4, 0))
+                ->map(
+                    function ($yearsAgo) use (
+                        $currentJalaliYear,
+                        $revenueByJalaliYear
+                    ) {
+                        $year =
+                            $currentJalaliYear
+                            - $yearsAgo;
+
+                        $key = (string) $year;
+
+                        return [
+                            'year' => $key,
+                            'value' =>
+                                (int) (
+                                    $revenueByJalaliYear[$key]
+                                    ?? 0
+                                ),
+                            'label' => $key,
+                        ];
+                    }
+                )
+                ->values();
+
+        $dailyRevenueMax = max(
             1,
-            (int) $weeklyRevenueChart
-                ->max('value')
+            (int) $dailyRevenueChart->max('value')
         );
 
         $monthlyRevenueMax = max(
             1,
-            (int) $monthlyRevenueChart
-                ->max('value')
+            (int) $monthlyRevenueChart->max('value')
         );
 
+        $yearlyRevenueMax = max(
+            1,
+            (int) $yearlyRevenueChart->max('value')
+        );
+
+        $dailyTotal = (int) $dailyRevenueChart->sum('value');
         $monthlyTotal = (int) $monthlyRevenueChart->sum('value');
+        $yearlyTotal = (int) $yearlyRevenueChart->sum('value');
 
         $data = [
             'salon' => $salon,
@@ -512,14 +572,24 @@ class DashboardController extends Controller
                 $hasWorkingHours,
             'salonIsActive' =>
                 (bool) $salon->is_active,
-            'weeklyRevenueChart' =>
-                $weeklyRevenueChart,
+            'dailyRevenueChart' =>
+                $dailyRevenueChart,
             'monthlyRevenueChart' =>
                 $monthlyRevenueChart,
-            'weeklyRevenueMax' =>
-                $weeklyRevenueMax,
+            'yearlyRevenueChart' =>
+                $yearlyRevenueChart,
+            'dailyRevenueMax' =>
+                $dailyRevenueMax,
             'monthlyRevenueMax' =>
                 $monthlyRevenueMax,
+            'yearlyRevenueMax' =>
+                $yearlyRevenueMax,
+            'dailyTotal' =>
+                $dailyTotal,
+            'monthlyTotal' =>
+                $monthlyTotal,
+            'yearlyTotal' =>
+                $yearlyTotal,
         ];
 
         if (! $forApi) {
@@ -585,12 +655,16 @@ class DashboardController extends Controller
                     ),
             ],
             'revenue' => [
-                'weekly' =>
-                    $weeklyRevenueChart
+                'daily' =>
+                    $dailyRevenueChart
                         ->values()
                         ->all(),
                 'monthly' =>
                     $monthlyRevenueChart
+                        ->values()
+                        ->all(),
+                'yearly' =>
+                    $yearlyRevenueChart
                         ->values()
                         ->all(),
             ],
