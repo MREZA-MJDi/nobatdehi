@@ -178,15 +178,19 @@
             ['todayBookings','pendingBookings','confirmedToday','completedToday','cancelledToday','monthBookings','activeBarbers','activeServices','unreadNotifications'].forEach(name => setMetric(name, metrics[name] || 0));
             ['todayRevenue','weekRevenue','monthRevenue'].forEach(name => setMoney(name, metrics[name] || 0));
 
-            renderBars('weekly', data.revenue?.weekly || []);
+            renderBars('daily', data.revenue?.daily || []);
             renderBars('monthly', data.revenue?.monthly || []);
+            renderBars('yearly', data.revenue?.yearly || []);
 
-            const week = (data.revenue?.weekly || []).reduce((sum, point) => sum + Number(point.value || 0), 0);
-            const month = (data.revenue?.monthly || []).reduce((sum, point) => sum + Number(point.value || 0), 0);
-            const weeklyStrong = root.querySelector('[data-chart-panel="weekly"] .nd-chart-summary strong');
+            const daily = (data.revenue?.daily || []).reduce((sum, point) => sum + Number(point.value || 0), 0);
+            const monthly = (data.revenue?.monthly || []).reduce((sum, point) => sum + Number(point.value || 0), 0);
+            const yearly = (data.revenue?.yearly || []).reduce((sum, point) => sum + Number(point.value || 0), 0);
+            const dailyStrong = root.querySelector('[data-chart-panel="daily"] .nd-chart-summary strong');
             const monthlyStrong = root.querySelector('[data-chart-panel="monthly"] .nd-chart-summary strong');
-            if (weeklyStrong) weeklyStrong.textContent = money(week);
-            if (monthlyStrong) monthlyStrong.textContent = money(month);
+            const yearlyStrong = root.querySelector('[data-chart-panel="yearly"] .nd-chart-summary strong');
+            if (dailyStrong) dailyStrong.textContent = money(daily);
+            if (monthlyStrong) monthlyStrong.textContent = money(monthly);
+            if (yearlyStrong) yearlyStrong.textContent = money(yearly);
 
             renderUpcoming(data.upcomingBookings || []);
             renderRecent(data.recentBookings || []);
