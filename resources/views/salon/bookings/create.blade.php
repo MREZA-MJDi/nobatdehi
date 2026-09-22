@@ -38,7 +38,7 @@
 
                 customerName: @js(old('customer_name', '')),
                 customerPhone: @js(old('customer_phone', '')),
-                manualConfirmed: @js(old('manual_confirmed', '1')),
+                manualConfirmed: @js((bool) old('manual_confirmed', true)),
 
                 barberId: @js(old('barber_id', '')),
                 serviceId: @js(old('service_id', '')),
