@@ -533,7 +533,7 @@
 
                         <div class="nd-booking-main">
                             <strong>
-                                {{ $booking->customer?->name ?? 'مشتری' }}
+                                {{ $booking->customer?->name ?? $booking->customer_name ?? 'مشتری' }}
                             </strong>
 
                             <span>
@@ -707,7 +707,7 @@
                 <a class="nd-activity-row" href="{{ route('salon.bookings.show', $booking) }}">
                     <div class="nd-activity-dot nd-activity-dot--{{ $tone }}"></div>
                     <div class="nd-activity-main">
-                        <strong>{{ $booking->customer?->name ?? 'مشتری' }}</strong>
+                        <strong>{{ $booking->customer?->name ?? $booking->customer_name ?? 'مشتری' }}</strong>
                         <span>
                             {{ $booking->service?->name ?? 'خدمت' }}
                             ·
