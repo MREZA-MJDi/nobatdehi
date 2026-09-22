@@ -456,6 +456,82 @@ class BookingService
     }
 
     /**
+     * Customer can cancel only while the booking is still pending.
+     *
+     * The booking row is locked before checking the status so an approval
+     * happening concurrently cannot be followed by an unintended customer
+     * cancellation.
+     */
+    public function cancelByCustomer(
+        User $customer,
+        Booking $booking
+    ): Booking {
+        return DB::transaction(
+            function () use ($customer, $booking) {
+                $lockedBooking = Booking::query()
+                    ->lockForUpdate()
+                    ->with([
+                        'salon',
+                        'barber',
+                        'service',
+                        'customer',
+                    ])
+                    ->find($booking->id);
+
+                if (!$lockedBooking) {
+                    throw ValidationException::withMessages([
+                        'booking' =>
+                            'نوبت موردنظر دیگر وجود ندارد.',
+                    ]);
+                }
+
+                if (
+                    (int) $lockedBooking->customer_id !==
+                    (int) $customer->id
+                ) {
+                    throw ValidationException::withMessages([
+                        'booking' =>
+                            'شما اجازه لغو این نوبت را ندارید.',
+                    ]);
+                }
+
+                if (
+                    $lockedBooking->status !==
+                    BookingStatus::PENDING
+                ) {
+                    throw ValidationException::withMessages([
+                        'booking' =>
+                            'این نوبت دیگر در وضعیت «در انتظار» نیست و قابل لغو نیست.',
+                    ]);
+                }
+
+                $from = $lockedBooking->status;
+
+                $lockedBooking->update([
+                    'status' => BookingStatus::CANCELLED,
+                ]);
+
+                $lockedBooking->refresh();
+
+                $lockedBooking->load([
+                    'salon',
+                    'barber',
+                    'service',
+                    'customer',
+                ]);
+
+                BookingStatusChanged::dispatch(
+                    $lockedBooking,
+                    $from,
+                    BookingStatus::CANCELLED
+                );
+
+                return $lockedBooking;
+            }
+        );
+    }
+
+    /**
      * Customer updates a pending booking.
      */
     public function updateByCustomer(
@@ -479,7 +555,10 @@ class BookingService
                     (int) $booking->customer_id !==
                     (int) $customer->id
                 ) {
-                    abort(403);
+                    throw ValidationException::withMessages([
+                        'booking' =>
+                            'شما اجازه ویرایش این نوبت را ندارید.',
+                    ]);
                 }
 
                 if (
@@ -594,10 +673,15 @@ class BookingService
 
                 $date = Carbon::createFromFormat(
                     'Y-m-d',
-                    $data['booking_date']
+                    $data['booking_date'],
+                    config('app.timezone', 'Asia/Tehran')
                 )->startOfDay();
 
-                if ($date->isBefore(today())) {
+                if (
+                    $date->lt(
+                        now(config('app.timezone', 'Asia/Tehran'))->startOfDay()
+                    )
+                ) {
                     throw ValidationException::withMessages([
                         'booking_date' =>
                             'امکان انتخاب تاریخ گذشته وجود ندارد.',
