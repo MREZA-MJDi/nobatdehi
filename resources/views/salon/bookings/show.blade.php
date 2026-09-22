@@ -278,20 +278,20 @@
                             <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
 
                                 <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-slate-950 text-xl font-black text-white">
-                                    {{ mb_substr($booking->customer?->name ?? '؟', 0, 1) }}
+                                    {{ mb_substr($booking->customer?->name ?? $booking->customer_name ?? '؟', 0, 1) }}
                                 </div>
 
 
                                 <div class="min-w-0 flex-1">
 
                                     <div class="text-lg font-black text-slate-950">
-                                        {{ $booking->customer?->name ?? 'مشتری حذف شده' }}
+                                        {{ $booking->customer?->name ?? $booking->customer_name ?? 'مشتری' }}
                                     </div>
 
-                                    @if ($booking->customer?->phone)
+                                    @if ($booking->customer?->phone ?? $booking->customer_phone)
 
                                         <div class="mt-1 text-sm text-slate-400">
-                                            {{ $booking->customer->phone }}
+                                            {{ $booking->customer?->phone ?? $booking->customer_phone }}
                                         </div>
 
                                     @endif
@@ -299,7 +299,7 @@
                                 </div>
 
 
-                                @if ($booking->customer?->phone)
+                                @if ($booking->customer?->phone ?? $booking->customer_phone)
 
                                     <a
                                         href="tel:{{ $booking->customer->phone }}"

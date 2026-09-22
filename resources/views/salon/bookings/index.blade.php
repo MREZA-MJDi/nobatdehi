@@ -88,8 +88,8 @@
                         </div>
 
                         <div class="salon-booking-item__customer">
-                            <strong>{{ $booking->customer?->name ?? 'مشتری حذف شده' }}</strong>
-                            <span>{{ $booking->customer?->phone ?? 'شماره ثبت نشده' }}</span>
+                            <strong>{{ $booking->customer?->name ?? $booking->customer_name ?? 'مشتری' }}</strong>
+                            <span>{{ $booking->customer?->phone ?? $booking->customer_phone ?? 'شماره ثبت نشده' }}</span>
                         </div>
 
                         <div class="salon-booking-item__service">

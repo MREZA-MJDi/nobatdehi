@@ -17,6 +17,9 @@ class Booking extends Model
         'barber_id',
         'service_id',
         'customer_id',
+        'customer_name',
+        'customer_phone',
+        'is_manual',
         'booking_date',
         'start_time',
         'end_time',
@@ -31,6 +34,7 @@ class Booking extends Model
         return [
             'booking_date' => 'date',
             'price' => 'integer',
+            'is_manual' => 'boolean',
             'status' => BookingStatus::class,
         ];
     }

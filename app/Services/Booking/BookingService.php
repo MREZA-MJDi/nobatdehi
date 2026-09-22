@@ -96,50 +96,21 @@ class BookingService
 
                 /*
                 |--------------------------------------------------------------------------
-                | Manual booking = immediately confirmed
+                | Manual booking = confirmed immediately, no customer account.
                 |--------------------------------------------------------------------------
+                |
+                | The salon only records a contact snapshot on the booking.
+                | No User is selected, created, authenticated or modified here.
                 */
 
-                $customer = $data['customer'] ?? null;
-
-                if (!$customer && !empty($data['new_customer_phone'])) {
-                    $phone = PhoneNumber::normalize(
-                        (string) $data['new_customer_phone']
-                    );
-
-                    $customer = User::query()
-                        ->where('phone', $phone)
-                        ->lockForUpdate()
-                        ->first();
-
-                    if ($customer && !$customer->isCustomer()) {
-                        throw ValidationException::withMessages([
-                            'new_customer_phone' =>
-                                'این شماره موبایل برای حساب دیگری ثبت شده است.',
-                        ]);
-                    }
-
-                    if (!$customer) {
-                        $customer = User::create([
-                            'name' => trim(
-                                (string) ($data['new_customer_name'] ?? '')
-                            ),
-                            'phone' => $phone,
-                            'phone_verified_at' => null,
-                            'email' => null,
-                            'password' => null,
-                            'role' => \App\Enums\UserRole::CUSTOMER,
-                            'must_change_password' => false,
-                        ]);
-                    }
-                }
-
                 return $this->createBooking(
-                    $customer,
+                    null,
                     $data,
                     BookingStatus::CONFIRMED,
                     true,
-                    $owner
+                    $owner,
+                    trim((string) ($data['customer_name'] ?? '')),
+                    PhoneNumber::normalize((string) ($data['customer_phone'] ?? ''))
                 );
             }
         );
@@ -153,7 +124,9 @@ class BookingService
         array $data,
         BookingStatus $status,
         bool $manual = false,
-        ?User $manualOwner = null
+        ?User $manualOwner = null,
+        ?string $manualCustomerName = null,
+        ?string $manualCustomerPhone = null
     ): Booking {
         /*
         |--------------------------------------------------------------------------
@@ -202,18 +175,23 @@ class BookingService
 
         /*
         |--------------------------------------------------------------------------
-        | Customer validation
+        | Customer / manual snapshot validation
         |--------------------------------------------------------------------------
         */
 
-        if (!$customer) {
+        if ($manual) {
+            if (!$manualCustomerName || !$manualCustomerPhone) {
+                throw ValidationException::withMessages([
+                    'customer_name' =>
+                        'نام و شماره موبایل مشتری برای نوبت دستی الزامی است.',
+                ]);
+            }
+        } elseif (!$customer) {
             throw ValidationException::withMessages([
                 'customer_id' =>
                     'مشتری برای ثبت نوبت الزامی است.',
             ]);
-        }
-
-        if (
+        } elseif (
             !$customer->exists ||
             !$customer->isCustomer()
         ) {
@@ -337,7 +315,20 @@ class BookingService
                 $service->id,
 
             'customer_id' =>
-                $customer->id,
+                $customer?->id,
+
+            'customer_name' =>
+                $manual
+                    ? $manualCustomerName
+                    : ($customer?->name ?? null),
+
+            'customer_phone' =>
+                $manual
+                    ? $manualCustomerPhone
+                    : ($customer?->phone ?? null),
+
+            'is_manual' =>
+                $manual,
 
             'booking_date' =>
                 $date->toDateString(),
@@ -456,6 +447,82 @@ class BookingService
     }
 
     /**
+     * Customer can cancel only while the booking is still pending.
+     *
+     * The booking row is locked before checking the status so an approval
+     * happening concurrently cannot be followed by an unintended customer
+     * cancellation.
+     */
+    public function cancelByCustomer(
+        User $customer,
+        Booking $booking
+    ): Booking {
+        return DB::transaction(
+            function () use ($customer, $booking) {
+                $lockedBooking = Booking::query()
+                    ->lockForUpdate()
+                    ->with([
+                        'salon',
+                        'barber',
+                        'service',
+                        'customer',
+                    ])
+                    ->find($booking->id);
+
+                if (!$lockedBooking) {
+                    throw ValidationException::withMessages([
+                        'booking' =>
+                            'نوبت موردنظر دیگر وجود ندارد.',
+                    ]);
+                }
+
+                if (
+                    (int) $lockedBooking->customer_id !==
+                    (int) $customer->id
+                ) {
+                    throw ValidationException::withMessages([
+                        'booking' =>
+                            'شما اجازه لغو این نوبت را ندارید.',
+                    ]);
+                }
+
+                if (
+                    $lockedBooking->status !==
+                    BookingStatus::PENDING
+                ) {
+                    throw ValidationException::withMessages([
+                        'booking' =>
+                            'این نوبت دیگر در وضعیت «در انتظار» نیست و قابل لغو نیست.',
+                    ]);
+                }
+
+                $from = $lockedBooking->status;
+
+                $lockedBooking->update([
+                    'status' => BookingStatus::CANCELLED,
+                ]);
+
+                $lockedBooking->refresh();
+
+                $lockedBooking->load([
+                    'salon',
+                    'barber',
+                    'service',
+                    'customer',
+                ]);
+
+                BookingStatusChanged::dispatch(
+                    $lockedBooking,
+                    $from,
+                    BookingStatus::CANCELLED
+                );
+
+                return $lockedBooking;
+            }
+        );
+    }
+
+    /**
      * Customer updates a pending booking.
      */
     public function updateByCustomer(
@@ -479,7 +546,10 @@ class BookingService
                     (int) $booking->customer_id !==
                     (int) $customer->id
                 ) {
-                    abort(403);
+                    throw ValidationException::withMessages([
+                        'booking' =>
+                            'شما اجازه ویرایش این نوبت را ندارید.',
+                    ]);
                 }
 
                 if (
@@ -594,10 +664,15 @@ class BookingService
 
                 $date = Carbon::createFromFormat(
                     'Y-m-d',
-                    $data['booking_date']
+                    $data['booking_date'],
+                    config('app.timezone', 'Asia/Tehran')
                 )->startOfDay();
 
-                if ($date->isBefore(today())) {
+                if (
+                    $date->lt(
+                        now(config('app.timezone', 'Asia/Tehran'))->startOfDay()
+                    )
+                ) {
                     throw ValidationException::withMessages([
                         'booking_date' =>
                             'امکان انتخاب تاریخ گذشته وجود ندارد.',
