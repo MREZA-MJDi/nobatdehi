@@ -535,7 +535,7 @@
                 block: 'start',
             });
 
-            window.history.replaceState({}, '', url.hash);
+            window.history.replaceState({}, '', url.href);
         });
     });
 
