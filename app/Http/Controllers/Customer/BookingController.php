@@ -722,13 +722,27 @@ class BookingController extends Controller
         |--------------------------------------------------------------------------
         | Update
         |--------------------------------------------------------------------------
+        |
+        | The service locks the booking and re-checks its status.
+        | If the salon approved/cancelled it after this page was opened,
+        | return a normal customer-facing message instead of a framework error.
         */
 
-        $bookingService->updateByCustomer(
-            $request->user(),
-            $booking,
-            $request->validated()
-        );
+        try {
+            $bookingService->updateByCustomer(
+                $request->user(),
+                $booking,
+                $request->validated()
+            );
+        } catch (\Illuminate\Validation\ValidationException $exception) {
+            return redirect()
+                ->route('customer.dashboard')
+                ->withErrors($exception->errors())
+                ->with(
+                    'error',
+                    'نوبت در همین فاصله تغییر کرده است. لطفاً وضعیت جدید نوبت را بررسی کنید.'
+                );
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -737,9 +751,7 @@ class BookingController extends Controller
         */
 
         return redirect()
-            ->route(
-                'customer.dashboard'
-            )
+            ->route('customer.dashboard')
             ->with(
                 'success',
                 'نوبت شما با موفقیت ویرایش شد.'
