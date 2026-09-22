@@ -333,6 +333,58 @@
             </div>
         </header>
 
+        @php
+            $revenueMini = [
+                'daily' => [
+                    'label' => 'امروز',
+                    'value' => (int) ($todayRevenue ?? 0),
+                    'reference' => max(1, (int) ($dailyRevenueMax ?? 1)),
+                    'referenceLabel' => 'بیشترین روز در ۷ روز اخیر',
+                ],
+                'monthly' => [
+                    'label' => 'این ماه',
+                    'value' => (int) ($monthRevenue ?? 0),
+                    'reference' => max(1, (int) ($monthlyRevenueMax ?? 1)),
+                    'referenceLabel' => 'بیشترین ماه در ۱۲ ماه اخیر',
+                ],
+                'yearly' => [
+                    'label' => 'امسال',
+                    'value' => (int) (($yearlyRevenueChart->last()['value'] ?? 0)),
+                    'reference' => max(1, (int) ($yearlyRevenueMax ?? 1)),
+                    'referenceLabel' => 'بیشترین سال در ۵ سال اخیر',
+                ],
+            ];
+        @endphp
+
+        <div
+            class="nd-revenue-mini"
+            data-revenue-mini
+            data-revenue-mini-values="{{ e(json_encode($revenueMini, JSON_UNESCAPED_UNICODE)) }}"
+        >
+            <div class="nd-revenue-mini-ring-wrap">
+                <div
+                    class="nd-revenue-mini-ring"
+                    data-revenue-ring
+                    role="img"
+                    aria-label="خلاصه درآمد"
+                >
+                    <div class="nd-revenue-mini-ring-inner">
+                        <span data-revenue-mini-label>امروز</span>
+                        <strong data-revenue-mini-value>{{ $money($revenueMini['daily']['value']) }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nd-revenue-mini-copy">
+                <span class="nd-section-kicker">خلاصه درآمد</span>
+                <strong data-revenue-mini-period>درآمد امروز</strong>
+                <small data-revenue-mini-reference>
+                    {{ $fa(max(0, min(100, round(($revenueMini['daily']['value'] / max(1, $revenueMini['daily']['reference'])) * 100)))) }}٪
+                    از بیشترین روز در ۷ روز اخیر
+                </small>
+            </div>
+        </div>
+
         <div class="nd-chart-panel is-active" data-chart-panel="daily">
             <div class="nd-chart-summary">
                 <div>
