@@ -45,3 +45,107 @@
     .nd-activity-main strong{font-size:.68rem}
     .nd-activity-meta strong{font-size:.66rem}
 }
+
+
+/* ==========================================================================
+   Compact revenue donut
+   ========================================================================== */
+
+.nd-revenue-mini{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    align-items:center;
+    gap:14px;
+    padding:13px 15px;
+    border-bottom:1px solid var(--nd-border);
+    background:linear-gradient(180deg,var(--nd-surface),var(--nd-surface-2));
+}
+.nd-revenue-mini-ring-wrap{
+    display:grid;
+    place-items:center;
+}
+.nd-revenue-mini-ring{
+    --revenue-progress:0%;
+    width:82px;
+    height:82px;
+    position:relative;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    background:conic-gradient(
+        var(--nd-primary) 0 var(--revenue-progress),
+        color-mix(in srgb,var(--nd-border) 72%,transparent) var(--revenue-progress) 100%
+    );
+    box-shadow:0 10px 26px color-mix(in srgb,var(--nd-primary) 10%,transparent);
+}
+.nd-revenue-mini-ring::after{
+    content:"";
+    position:absolute;
+    inset:6px;
+    border-radius:50%;
+    background:var(--nd-surface);
+}
+.nd-revenue-mini-ring-inner{
+    position:relative;
+    z-index:1;
+    width:calc(100% - 14px);
+    height:calc(100% - 14px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    border-radius:50%;
+    text-align:center;
+}
+.nd-revenue-mini-ring-inner span{
+    color:var(--nd-muted);
+    font-size:.58rem;
+    font-weight:850;
+}
+.nd-revenue-mini-ring-inner strong{
+    max-width:70px;
+    margin-top:2px;
+    overflow:hidden;
+    color:var(--nd-text);
+    font-size:.62rem;
+    line-height:1.25;
+    font-weight:950;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.nd-revenue-mini-copy{
+    min-width:0;
+}
+.nd-revenue-mini-copy .nd-section-kicker{
+    display:block;
+}
+.nd-revenue-mini-copy>strong{
+    display:block;
+    margin-top:3px;
+    color:var(--nd-text);
+    font-size:.82rem;
+    font-weight:950;
+}
+.nd-revenue-mini-copy>small{
+    display:block;
+    margin-top:4px;
+    color:var(--nd-muted);
+    font-size:.62rem;
+    line-height:1.8;
+}
+@media (max-width:420px){
+    .nd-revenue-mini{
+        grid-template-columns:70px minmax(0,1fr);
+        gap:11px;
+        padding:11px 12px;
+    }
+    .nd-revenue-mini-ring{
+        width:70px;
+        height:70px;
+    }
+    .nd-revenue-mini-ring-inner strong{
+        max-width:60px;
+        font-size:.56rem;
+    }
+}
