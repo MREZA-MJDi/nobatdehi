@@ -55,7 +55,9 @@ class BookingController extends Controller
                     })
                     ->orWhereHas('barber', function ($barberQuery) use ($search) {
                         $barberQuery->where('name', 'like', "%{$search}%");
-                    });
+                    })
+                    ->orWhere('customer_name', 'like', "%{$search}%")
+                    ->orWhere('customer_phone', 'like', "%{$search}%");
             });
         }
 
