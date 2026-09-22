@@ -144,7 +144,7 @@
                 </h2>
 
                 <p>
-                    {{ $nextBooking->customer?->name ?? 'مشتری' }}
+                    {{ $nextBooking->customer?->name ?? $nextBooking->customer_name ?? 'مشتری' }}
                     ·
                     {{ $nextBooking->service?->name ?? 'خدمت' }}
                     ·
