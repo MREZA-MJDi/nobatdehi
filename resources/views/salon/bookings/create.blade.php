@@ -23,13 +23,6 @@
         ])
         ->values();
 
-    $customersData = $customers
-        ->map(fn ($customer) => [
-            'id' => (int) $customer->id,
-            'name' => $customer->name,
-            'phone' => $customer->phone,
-        ])
-        ->values();
 @endphp
 
 
@@ -40,22 +33,19 @@
             return {
                 todayIso: @js($todayIso),
 
-                customers: @js($customersData),
                 barbers: @js($barbersData),
                 services: @js($servicesData),
 
-                customerId: @js(old('customer_id', '')),
+                customerName: @js(old('customer_name', '')),
+                customerPhone: @js(old('customer_phone', '')),
+                manualConfirmed: @js(old('manual_confirmed', '1')),
+
                 barberId: @js(old('barber_id', '')),
                 serviceId: @js(old('service_id', '')),
 
                 selectedDate: @js(old('booking_date', $todayIso)),
                 selectedTime: @js(old('start_time', '')),
 
-                customerSearch: '',
-                customerOpen: false,
-                customerMode: 'existing',
-                newCustomerName: '',
-                newCustomerPhone: '',
 
                 calendarOpen: false,
                 calendarAnchorIso: '',
@@ -505,45 +495,24 @@
                         ];
                 },
 
-                get filteredCustomers() {
-                    const query =
-                        this.customerSearch
-                            .trim()
-                            .toLowerCase();
+                get customerReady() {
+                    const nameReady =
+                        String(this.customerName || '').trim().length >= 2;
 
-                    if (!query) {
-                        return this.customers;
-                    }
+                    const phone =
+                        this.normalizePhone(this.customerPhone);
 
-                    return this.customers.filter(
-                        customer => {
-                            return (
-                                String(
-                                    customer.name || ''
-                                )
-                                    .toLowerCase()
-                                    .includes(query)
-                                ||
-                                String(
-                                    customer.phone || ''
-                                )
-                                    .toLowerCase()
-                                    .includes(query)
-                            );
-                        }
+                    return (
+                        nameReady &&
+                        /^09\\d{9}$/.test(phone)
                     );
                 },
 
-                get selectedCustomer() {
-                    if (this.customerMode !== 'existing') {
-                        return null;
-                    }
-
-                    return this.customers.find(
-                        customer =>
-                            String(customer.id) ===
-                            String(this.customerId)
-                    ) || null;
+                normalizePhone(value) {
+                    return String(value || '')
+                        .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+                        .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+                        .replace(/[\\s\\-\\(\\)]/g, '');
                 },
 
                 get selectedBarber() {
@@ -560,59 +529,6 @@
                             String(service.id) ===
                             String(this.serviceId)
                     ) || null;
-                },
-
-                selectCustomer(id) {
-                    this.customerMode = 'existing';
-                    this.customerId = String(id);
-                    this.newCustomerName = '';
-                    this.newCustomerPhone = '';
-                    this.customerOpen = false;
-                },
-
-                setCustomerMode(mode) {
-                    this.customerMode = mode;
-
-                    if (mode === 'new') {
-                        this.customerId = '';
-                        this.customerOpen = false;
-                    } else {
-                        this.newCustomerName = '';
-                        this.newCustomerPhone = '';
-                    }
-                },
-
-                normalizePhone(value) {
-                    return String(value || '')
-                        .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
-                        .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
-                        .replace(/[\\s\\-\\(\\)]/g, '');
-                },
-
-                get existingCustomerByPhone() {
-                    const phone = this.normalizePhone(this.newCustomerPhone);
-
-                    if (!phone) {
-                        return null;
-                    }
-
-                    return this.customers.find(
-                        customer =>
-                            this.normalizePhone(customer.phone) === phone
-                    ) || null;
-                },
-
-                get newCustomerReady() {
-                    const nameReady =
-                        String(this.newCustomerName || '').trim().length >= 2;
-
-                    const phone =
-                        this.normalizePhone(this.newCustomerPhone);
-
-                    return (
-                        nameReady &&
-                        /^09\\d{9}$/.test(phone)
-                    );
                 },
 
                 selectBarber(id) {
@@ -705,16 +621,9 @@
                 },
 
                 get canSubmit() {
-                    const customerReady =
-                        this.customerMode === 'existing'
-                            ? Boolean(this.customerId)
-                            : Boolean(
-                                this.newCustomerReady &&
-                                !this.existingCustomerByPhone
-                            );
-
                     return Boolean(
-                        customerReady &&
+                        this.manualConfirmed &&
+                        this.customerReady &&
                         this.barberId &&
                         this.serviceId &&
                         this.selectedDate &&
@@ -920,7 +829,7 @@
                     </h1>
 
                     <p class="mt-2 max-w-2xl text-xs leading-6 text-content-muted sm:text-sm">
-                        برای مشتری سالن نوبت ثبت کنید؛ زمان نهایی از همان availability موتور اصلی سیستم محاسبه می‌شود.
+                        نام و موبایل مشتری را ثبت کنید؛ زمان نهایی از همان availability موتور اصلی سیستم محاسبه می‌شود و هیچ حساب مشتری ساخته نمی‌شود.
                     </p>
 
                 </div>
@@ -975,283 +884,105 @@
                     <section class="rounded-3xl border border-border bg-surface shadow-soft">
 
                         <div class="border-b border-border p-5">
-
                             <div class="flex items-center gap-3">
-
                                 <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-content text-sm font-black text-background">
                                     ۱
                                 </div>
 
                                 <div>
-
                                     <div class="text-[10px] font-black tracking-[0.2em] text-content-faint">
-                                        CUSTOMER
+                                        WALK-IN
                                     </div>
 
                                     <h2 class="mt-1 text-base font-black text-content">
-                                        مشتری
+                                        اطلاعات مشتری
                                     </h2>
-
                                 </div>
-
                             </div>
-
                         </div>
 
-
                         <div class="p-5">
+                            <div class="mb-4 rounded-2xl border border-accent-200 bg-accent-50/70 p-4 dark:border-accent-800/30 dark:bg-accent-900/10">
+                                <div class="text-xs font-black text-content">
+                                    نوبت دستی
+                                </div>
 
-                            <div class="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-background p-1">
-                                <button
-                                    type="button"
-                                    @click="setCustomerMode('existing')"
-                                    class="min-h-10 rounded-xl px-3 text-xs font-black transition"
-                                    :class="customerMode === 'existing'
-                                        ? 'bg-content text-background shadow-sm'
-                                        : 'text-content-muted hover:bg-surface'"
-                                >
-                                    مشتری موجود
-                                </button>
-
-                                <button
-                                    type="button"
-                                    @click="setCustomerMode('new')"
-                                    class="min-h-10 rounded-xl px-3 text-xs font-black transition"
-                                    :class="customerMode === 'new'
-                                        ? 'bg-content text-background shadow-sm'
-                                        : 'text-content-muted hover:bg-surface'"
-                                >
-                                    + مشتری جدید
-                                </button>
+                                <p class="mt-1 text-[10px] leading-6 text-content-muted">
+                                    فقط نام و شماره موبایل مشتری ثبت می‌شود. این نوبت هیچ حساب کاربری برای مشتری ایجاد یا انتخاب نمی‌کند.
+                                </p>
                             </div>
 
-                            <div x-show="customerMode === 'existing'" x-cloak>
-                                @if($customers->count())
-
-                                <div class="relative">
-
-                                    <button
-                                        type="button"
-                                        @click="customerOpen = !customerOpen"
-                                        class="flex min-h-[68px] w-full items-center justify-between rounded-2xl border border-border bg-background px-4 text-right transition hover:border-accent-400"
-                                    >
-
-                                        <div class="flex min-w-0 items-center gap-3">
-
-                                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-50 text-sm font-black text-accent-600 dark:bg-accent-900/20">
-                                            <span
-                                                x-text="selectedCustomer ? initials(selectedCustomer.name) : '?'"
-                                            ></span>
-                                            </div>
-
-                                            <div class="min-w-0">
-
-                                                <div class="text-[10px] font-black text-content-faint">
-                                                    مشتری انتخاب‌شده
-                                                </div>
-
-                                                <div
-                                                    class="mt-1 truncate text-sm font-black text-content"
-                                                    x-text="selectedCustomer?.name || 'انتخاب مشتری'"
-                                                ></div>
-
-                                                <div
-                                                    x-show="selectedCustomer?.phone"
-                                                    x-cloak
-                                                    class="mt-1 text-[10px] text-content-muted"
-                                                    x-text="selectedCustomer?.phone"
-                                                ></div>
-
-                                            </div>
-
-                                        </div>
-
-                                        <span class="text-content-faint">
-                                        ⌄
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <label class="block">
+                                    <span class="mb-2 block text-[10px] font-black text-content-muted">
+                                        نام و نام خانوادگی
                                     </span>
 
-                                    </button>
-
-
-                                    <div
-                                        x-show="customerOpen"
-                                        x-cloak
-                                        @click.outside="customerOpen = false"
-                                        x-transition
-                                        class="absolute inset-x-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
+                                    <input
+                                        type="text"
+                                        name="customer_name"
+                                        x-model="customerName"
+                                        autocomplete="name"
+                                        placeholder="مثلاً علی رضایی"
+                                        class="h-12 w-full rounded-xl border border-border bg-background px-4 text-xs font-bold text-content outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10"
                                     >
 
-                                        <div class="p-3">
+                                    @error('customer_name')
+                                        <span class="mt-2 block text-[10px] font-bold text-danger-600">
+                                            {{ $message }}
+                                        </span>
+                                    @enderror
+                                </label>
 
-                                            <input
-                                                type="search"
-                                                x-model="customerSearch"
-                                                placeholder="جستجوی نام یا موبایل..."
-                                                class="h-11 w-full rounded-xl border border-border bg-background px-4 text-xs font-bold text-content outline-none focus:border-accent-500"
-                                            >
+                                <label class="block">
+                                    <span class="mb-2 block text-[10px] font-black text-content-muted">
+                                        شماره موبایل
+                                    </span>
 
-                                        </div>
+                                    <input
+                                        type="tel"
+                                        name="customer_phone"
+                                        x-model="customerPhone"
+                                        inputmode="tel"
+                                        dir="ltr"
+                                        autocomplete="tel"
+                                        placeholder="۰۹۱۲۱۲۳۴۵۶۷"
+                                        class="h-12 w-full rounded-xl border border-border bg-background px-4 text-xs font-bold text-content outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10"
+                                    >
 
-                                        <div class="max-h-72 overflow-y-auto p-2">
-
-                                            <template
-                                                x-for="customer in filteredCustomers"
-                                                :key="customer.id"
-                                            >
-
-                                                <button
-                                                    type="button"
-                                                    @click="selectCustomer(customer.id)"
-                                                    class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-right transition hover:bg-background"
-                                                >
-
-                                                    <div
-                                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background-soft text-xs font-black text-content-muted"
-                                                        x-text="initials(customer.name)"
-                                                    ></div>
-
-                                                    <div class="min-w-0 flex-1">
-
-                                                        <div
-                                                            class="truncate text-xs font-black text-content"
-                                                            x-text="customer.name"
-                                                        ></div>
-
-                                                        <div
-                                                            class="mt-1 text-[10px] text-content-faint"
-                                                            x-text="customer.phone || 'بدون موبایل'"
-                                                        ></div>
-
-                                                    </div>
-
-                                                </button>
-
-                                            </template>
-
-                                            <div
-                                                x-show="customerSearch && !filteredCustomers.length"
-                                                x-cloak
-                                                class="p-6 text-center text-xs font-bold text-content-muted"
-                                            >
-                                                مشتری پیدا نشد.
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-                            @else
-
-                                <div class="rounded-2xl border border-dashed border-border bg-background p-8 text-center">
-
-                                    <div class="text-2xl">
-                                        👤
-                                    </div>
-
-                                    <div class="mt-2 text-xs font-black text-content">
-                                        مشتری‌ای برای این سالن پیدا نشد
-                                    </div>
-
-                                </div>
-
-                            @endif
+                                    @error('customer_phone')
+                                        <span class="mt-2 block text-[10px] font-bold text-danger-600">
+                                            {{ $message }}
+                                        </span>
+                                    @enderror
+                                </label>
                             </div>
 
-                            <div
-                                x-show="customerMode === 'new'"
-                                x-cloak
-                                class="rounded-2xl border border-border bg-background p-4"
-                            >
-                                <div class="mb-4">
-                                    <div class="text-xs font-black text-content">
-                                        مشتری جدید
-                                    </div>
+                            <label class="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-background p-4">
+                                <input
+                                    type="checkbox"
+                                    name="manual_confirmed"
+                                    value="1"
+                                    x-model="manualConfirmed"
+                                    class="mt-0.5 h-4 w-4 rounded border-border text-accent-600 focus:ring-accent-500/20"
+                                >
 
-                                    <p class="mt-1 text-[10px] leading-5 text-content-muted">
-                                        نام و موبایل را وارد کن؛ مشتری همزمان با همین نوبت در NOBAT ثبت می‌شود.
-                                    </p>
+                                <span>
+                                    <span class="block text-xs font-black text-content">
+                                        ثبت این نوبت به‌صورت دستی را تأیید می‌کنم
+                                    </span>
+
+                                    <span class="mt-1 block text-[10px] leading-5 text-content-muted">
+                                        مشتری این نوبت حساب NOBAT ندارد و اطلاعات بالا فقط برای سوابق سالن ثبت می‌شود.
+                                    </span>
+                                </span>
+                            </label>
+
+                            @error('manual_confirmed')
+                                <div class="mt-2 text-[10px] font-bold text-danger-600">
+                                    {{ $message }}
                                 </div>
-
-                                <div class="space-y-3">
-                                    <label class="block">
-                                        <span class="mb-2 block text-[10px] font-black text-content-muted">
-                                            نام و نام خانوادگی
-                                        </span>
-
-                                        <input
-                                            type="text"
-                                            name="new_customer_name"
-                                            x-model="newCustomerName"
-                                            autocomplete="name"
-                                            placeholder="مثلاً علی رضایی"
-                                            class="h-12 w-full rounded-xl border border-border bg-surface px-4 text-xs font-bold text-content outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10"
-                                        >
-                                    </label>
-
-                                    <label class="block">
-                                        <span class="mb-2 block text-[10px] font-black text-content-muted">
-                                            شماره موبایل
-                                        </span>
-
-                                        <input
-                                            type="tel"
-                                            name="new_customer_phone"
-                                            x-model="newCustomerPhone"
-                                            inputmode="tel"
-                                            dir="ltr"
-                                            autocomplete="tel"
-                                            placeholder="۰۹۱۲۱۲۳۴۵۶۷"
-                                            class="h-12 w-full rounded-xl border border-border bg-surface px-4 text-xs font-bold text-content outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10"
-                                        >
-                                    </label>
-
-                                    <div
-                                        x-show="existingCustomerByPhone"
-                                        x-cloak
-                                        class="rounded-xl border border-warning-200 bg-warning-50 p-3 dark:border-warning-800/40 dark:bg-warning-900/10"
-                                    >
-                                        <div class="text-[10px] font-black text-warning-800 dark:text-warning-300">
-                                            این شماره قبلاً ثبت شده است.
-                                        </div>
-
-                                        <div class="mt-1 text-[10px] leading-5 text-warning-700 dark:text-warning-400">
-                                            <span x-text="existingCustomerByPhone?.name"></span>
-                                            <span>قبلاً در NOBAT وجود دارد.</span>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            @click="selectCustomer(existingCustomerByPhone.id)"
-                                            class="mt-2 min-h-9 rounded-lg bg-warning-100 px-3 text-[10px] font-black text-warning-800 dark:bg-warning-900/30 dark:text-warning-200"
-                                        >
-                                            انتخاب همین مشتری
-                                        </button>
-                                    </div>
-
-                                    <div
-                                        x-show="newCustomerReady && !existingCustomerByPhone"
-                                        x-cloak
-                                        class="rounded-xl border border-success-200 bg-success-50 p-3 dark:border-success-800/40 dark:bg-success-900/10"
-                                    >
-                                        <div class="text-[10px] font-black text-success-700 dark:text-success-300">
-                                            آماده ثبت
-                                        </div>
-
-                                        <div class="mt-1 text-[10px] leading-5 text-success-700/80 dark:text-success-400">
-                                            این مشتری همراه با نوبت ساخته می‌شود و فعلاً نیاز به مرحله جداگانه ندارد.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <input
-                                type="hidden"
-                                name="customer_id"
-                                :value="customerMode === 'existing' ? customerId : ''"
-                            >
-
+                            @enderror
                         </div>
 
                     </section>
