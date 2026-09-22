@@ -8,7 +8,6 @@ use App\Http\Requests\Customer\BookingAvailabilityRequest;
 use App\Http\Requests\Salon\BookingStatusRequest;
 use App\Http\Requests\Salon\ManualBookingRequest;
 use App\Models\Booking;
-use App\Models\User;
 use App\Services\Booking\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -133,15 +132,9 @@ class BookingController extends Controller
             ->orderBy('name')
             ->get();
 
-        $customers = User::query()
-            ->where('role', 'customer')
-            ->orderBy('name')
-            ->get(['id', 'name', 'phone']);
-
         return view(
             'salon.bookings.create',
-            compact('salon', 'barbers', 'services', 'customers', 'unreadNotifications')
-        );
+            compact('salon', 'barbers', 'services', 'unreadNotifications')        );
     }
 
     public function availability(
@@ -267,29 +260,11 @@ class BookingController extends Controller
         $salon = $request->user()->managedSalons()->firstOrFail();
         $data = $request->validated();
 
-        $customer = null;
-
-        if (!empty($data['customer_id'])) {
-            $customer = User::query()
-                ->whereKey($data['customer_id'])
-                ->where('role', 'customer')
-                ->first();
-
-            if (!$customer) {
-                return back()
-                    ->withErrors([
-                        'customer_id' => 'مشتری انتخاب شده معتبر نیست.',
-                    ])
-                    ->withInput();
-            }
-        }
-
         $bookingService->createManual(
             $request->user(),
             [
                 ...$data,
                 'salon_id' => $salon->id,
-                'customer' => $customer,
             ]
         );
 
