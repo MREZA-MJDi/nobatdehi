@@ -299,7 +299,7 @@
                                 </div>
 
 
-                                @if ($booking->customer?->phone)
+                                @if ($booking->customer?->phone ?? $booking->customer_phone)
 
                                     <a
                                         href="tel:{{ $booking->customer->phone }}"
