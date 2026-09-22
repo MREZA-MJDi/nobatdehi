@@ -54,6 +54,82 @@
         node.textContent = new Intl.DateTimeFormat('fa-IR', { hour: '2-digit', minute: '2-digit' }).format(new Date());
     };
 
+    const revenueMini = root.querySelector('[data-revenue-mini]');
+    let revenueMiniDefaults = {};
+
+    try {
+        revenueMiniDefaults = JSON.parse(
+            revenueMini?.dataset.revenueMiniValues || '{}'
+        );
+    } catch (error) {
+        revenueMiniDefaults = {};
+    }
+
+    const updateRevenueMini = (name, points = null) => {
+        if (!revenueMini) return;
+
+        const items = Array.isArray(points)
+            ? points
+            : Array.isArray(revenueMiniDefaults?.[name])
+                ? revenueMiniDefaults[name]
+                : null;
+
+        let value = 0;
+        let reference = 1;
+        let referenceLabel = '';
+
+        if (items) {
+            value = Number(items.at(-1)?.value || 0);
+            reference = Math.max(
+                1,
+                ...items.map(item => Number(item.value || 0))
+            );
+            referenceLabel =
+                name === 'daily'
+                    ? 'بیشترین روز در ۷ روز اخیر'
+                    : name === 'monthly'
+                        ? 'بیشترین ماه در ۱۲ ماه اخیر'
+                        : 'بیشترین سال در ۵ سال اخیر';
+        } else {
+            const preset = revenueMiniDefaults?.[name] || {};
+            value = Number(preset.value || 0);
+            reference = Math.max(1, Number(preset.reference || 1));
+            referenceLabel = preset.referenceLabel || '';
+        }
+
+        const percent = Math.max(
+            0,
+            Math.min(100, Math.round((value / reference) * 100))
+        );
+
+        const labels = {
+            daily: ['امروز', 'درآمد امروز'],
+            monthly: ['این ماه', 'درآمد این ماه'],
+            yearly: ['امسال', 'درآمد امسال'],
+        };
+
+        const label = labels[name] || labels.daily;
+
+        revenueMini
+            .querySelector('[data-revenue-ring]')
+            ?.style.setProperty('--revenue-progress', percent + '%');
+
+        const periodLabel = revenueMini.querySelector('[data-revenue-mini-label]');
+        const valueNode = revenueMini.querySelector('[data-revenue-mini-value]');
+        const periodNode = revenueMini.querySelector('[data-revenue-mini-period]');
+        const referenceNode = revenueMini.querySelector('[data-revenue-mini-reference]');
+
+        if (periodLabel) periodLabel.textContent = label[0];
+        if (valueNode) valueNode.textContent = money(value);
+        if (periodNode) periodNode.textContent = label[1];
+        if (referenceNode) {
+            referenceNode.textContent =
+                percent + '٪ از ' + referenceLabel;
+        }
+    };
+
+    updateRevenueMini('daily');
+
     const renderBars = (name, points) => {
         const panel = root.querySelector('[data-chart-panel="' + name + '"]');
         const bars = panel && panel.querySelector('.nd-bars');
@@ -178,9 +254,16 @@
             ['todayBookings','pendingBookings','confirmedToday','completedToday','cancelledToday','monthBookings','activeBarbers','activeServices','unreadNotifications'].forEach(name => setMetric(name, metrics[name] || 0));
             ['todayRevenue','weekRevenue','monthRevenue'].forEach(name => setMoney(name, metrics[name] || 0));
 
-            renderBars('daily', data.revenue?.daily || []);
-            renderBars('monthly', data.revenue?.monthly || []);
-            renderBars('yearly', data.revenue?.yearly || []);
+            window.__nobatRevenueCache = {
+                daily: data.revenue?.daily || [],
+                monthly: data.revenue?.monthly || [],
+                yearly: data.revenue?.yearly || [],
+            };
+
+            renderBars('daily', window.__nobatRevenueCache.daily);
+            renderBars('monthly', window.__nobatRevenueCache.monthly);
+            renderBars('yearly', window.__nobatRevenueCache.yearly);
+            updateRevenueMini('daily', window.__nobatRevenueCache.daily);
 
             const daily = (data.revenue?.daily || []).reduce((sum, point) => sum + Number(point.value || 0), 0);
             const monthly = (data.revenue?.monthly || []).reduce((sum, point) => sum + Number(point.value || 0), 0);
@@ -218,6 +301,12 @@
             root.querySelectorAll('[data-chart-panel]').forEach(panel => {
                 panel.hidden = panel.dataset.chartPanel !== name;
             });
+
+            const currentPoints = Array.isArray(window.__nobatRevenueCache?.[name])
+                ? window.__nobatRevenueCache[name]
+                : null;
+
+            updateRevenueMini(name, currentPoints);
         });
     });
 
