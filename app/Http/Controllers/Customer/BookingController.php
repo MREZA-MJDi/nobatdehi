@@ -613,72 +613,51 @@ class BookingController extends Controller
     */
 
     public function edit(
+        Request $request,
         Booking $booking
-    ): View {
-        /*
-        |--------------------------------------------------------------------------
-        | Ownership
-        |--------------------------------------------------------------------------
-        */
+    ): View|RedirectResponse {
+        $booking = $request
+            ->user()
+            ->bookings()
+            ->with([
+                'salon',
+                'barber',
+                'service',
+            ])
+            ->find($booking->id);
 
-        if (
-            (int) $booking->customer_id !==
-            (int) auth()->id()
-        ) {
-            abort(403);
+        if (!$booking) {
+            return redirect()
+                ->route('customer.dashboard')
+                ->with(
+                    'error',
+                    'این نوبت متعلق به حساب شما نیست یا دیگر در دسترس نیست.'
+                );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Only pending bookings can be edited
-        |--------------------------------------------------------------------------
-        */
+        if ($booking->status !== BookingStatus::PENDING) {
+            return redirect()
+                ->route('customer.dashboard')
+                ->with(
+                    'error',
+                    'این نوبت دیگر در وضعیت «در انتظار» نیست و قابل ویرایش نیست.'
+                );
+        }
 
-        abort_unless(
-            $booking->status->value === 'pending',
-            404
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Load relations
-        |--------------------------------------------------------------------------
-        */
-
-        $booking->load([
-            'salon',
-            'barber',
-            'service',
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Salon must remain active
-        |--------------------------------------------------------------------------
-        */
-
-        abort_unless(
-            $booking->salon?->is_active,
-            404
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Active barbers
-        |--------------------------------------------------------------------------
-        */
+        if (!$booking->salon?->is_active) {
+            return redirect()
+                ->route('customer.dashboard')
+                ->with(
+                    'error',
+                    'سالن این نوبت دیگر در دسترس نیست.'
+                );
+        }
 
         $barbers = $booking->salon
             ->barbers()
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Active services
-        |--------------------------------------------------------------------------
-        */
 
         $services = $booking->salon
             ->services()
@@ -729,13 +708,10 @@ class BookingController extends Controller
         */
 
         if (
-            $booking->status->value !==
-            'pending'
+            $booking->status !== BookingStatus::PENDING
         ) {
             return redirect()
-                ->route(
-                    'customer.dashboard'
-                )
+                ->route('customer.dashboard')
                 ->with(
                     'error',
                     'فقط نوبت‌های در انتظار امکان ویرایش دارند.'
@@ -777,63 +753,27 @@ class BookingController extends Controller
     */
 
     public function cancel(
+        Request $request,
         Booking $booking,
         BookingService $bookingService
     ): RedirectResponse {
-        /*
-        |--------------------------------------------------------------------------
-        | Ownership
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            (int) $booking->customer_id !==
-            (int) auth()->id()
-        ) {
-            abort(403);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Pending only
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $booking->status->value !==
-            'pending'
-        ) {
+        try {
+            $bookingService->cancelByCustomer(
+                $request->user(),
+                $booking
+            );
+        } catch (\Illuminate\Validation\ValidationException $exception) {
             return redirect()
-                ->route(
-                    'customer.dashboard'
-                )
+                ->route('customer.dashboard')
+                ->withErrors($exception->errors())
                 ->with(
                     'error',
-                    'فقط نوبت‌های در انتظار امکان لغو دارند.'
+                    'وضعیت نوبت تغییر کرده است. لطفاً نوبت‌های خود را دوباره بررسی کنید.'
                 );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Change status
-        |--------------------------------------------------------------------------
-        */
-
-        $bookingService->changeStatus(
-            $booking,
-            BookingStatus::CANCELLED
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Finish
-        |--------------------------------------------------------------------------
-        */
-
         return redirect()
-            ->route(
-                'customer.dashboard'
-            )
+            ->route('customer.dashboard')
             ->with(
                 'success',
                 'نوبت شما لغو شد.'
@@ -851,105 +791,92 @@ class BookingController extends Controller
         Booking $booking,
         AvailabilityService $availability
     ): JsonResponse {
-        /*
-        |--------------------------------------------------------------------------
-        | Ownership
-        |--------------------------------------------------------------------------
-        */
+        $ownedBooking = $request
+            ->user()
+            ->bookings()
+            ->with('salon')
+            ->find($booking->id);
 
-        if (
-            (int) $booking->customer_id !==
-            (int) auth()->id()
-        ) {
-            abort(403);
+        if (!$ownedBooking) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'این نوبت متعلق به حساب شما نیست.',
+            ], 403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Pending only
-        |--------------------------------------------------------------------------
-        */
+        if ($ownedBooking->status !== BookingStatus::PENDING) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'این نوبت دیگر قابل ویرایش نیست؛ وضعیت آن تغییر کرده است.',
+            ], 409);
+        }
 
-        abort_unless(
-            $booking->status->value === 'pending',
-            404
-        );
+        $salon = $ownedBooking->salon;
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validate request
-        |--------------------------------------------------------------------------
-        */
+        if (!$salon?->is_active) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'سالن این نوبت دیگر در دسترس نیست.',
+            ], 422);
+        }
 
         $data = $request->validated();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Salon
-        |--------------------------------------------------------------------------
-        */
-
-        $salon = $booking->salon;
-
-        abort_unless(
-            $salon?->is_active,
-            404
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Barber
-        |--------------------------------------------------------------------------
-        */
-
         $barber = $salon
             ->barbers()
-            ->whereKey(
-                $data['barber_id']
-            )
+            ->whereKey($data['barber_id'])
             ->where('is_active', true)
-            ->firstOrFail();
+            ->first();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Service
-        |--------------------------------------------------------------------------
-        */
+        if (!$barber) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'آرایشگر انتخاب‌شده دیگر در این سالن فعال نیست.',
+            ], 422);
+        }
 
         $service = $salon
             ->services()
-            ->whereKey(
-                $data['service_id']
-            )
+            ->whereKey($data['service_id'])
             ->where('is_active', true)
-            ->firstOrFail();
+            ->first();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Date
-        |--------------------------------------------------------------------------
-        */
+        if (!$service) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'خدمت انتخاب‌شده دیگر در این سالن فعال نیست.',
+            ], 422);
+        }
 
-        $date = Carbon::createFromFormat(
-            'Y-m-d',
-            $data['booking_date']
-        );
+        try {
+            $date = Carbon::createFromFormat(
+                'Y-m-d',
+                $data['booking_date'],
+                config('app.timezone', 'Asia/Tehran')
+            )->startOfDay();
+        } catch (\Throwable) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'تاریخ انتخاب‌شده معتبر نیست.',
+            ], 422);
+        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Availability
-        |--------------------------------------------------------------------------
-        */
+        if ($date->lt(now(config('app.timezone', 'Asia/Tehran'))->startOfDay())) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'امکان انتخاب تاریخ گذشته وجود ندارد.',
+            ], 422);
+        }
 
         return response()->json([
             'ok' => true,
-
+            'date' => $date->toDateString(),
             'slots' => $availability->slots(
                 $salon,
                 $barber,
                 $service,
                 $date,
-                $booking->id
+                $ownedBooking->id
             ),
         ]);
     }
