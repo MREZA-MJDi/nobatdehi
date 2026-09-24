@@ -7,6 +7,7 @@
 
     let activeRequestController = null;
     let activeRequestId = 0;
+    let renderFilterResults = () => {};
 
     const setLoading = (loading) => {
         page.classList.toggle('discover-results-loading', loading);
@@ -42,11 +43,14 @@
 
         const normalizedUrl = nextUrl.toString();
 
-        if (
-            normalizedUrl === window.location.href &&
-            !openFilterResult
-        ) {
-            if (scroll) {
+        if (normalizedUrl === window.location.href) {
+            if (openFilterResult) {
+                renderFilterResults(
+                    page.querySelector('#results')
+                );
+
+                openFilterPanel();
+            } else if (scroll) {
                 requestAnimationFrame(() => {
                     page
                         .querySelector('#results')
@@ -226,42 +230,8 @@
             }
 
             if (openFilterResult && freshResults) {
-                const filterResults =
-                    page.querySelector('#discoverFilterResults');
-
-                if (filterResults) {
-                    filterResults.innerHTML = '';
-                    filterResults.setAttribute('aria-busy', 'false');
-
-                    const heading = freshResults.querySelector('#discover-results-title');
-
-                    if (heading) {
-                        const modalHeading = document.createElement('div');
-                        modalHeading.className = 'discover-filter-results__heading';
-                        modalHeading.textContent = heading.textContent.replace(/\s+/g, ' ').trim();
-                        filterResults.appendChild(modalHeading);
-                    }
-
-                    const cards = document.createElement('div');
-                    cards.className = 'discover-filter-results__cards';
-
-                    freshResults
-                        .querySelectorAll('.discover-result-card')
-                        .forEach((card) => {
-                            cards.appendChild(card.cloneNode(true));
-                        });
-
-                    if (!cards.children.length) {
-                        const empty = document.createElement('div');
-                        empty.className = 'discover-filter-results__empty';
-                        empty.innerHTML = '<strong>نتیجه‌ای پیدا نشد</strong><small>فیلترها را کمی بازتر کن و دوباره امتحان کن.</small>';
-                        filterResults.appendChild(empty);
-                    } else {
-                        filterResults.appendChild(cards);
-                    }
-
-                    openFilterPanel();
-                }
+                renderFilterResults(freshResults);
+                openFilterPanel();
             }
 
             observeReveals();
@@ -363,6 +333,52 @@
         }
     };
 
+    renderFilterResults = (freshResults) => {
+        const filterResults =
+            page.querySelector('#discoverFilterResults');
+
+        if (!filterResults || !freshResults) {
+            return;
+        }
+
+        filterResults.innerHTML = '';
+        filterResults.setAttribute('aria-busy', 'false');
+
+        const heading =
+            freshResults.querySelector('#discover-results-title');
+
+        if (heading) {
+            const modalHeading = document.createElement('div');
+            modalHeading.className = 'discover-filter-results__heading';
+            modalHeading.textContent =
+                heading.textContent.replace(/\s+/g, ' ').trim();
+
+            filterResults.appendChild(modalHeading);
+        }
+
+        const cards = document.createElement('div');
+        cards.className = 'discover-filter-results__cards';
+
+        freshResults
+            .querySelectorAll('.discover-result-card')
+            .forEach((card) => {
+                cards.appendChild(card.cloneNode(true));
+            });
+
+        if (!cards.children.length) {
+            const empty = document.createElement('div');
+
+            empty.className = 'discover-filter-results__empty';
+            empty.innerHTML =
+                '<strong>نتیجه‌ای پیدا نشد</strong>' +
+                '<small>فیلترها را کمی بازتر کن و دوباره امتحان کن.</small>';
+
+            filterResults.appendChild(empty);
+        } else {
+            filterResults.appendChild(cards);
+        }
+    };
+
     const bindResultInteractions = () => {
         const resultForm = page.querySelector('#results form[action*="salons/discover"]');
 
@@ -377,7 +393,7 @@
             });
         }
 
-        page.querySelectorAll('#results a[href*="salons/discover"]').forEach((link) => {
+        page.querySelectorAll('#results a[href*="salons/discover"]:not([data-discover-reset])').forEach((link) => {
             if (link.dataset.discoverBound) return;
 
             link.dataset.discoverBound = '1';
