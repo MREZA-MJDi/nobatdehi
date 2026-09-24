@@ -1205,6 +1205,32 @@ class DiscoverController extends Controller
                         ->where('is_active', true)
                         ->orderBy('id');
                 },
+
+                'barbers.bookings' => function ($relation) use ($todayString) {
+                    $relation
+                        ->whereDate('booking_date', $todayString)
+                        ->whereIn(
+                            'status',
+                            collect(\App\Enums\BookingStatus::cases())
+                                ->filter(
+                                    fn (\App\Enums\BookingStatus $status): bool =>
+                                        $status->blocksAvailability()
+                                )
+                                ->map(
+                                    fn (\App\Enums\BookingStatus $status): string =>
+                                        $status->value
+                                )
+                                ->all()
+                        )
+                        ->select([
+                            'id',
+                            'barber_id',
+                            'booking_date',
+                            'start_time',
+                            'end_time',
+                            'status',
+                        ]);
+                },
             ])
             ->get();
 
