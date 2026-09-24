@@ -1027,6 +1027,8 @@
 
         let selectedDay = null;
         let selectedSlot = null;
+        let availabilityController = null;
+        let availabilityRequestId = 0;
 
         /* ======================================================
            MODAL OPEN / CLOSE
@@ -1063,6 +1065,10 @@
             selectedDay = null;
             selectedSlot = null;
 
+            availabilityController?.abort();
+            availabilityController = null;
+            availabilityRequestId++;
+
             confirmBtn.disabled = true;
             sumTime.textContent = '—';
 
@@ -1087,6 +1093,10 @@
         }
 
         function closeBooking() {
+            availabilityController?.abort();
+            availabilityController = null;
+            availabilityRequestId++;
+
             modal.classList.remove('open');
 
             updateModalAria(false);
@@ -1461,11 +1471,22 @@
                 return;
             }
 
+            availabilityController?.abort();
+
+            const controller = new AbortController();
+            const requestId = ++availabilityRequestId;
+
+            availabilityController = controller;
+
+            const requestedDay = { ...selectedDay };
+            const requestedBarber = filterBarber.value;
+            const requestedService = filterService.value;
+
             const apiDate =
                 fmtYMD(
-                    selectedDay.gy,
-                    selectedDay.gm,
-                    selectedDay.gd
+                    requestedDay.gy,
+                    requestedDay.gm,
+                    requestedDay.gd
                 );
 
             slotDateEl.textContent =
@@ -1486,12 +1507,12 @@
 
             url.searchParams.set(
                 'barber_id',
-                filterBarber.value
+                requestedBarber
             );
 
             url.searchParams.set(
                 'service_id',
-                filterService.value
+                requestedService
             );
 
             url.searchParams.set(
@@ -1511,6 +1532,7 @@
                                 'X-Requested-With':
                                     'XMLHttpRequest',
                             },
+                            signal: controller.signal,
                         }
                     );
 
@@ -1552,10 +1574,29 @@
                     }
                 }
 
+                if (
+                    requestId !== availabilityRequestId ||
+                    !selectedDay ||
+                    selectedDay.gy !== requestedDay.gy ||
+                    selectedDay.gm !== requestedDay.gm ||
+                    selectedDay.gd !== requestedDay.gd ||
+                    filterBarber.value !== requestedBarber ||
+                    filterService.value !== requestedService
+                ) {
+                    return;
+                }
+
                 renderSlots(
                     data?.slots || []
                 );
             } catch (error) {
+                if (error?.name === 'AbortError') {
+                    return;
+                }
+
+                if (requestId !== availabilityRequestId) {
+                    return;
+                }
                 slotsEl.innerHTML = `
                     <div class="slots-msg error">
                         ${escapeHtml(
