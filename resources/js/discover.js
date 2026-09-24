@@ -79,7 +79,40 @@
             }
 
             if (!response.ok) {
-                throw new Error('DISCOVER_REQUEST_FAILED');
+                let message = 'نتایج دریافت نشد. دوباره تلاش کن.';
+
+                try {
+                    const payload = await response.clone().json();
+
+                    if (
+                        typeof payload?.message === 'string' &&
+                        payload.message.trim() !== ''
+                    ) {
+                        message = payload.message.trim();
+                    }
+
+                    const validationMessage = Object
+                        .values(payload?.errors ?? {})
+                        .flat()
+                        .find(
+                            (value) =>
+                                typeof value === 'string' &&
+                                value.trim() !== ''
+                        );
+
+                    if (validationMessage) {
+                        message = validationMessage.trim();
+                    }
+                } catch {
+                    // The server may return an HTML error page for a non-AJAX
+                    // edge case. Keep the generic fallback in that situation.
+                }
+
+                const error = new Error(message);
+                error.code = 'DISCOVER_REQUEST_FAILED';
+                error.status = response.status;
+
+                throw error;
             }
 
             const html = await response.text();
@@ -191,7 +224,11 @@
             }
 
             notifyError(
-                'نتایج دریافت نشد. اتصال را بررسی کن و دوباره تلاش کن.'
+                error?.code === 'DISCOVER_REQUEST_FAILED' &&
+                typeof error?.message === 'string' &&
+                error.message.trim() !== ''
+                    ? error.message
+                    : 'نتایج دریافت نشد. اتصال را بررسی کن و دوباره تلاش کن.'
             );
 
             return false;
@@ -641,17 +678,44 @@
                     locationAllow.textContent = 'تلاش دوباره';
                 }
             },
-            () => {
+            (error) => {
                 if (locationAllow) {
                     locationAllow.disabled = false;
-                    locationAllow.textContent = 'اجازه موقعیت و پیدا کردن نزدیک‌ترین‌ها';
+                    locationAllow.textContent = 'تلاش دوباره';
+                }
+
+                let title = 'موقعیت مکانی در دسترس نبود';
+                let detail = 'اجازه Location را بده یا شهر و منطقه را جست‌وجو کن.';
+
+                switch (error?.code) {
+                    case error?.PERMISSION_DENIED:
+                    case 1:
+                        title = 'اجازه موقعیت مکانی داده نشد';
+                        detail = 'اجازه Location را برای این سایت فعال کن و دوباره امتحان کن.';
+                        break;
+
+                    case error?.POSITION_UNAVAILABLE:
+                    case 2:
+                        title = 'موقعیت فعلی پیدا نشد';
+                        detail = 'اینترنت و سرویس Location دستگاه را بررسی کن و دوباره تلاش کن.';
+                        break;
+
+                    case error?.TIMEOUT:
+                    case 3:
+                        title = 'پیدا کردن موقعیت طول کشید';
+                        detail = 'دوباره تلاش کن یا شهر و منطقه را به‌صورت دستی جست‌وجو کن.';
+                        break;
                 }
 
                 if (locationMapState) {
                     locationMapState.innerHTML =
                         '<span class="discover-location-map-pin">!</span>' +
-                        '<strong>موقعیت مکانی در دسترس نبود</strong>' +
-                        '<small>اجازه Location را بده یا شهر و منطقه را جست‌وجو کن.</small>';
+                        '<strong>' +
+                        title +
+                        '</strong>' +
+                        '<small>' +
+                        detail +
+                        '</small>';
                 }
             },
             {
