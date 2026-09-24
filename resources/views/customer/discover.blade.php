@@ -72,13 +72,14 @@
                     aria-label="بستن"
                 >×</button>
 
-                <div class="discover-location-kicker">NEARBY SEARCH</div>
+                <div class="discover-location-kicker">نزدیک من</div>
 
                 <h2 id="discoverLocationTitle">سالن‌های نزدیکت را پیدا کنیم؟</h2>
 
                 <p class="discover-location-copy">
-                    موقعیت مکانی‌ات فقط برای پیدا کردن سالن‌های اطراف استفاده می‌شود.
-                    بعد از پیدا شدن موقعیت، نتیجه‌ها بر اساس فاصله مرتب می‌شوند.
+                    اول موقعیتت را از مرورگر می‌گیریم؛ بعد سالن‌های فعال را در
+                    <strong>شعاع ۱۵ کیلومتر</strong> بررسی می‌کنیم، فاصله واقعی را حساب
+                    می‌کنیم و نزدیک‌ترین گزینه‌ها را اول نشان می‌دهیم.
                 </p>
 
                 <div class="discover-location-map" id="discoverLocationMap">
@@ -102,7 +103,7 @@
                         class="discover-location-primary"
                         id="discoverLocationAllow"
                     >
-                        اجازه موقعیت و پیدا کردن نزدیک‌ترین‌ها
+                        اجازه موقعیت و پیدا کردن سالن‌های اطراف
                     </button>
 
                     <button
