@@ -248,6 +248,7 @@
                 @if ($hasActiveFilters)
                     <a
                         href="{{ route('salons.discover') }}"
+                        data-discover-reset
                         class="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-[var(--color-border)] bg-transparent px-4 text-sm font-bold text-[var(--color-content-muted)] transition hover:border-[var(--color-accent-500)] hover:text-[var(--color-accent-600)]"
                     >
                         حذف فیلترها
@@ -681,13 +682,29 @@
                     </button>
                 </div>
             </form>
+
+            <div
+                id="discoverFilterResults"
+                class="discover-filter-results"
+                aria-live="polite"
+                aria-busy="false"
+            >
+                <div class="discover-filter-results__idle">
+                    <span aria-hidden="true">⌕</span>
+
+                    <div>
+                        <strong>فیلترها را تنظیم کن</strong>
+                        <small>نتایج همین‌جا نمایش داده می‌شوند.</small>
+                    </div>
+                </div>
+            </div>
         </div>
 
 
         {{-- ================================================================
              Search state / count
         ================================================================= --}}
-        @if ($salonsCount > 0)
+        <div id="discoverResultsBody">
 
             <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div class="text-sm text-[var(--color-content-muted)]">
@@ -1015,6 +1032,7 @@
 
                         <a
                             href="{{ route('salons.discover') }}"
+                            data-discover-reset
                             class="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--color-accent-600)] px-6 text-sm font-bold text-white transition hover:bg-[var(--color-accent-700)]"
                         >
                             نمایش همه سالن‌ها
@@ -1048,5 +1066,6 @@
 
         @endif
 
+        </div>
     </div>
 </section>
