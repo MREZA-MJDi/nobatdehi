@@ -5,7 +5,6 @@ use App\Http\Middleware\EnsureUserRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request;
 
 return Application::configure(
     basePath: dirname(__DIR__)
@@ -30,7 +29,7 @@ return Application::configure(
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request, Throwable $exception) =>
+            fn ($request, Throwable $exception) =>
                 $request->ajax() || $request->expectsJson()
         );
     })
