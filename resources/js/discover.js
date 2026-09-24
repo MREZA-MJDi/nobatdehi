@@ -174,6 +174,7 @@
             );
 
             bindResultInteractions();
+            bindFilterPanel();
             observeReveals();
 
             if (showOverlay) {
@@ -504,7 +505,55 @@
         });
     });
 
-    bindResultInteractions();
+    const bindFilterPanel = () => {
+        const panel = page.querySelector('#discoverFiltersPanel');
+        const openButton = page.querySelector('#discoverFiltersOpen');
+        const backdrop = page.querySelector('#discoverFiltersBackdrop');
+        const closeButtons = page.querySelectorAll('[data-close-discover-filters]');
+
+        if (!panel || !openButton || openButton.dataset.filtersBound) {
+            return;
+        }
+
+        openButton.dataset.filtersBound = '1';
+
+        const setOpen = (open) => {
+            panel.classList.toggle('is-open', open);
+            openButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+            if (backdrop) {
+                backdrop.hidden = !open;
+            }
+
+            document.body.classList.toggle('discover-filters-open', open);
+
+            if (!open) {
+                openButton.focus({ preventScroll: true });
+            }
+        };
+
+        openButton.addEventListener('click', () => setOpen(true));
+
+        closeButtons.forEach((button) => {
+            button.addEventListener('click', () => setOpen(false));
+        });
+
+        backdrop?.addEventListener('click', () => setOpen(false));
+
+        panel.querySelector('form')?.addEventListener('submit', () => {
+            setOpen(false);
+        });
+
+        const onEscape = (event) => {
+            if (event.key === 'Escape' && panel.classList.contains('is-open')) {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener('keydown', onEscape);
+    };
+
+    bindFilterPanel();
 
     /*
      |--------------------------------------------------------------------------
@@ -747,7 +796,14 @@
         }
 
         event.preventDefault();
+
         openLocationModal();
+
+        if (
+            trigger.matches('#discoverUseLocation, [data-discover-location]')
+        ) {
+            analyzeNearby();
+        }
     });
 
     locationAllow?.addEventListener('click', analyzeNearby);
