@@ -73,44 +73,6 @@
         </a>
 
 
-        {{-- Appointments --}}
-        @auth
-            @if(auth()->user()->isCustomer())
-                <a
-                    href="{{ route('customer.dashboard') }}"
-                    @class([
-                        'mobile-bottom-item',
-                        'is-active' => request()->routeIs('customer.*'),
-                    ])
-                    aria-label="نوبت‌ها"
-                >
-                    <span class="mobile-bottom-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M6 4v3M18 4v3M4 10h16" />
-                            <rect x="4" y="6" width="16" height="14" rx="2" />
-                            <path d="M8 14h3M13 14h3M8 17h3" />
-                        </svg>
-                    </span>
-
-                    <span class="mobile-bottom-label">نوبت‌ها</span>
-                </a>
-            @else
-                <a
-                    href="{{ route('login') }}"
-                    class="mobile-bottom-item"
-                    aria-label="ورود"
-                >
-                    <span class="mobile-bottom-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="8" r="3.5" />
-                            <path d="M5 21c.8-4 3.2-6 7-6s6.2 2 7 6" />
-                        </svg>
-                    </span>
-
-                    <span class="mobile-bottom-label">ورود</span>
-                </a>
-            @endauth
-
                 {{-- Account --}}
         @auth
 
