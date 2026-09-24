@@ -1012,6 +1012,45 @@ class DiscoverController extends Controller
     private function applyHasAvailableSlotToday(
         $query
     ): void {
+        $timezone = config('app.timezone', 'Asia/Tehran');
+        $today = Carbon::now($timezone)->startOfDay();
+        $todayString = $today->toDateString();
+        $dayOfWeek = ($today->dayOfWeek + 1) % 7;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Cheap candidate reduction first.
+        |--------------------------------------------------------------------------
+        */
+
+        $query
+            ->whereDoesntHave(
+                'dailyStatuses',
+                function ($relation) use ($todayString) {
+                    $relation
+                        ->whereDate('date', $todayString)
+                        ->where('is_closed', true);
+                }
+            )
+            ->whereHas(
+                'workingHours',
+                function ($relation) use ($dayOfWeek) {
+                    $relation
+                        ->where('day_of_week', $dayOfWeek)
+                        ->where('is_closed', false)
+                        ->whereNotNull('start_time')
+                        ->whereNotNull('end_time');
+                }
+            )
+            ->whereHas(
+                'services',
+                fn ($relation) => $relation->where('is_active', true)
+            )
+            ->whereHas(
+                'barbers',
+                fn ($relation) => $relation->where('is_active', true)
+            );
+
         $candidateIds = (clone $query)
             ->reorder()
             ->select('salons.id')
@@ -1024,10 +1063,6 @@ class DiscoverController extends Controller
             $query->whereIn('salons.id', [0]);
             return;
         }
-
-        $timezone = config('app.timezone', 'Asia/Tehran');
-        $today = Carbon::now($timezone)->startOfDay();
-        $todayString = $today->toDateString();
 
         $candidateSalons = Salon::query()
             ->whereIn('id', $candidateIds)
