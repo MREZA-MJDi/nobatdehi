@@ -28,8 +28,8 @@
 
     const INTRO_TIME =
         reducedMotion
-            ? 1400
-            : 3200;
+            ? 900
+            : 2400;
 
     const EXIT_TIME = 320;
 
