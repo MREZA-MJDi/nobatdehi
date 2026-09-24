@@ -82,6 +82,22 @@
         )
         || $filters['sort'] !== 'recommended';
 
+    $activeFilterCount = collect([
+        $filters['q'] !== '',
+        $filters['type'] !== '',
+        $filters['service'] !== null && $filters['service'] !== '',
+        $filters['province'] !== '',
+        $filters['city'] !== '',
+        $filters['location'] !== '',
+        $filters['district'] !== '',
+        (float) $filters['min_rating'] > 0,
+        is_numeric($filters['price_max']) && (float) $filters['price_max'] > 0,
+        (bool) $filters['open_now'],
+        (bool) $filters['today'],
+        is_numeric($filters['lat']) && is_numeric($filters['lng']),
+        $filters['sort'] !== 'recommended',
+    ])->filter()->count();
+
     /*
     |--------------------------------------------------------------------------
     | Dynamic result title
@@ -256,11 +272,67 @@
 
 
         {{-- ================================================================
-             Filters
+             Filter trigger — mobile
         ================================================================= --}}
+        <button
+            type="button"
+            id="discoverFiltersOpen"
+            class="discover-mobile-filter-trigger"
+            aria-controls="discoverFiltersPanel"
+            aria-expanded="false"
+        >
+            <span class="discover-mobile-filter-trigger__icon" aria-hidden="true">☷</span>
+
+            <span class="discover-mobile-filter-trigger__copy">
+                <strong>فیلترها</strong>
+
+                <small>
+                    @if($activeFilterCount > 0)
+                        {{ number_format($activeFilterCount) }} فیلتر فعال
+                    @else
+                        جستجو و مرتب‌سازی
+                    @endif
+                </small>
+            </span>
+
+            @if($activeFilterCount > 0)
+                <span class="discover-mobile-filter-trigger__count">
+                    {{ number_format($activeFilterCount) }}
+                </span>
+            @endif
+        </button>
+
+        <div
+            id="discoverFiltersBackdrop"
+            class="discover-filters-backdrop"
+            hidden
+            aria-hidden="true"
+        ></div>
+
         <div
             class="discover-results__filter mb-8 overflow-hidden rounded-[28px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_18px_60px_rgba(15,23,42,.05)]"
+            id="discoverFiltersPanel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="discoverFiltersTitle"
+            aria-hidden="false"
         >
+            <div class="discover-mobile-filter-head">
+                <div>
+                    <span>DISCOVER FILTERS</span>
+                    <h3 id="discoverFiltersTitle">فیلتر و مرتب‌سازی</h3>
+                </div>
+
+                <button
+                    type="button"
+                    class="discover-mobile-filter-close"
+                    data-close-discover-filters
+                    aria-label="بستن فیلترها"
+                >
+                    ×
+                </button>
+            </div>
+
             <form
                 method="GET"
                 action="{{ route('salons.discover') }}"
@@ -552,7 +624,7 @@
                         class="h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-accent-600)] focus:ring-[var(--color-accent-500)]"
                         >
 
-                        <span>امروز باز است</span>
+                        <span>امروز نوبت آزاد دارد</span>
                     </label>
 
                     {{-- Geolocation --}}
