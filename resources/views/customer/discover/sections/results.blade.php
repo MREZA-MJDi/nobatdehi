@@ -273,35 +273,54 @@
 
 
         {{-- ================================================================
-             Filter trigger — mobile
+             Filter trigger
         ================================================================= --}}
-        <button
-            type="button"
-            id="discoverFiltersOpen"
-            class="discover-mobile-filter-trigger"
-            aria-controls="discoverFiltersPanel"
-            aria-expanded="false"
-        >
-            <span class="discover-mobile-filter-trigger__icon" aria-hidden="true">☷</span>
-
-            <span class="discover-mobile-filter-trigger__copy">
-                <strong>فیلترها</strong>
-
-                <small>
-                    @if($activeFilterCount > 0)
-                        {{ number_format($activeFilterCount) }} فیلتر فعال
-                    @else
-                        جستجو و مرتب‌سازی
-                    @endif
-                </small>
-            </span>
-
-            @if($activeFilterCount > 0)
-                <span class="discover-mobile-filter-trigger__count">
-                    {{ number_format($activeFilterCount) }}
+        <div class="discover-filter-bar">
+            <button
+                type="button"
+                id="discoverFiltersOpen"
+                class="discover-filter-trigger"
+                aria-controls="discoverFiltersPanel"
+                aria-expanded="false"
+            >
+                <span class="discover-filter-trigger__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4 7h10M18 7h2M4 17h2M10 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <circle cx="15.5" cy="7" r="2.2" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="8.5" cy="17" r="2.2" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
                 </span>
+
+                <span class="discover-filter-trigger__copy">
+                    <strong>فیلتر و مرتب‌سازی</strong>
+                    <small>
+                        @if($activeFilterCount > 0)
+                            {{ number_format($activeFilterCount) }} مورد فعال
+                        @else
+                            نتیجه را دقیق‌تر کن
+                        @endif
+                    </small>
+                </span>
+
+                @if($activeFilterCount > 0)
+                    <span class="discover-filter-trigger__count">
+                        {{ number_format($activeFilterCount) }}
+                    </span>
+                @endif
+
+                <span class="discover-filter-trigger__arrow" aria-hidden="true">←</span>
+            </button>
+
+            @if($hasActiveFilters)
+                <a
+                    href="{{ route('salons.discover') }}"
+                    data-discover-reset
+                    class="discover-filter-reset"
+                >
+                    پاک کردن
+                </a>
             @endif
-        </button>
+        </div>
 
         <div
             id="discoverFiltersBackdrop"
@@ -310,401 +329,243 @@
             aria-hidden="true"
         ></div>
 
-        <div
-            class="discover-results__filter mb-8 overflow-hidden rounded-[28px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_18px_60px_rgba(15,23,42,.05)]"
+        <section
             id="discoverFiltersPanel"
+            class="discover-results__filter"
             role="dialog"
             aria-modal="true"
             aria-labelledby="discoverFiltersTitle"
-            aria-hidden="false"
+            aria-hidden="true"
+            hidden
         >
-            <div class="discover-mobile-filter-head">
-                <div>
-                    <span>DISCOVER FILTERS</span>
-                    <h3 id="discoverFiltersTitle">فیلتر و مرتب‌سازی</h3>
-                </div>
+            <div class="discover-filter-dialog">
+                <header class="discover-filter-dialog__head">
+                    <div>
+                        <span>DISCOVER</span>
+                        <h3 id="discoverFiltersTitle">فیلترها را انتخاب کن</h3>
+                        <p>فقط چیزهایی را نگه دار که برای انتخابت مهم‌اند.</p>
+                    </div>
 
-                <button
-                    type="button"
-                    class="discover-mobile-filter-close"
-                    data-close-discover-filters
-                    aria-label="بستن فیلترها"
-                >
-                    ×
-                </button>
-            </div>
-
-            <form
-                method="GET"
-                action="{{ route('salons.discover') }}"
-                class="p-4 sm:p-5 lg:p-6"
-            >
-
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-
-                    {{-- Search --}}
-                    <label class="relative block xl:col-span-2">
-                        <span class="sr-only">جستجوی سالن، خدمت یا متخصص</span>
-
-                        <input
-                            type="search"
-                            name="q"
-                            value="{{ $filters['q'] }}"
-                            placeholder="سالن، خدمت یا متخصص..."
-                            autocomplete="off"
-                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 pr-11 text-sm font-medium text-[var(--color-content)] outline-none transition placeholder:text-[var(--color-content-muted)] focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
-                        >
-
-                        <svg
-                            class="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--color-content-muted)]"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="m21 21-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </label>
-
-                    {{-- Type --}}
-                    <label class="block">
-                        <span class="sr-only">نوع</span>
-
-                        <select
-                            name="type"
-                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
-                        >
-                            <option value="">همه</option>
-                            <option
-                                value="salon"
-                                @selected($filters['type'] === 'salon')
-                            >
-                            سالن
-                            </option>
-                            <option
-                                value="barber"
-                                @selected($filters['type'] === 'barber')
-                            >
-                            متخصص
-                            </option>
-                        </select>
-                    </label>
-
-                    {{-- Service --}}
-                    <label class="block">
-                        <span class="sr-only">خدمت</span>
-
-                        <select
-                            name="service"
-                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
-                        >
-                            <option value="">همه خدمات</option>
-
-                            @foreach (($serviceOptions ?? collect()) as $serviceOptionName)
-                                @php
-                                    $serviceOptionName = trim((string) $serviceOptionName);
-                                @endphp
-
-                                @if ($serviceOptionName !== '')
-                                    <option
-                                        value="{{ $serviceOptionName }}"
-                                        @selected((string) $filters['service'] === $serviceOptionName)
-                                    >
-                                        {{ $serviceOptionName }}
-                                    </option>
-                                @endif
-                            @endforeach
-                        </select>
-                    </label>
-
-                    {{-- Province --}}
-                    <label class="block">
-                        <span class="sr-only">استان</span>
-
-                        <select
-                            name="province"
-                            id="discover-filter-province"
-                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
-                        >
-                            <option value="">همه استان‌ها</option>
-
-                            @foreach (($provinces ?? collect()) as $province)
-                                <option
-                                    value="{{ $province }}"
-                                    @selected($filters['province'] === $province)
-                                >
-                                {{ $province }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </label>
-
-                    {{-- City --}}
-                    <label class="block">
-                        <span class="sr-only">شهر</span>
-
-                        <select
-                            name="city"
-                            id="discover-filter-city"
-                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
-                        >
-                            <option value="">همه شهرها</option>
-
-                            @foreach (($cities ?? collect()) as $city)
-                                <option
-                                    value="{{ $city }}"
-                                    @selected($filters['city'] === $city)
-                                >
-                                {{ $city }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </label>
-
-                    {{-- Location --}}
-                    <label class="block">
-                        <span class="sr-only">شهر، منطقه یا محله</span>
-
-                        <input
-                            type="text"
-                            name="location"
-                            value="{{ $filters['location'] }}"
-                            placeholder="شهر، منطقه یا محله"
-                            autocomplete="address-level2"
-                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition placeholder:text-[var(--color-content-muted)] focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
-                        >
-                    </label>
-
-                    {{-- District --}}
-                    <label class="block">
-                        <span class="sr-only">منطقه</span>
-
-                        <input
-                            type="text"
-                            name="district"
-                            value="{{ $filters['district'] }}"
-                            placeholder="منطقه / محله"
-                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition placeholder:text-[var(--color-content-muted)] focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
-                        >
-                    </label>
-
-                    {{-- Rating --}}
-                    <label class="block">
-                        <span class="sr-only">حداقل امتیاز</span>
-
-                        <select
-                            name="min_rating"
-                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
-                        >
-                            <option value="0">هر امتیازی</option>
-                            <option value="3" @selected((float) $filters['min_rating'] === 3.0)>۳ به بالا</option>
-                            <option value="3.5" @selected((float) $filters['min_rating'] === 3.5)>۳.۵ به بالا</option>
-                            <option value="4" @selected((float) $filters['min_rating'] === 4.0)>۴ به بالا</option>
-                            <option value="4.5" @selected((float) $filters['min_rating'] === 4.5)>۴.۵ به بالا</option>
-                        </select>
-                    </label>
-
-                    {{-- Price --}}
-                    <label class="block">
-                        <span class="sr-only">حداکثر قیمت</span>
-
-                        <input
-                            type="number"
-                            name="price_max"
-                            value="{{ $filters['price_max'] }}"
-                            min="0"
-                            step="1000"
-                            inputmode="numeric"
-                            placeholder="حداکثر قیمت"
-                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition placeholder:text-[var(--color-content-muted)] focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
-                        >
-                    </label>
-
-                    {{-- Sort --}}
-                    <label class="block xl:col-span-2">
-                        <span class="sr-only">مرتب‌سازی</span>
-
-                        <select
-                            name="sort"
-                            class="h-12 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-medium text-[var(--color-content)] outline-none transition focus:border-[var(--color-accent-500)] focus:ring-4 focus:ring-[var(--color-accent-500)]/10"
-                        >
-                            <option
-                                value="recommended"
-                                @selected($filters['sort'] === 'recommended')
-                            >
-                            پیشنهادی
-                            </option>
-
-                            <option
-                                value="rating"
-                                @selected($filters['sort'] === 'rating')
-                            >
-                            بالاترین امتیاز
-                            </option>
-
-                            <option
-                                value="price_asc"
-                                @selected($filters['sort'] === 'price_asc')
-                            >
-                            ارزان‌ترین
-                            </option>
-
-                            <option
-                                value="price_desc"
-                                @selected($filters['sort'] === 'price_desc')
-                            >
-                            گران‌ترین
-                            </option>
-
-                            <option
-                                value="distance"
-                                @selected($filters['sort'] === 'distance')
-                            >
-                            نزدیک‌ترین
-                            </option>
-
-                            <option
-                                value="newest"
-                                @selected($filters['sort'] === 'newest')
-                            >
-                            جدیدترین
-                            </option>
-                        </select>
-                    </label>
-                </div>
-@if (is_numeric($filters['lat']) && is_numeric($filters['lng']))
-                    <input
-                        type="hidden"
-                        name="lat"
-                        value="{{ $filters['lat'] }}"
-                    >
-
-                    <input
-                        type="hidden"
-                        name="lng"
-                        value="{{ $filters['lng'] }}"
-                    >
-
-                    <input
-                        type="hidden"
-                        name="radius"
-                        value="{{ $filters['radius'] }}"
-                    >
-                @endif
-
-                <div class="mt-4 flex flex-col gap-3 border-t border-[var(--color-border)] pt-4 sm:flex-row sm:flex-wrap sm:items-center">
-
-                    {{-- Open now --}}
-                    <label
-                        class="inline-flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-semibold text-[var(--color-content)]"
-                    >
-                        <input
-                            type="checkbox"
-                            name="open_now"
-                            value="1"
-                            @checked($filters['open_now'])
-                        class="h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-accent-600)] focus:ring-[var(--color-accent-500)]"
-                        >
-
-                        <span>الان باز</span>
-                    </label>
-
-                    {{-- Today --}}
-                    <label
-                        class="inline-flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-semibold text-[var(--color-content)]"
-                    >
-                        <input
-                            type="checkbox"
-                            name="today"
-                            value="1"
-                            @checked($filters['today'])
-                        class="h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-accent-600)] focus:ring-[var(--color-accent-500)]"
-                        >
-
-                        <span>امروز نوبت آزاد دارد</span>
-                    </label>
-
-                    {{-- Geolocation --}}
                     <button
                         type="button"
-                        id="discoverUseLocation"
-                        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 text-sm font-bold text-[var(--color-content)] transition hover:border-[var(--color-accent-500)] hover:text-[var(--color-accent-600)]"
+                        class="discover-mobile-filter-close"
+                        data-close-discover-filters
+                        aria-label="بستن"
                     >
-                        <svg
-                            class="h-4 w-4"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="M12 21s7-6.1 7-12A7 7 0 1 0 5 9c0 5.9 7 12 7 12Z"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <circle
-                                cx="12"
-                                cy="9"
-                                r="2.5"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                        </svg>
-
-                        نزدیک من
+                        ×
                     </button>
+                </header>
 
-                    <div class="flex-1"></div>
-
-                    <button
-                        type="submit"
-                        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[var(--color-accent-600)] px-6 text-sm font-bold text-white shadow-lg shadow-[var(--color-accent-600)]/15 transition hover:-translate-y-0.5 hover:bg-[var(--color-accent-700)] active:translate-y-0"
+                <div class="discover-filter-dialog__body">
+                    <form
+                        method="GET"
+                        action="{{ route('salons.discover') }}"
+                        id="discoverFilterForm"
+                        class="discover-filter-form"
                     >
-                        اعمال فیلترها
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 
-                        <svg
-                            class="h-4 w-4"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="M5 12h14M13 6l6 6-6 6"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
-                        </svg>
-                    </button>
-                </div>
-            </form>
+                            <label class="block sm:col-span-2">
+                                <span class="discover-filter-label">جستجو</span>
 
-            <div
-                id="discoverFilterResults"
-                class="discover-filter-results"
-                aria-live="polite"
-                aria-busy="false"
-            >
-                <div class="discover-filter-results__idle">
-                    <span aria-hidden="true">⌕</span>
+                                <input
+                                    type="search"
+                                    name="q"
+                                    value="{{ $filters['q'] }}"
+                                    placeholder="نام سالن، خدمت یا متخصص"
+                                    autocomplete="off"
+                                    class="discover-filter-input"
+                                >
+                            </label>
 
-                    <div>
-                        <strong>فیلترها را تنظیم کن</strong>
-                        <small>نتایج همین‌جا نمایش داده می‌شوند.</small>
+                            <label class="block">
+                                <span class="discover-filter-label">نوع</span>
+
+                                <select name="type" class="discover-filter-input">
+                                    <option value="">همه</option>
+                                    <option value="salon" @selected($filters['type'] === 'salon')>سالن</option>
+                                    <option value="barber" @selected($filters['type'] === 'barber')>متخصص</option>
+                                </select>
+                            </label>
+
+                            <label class="block">
+                                <span class="discover-filter-label">خدمت</span>
+
+                                <select name="service" class="discover-filter-input">
+                                    <option value="">همه خدمات</option>
+
+                                    @foreach (($serviceOptions ?? collect()) as $serviceOptionName)
+                                        @php $serviceOptionName = trim((string) $serviceOptionName); @endphp
+
+                                        @if ($serviceOptionName !== '')
+                                            <option
+                                                value="{{ $serviceOptionName }}"
+                                                @selected((string) $filters['service'] === $serviceOptionName)
+                                            >
+                                                {{ $serviceOptionName }}
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </label>
+
+                            <label class="block">
+                                <span class="discover-filter-label">استان</span>
+
+                                <select name="province" id="discover-filter-province" class="discover-filter-input">
+                                    <option value="">همه استان‌ها</option>
+
+                                    @foreach (($provinces ?? collect()) as $province)
+                                        <option value="{{ $province }}" @selected($filters['province'] === $province)>
+                                            {{ $province }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </label>
+
+                            <label class="block">
+                                <span class="discover-filter-label">شهر</span>
+
+                                <select name="city" id="discover-filter-city" class="discover-filter-input">
+                                    <option value="">همه شهرها</option>
+
+                                    @foreach (($cities ?? collect()) as $city)
+                                        <option value="{{ $city }}" @selected($filters['city'] === $city)>
+                                            {{ $city }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </label>
+
+                            <label class="block">
+                                <span class="discover-filter-label">منطقه / محله</span>
+
+                                <input
+                                    type="text"
+                                    name="location"
+                                    value="{{ $filters['location'] }}"
+                                    placeholder="مثلاً سعادت‌آباد"
+                                    autocomplete="address-level2"
+                                    class="discover-filter-input"
+                                >
+                            </label>
+
+                            <label class="block">
+                                <span class="discover-filter-label">حداقل امتیاز</span>
+
+                                <select name="min_rating" class="discover-filter-input">
+                                    <option value="0">هر امتیازی</option>
+                                    <option value="3" @selected((float) $filters['min_rating'] === 3.0)>۳ به بالا</option>
+                                    <option value="3.5" @selected((float) $filters['min_rating'] === 3.5)>۳.۵ به بالا</option>
+                                    <option value="4" @selected((float) $filters['min_rating'] === 4.0)>۴ به بالا</option>
+                                    <option value="4.5" @selected((float) $filters['min_rating'] === 4.5)>۴.۵ به بالا</option>
+                                </select>
+                            </label>
+
+                            <label class="block">
+                                <span class="discover-filter-label">حداکثر قیمت</span>
+
+                                <input
+                                    type="number"
+                                    name="price_max"
+                                    value="{{ $filters['price_max'] }}"
+                                    min="0"
+                                    step="1000"
+                                    inputmode="numeric"
+                                    placeholder="مثلاً ۱۰۰۰۰۰۰"
+                                    class="discover-filter-input"
+                                >
+                            </label>
+
+                            <label class="block sm:col-span-2">
+                                <span class="discover-filter-label">مرتب‌سازی</span>
+
+                                <select name="sort" class="discover-filter-input">
+                                    <option value="recommended" @selected($filters['sort'] === 'recommended')>پیشنهادی</option>
+                                    <option value="rating" @selected($filters['sort'] === 'rating')>بالاترین امتیاز</option>
+                                    <option value="price_asc" @selected($filters['sort'] === 'price_asc')>ارزان‌ترین</option>
+                                    <option value="price_desc" @selected($filters['sort'] === 'price_desc')>گران‌ترین</option>
+                                    <option value="distance" @selected($filters['sort'] === 'distance')>نزدیک‌ترین</option>
+                                    <option value="newest" @selected($filters['sort'] === 'newest')>جدیدترین</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        @if (is_numeric($filters['lat']) && is_numeric($filters['lng']))
+                            <input type="hidden" name="lat" value="{{ $filters['lat'] }}">
+                            <input type="hidden" name="lng" value="{{ $filters['lng'] }}">
+                            <input type="hidden" name="radius" value="{{ $filters['radius'] }}">
+                        @endif
+
+                        <div class="discover-filter-options">
+                            <label class="discover-filter-check">
+                                <input type="checkbox" name="open_now" value="1" @checked($filters['open_now'])>
+                                <span>
+                                    <strong>الان باز</strong>
+                                    <small>فقط سالن‌های باز را نشان بده</small>
+                                </span>
+                            </label>
+
+                            <label class="discover-filter-check">
+                                <input type="checkbox" name="today" value="1" @checked($filters['today'])>
+                                <span>
+                                    <strong>امروز نوبت آزاد دارد</strong>
+                                    <small>بر اساس ظرفیت واقعی رزرو</small>
+                                </span>
+                            </label>
+
+                            <button
+                                type="button"
+                                id="discoverUseLocation"
+                                class="discover-filter-location"
+                                data-discover-location
+                            >
+                                <span aria-hidden="true">⌖</span>
+                                نزدیک من
+                            </button>
+                        </div>
+
+                        <footer class="discover-filter-dialog__actions">
+                            <button
+                                type="button"
+                                data-close-discover-filters
+                                class="discover-filter-secondary"
+                            >
+                                انصراف
+                            </button>
+
+                            <button
+                                type="submit"
+                                class="discover-filter-primary"
+                            >
+                                نمایش نتایج
+                                <span aria-hidden="true">←</span>
+                            </button>
+                        </footer>
+                    </form>
+
+                    <div
+                        id="discoverFilterResults"
+                        class="discover-filter-results"
+                        aria-live="polite"
+                        aria-busy="false"
+                    >
+                        <div class="discover-filter-results__idle">
+                            <span aria-hidden="true">⌕</span>
+                            <div>
+                                <strong>هنوز فیلتری اعمال نشده</strong>
+                                <small>بعد از «نمایش نتایج»، نتیجه همین‌جا ظاهر می‌شود.</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
+        </section>
 
         {{-- ================================================================
              Search state / count
         ================================================================= --}}
-        <div id="discoverResultsBody">
+        
 
             <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div class="text-sm text-[var(--color-content-muted)]">
@@ -1066,6 +927,5 @@
 
         @endif
 
-        </div>
     </div>
 </section>
