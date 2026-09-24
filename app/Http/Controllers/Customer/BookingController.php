@@ -293,7 +293,7 @@ class BookingController extends Controller
 
                     'requires_auth' => true,
 
-                    'redirect' => route('login'),
+                    'redirect' => route('login', ['entry' => 'customer']),
 
                     'message' =>
                         'برای ثبت نهایی نوبت ابتدا وارد حساب خود شوید.',
@@ -440,12 +440,12 @@ class BookingController extends Controller
 
             return redirect()
                 ->route(
-                    'public.salons.show',
+                    'public.salons.booking.create',
                     $salon
                 )
                 ->with(
                     'error',
-                    'آرایشگر انتخاب‌شده دیگر در دسترس نیست.'
+                    'آرایشگر انتخاب‌شده دیگر در دسترس نیست. لطفاً یک متخصص دیگر انتخاب کنید.'
                 );
         }
 
@@ -472,12 +472,12 @@ class BookingController extends Controller
 
             return redirect()
                 ->route(
-                    'public.salons.show',
+                    'public.salons.booking.create',
                     $salon
                 )
                 ->with(
                     'error',
-                    'خدمت انتخاب‌شده دیگر در دسترس نیست.'
+                    'خدمت انتخاب‌شده دیگر در دسترس نیست. لطفاً یک خدمت دیگر انتخاب کنید.'
                 );
         }
 
