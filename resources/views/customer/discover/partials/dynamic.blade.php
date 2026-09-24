@@ -17,9 +17,5 @@
 @endphp
 
 <div id="discoverDynamicContent">
-    @if($hasGeo)
-        @include('customer.discover.sections.nearby')
-    @endif
-
     @include('customer.discover.sections.results')
 </div>
