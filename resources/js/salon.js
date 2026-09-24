@@ -107,38 +107,15 @@
         }, 2600);
     }
 
-    /* ==========================================================
-       REVEAL
-    ========================================================== */
-
-    const revealElements = root.querySelectorAll('.reveal');
-
-    if ('IntersectionObserver' in window) {
-        const revealObserver = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (!entry.isIntersecting) {
-                        return;
-                    }
-
-                    entry.target.classList.add('in');
-                    revealObserver.unobserve(entry.target);
-                });
-            },
-            {
-                threshold: 0.08,
-            }
-        );
-
-        revealElements.forEach((element) => {
-            element.classList.add('reveal-ready');
-            revealObserver.observe(element);
-        });
-    } else {
-        revealElements.forEach((element) => {
-            element.classList.add('in');
-        });
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | First paint
+    |--------------------------------------------------------------------------
+    |
+    | Salon content stays visible from the first render. Motion is optional
+    | polish and must never hide core booking/profile information.
+    |--------------------------------------------------------------------------
+    */
 
     /* ==========================================================
        GALLERY
