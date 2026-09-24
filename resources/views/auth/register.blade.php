@@ -365,7 +365,11 @@
                 >
 
                 <span>
-                    دریافت کد و ثبت‌نام
+                    @if(config('auth-flow.registration_otp_required'))
+                        دریافت کد و ثبت‌نام
+                    @else
+                        ساخت حساب
+                    @endif
                 </span>
 
                     <span class="transition-transform duration-200 group-hover:-translate-x-1">
@@ -397,7 +401,11 @@
                         <path d="M8 11V8a4 4 0 0 1 8 0v3" />
                     </svg>
 
-                    اطلاعات شما با امنیت کامل نگهداری می‌شود.
+                    @if(config('auth-flow.registration_otp_required'))
+                        یک کد تأیید برای شماره موبایل شما ارسال می‌شود.
+                    @else
+                        حساب شما بدون نیاز به تأیید پیامکی ساخته می‌شود.
+                    @endif
 
                 </div>
 
