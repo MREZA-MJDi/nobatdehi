@@ -89,15 +89,9 @@
                     aria-label="برای سالن‌ها"
                 >
                     <a
-                        href="{{ route('login') }}"
+                        href="{{ route('salon.login') }}"
                     >
-                        ورود
-                    </a>
-
-                    <a
-                        href="{{ route('register') }}"
-                    >
-                        ثبت‌نام
+                        ورود به پنل سالن
                     </a>
 
                     <a
