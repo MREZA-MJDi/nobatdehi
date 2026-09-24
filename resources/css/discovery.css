@@ -2915,7 +2915,7 @@
     box-shadow: var(--discover-shadow-sm) !important;
 }
 
-.discover-page .discover-result-card .text-[var(--color-content)],
+.discover-page .discover-result-card [class~="text-[var(--color-content)]"],
 .discover-page .discover-result-card .text-content {
     color: var(--discover-text) !important;
 }
