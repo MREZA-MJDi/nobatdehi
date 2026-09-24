@@ -160,9 +160,9 @@
                     '#discoverDynamicContent'
                 );
 
-            const freshResultsBody =
+            const freshResults =
                 freshDynamic?.querySelector(
-                    '#discoverResultsBody'
+                    '#results'
                 )?.cloneNode(true);
 
             if (
@@ -202,19 +202,47 @@
             bindResultInteractions();
             bindFilterPanel();
 
-            if (openFilterResult && freshResultsBody) {
+            if (!openFilterResult) {
+                document.body.classList.remove('discover-filters-open');
+            }
+
+            if (openFilterResult && freshResults) {
                 const filterResults =
                     page.querySelector('#discoverFilterResults');
 
                 if (filterResults) {
                     filterResults.innerHTML = '';
                     filterResults.setAttribute('aria-busy', 'false');
-                    filterResults.appendChild(
-                        freshResultsBody
-                    );
-                }
 
-                openFilterPanel();
+                    const heading = freshResults.querySelector('#discover-results-title');
+
+                    if (heading) {
+                        const modalHeading = document.createElement('div');
+                        modalHeading.className = 'discover-filter-results__heading';
+                        modalHeading.textContent = heading.textContent.replace(/\s+/g, ' ').trim();
+                        filterResults.appendChild(modalHeading);
+                    }
+
+                    const cards = document.createElement('div');
+                    cards.className = 'discover-filter-results__cards';
+
+                    freshResults
+                        .querySelectorAll('.discover-result-card')
+                        .forEach((card) => {
+                            cards.appendChild(card.cloneNode(true));
+                        });
+
+                    if (!cards.children.length) {
+                        const empty = document.createElement('div');
+                        empty.className = 'discover-filter-results__empty';
+                        empty.innerHTML = '<strong>نتیجه‌ای پیدا نشد</strong><small>فیلترها را کمی بازتر کن و دوباره امتحان کن.</small>';
+                        filterResults.appendChild(empty);
+                    } else {
+                        filterResults.appendChild(cards);
+                    }
+
+                    openFilterPanel();
+                }
             }
 
             observeReveals();
@@ -383,11 +411,15 @@
             submitDiscoverForm(
                 form,
                 {
-                    scroll: true,
+                    scroll: form.id !== 'discoverFilterForm',
+                    openFilterResult: form.id === 'discoverFilterForm',
                 }
             );
         });
     });
+
+    let closeFilterPanel = () => {};
+    let openFilterPanel = () => {};
 
     const bindFilterPanel = () => {
         const panel = page.querySelector('#discoverFiltersPanel');
@@ -403,10 +435,14 @@
 
         const setOpen = (open) => {
             panel.classList.toggle('is-open', open);
+            panel.hidden = !open;
+            panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+
             openButton.setAttribute('aria-expanded', open ? 'true' : 'false');
 
             if (backdrop) {
                 backdrop.hidden = !open;
+                backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
             }
 
             document.body.classList.toggle('discover-filters-open', open);
@@ -416,6 +452,9 @@
             }
         };
 
+        openFilterPanel = () => setOpen(true);
+        closeFilterPanel = () => setOpen(false);
+
         openButton.addEventListener('click', () => setOpen(true));
 
         closeButtons.forEach((button) => {
@@ -424,8 +463,18 @@
 
         backdrop?.addEventListener('click', () => setOpen(false));
 
+        panel.addEventListener('click', (event) => {
+            const resultLink = event.target.closest(
+                '#discoverFilterResults a[href]'
+            );
+
+            if (resultLink) {
+                setOpen(false);
+            }
+        });
+
         panel.querySelector('form')?.addEventListener('submit', () => {
-            setOpen(false);
+            panel.classList.add('is-loading');
         });
 
         const onEscape = (event) => {
@@ -708,6 +757,11 @@
 
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
+
+        if (panel?.classList.contains('is-open')) {
+            closeFilterPanel();
+            return;
+        }
 
         if (locationModal?.classList.contains('is-open')) {
             closeLocationModal();
