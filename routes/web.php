@@ -98,6 +98,11 @@ Route::post(
 Route::middleware('guest')->group(function () {
 
     Route::get(
+        '/salon/login',
+        [LoginController::class, 'create']
+    )->name('salon.login');
+
+    Route::get(
         '/login',
         [LoginController::class, 'create']
     )->name('login');
