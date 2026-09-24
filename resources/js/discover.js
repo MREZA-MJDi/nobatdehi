@@ -654,7 +654,21 @@
                 const lat = Number(position.coords.latitude);
                 const lng = Number(position.coords.longitude);
 
-                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                    if (locationAllow) {
+                        locationAllow.disabled = false;
+                        locationAllow.textContent = 'تلاش دوباره';
+                    }
+
+                    if (locationMapState) {
+                        locationMapState.innerHTML =
+                            '<span class="discover-location-map-pin">!</span>' +
+                            '<strong>مختصات موقعیت معتبر نبود</strong>' +
+                            '<small>دوباره تلاش کن یا شهر و منطقه را به‌صورت دستی جست‌وجو کن.</small>';
+                    }
+
+                    return;
+                }
 
                 if (locationMapFrame) {
                     locationMapFrame.src =
@@ -688,19 +702,16 @@
                 let detail = 'اجازه Location را بده یا شهر و منطقه را جست‌وجو کن.';
 
                 switch (error?.code) {
-                    case error?.PERMISSION_DENIED:
                     case 1:
                         title = 'اجازه موقعیت مکانی داده نشد';
                         detail = 'اجازه Location را برای این سایت فعال کن و دوباره امتحان کن.';
                         break;
 
-                    case error?.POSITION_UNAVAILABLE:
                     case 2:
                         title = 'موقعیت فعلی پیدا نشد';
                         detail = 'اینترنت و سرویس Location دستگاه را بررسی کن و دوباره تلاش کن.';
                         break;
 
-                    case error?.TIMEOUT:
                     case 3:
                         title = 'پیدا کردن موقعیت طول کشید';
                         detail = 'دوباره تلاش کن یا شهر و منطقه را به‌صورت دستی جست‌وجو کن.';
