@@ -22,8 +22,6 @@ class DiscoverController extends Controller
 
     private const PER_PAGE = 12;
 
-    private const NEARBY_LIMIT = 6;
-
     private const POPULAR_SALONS_LIMIT = 6;
 
     private const POPULAR_SERVICES_LIMIT = 8;
@@ -43,18 +41,6 @@ class DiscoverController extends Controller
     private const CACHE_OPTIONS_SECONDS = 600;
 
     private const CACHE_STATS_SECONDS = 120;
-
-    private const CACHE_NEARBY_SECONDS = 30;
-
-    private const NEARBY_RADII = [
-        2.0,
-        5.0,
-        10.0,
-        15.0,
-        25.0,
-        50.0,
-        100.0,
-    ];
 
     /*
     |--------------------------------------------------------------------------
@@ -250,21 +236,11 @@ class DiscoverController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Nearby + filter options
+        | Filter options
         |--------------------------------------------------------------------------
         */
 
-        $nearbySalons = collect();
-        $nearbyRadius = null;
-
-        if ($hasGeo) {
-            $nearbyData = $this->nearbySalons($filters);
-
-            $nearbySalons = $nearbyData['items'];
-            $nearbyRadius = $nearbyData['radius'];
-        }
-
-        $serviceOptions = Cache::remember(
+        $serviceOptions = Cache::remember(        $serviceOptions = Cache::remember(
             'discover:service-options:v3',
             now()->addSeconds(self::CACHE_OPTIONS_SECONDS),
             fn () => Service::query()
@@ -298,8 +274,6 @@ class DiscoverController extends Controller
                 'customer.discover.partials.dynamic',
                 compact(
                     'salons',
-                    'nearbySalons',
-                    'nearbyRadius',
                     'serviceOptions',
                     'provinces',
                     'cities',
@@ -445,8 +419,6 @@ class DiscoverController extends Controller
             compact(
                 'salons',
                 'popularSalons',
-                'nearbySalons',
-                'nearbyRadius',
                 'featuredSalon',
                 'popularServices',
                 'serviceOptions',
@@ -1532,87 +1504,6 @@ class DiscoverController extends Controller
 
                 break;
         }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Progressive Nearby
-    |--------------------------------------------------------------------------
-    |
-    | radius=10:
-    |
-    | 2km -> 5km -> 10km
-    |
-    | radius=30:
-    |
-    | 2 -> 5 -> 10 -> 15 -> 25 -> 30
-    |--------------------------------------------------------------------------
-    */
-
-    private function nearbySalons(
-        array $filters
-    ): array {
-        $requestedRadius = min(
-            self::MAX_RADIUS_KM,
-            max(
-                0.1,
-                (float) $filters['radius']
-            )
-        );
-
-        $cacheKey = sprintf(
-            'discover:nearby:v4:%0.5f:%0.5f:%0.1f',
-            (float) $filters['lat'],
-            (float) $filters['lng'],
-            $requestedRadius
-        );
-
-        return Cache::remember(
-            $cacheKey,
-            now()->addSeconds(self::CACHE_NEARBY_SECONDS),
-            function () use ($filters, $requestedRadius) {
-                /*
-                |--------------------------------------------------------------------------
-                | Nearby means genuinely inside the requested radius.
-                |
-                | We intentionally do one geo query instead of silently expanding
-                | the radius through several fallback queries. The UI can tell the
-                | user when nothing exists in the selected radius.
-                |--------------------------------------------------------------------------
-                */
-
-                $nearbyFilters = $filters;
-                $nearbyFilters['radius'] = $requestedRadius;
-
-                $query = $this->baseSalonQuery();
-
-                $this->applyGeo(
-                    $query,
-                    $nearbyFilters
-                );
-
-                $results = $query
-                    ->orderBy('distance_km')
-                    ->orderByDesc('reviews_avg_rating')
-                    ->orderByDesc('reviews_count')
-                    ->limit(self::NEARBY_LIMIT)
-                    ->get();
-
-                if ($results->isEmpty()) {
-                    return [
-                        'items' => collect(),
-                        'radius' => $requestedRadius,
-                    ];
-                }
-
-                $this->attachCardServices($results);
-
-                return [
-                    'items' => $results,
-                    'radius' => $requestedRadius,
-                ];
-            }
-        );
     }
 
     /*
