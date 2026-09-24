@@ -3676,7 +3676,7 @@ body.discover-filters-open {
 }
 
 .discover-page .discover-results__filter[hidden] {
-    display: grid !important;
+    display: none !important;
 }
 
 .discover-page .discover-results__filter.is-open {
