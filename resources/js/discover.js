@@ -25,17 +25,43 @@
         {
             push = true,
             scroll = true,
-            } = {}
+            openFilterResult = false,
+        } = {}
     ) => {
         const nextUrl = new URL(
             url,
             window.location.origin
         );
 
-        nextUrl.hash = 'results';
+        nextUrl.hash = '';
+
+        // A new filter/search state always starts from page one.
+        if (!nextUrl.searchParams.has('page')) {
+            nextUrl.searchParams.delete('page');
+        }
+
+        const normalizedUrl = nextUrl.toString();
+
+        if (
+            normalizedUrl === window.location.href &&
+            !openFilterResult
+        ) {
+            if (scroll) {
+                requestAnimationFrame(() => {
+                    page
+                        .querySelector('#results')
+                        ?.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start',
+                        });
+                });
+            }
+
+            return true;
+        }
 
         const requestId = ++activeRequestId;
-        const requestUrl = nextUrl.toString();
+        const requestUrl = normalizedUrl;
 
         /*
         |--------------------------------------------------------------------------
@@ -134,6 +160,11 @@
                     '#discoverDynamicContent'
                 );
 
+            const freshResultsBody =
+                freshDynamic?.querySelector(
+                    '#discoverResultsBody'
+                )?.cloneNode(true);
+
             if (
                 !freshDynamic ||
                 !currentDynamic
@@ -155,12 +186,12 @@
 
             if (
                 push &&
-                window.location.href !== nextUrl.toString()
+                window.location.href !== normalizedUrl
             ) {
                 window.history.pushState(
                     {},
                     '',
-                    nextUrl.toString()
+                    normalizedUrl
                 );
             }
 
@@ -170,6 +201,22 @@
 
             bindResultInteractions();
             bindFilterPanel();
+
+            if (openFilterResult && freshResultsBody) {
+                const filterResults =
+                    page.querySelector('#discoverFilterResults');
+
+                if (filterResults) {
+                    filterResults.innerHTML = '';
+                    filterResults.setAttribute('aria-busy', 'false');
+                    filterResults.appendChild(
+                        freshResultsBody
+                    );
+                }
+
+                openFilterPanel();
+            }
+
             observeReveals();
 
             if (
