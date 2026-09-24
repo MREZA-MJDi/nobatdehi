@@ -297,7 +297,7 @@
                     @guest
 
                         <a
-                            href="{{ route('salon.login') }}"
+                            href="{{ route('login', ['entry' => 'salon']) }}"
                             class="customer-salon-entry"
                             aria-label="ورود به پنل سالن"
                         >
