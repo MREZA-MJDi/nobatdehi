@@ -42,15 +42,27 @@
             <div>
 
                 <div class="mb-2 text-[10px] font-black tracking-[0.18em] text-accent-600">
-                    WELCOME BACK
+                    @if (($entry ?? 'customer') === 'salon')
+                        SALON PORTAL
+                    @else
+                        WELCOME BACK
+                    @endif
                 </div>
 
                 <h1 class="text-2xl font-black tracking-tight text-content sm:text-3xl">
-                    خوش برگشتی 👋
+                    @if (($entry ?? 'customer') === 'salon')
+                        ورود به پنل سالن
+                    @else
+                        خوش برگشتی 👋
+                    @endif
                 </h1>
 
                 <p class="mt-2 text-xs leading-6 text-content-muted">
-                    برای ورود به حساب کاربری، شماره موبایل و رمز عبورت را وارد کن.
+                    @if (($entry ?? 'customer') === 'salon')
+                        برای مدیریت نوبت‌ها، خدمات و اطلاعات سالن وارد شوید.
+                    @else
+                        برای ورود به حساب کاربری، شماره موبایل و رمز عبورت را وارد کن.
+                    @endif
                 </p>
 
             </div>
@@ -289,7 +301,11 @@
                     class="group flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary-950 px-5 text-sm font-black text-white shadow-lg shadow-primary-950/10 transition duration-200 hover:-translate-y-0.5 hover:bg-primary-900 hover:shadow-xl active:translate-y-0"
                 >
                     <span>
-                        ورود به حساب
+                        @if (($entry ?? 'customer') === 'salon')
+                            ورود به پنل سالن
+                        @else
+                            ورود به حساب
+                        @endif
                     </span>
 
                     <span
@@ -337,19 +353,45 @@
         </div>
 
 
-        {{-- Register --}}
+        {{-- Secondary auth entry --}}
         <div class="border-t border-border bg-primary-50/70 px-6 py-5 text-center sm:px-8">
 
-            <span class="text-xs text-content-muted">
-                هنوز حساب نداری؟
-            </span>
+            @if (($entry ?? 'customer') === 'salon')
 
-            <a
-                href="{{ route('register') }}"
-                class="mr-1 text-xs font-black text-accent-600 transition hover:text-accent-800"
-            >
-                ثبت‌نام کن
-            </a>
+                <div class="text-xs text-content-muted">
+                    برای رزرو نوبت، از بخش کشف سالن‌ها استفاده کن.
+                </div>
+
+                <a
+                    href="{{ route('salons.discover') }}"
+                    class="mt-2 inline-flex items-center gap-1.5 text-xs font-black text-accent-600 transition hover:text-accent-800"
+                >
+                    بازگشت به کشف سالن‌ها
+                    <span aria-hidden="true">←</span>
+                </a>
+
+            @else
+
+                <div class="text-xs text-content-muted">
+                    هنوز حساب نداری؟
+
+                    <a
+                        href="{{ route('register') }}"
+                        class="mr-1 font-black text-accent-600 transition hover:text-accent-800"
+                    >
+                        ثبت‌نام کن
+                    </a>
+                </div>
+
+                <a
+                    href="{{ route('salon.login') }}"
+                    class="mt-2 inline-flex items-center gap-1.5 text-[10px] font-black text-content-muted transition hover:text-accent-600"
+                >
+                    صاحب سالن هستی؟ ورود به پنل سالن
+                    <span aria-hidden="true">←</span>
+                </a>
+
+            @endif
 
         </div>
 
