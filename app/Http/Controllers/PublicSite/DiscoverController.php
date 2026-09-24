@@ -240,7 +240,7 @@ class DiscoverController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $serviceOptions = Cache::remember(        $serviceOptions = Cache::remember(
+        $serviceOptions = Cache::remember(
             'discover:service-options:v3',
             now()->addSeconds(self::CACHE_OPTIONS_SECONDS),
             fn () => Service::query()
@@ -317,99 +317,6 @@ class DiscoverController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Popular services
-        |--------------------------------------------------------------------------
-        */
-
-        $popularServices = Cache::remember(
-            'discover:popular-services:v3',
-            now()->addSeconds(self::CACHE_POPULAR_SECONDS),
-            fn () => Service::query()
-                ->where('is_active', true)
-                ->whereHas('salon', function ($query) {
-                    $query->where('is_active', true);
-                })
-                ->select([
-                    'id',
-                    'salon_id',
-                    'name',
-                    'description',
-                    'duration_minutes',
-                    'price',
-                    'image_path',
-                ])
-                ->with(['salon:id,name,slug,code,city,district'])
-                ->withCount([
-                    'bookings' => function ($query) {
-                        $query->where('status', '!=', 'cancelled');
-                    },
-                ])
-                ->orderByDesc('bookings_count')
-                ->latest('id')
-                ->limit(self::POPULAR_SERVICES_LIMIT)
-                ->get()
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Stylists
-        |--------------------------------------------------------------------------
-        */
-
-        $stylists = Cache::remember(
-            'discover:stylists:v3',
-            now()->addSeconds(self::CACHE_POPULAR_SECONDS),
-            fn () => Barber::query()
-                ->where('is_active', true)
-                ->whereHas('salon', function ($query) {
-                    $query->where('is_active', true);
-                })
-                ->with(['salon:id,name,slug,code,city,district'])
-                ->select([
-                    'id',
-                    'salon_id',
-                    'name',
-                    'specialty',
-                    'bio',
-                    'image_path',
-                ])
-                ->withCount([
-                    'bookings' => function ($query) {
-                        $query->where('status', '!=', 'cancelled');
-                    },
-                ])
-                ->orderByDesc('bookings_count')
-                ->latest('id')
-                ->limit(self::STYLIST_LIMIT)
-                ->get()
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Service categories
-        |--------------------------------------------------------------------------
-        */
-
-        $serviceCategories = $this->serviceCategories();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Stats
-        |--------------------------------------------------------------------------
-        */
-
-        $stats = Cache::remember(
-            'discover:stats:v3',
-            now()->addSeconds(self::CACHE_STATS_SECONDS),
-            fn () => [
-                'salons' => Salon::query()->where('is_active', true)->count(),
-                'barbers' => Barber::query()->where('is_active', true)->count(),
-                'services' => Service::query()->where('is_active', true)->count(),
-            ]
-        );
-
-        /*
-        |--------------------------------------------------------------------------
         | View
         |--------------------------------------------------------------------------
         */
@@ -420,13 +327,9 @@ class DiscoverController extends Controller
                 'salons',
                 'popularSalons',
                 'featuredSalon',
-                'popularServices',
                 'serviceOptions',
-                'stylists',
-                'serviceCategories',
                 'provinces',
                 'cities',
-                'stats',
                 'filters',
                 'hasGeo',
                 'isSearchMode',
