@@ -525,13 +525,6 @@
             panel.classList.add('is-loading');
         });
 
-        const onEscape = (event) => {
-            if (event.key === 'Escape' && panel.classList.contains('is-open')) {
-                setOpen(false);
-            }
-        };
-
-        document.addEventListener('keydown', onEscape);
     };
 
     bindFilterPanel();
