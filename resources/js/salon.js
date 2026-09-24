@@ -1733,13 +1733,47 @@
 
                 /*
                 |--------------------------------------------------------------------------
-                | Backend may redirect guests to Login after saving the
-                | pending booking in session. Handle redirect before
-                | treating HTTP 401/403 as a generic error.
+                | A booking prepare request must return JSON.
+                |
+                | If middleware/session/auth turns it into a normal HTTP redirect,
+                | fetch follows that redirect and the final response may be HTML.
+                | Never treat that HTML response as a successful booking handoff.
                 |--------------------------------------------------------------------------
                 */
 
-                if (data?.redirect && (data?.requires_auth || response.ok)) {
+                if (response.status === 401) {
+                    window.location.assign(
+                        LOGIN_URL
+                    );
+
+                    return;
+                }
+
+                if (!contentType.includes('application/json')) {
+                    if (response.redirected) {
+                        window.location.assign(
+                            response.url
+                        );
+
+                        return;
+                    }
+
+                    throw new Error(
+                        'پاسخ سرور معتبر نبود. لطفاً دوباره تلاش کن.'
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Backend may require authentication after saving the
+                | pending booking in session.
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    data?.redirect &&
+                    data?.requires_auth
+                ) {
                     window.location.assign(
                         data.redirect
                     );
