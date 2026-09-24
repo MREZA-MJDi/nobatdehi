@@ -71,6 +71,18 @@
                     </a>
                 @endforeach
             </div>
+
+            <div class="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-[var(--color-content-muted)] sm:mt-6">
+                <span class="font-semibold">صاحب سالن هستید؟</span>
+
+                <a
+                    href="{{ route('salon.login') }}"
+                    class="inline-flex items-center gap-1.5 font-black text-[var(--color-accent-600)] transition hover:text-[var(--color-accent-700)]"
+                >
+                    ورود به پنل سالن
+                    <span aria-hidden="true">←</span>
+                </a>
+            </div>
         </div>
 
         @php
