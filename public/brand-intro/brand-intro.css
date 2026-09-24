@@ -19,13 +19,14 @@ body {
 body {
     overflow: hidden;
 
-    background: #090908;
+    background: #080809;
 
     color-scheme: dark;
 
     font-family:
-        "Vazirmatn",
-        Tahoma,
+        Inter,
+        "Helvetica Neue",
+        Helvetica,
         Arial,
         sans-serif;
 
@@ -49,8 +50,20 @@ body {
 
     overflow: hidden;
 
-    background: #090908;
-    color: #efeee8;
+    background:
+        radial-gradient(
+            circle at 50% 42%,
+            rgba(103, 87, 232, .10),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 15% 85%,
+            rgba(255, 255, 255, .025),
+            transparent 24%
+        ),
+        #080809;
+
+    color: #f5f5f0;
 
     isolation: isolate;
 
@@ -112,8 +125,8 @@ body {
 .brand-stage {
     position: relative;
 
-    width: min(1100px, 92vw);
-    height: min(700px, 80vh);
+    width: min(1220px, 91vw);
+    height: min(760px, 84vh);
 
     display: grid;
     place-items: center;
@@ -137,7 +150,45 @@ body {
 
     align-items: center;
 
-    transform: translateY(-3vh);
+    transform: translateY(-4vh);
+}
+
+
+/* =========================================================
+   BRAND KICKER
+========================================================= */
+
+.brand-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    color: rgba(245, 245, 240, .42);
+    font-size: 9px;
+    font-weight: 650;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(10px);
+    animation:
+        kicker-in
+        700ms
+        cubic-bezier(.16, 1, .3, 1)
+        250ms
+        forwards;
+}
+
+.brand-kicker-rule {
+    width: 34px;
+    height: 1px;
+    background: rgba(245, 245, 240, .18);
+}
+
+@keyframes kicker-in {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
@@ -168,20 +219,20 @@ body {
 
     font-size:
         clamp(
-            2.7rem,
-            6.2vw,
-            5.2rem
+            4.5rem,
+            11vw,
+            9.4rem
         );
 
-    font-weight: 500;
+    font-weight: 450;
 
-    line-height: 0.9;
+    line-height: .86;
 
-    letter-spacing: 0.19em;
+    letter-spacing: .13em;
 
-    padding-left: 0.19em;
+    padding-left: .13em;
 
-    color: #f0efe9;
+    color: #f3f2ed;
 
     opacity: 0;
 
@@ -234,8 +285,8 @@ body {
     left: 50%;
     top: 50%;
 
-    width: 560px;
-    height: 170px;
+    width: 780px;
+    height: 230px;
 
     transform:
         translate(-50%, -50%);
@@ -252,7 +303,7 @@ body {
     height: 1px;
 
     background:
-        rgba(239, 238, 232, 0.72);
+        rgba(243, 242, 237, .46);
 
     opacity: 0;
 
@@ -439,10 +490,6 @@ body {
 
 
 /* =========================================================
-   PERSIAN TAGLINE
-========================================================= */
-
-/* =========================================================
    TOP FRAME LINE
 ========================================================= */
 
@@ -488,78 +535,83 @@ body {
 
 
 /* =========================================================
-   PERSIAN TAGLINE
+   BRAND MESSAGE
 ========================================================= */
 
 .brand-tagline {
     position: relative;
-
     z-index: 4;
 
-    margin-top: 34px;
+    margin-top: 38px;
 
-    direction: rtl;
+    color: rgba(245, 245, 240, .92);
 
-    font-family:
-        "Vazirmatn",
-        Tahoma,
-        Arial,
-        sans-serif;
-
-    font-size:
-        clamp(
-            0.95rem,
-            2.1vw,
-            1.35rem
-        );
-
-    font-weight: 400;
-
-    line-height: 2;
-
-    white-space: nowrap;
-
+    font-size: clamp(1rem, 1.65vw, 1.35rem);
+    font-weight: 650;
+    line-height: 1.4;
+    letter-spacing: .18em;
     text-align: center;
 
-    color:
-        rgba(239, 238, 232, 0.9);
-
     opacity: 0;
-
-    transform:
-        translate3d(0, 24px, 0)
-        skewX(-5deg);
-
+    transform: translateY(22px);
     filter: blur(4px);
 
     animation:
         tagline-in
         850ms
-        cubic-bezier(0.16, 1, 0.3, 1)
-        2050ms
+        cubic-bezier(.16, 1, .3, 1)
+        1750ms
         forwards;
 }
 
+.brand-subtitle {
+    max-width: 540px;
+    margin: 14px auto 0;
+
+    color: rgba(245, 245, 240, .38);
+
+    font-size: clamp(.75rem, 1.05vw, .9rem);
+    font-weight: 400;
+    line-height: 1.8;
+    letter-spacing: .01em;
+    text-align: center;
+
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(4px);
+
+    animation:
+        subtitle-in
+        850ms
+        cubic-bezier(.16, 1, .3, 1)
+        1900ms
+        forwards;
+}
 
 @keyframes tagline-in {
-
-    0% {
+    from {
         opacity: 0;
-
-        transform:
-            translate3d(0, 24px, 0)
-            skewX(-5deg);
-
+        transform: translateY(22px);
         filter: blur(4px);
     }
 
-    100% {
+    to {
         opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
 
-        transform:
-            translate3d(0, 0, 0)
-            skewX(0);
+@keyframes subtitle-in {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+        filter: blur(4px);
+    }
 
+    to {
+        opacity: 1;
+        transform: translateY(0);
         filter: blur(0);
     }
 }
@@ -629,7 +681,10 @@ body {
     gap: 5px;
 
     font-family:
-        "Vazirmatn",
+        Inter,
+        "Helvetica Neue",
+        Helvetica,
+        Arial,
         sans-serif;
 
     font-size: 7px;
@@ -684,15 +739,15 @@ body {
 
     align-items: center;
     justify-content: center;
-    gap: 14px;
+    gap: 12px;
 
-    min-height: 50px;
+    min-height: 52px;
 
     border: 1px solid rgba(239, 238, 232, 0.16);
 
     border-radius: 999px;
 
-    background: rgba(255, 255, 255, 0.025);
+    background: rgba(255, 255, 255, 0.035);
 
     color: #efeee8;
 
@@ -701,8 +756,9 @@ body {
         0.75rem 1.35rem;
 
     font-family:
-        "Vazirmatn",
-        Tahoma,
+        Inter,
+        "Helvetica Neue",
+        Helvetica,
         Arial,
         sans-serif;
 
@@ -831,7 +887,7 @@ body {
     position: absolute;
 
     left: 50%;
-    bottom: 2.5%;
+    bottom: 3.6%;
 
     z-index: 20;
 
@@ -881,6 +937,44 @@ body {
     }
 }
 
+
+/* =========================================================
+   FOOTER META
+========================================================= */
+
+.brand-footer-meta {
+    position: absolute;
+
+    left: 50%;
+    bottom: 3.55%;
+
+    z-index: 10;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+
+    transform: translateX(-50%);
+
+    color: rgba(245, 245, 240, .18);
+
+    font-size: 7px;
+    font-weight: 650;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+
+    white-space: nowrap;
+}
+
+.brand-footer-meta i {
+    width: 3px;
+    height: 3px;
+    flex: 0 0 3px;
+
+    border-radius: 50%;
+
+    background: rgba(245, 245, 240, .20);
+}
 
 /* =========================================================
    SIGNATURE MARK
@@ -1053,7 +1147,7 @@ body {
     .brand-stage {
         width: 100vw;
 
-        height: 80vh;
+        height: 82vh;
     }
 
 
@@ -1067,22 +1161,22 @@ body {
 
         font-size:
             clamp(
-                2.45rem,
-                13vw,
-                4rem
+                3.35rem,
+                18vw,
+                5.6rem
             );
 
-        letter-spacing: 0.12em;
+        letter-spacing: .08em;
 
-        padding-left: 0.12em;
+        padding-left: .08em;
     }
 
 
     .kinetic-frame {
 
-        width: 330px;
+        width: 360px;
 
-        height: 145px;
+        height: 165px;
     }
 
 
@@ -1112,20 +1206,21 @@ body {
 
     .brand-tagline {
 
-        margin-top: 27px;
+        margin-top: 26px;
 
-        max-width: 90vw;
+        max-width: 92vw;
 
         white-space: normal;
 
         font-size:
             clamp(
-                0.88rem,
-                4vw,
-                1.08rem
+                .82rem,
+                3.6vw,
+                1rem
             );
 
-        line-height: 2;
+        letter-spacing: .15em;
+        line-height: 1.6;
     }
 
 
@@ -1173,6 +1268,28 @@ body {
         width: 86px;
     }
 
+
+    .brand-kicker {
+        gap: 8px;
+        margin-bottom: 20px;
+        font-size: 7px;
+        letter-spacing: .19em;
+    }
+
+    .brand-kicker-rule {
+        width: 22px;
+    }
+
+    .brand-subtitle {
+        width: min(88vw, 360px);
+        margin-top: 12px;
+        font-size: .7rem;
+        line-height: 1.8;
+    }
+
+    .brand-footer-meta {
+        display: none;
+    }
 
     .line-top {
         width: 105px;
