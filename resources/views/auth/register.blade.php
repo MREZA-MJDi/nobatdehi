@@ -421,7 +421,7 @@
             </div>
 
             <a
-                href="{{ route('salon.login') }}"
+                href="{{ route('login', ['entry' => 'salon']) }}"
                 class="mt-2 inline-flex items-center gap-1.5 text-[10px] font-black text-content-muted transition hover:text-accent-600"
             >
                 صاحب سالن هستی؟ ورود به پنل سالن
