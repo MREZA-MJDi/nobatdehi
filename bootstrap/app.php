@@ -28,6 +28,9 @@ return Application::configure(
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request, Throwable $exception) =>
+                $request->ajax() || $request->expectsJson()
+        );
     })
     ->create();
