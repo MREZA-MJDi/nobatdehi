@@ -9,8 +9,6 @@
         ? $filters
         : [];
 
-    $isSearchMode = $isSearchMode ?? false;
-
     $filters = array_merge([
         'q' => '',
         'type' => '',
