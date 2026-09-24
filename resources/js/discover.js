@@ -202,6 +202,25 @@
             bindResultInteractions();
             bindFilterPanel();
 
+            page.querySelectorAll('[data-discover-reset]').forEach((link) => {
+                if (link.dataset.discoverResetBound) return;
+
+                link.dataset.discoverResetBound = '1';
+
+                link.addEventListener('click', (event) => {
+                    const url = new URL(link.href, window.location.origin);
+
+                    if (url.pathname !== window.location.pathname) return;
+
+                    event.preventDefault();
+                    closeFilterPanel();
+
+                    requestDiscover(url, {
+                        scroll: true,
+                    });
+                });
+            });
+
             if (!openFilterResult) {
                 document.body.classList.remove('discover-filters-open');
             }
@@ -373,48 +392,21 @@
             });
         });
 
-        const province = page.querySelector('#discover-filter-province');
-        const city = page.querySelector('#discover-filter-city');
-
-        if (province && city && !province.dataset.discoverBound) {
-            province.dataset.discoverBound = '1';
-
-            province.addEventListener('change', () => {
-                city.disabled = true;
-
-                submitDiscoverForm(
-                    province.form,
-                    {
-                        scroll: true,
-                    }
-                ).finally(() => {
-                    const freshCity = page.querySelector('#discover-filter-city');
-
-                    if (freshCity) {
-                        freshCity.disabled = false;
-                    }
-                });
-            });
-        }
     };
 
     page.querySelectorAll('form[action*="salons/discover"]').forEach((form) => {
-        if (form.closest('#results')) return;
-
-        if (form.dataset.discoverBound) return;
+        if (form.id === 'discoverFilterForm' || form.dataset.discoverBound) {
+            return;
+        }
 
         form.dataset.discoverBound = '1';
 
         form.addEventListener('submit', (event) => {
             event.preventDefault();
 
-            submitDiscoverForm(
-                form,
-                {
-                    scroll: form.id !== 'discoverFilterForm',
-                    openFilterResult: form.id === 'discoverFilterForm',
-                }
-            );
+            submitDiscoverForm(form, {
+                scroll: true,
+            });
         });
     });
 
@@ -432,6 +424,24 @@
         }
 
         openButton.dataset.filtersBound = '1';
+
+        const form = panel.querySelector('#discoverFilterForm');
+
+        if (form && !form.dataset.discoverBound) {
+            form.dataset.discoverBound = '1';
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                panel.classList.add('is-loading');
+
+                submitDiscoverForm(form, {
+                    scroll: false,
+                    openFilterResult: true,
+                }).finally(() => {
+                    panel.classList.remove('is-loading');
+                });
+            });
+        }
 
         const setOpen = (open) => {
             panel.classList.toggle('is-open', open);
@@ -487,6 +497,26 @@
     };
 
     bindFilterPanel();
+
+    page.querySelectorAll('[data-discover-reset]').forEach((link) => {
+        if (link.dataset.discoverResetBound) return;
+
+        link.dataset.discoverResetBound = '1';
+
+        link.addEventListener('click', (event) => {
+            const url = new URL(link.href, window.location.origin);
+
+            if (url.pathname !== window.location.pathname) return;
+
+            event.preventDefault();
+
+            closeFilterPanel();
+
+            requestDiscover(url, {
+                scroll: true,
+            });
+        });
+    });
 
     /*
      |--------------------------------------------------------------------------
