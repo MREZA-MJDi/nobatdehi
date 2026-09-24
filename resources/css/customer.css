@@ -5953,37 +5953,6 @@
 
 
     /* ==========================================================================
-       REVEAL
-       ========================================================================== */
-
-    @media (prefers-reduced-motion: no-preference) {
-
-        .discover-result-card,
-        .discover-salon-card,
-        .discover-service-card,
-        .discover-stylist-card {
-            opacity: 0;
-
-            transform: translateY(10px);
-
-            transition:
-                opacity .45s ease,
-                transform .45s ease,
-                box-shadow .2s ease;
-        }
-
-        .discover-result-card.is-visible,
-        .discover-salon-card.is-visible,
-        .discover-service-card.is-visible,
-        .discover-stylist-card.is-visible {
-            opacity: 1;
-
-            transform: translateY(0);
-        }
-    }
-
-
-    /* ==========================================================================
        TABLET
        ========================================================================== */
 
