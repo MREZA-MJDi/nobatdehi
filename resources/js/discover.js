@@ -269,23 +269,6 @@
         }
     };
 
-    page.querySelectorAll('[data-discover-search-close]').forEach((button) => {
-        button.addEventListener('click', closeSearchModal);
-    });
-
-    searchModalSeeAll?.addEventListener('click', () => {
-        closeSearchModal();
-
-        requestAnimationFrame(() => {
-            const results = page.querySelector('#results');
-
-            results?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-            });
-        });
-    });
-
     const bindResultInteractions = () => {
         const resultForm = page.querySelector('#results form[action*="salons/discover"]');
 
@@ -327,7 +310,6 @@
                 submitDiscoverForm(
                     province.form,
                     {
-                        showOverlay: false,
                         scroll: true,
                     }
                 ).finally(() => {
@@ -441,8 +423,7 @@
             requestDiscover(
                 url,
                 {
-                    showOverlay: true,
-                    scroll: false,
+                    scroll: true,
                 }
             );
         });
