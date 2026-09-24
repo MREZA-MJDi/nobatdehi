@@ -25,8 +25,7 @@
         {
             push = true,
             scroll = true,
-            showOverlay = false,
-        } = {}
+            } = {}
     ) => {
         const nextUrl = new URL(
             url,
@@ -55,10 +54,6 @@
         activeRequestController = controller;
 
         setLoading(true);
-
-        if (showOverlay) {
-            openSearchModal({ loading: true });
-        }
 
         try {
             const response = await fetch(requestUrl, {
@@ -177,22 +172,8 @@
             bindFilterPanel();
             observeReveals();
 
-            if (showOverlay) {
-                const freshResults =
-                    freshDynamic.querySelector(
-                        '#results'
-                    );
-
-                if (freshResults) {
-                    renderSearchModal(
-                        freshResults
-                    );
-                }
-            }
-
             if (
                 scroll &&
-                !showOverlay &&
                 requestId === activeRequestId
             ) {
                 requestAnimationFrame(() => {
@@ -216,13 +197,6 @@
             }
 
             console.error(error);
-
-            if (
-                showOverlay &&
-                requestId === activeRequestId
-            ) {
-                closeSearchModal();
-            }
 
             notifyError(
                 error?.code === 'DISCOVER_REQUEST_FAILED' &&
@@ -277,123 +251,6 @@
         );
     };
 
-    /* -----------------------------------------------------------------------
-       Hero search result modal
-       ----------------------------------------------------------------------- */
-
-    const searchModal = page.querySelector('#discoverSearchModal');
-    const searchModalBody = page.querySelector('#discoverSearchResults');
-    const searchModalTitle = page.querySelector('#discoverSearchTitle');
-    const searchModalMeta = page.querySelector('#discoverSearchMeta');
-    const searchModalSeeAll = page.querySelector('#discoverSearchSeeAll');
-
-    const openSearchModal = ({ loading = false } = {}) => {
-        if (!searchModal) return;
-
-        searchModal.hidden = false;
-        searchModal.setAttribute('aria-hidden', 'false');
-        document.body.classList.add('discover-search-modal-open');
-
-        if (loading && searchModalBody) {
-            searchModalBody.setAttribute('aria-busy', 'true');
-            searchModalBody.innerHTML = `
-                <div class="discover-search-loading">
-                    <span class="discover-search-spinner" aria-hidden="true"></span>
-                    <strong>داریم بهترین گزینه‌ها را پیدا می‌کنیم...</strong>
-                    <small>نتیجه واقعی از سیستم NOBAT دریافت می‌شود.</small>
-                </div>
-            `;
-
-            if (searchModalTitle) {
-                searchModalTitle.textContent = 'در حال جستجو';
-            }
-
-            if (searchModalMeta) {
-                searchModalMeta.textContent = 'چند لحظه...';
-            }
-        }
-
-        requestAnimationFrame(() => {
-            searchModal.classList.add('is-open');
-            searchModal.querySelector('#discoverSearchClose')?.focus();
-        });
-    };
-
-    const closeSearchModal = () => {
-        if (!searchModal) return;
-
-        searchModal.classList.remove('is-open');
-        searchModal.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('discover-search-modal-open');
-
-        window.setTimeout(() => {
-            if (!searchModal.classList.contains('is-open')) {
-                searchModal.hidden = true;
-            }
-        }, 180);
-    };
-
-    const renderSearchModal = (freshResults) => {
-        if (!searchModal || !searchModalBody) return;
-
-        const title =
-            freshResults
-                .querySelector('#discover-results-title')
-                ?.textContent
-                ?.replace(/\\s+/g, ' ')
-                ?.trim()
-            || 'نتایج جستجو';
-
-        const cards = Array.from(
-            freshResults.querySelectorAll('.discover-result-card')
-        ).slice(0, 6);
-
-        const totalText =
-            freshResults
-                .querySelector('.mb-5')
-                ?.textContent
-                ?.replace(/\\s+/g, ' ')
-                ?.trim();
-
-        searchModalTitle && (searchModalTitle.textContent = title);
-        searchModalMeta && (
-            searchModalMeta.textContent =
-                cards.length > 0
-                    ? (totalText || `${cards.length} سالن در این صفحه`)
-                    : 'برای این جستجو نتیجه‌ای پیدا نشد.'
-        );
-
-        searchModalBody.innerHTML = '';
-        searchModalBody.setAttribute('aria-busy', 'false');
-
-        if (!cards.length) {
-            searchModalBody.innerHTML = `
-                <div class="discover-search-empty">
-                    <div class="discover-search-empty-icon">⌕</div>
-                    <strong>نتیجه‌ای پیدا نشد</strong>
-                    <p>عبارت جستجو یا فیلترها را کمی تغییر بده و دوباره امتحان کن.</p>
-                </div>
-            `;
-        } else {
-            const grid = document.createElement('div');
-            grid.className = 'discover-search-results-grid';
-
-            cards.forEach((card) => {
-                grid.appendChild(card.cloneNode(true));
-            });
-
-            searchModalBody.appendChild(grid);
-        }
-
-        openSearchModal();
-
-        requestAnimationFrame(() => {
-            searchModalBody
-                .querySelector('a')
-                ?.focus({ preventScroll: true });
-        });
-    };
-
     const syncHeroSearchInputs = (url) => {
         const heroQuery = page.querySelector(
             '.discover-search-field input[name="q"]'
@@ -438,7 +295,6 @@
             resultForm.addEventListener('submit', (event) => {
                 event.preventDefault();
                 submitDiscoverForm(resultForm, {
-                    showOverlay: false,
                     scroll: true,
                 });
             });
@@ -498,8 +354,7 @@
             submitDiscoverForm(
                 form,
                 {
-                    showOverlay: true,
-                    scroll: false,
+                    scroll: true,
                 }
             );
         });
