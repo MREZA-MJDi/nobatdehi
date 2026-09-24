@@ -617,6 +617,7 @@
         if (!locationModal) return;
 
         locationModal.classList.remove('is-open');
+        document.body.classList.remove('discover-location-open');
         locationModal.setAttribute('aria-hidden', 'true');
 
         window.setTimeout(() => {
@@ -630,6 +631,7 @@
         if (!locationModal) return;
 
         locationModal.hidden = false;
+        document.body.classList.add('discover-location-open');
 
         requestAnimationFrame(() => {
             locationModal.classList.add('is-open');
@@ -804,7 +806,10 @@
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
 
-        if (panel?.classList.contains('is-open')) {
+        const openFilterPanelElement =
+            page.querySelector('#discoverFiltersPanel.is-open');
+
+        if (openFilterPanelElement) {
             closeFilterPanel();
             return;
         }
