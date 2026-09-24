@@ -197,6 +197,63 @@
     gap: .4rem;
 }
 
+.customer-salon-entry {
+    display: inline-flex;
+
+    min-height: 2.45rem;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: .35rem;
+
+    padding: .45rem .7rem;
+
+    border: 1px solid var(--color-accent-200);
+
+    border-radius: .75rem;
+
+    background: color-mix(
+        in srgb,
+        var(--color-accent-50) 72%,
+        transparent
+    );
+
+    color: var(--color-accent-700);
+
+    font-size: .68rem;
+
+    font-weight: 850;
+
+    white-space: nowrap;
+
+    transition:
+        transform .18s ease,
+        background-color .18s ease,
+        border-color .18s ease,
+        color .18s ease;
+}
+
+.customer-salon-entry span:last-child {
+    font-size: .8rem;
+
+    transition: transform .18s ease;
+}
+
+.customer-salon-entry:hover {
+    transform: translateY(-1px);
+
+    border-color: var(--color-accent-300);
+
+    background: var(--color-accent-100);
+
+    color: var(--color-accent-800);
+}
+
+.customer-salon-entry:hover span:last-child {
+    transform: translateX(-2px);
+}
+
 
 /* ==========================================================================
    BUTTONS
@@ -3664,6 +3721,10 @@
     .customer-header-actions {
         margin-inline-start:
             auto;
+    }
+
+    .customer-salon-entry {
+        display: none;
     }
 
     .customer-brand-caption {
