@@ -103,7 +103,7 @@
                     <span class="mobile-bottom-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24">
                             <circle cx="12" cy="8" r="3.5" />
-                            <path d="M5 21c.8-4 3.2-6 7 6" />
+                            <path d="M5 21c.8-4 3.2-6 7-6s6.2 2 7 6" />
                         </svg>
                     </span>
 
