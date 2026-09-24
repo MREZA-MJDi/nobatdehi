@@ -77,21 +77,6 @@
             @include('customer.discover.sections.results')
         </div>
 
-        {{-- =========================================================
-            SECONDARY DISCOVERY CONTENT
-        ========================================================== --}}
-
-        @include('customer.discover.sections.services')
-
-        @include('customer.discover.sections.popular-salons')
-
-        @include('customer.discover.sections.stylists')
-
-        @include('customer.discover.sections.stats')
-
-        @include('customer.discover.sections.owner-cta')
-
-
         <div
             class="discover-location-modal"
             id="discoverLocationModal"
