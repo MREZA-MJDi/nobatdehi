@@ -1534,15 +1534,8 @@ class DiscoverController extends Controller
             )
         );
 
-        $radii = collect(self::NEARBY_RADII)
-            ->filter(fn ($radius) => $radius < $requestedRadius)
-            ->push($requestedRadius)
-            ->unique()
-            ->sort()
-            ->values();
-
         $cacheKey = sprintf(
-            'discover:nearby:v3:%0.4f:%0.4f:%0.1f',
+            'discover:nearby:v4:%0.5f:%0.5f:%0.1f',
             (float) $filters['lat'],
             (float) $filters['lng'],
             $requestedRadius
@@ -1551,55 +1544,45 @@ class DiscoverController extends Controller
         return Cache::remember(
             $cacheKey,
             now()->addSeconds(self::CACHE_NEARBY_SECONDS),
-            function () use (
-                $filters,
-                $radii,
-                $requestedRadius
-            ) {
-                foreach ($radii as $radius) {
-                    $nearbyFilters = $filters;
-                    $nearbyFilters['radius'] = $radius;
+            function () use ($filters, $requestedRadius) {
+                /*
+                |--------------------------------------------------------------------------
+                | Nearby means genuinely inside the requested radius.
+                |
+                | We intentionally do one geo query instead of silently expanding
+                | the radius through several fallback queries. The UI can tell the
+                | user when nothing exists in the selected radius.
+                |--------------------------------------------------------------------------
+                */
 
-                    $query = $this->baseSalonQuery();
+                $nearbyFilters = $filters;
+                $nearbyFilters['radius'] = $requestedRadius;
 
-                    $query->with([
-                        'barbers' => function ($query) {
-                            $query
-                                ->where('is_active', true)
-                                ->select([
-                                    'id',
-                                    'salon_id',
-                                    'name',
-                                    'specialty',
-                                    'image_path',
-                                ])
-                                ->orderBy('name');
-                        },
-                    ]);
+                $query = $this->baseSalonQuery();
 
-                    $this->applyGeo(
-                        $query,
-                        $nearbyFilters
-                    );
+                $this->applyGeo(
+                    $query,
+                    $nearbyFilters
+                );
 
-                    $results = $query
-                        ->orderBy('distance_km')
-                        ->orderByDesc('reviews_avg_rating')
-                        ->limit(self::NEARBY_LIMIT)
-                        ->get();
+                $results = $query
+                    ->orderBy('distance_km')
+                    ->orderByDesc('reviews_avg_rating')
+                    ->orderByDesc('reviews_count')
+                    ->limit(self::NEARBY_LIMIT)
+                    ->get();
 
-                    if ($results->isNotEmpty()) {
-                        $this->attachCardServices($results);
-
-                        return [
-                            'items' => $results,
-                            'radius' => $radius,
-                        ];
-                    }
+                if ($results->isEmpty()) {
+                    return [
+                        'items' => collect(),
+                        'radius' => $requestedRadius,
+                    ];
                 }
 
+                $this->attachCardServices($results);
+
                 return [
-                    'items' => collect(),
+                    'items' => $results,
                     'radius' => $requestedRadius,
                 ];
             }
