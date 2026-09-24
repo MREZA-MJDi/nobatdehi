@@ -1284,29 +1284,51 @@ class DiscoverController extends Controller
             });
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Haversine distance
+        |--------------------------------------------------------------------------
+        |
+        | Keep the bounding box above as the first coarse filter. Then apply
+        | the exact radius in WHERE rather than HAVING so pagination/count
+        | queries do not depend on a computed select alias.
+        |--------------------------------------------------------------------------
+        */
+
+        $distanceExpression = sprintf(
+            '(
+                6371 * ACOS(
+                    GREATEST(
+                        -1,
+                        LEAST(
+                            1,
+                            COS(RADIANS(%.7F))
+                            * COS(RADIANS(salons.latitude))
+                            * COS(
+                                RADIANS(salons.longitude)
+                                - RADIANS(%.7F)
+                            )
+                            + SIN(RADIANS(%.7F))
+                            * SIN(RADIANS(salons.latitude))
+                        )
+                    )
+                )
+            )',
+            $lat,
+            $lng,
+            $lat
+        );
+
         $query
             ->addSelect(
                 DB::raw(
-                    "(
-                        6371 * ACOS(
-                            GREATEST(
-                                -1,
-                                LEAST(
-                                    1,
-                                    COS(RADIANS(" . $lat . "))
-                                    * COS(RADIANS(salons.latitude))
-                                    * COS(
-                                        RADIANS(salons.longitude)
-                                        - RADIANS(" . $lng . ")
-                                    )
-                                    + SIN(RADIANS(" . $lat . "))
-                                    * SIN(RADIANS(salons.latitude))
-                                )
-                            )
-                        ) AS distance_km"
+                    $distanceExpression . ' AS distance_km'
                 )
             )
-            ->having('distance_km', '<=', $radius);
+            ->whereRaw(
+                $distanceExpression . ' <= ?',
+                [$radius]
+            );
     }
 
     /*
