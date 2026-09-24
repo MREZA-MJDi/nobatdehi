@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\PublicSite;
 
 use App\Http\Controllers\Controller;
-use App\Models\Barber;
 use App\Models\Salon;
 use App\Models\Service;
 use App\Services\Booking\AvailabilityService;
@@ -24,10 +23,6 @@ class DiscoverController extends Controller
 
     private const POPULAR_SALONS_LIMIT = 6;
 
-    private const POPULAR_SERVICES_LIMIT = 8;
-
-    private const STYLIST_LIMIT = 18;
-
     private const CARD_SERVICES_LIMIT = 3;
 
     private const SERVICE_OPTIONS_LIMIT = 40;
@@ -39,8 +34,6 @@ class DiscoverController extends Controller
     private const CACHE_POPULAR_SECONDS = 120;
 
     private const CACHE_OPTIONS_SECONDS = 600;
-
-    private const CACHE_STATS_SECONDS = 120;
 
     /*
     |--------------------------------------------------------------------------
@@ -59,30 +52,6 @@ class DiscoverController extends Controller
         $filters = $this->extractFilters($request);
 
         $hasGeo = $this->hasGeo($filters);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Search mode
-        |--------------------------------------------------------------------------
-        */
-
-        $isSearchMode =
-            $filters['q'] !== ''
-            || $filters['type'] !== ''
-            || $filters['service'] !== null
-            || $filters['province'] !== ''
-            || $filters['city'] !== ''
-            || $filters['location'] !== ''
-            || $filters['district'] !== ''
-            || (float) $filters['min_rating'] > 0
-            || (
-                is_numeric($filters['price_max'])
-                && (float) $filters['price_max'] > 0
-            )
-            || $filters['open_now']
-            || $filters['today']
-            || $hasGeo
-            || $filters['sort'] !== 'recommended';
 
         /*
         |--------------------------------------------------------------------------
@@ -278,8 +247,7 @@ class DiscoverController extends Controller
                     'provinces',
                     'cities',
                     'filters',
-                    'hasGeo',
-                    'isSearchMode'
+                    'hasGeo'
                 )
             );
         }
@@ -332,7 +300,6 @@ class DiscoverController extends Controller
                 'cities',
                 'filters',
                 'hasGeo',
-                'isSearchMode',
             )
         );
     }
@@ -1407,66 +1374,6 @@ class DiscoverController extends Controller
 
                 break;
         }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Service categories
-    |--------------------------------------------------------------------------
-    */
-
-    private function serviceCategories(): array
-    {
-        return config(
-            'services.categories',
-            [
-                [
-                    'key' => 'haircut',
-                    'label' => 'اصلاح و کوتاهی',
-                    'icon' => 'scissors',
-                ],
-                [
-                    'key' => 'color',
-                    'label' => 'رنگ و مش',
-                    'icon' => 'palette',
-                ],
-                [
-                    'key' => 'keratin',
-                    'label' => 'کراتین و احیا',
-                    'icon' => 'sparkles',
-                ],
-                [
-                    'key' => 'nails',
-                    'label' => 'ناخن',
-                    'icon' => 'hand',
-                ],
-                [
-                    'key' => 'makeup',
-                    'label' => 'میکاپ',
-                    'icon' => 'brush',
-                ],
-                [
-                    'key' => 'brows',
-                    'label' => 'ابرو و مژه',
-                    'icon' => 'eye',
-                ],
-                [
-                    'key' => 'skin',
-                    'label' => 'پوست',
-                    'icon' => 'droplet',
-                ],
-                [
-                    'key' => 'massage',
-                    'label' => 'ماساژ',
-                    'icon' => 'heart',
-                ],
-                [
-                    'key' => 'bridal',
-                    'label' => 'عروس',
-                    'icon' => 'crown',
-                ],
-            ]
-        );
     }
 
     /*
