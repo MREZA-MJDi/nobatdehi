@@ -14,6 +14,11 @@ use Illuminate\View\View;
 
 class DiscoverController extends Controller
 {
+    public function __construct(
+        private readonly AvailabilityService $availability
+    ) {
+    }
+
     private const PER_PAGE = 12;
 
     private const NEARBY_LIMIT = 6;
@@ -177,7 +182,7 @@ class DiscoverController extends Controller
         }
 
         if ($filters['today']) {
-            $this->applyHasSlotToday(
+            $this->applyHasAvailableSlotToday(
                 $salonQuery
             );
         }
@@ -1149,61 +1154,133 @@ class DiscoverController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Has slot today
+    | Actual availability today
     |--------------------------------------------------------------------------
     |
-    | فعلاً تخمینی است.
-    | یعنی:
-    | امروز بسته نباشد + working hour فعال داشته باشد.
+    | "today" means the salon has at least one genuinely bookable
+    | slot today for an active barber and an active service.
+    |
+    | We first reduce the candidate salons using the already-built
+    | Discover query, then evaluate the real booking availability for
+    | those candidates with the same AvailabilityService used by Booking.
     |--------------------------------------------------------------------------
     */
 
-    private function applyHasSlotToday(
+    private function applyHasAvailableSlotToday(
         $query
     ): void {
-        $now = Carbon::now();
+        $candidateIds = (clone $query)
+            ->reorder()
+            ->select('salons.id')
+            ->distinct()
+            ->pluck('salons.id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
 
-        $dayOfWeek = ($now->dayOfWeek + 1) % 7;
+        if ($candidateIds->isEmpty()) {
+            $query->whereIn('salons.id', [0]);
+            return;
+        }
 
-        $today = $now->toDateString();
+        $timezone = config('app.timezone', 'Asia/Tehran');
+        $today = Carbon::now($timezone)->startOfDay();
+        $todayString = $today->toDateString();
 
-        $query
-
-            ->whereDoesntHave(
-                'dailyStatuses',
-                function ($query) use (
-                    $today
-                ) {
-                    $query
-                        ->where(
-                            'date',
-                            $today
-                        )
-                        ->where(
-                            'is_closed',
-                            true
-                        );
-                }
-            )
-
-            ->whereHas(
+        $candidateSalons = Salon::query()
+            ->whereIn('id', $candidateIds)
+            ->with([
                 'workingHours',
-                function ($query) use (
-                    $dayOfWeek
-                ) {
-                    $query
-                        ->where(
-                            'day_of_week',
-                            $dayOfWeek
-                        )
-                        ->where(
-                            'is_closed',
-                            false
-                        )
-                        ->whereNotNull('start_time')
-                        ->whereNotNull('end_time');
-                }
+                'dailyStatuses' => function ($relation) use ($todayString) {
+                    $relation->whereDate('date', $todayString);
+                },
+                'services' => function ($relation) {
+                    $relation
+                        ->where('is_active', true)
+                        ->orderBy('duration_minutes')
+                        ->orderBy('id');
+                },
+                'barbers' => function ($relation) {
+                    $relation
+                        ->where('is_active', true)
+                        ->orderBy('id');
+                },
+            ])
+            ->get();
+
+        $availableSalonIds = $candidateSalons
+            ->filter(fn (Salon $salon): bool =>
+                $this->salonHasAvailableSlotToday(
+                    $salon,
+                    $today
+                )
+            )
+            ->pluck('id')
+            ->values();
+
+        if ($availableSalonIds->isEmpty()) {
+            $query->whereIn('salons.id', [0]);
+            return;
+        }
+
+        $query->whereIn(
+            'salons.id',
+            $availableSalonIds->all()
+        );
+    }
+
+    private function salonHasAvailableSlotToday(
+        Salon $salon,
+        Carbon $today
+    ): bool {
+        if (! $salon->is_active) {
+            return false;
+        }
+
+        $dailyStatus = $salon->dailyStatuses->first();
+
+        if ($dailyStatus?->is_closed) {
+            return false;
+        }
+
+        $hasWorkingHours = $salon->workingHours->contains(
+            fn ($workingHour): bool =>
+                ! $workingHour->is_closed &&
+                $workingHour->start_time &&
+                $workingHour->end_time
+        );
+
+        if (
+            ! $hasWorkingHours ||
+            $salon->barbers->isEmpty() ||
+            $salon->services->isEmpty()
+        ) {
+            return false;
+        }
+
+        /*
+        | The shortest active service is sufficient to answer the
+        | existence question: if even the shortest service has no
+        | free start time for a barber, no longer service can fit.
+        */
+        $shortestService = $salon->services->first();
+
+        foreach ($salon->barbers as $barber) {
+            $slots = $this->availability->slots(
+                $salon,
+                $barber,
+                $shortestService,
+                $today
             );
+
+            if (collect($slots)->contains(
+                fn (array $slot): bool =>
+                    (bool) ($slot['available'] ?? false)
+            )) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /*
