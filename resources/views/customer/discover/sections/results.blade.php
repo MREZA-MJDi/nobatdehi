@@ -565,6 +565,8 @@
         ================================================================= --}}
         
 
+            @if ($salonsCount > 0)
+
             <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div class="text-sm text-[var(--color-content-muted)]">
                     نمایش
