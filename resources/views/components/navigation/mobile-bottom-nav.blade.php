@@ -75,12 +75,12 @@
 
         {{-- Nearby --}}
         <a
-            href="{{ route('salons.discover', ['sort' => 'nearest']) }}"
+            href="{{ route('salons.discover', ['sort' => 'distance']) }}"
             @class([
                 'mobile-bottom-item',
                 'is-active' =>
                     request()->routeIs('salons.discover') &&
-                    request('sort') === 'nearest',
+                    request('sort') === 'distance',
             ])
             aria-label="نزدیک من"
         >
