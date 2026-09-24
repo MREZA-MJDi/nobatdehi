@@ -214,7 +214,10 @@ body {
     display: block;
 
     font-family:
-        "Vazirmatn",
+        Inter,
+        "Helvetica Neue",
+        Helvetica,
+        Arial,
         sans-serif;
 
     font-size:
@@ -634,7 +637,10 @@ body {
     gap: 12px;
 
     font-family:
-        "Vazirmatn",
+        Inter,
+        "Helvetica Neue",
+        Helvetica,
+        Arial,
         sans-serif;
 
     font-size: 8px;
