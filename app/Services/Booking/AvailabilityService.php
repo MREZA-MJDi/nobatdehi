@@ -81,10 +81,15 @@ class AvailabilityService
         |
         */
 
-        $dailyStatus = $salon
-            ->dailyStatuses()
-            ->whereDate('date', $date->toDateString())
-            ->first();
+        $dailyStatuses = $salon->relationLoaded('dailyStatuses')
+            ? collect($salon->getRelation('dailyStatuses'))
+            : $salon->dailyStatuses()
+                ->whereDate('date', $date->toDateString())
+                ->get();
+
+        $dailyStatus = $dailyStatuses->first(
+            fn ($status) => Carbon::parse((string) $status->date)->toDateString() === $date->toDateString()
+        );
 
         if (
             $dailyStatus &&
@@ -126,15 +131,29 @@ class AvailabilityService
         |--------------------------------------------------------------------------
         */
 
-        $workingHours = $salon
-            ->workingHours()
-            ->where('day_of_week', $dayOfWeek)
-            ->where('is_closed', false)
-            ->whereNotNull('start_time')
-            ->whereNotNull('end_time')
-            ->orderBy('sort_order')
-            ->orderBy('start_time')
-            ->get();
+        $workingHours = $salon->relationLoaded('workingHours')
+            ? collect($salon->getRelation('workingHours'))
+                ->filter(
+                    fn ($workingHour): bool =>
+                        (int) $workingHour->day_of_week === $dayOfWeek &&
+                        ! $workingHour->is_closed &&
+                        $workingHour->start_time &&
+                        $workingHour->end_time
+                )
+                ->sortBy([
+                    ['sort_order', 'asc'],
+                    ['start_time', 'asc'],
+                ])
+                ->values()
+            : $salon
+                ->workingHours()
+                ->where('day_of_week', $dayOfWeek)
+                ->where('is_closed', false)
+                ->whereNotNull('start_time')
+                ->whereNotNull('end_time')
+                ->orderBy('sort_order')
+                ->orderBy('start_time')
+                ->get();
 
         if ($workingHours->isEmpty()) {
             return [];
@@ -186,30 +205,55 @@ class AvailabilityService
         |
         */
 
-        $blockedBookings = $barber
-            ->bookings()
-            ->whereDate(
-                'booking_date',
-                $date->toDateString()
-            )
-            ->whereIn(
-                'status',
-                $blockingStatuses
-            )
-            ->when(
-                $ignoreBookingId !== null,
-                fn ($query) =>
-                $query->where(
-                    'id',
-                    '!=',
-                    $ignoreBookingId
+        $blockedBookings = $barber->relationLoaded('bookings')
+            ? collect($barber->getRelation('bookings'))
+                ->filter(function ($booking) use ($date, $blockingStatuses, $ignoreBookingId): bool {
+                    if (! in_array(
+                        $booking->status instanceof BookingStatus
+                            ? $booking->status->value
+                            : (string) $booking->status,
+                        $blockingStatuses,
+                        true
+                    )) {
+                        return false;
+                    }
+
+                    if (
+                        $ignoreBookingId !== null &&
+                        (int) $booking->id === $ignoreBookingId
+                    ) {
+                        return false;
+                    }
+
+                    return Carbon::parse((string) $booking->booking_date)->toDateString() === $date->toDateString();
+                })
+                ->values()
+            : $barber
+                ->bookings()
+                ->whereDate(
+                    'booking_date',
+                    $date->toDateString()
                 )
-            )
-            ->get([
-                'id',
-                'start_time',
-                'end_time',
-            ]);
+                ->whereIn(
+                    'status',
+                    $blockingStatuses
+                )
+                ->when(
+                    $ignoreBookingId !== null,
+                    fn ($query) =>
+                    $query->where(
+                        'id',
+                        '!=',
+                        $ignoreBookingId
+                    )
+                )
+                ->get([
+                    'id',
+                    'booking_date',
+                    'start_time',
+                    'end_time',
+                    'status',
+                ]);
 
         $slots = [];
 
