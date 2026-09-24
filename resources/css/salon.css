@@ -3189,24 +3189,10 @@ body.salon-lightbox-open {
 
 /* ================================================================
    REVEAL
+   Core content remains visible on first paint.
    ================================================================ */
 
 .salon-page .reveal {
-    opacity: 1;
-    transform: none;
-}
-
-.salon-page .reveal.reveal-ready {
-    opacity: 0;
-
-    transform: translateY(15px);
-
-    transition:
-        opacity .5s ease,
-        transform .5s ease;
-}
-
-.salon-page .reveal.reveal-ready.in {
     opacity: 1;
     transform: none;
 }
@@ -4068,5 +4054,495 @@ body.salon-lightbox-open {
     .salon-page .cover-status {
         bottom: 16px;
         inset-inline-start: 16px;
+    }
+}
+
+
+/* ================================================================
+   PUBLIC SALON — PRODUCT UX APPLICATION LAYER
+   ================================================================ */
+
+.salon-page .wrap {
+    width: min(calc(100% - 32px), 1220px);
+}
+
+.salon-page .topbar-in {
+    width: min(calc(100% - 32px), 1220px);
+}
+
+.salon-page .topbar {
+    background: rgba(8, 9, 11, .78);
+}
+
+.salon-page .hero {
+    margin-top: 18px;
+}
+
+.salon-page .cover {
+    min-height: 420px;
+    border-radius: 32px;
+    border-color: rgba(255,255,255,.09);
+    box-shadow: 0 30px 90px rgba(0,0,0,.24);
+}
+
+.salon-page .cover > img {
+    filter:
+        saturate(.84)
+        contrast(1.04)
+        brightness(.68);
+}
+
+.salon-page .cover-shade {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(4,5,7,.10) 0%,
+            rgba(4,5,7,.02) 34%,
+            rgba(4,5,7,.78) 72%,
+            rgba(4,5,7,.96) 100%
+        );
+}
+
+.salon-page .cover-topline {
+    top: 18px;
+    inset-inline: 18px;
+}
+
+.salon-page .profile-bar {
+    margin-top: -68px;
+    padding: 0 30px;
+    gap: 20px;
+}
+
+.salon-page .avatar {
+    width: 136px;
+    height: 136px;
+    border-radius: 34px;
+}
+
+.salon-page .profile-info {
+    padding-bottom: 9px;
+}
+
+.salon-page .name-row h1 {
+    font-size: clamp(1.55rem, 2.7vw, 2.2rem);
+    letter-spacing: -.02em;
+}
+
+.salon-page .tagline {
+    font-size: .76rem;
+    max-width: 760px;
+}
+
+.salon-page .stats {
+    gap: 24px;
+    margin-top: 17px;
+}
+
+.salon-page .stat b {
+    font-size: 1rem;
+}
+
+.salon-page .stat span {
+    color: rgba(245,246,248,.42);
+    font-size: .58rem;
+}
+
+.salon-page .hero-bottom {
+    margin: 20px 30px 0;
+    grid-template-columns: minmax(0, 1.5fr) minmax(300px, .7fr);
+    gap: 34px;
+}
+
+.salon-page .hero-bio {
+    max-width: 760px;
+    font-size: .78rem;
+    line-height: 2.05;
+}
+
+.salon-page .hero-meta {
+    gap: 10px;
+    padding: 13px 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(255,255,255,.018);
+}
+
+.salon-page .chips {
+    margin: 14px 30px 0;
+}
+
+.salon-page .chip {
+    min-height: 31px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.salon-page .booking-cta {
+    margin-top: 38px;
+    padding: 28px 30px;
+    border-radius: 24px;
+    border-color: color-mix(
+        in srgb,
+        var(--salon-brand-primary, #edf3f8) 18%,
+        var(--line)
+    );
+    background:
+        radial-gradient(
+            520px 180px at 100% 0,
+            color-mix(
+                in srgb,
+                var(--salon-brand-primary, #edf3f8) 11%,
+                transparent
+            ),
+            transparent 72%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,.055),
+            rgba(255,255,255,.018)
+        );
+    box-shadow: 0 24px 70px rgba(0,0,0,.16);
+}
+
+.salon-page .bk-text h2 {
+    font-size: 1.38rem;
+}
+
+.salon-page .bk-text p {
+    font-size: .72rem;
+}
+
+.salon-page .section {
+    margin-top: 86px;
+}
+
+.salon-page .section-topline {
+    margin-bottom: 24px;
+}
+
+.salon-page .section-topline h2 {
+    font-size: 1.34rem;
+    letter-spacing: -.02em;
+}
+
+.salon-page .section-topline p {
+    font-size: .70rem;
+}
+
+.salon-page .section-count {
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255,255,255,.018);
+}
+
+.salon-page .services-grid {
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 14px;
+}
+
+.salon-page .service-card {
+    border-radius: 22px;
+    background:
+        linear-gradient(
+            155deg,
+            rgba(255,255,255,.035),
+            rgba(255,255,255,.012)
+        );
+    border-color: rgba(255,255,255,.075);
+}
+
+.salon-page .service-media {
+    aspect-ratio: 16 / 9;
+}
+
+.salon-page .service-content {
+    padding: 18px;
+}
+
+.salon-page .service-title {
+    font-size: .88rem;
+}
+
+.salon-page .service-description {
+    min-height: 2.15rem;
+    font-size: .64rem;
+}
+
+.salon-page .service-info {
+    margin-top: 16px;
+}
+
+.salon-page .service-price {
+    font-size: .76rem;
+}
+
+.salon-page .service-duration {
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+}
+
+.salon-page .service-book {
+    min-height: 44px;
+    margin-top: 15px;
+    border-color: rgba(255,255,255,.10);
+    background: rgba(255,255,255,.035);
+}
+
+.salon-page .gallery {
+    gap: 11px;
+}
+
+.salon-page .tile {
+    border-radius: 21px;
+}
+
+.salon-page .tile.tile-1 {
+    min-height: 0;
+}
+
+.salon-page .tabs {
+    width: fit-content;
+    max-width: 100%;
+    margin-bottom: 16px;
+}
+
+.salon-page .tab {
+    min-height: 37px;
+}
+
+.salon-page .comments {
+    gap: 14px;
+}
+
+.salon-page .comment {
+    min-height: 190px;
+    padding: 18px;
+    border-radius: 20px;
+    background:
+        linear-gradient(
+            155deg,
+            rgba(255,255,255,.035),
+            rgba(255,255,255,.012)
+        );
+}
+
+.salon-page .team-grid {
+    gap: 15px;
+}
+
+.salon-page .tcard {
+    border-radius: 22px;
+    padding: 20px;
+}
+
+.salon-page .bottom-grid {
+    grid-template-columns: 1.18fr .82fr;
+    gap: 16px;
+}
+
+.salon-page .map-card,
+.salon-page .about-card {
+    border-radius: 25px;
+}
+
+.salon-page .related-grid {
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 12px;
+}
+
+.salon-page .related-card {
+    border-radius: 19px;
+}
+
+.salon-page .related-logo {
+    aspect-ratio: 16 / 10;
+}
+
+.salon-page .related-name {
+    font-size: .62rem;
+}
+
+.salon-page .float-book button {
+    border: 1px solid color-mix(
+        in srgb,
+        var(--salon-brand-primary, #edf3f8) 25%,
+        transparent
+    );
+}
+
+.salon-page .mobile-book-anchor {
+    flex: 0 0 auto;
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    border: 1px solid color-mix(
+        in srgb,
+        var(--salon-brand-primary, #edf3f8) 32%,
+        transparent
+    ) !important;
+    border-radius: 999px;
+    color: #0a0b0d !important;
+    background: linear-gradient(135deg,#fff,#dce5ec) !important;
+    font-size: .56rem;
+    font-weight: 900;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+
+@media (max-width: 1050px) {
+    .salon-page .services-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+    }
+
+    .salon-page .related-grid {
+        grid-template-columns: repeat(3, minmax(0,1fr));
+    }
+}
+
+@media (max-width: 680px) {
+    .salon-page .wrap,
+    .salon-page .topbar-in {
+        width: min(calc(100% - 20px), 1220px);
+    }
+
+    .salon-page .mobile-anchor-bar {
+        align-items: center;
+        padding-inline: 10px;
+    }
+
+    .salon-page .mobile-anchor-bar a,
+    .salon-page .mobile-book-anchor {
+        min-height: 32px;
+    }
+
+    .salon-page .cover {
+        min-height: 285px;
+        border-radius: 24px;
+    }
+
+    .salon-page .profile-bar {
+        margin-top: -51px;
+        padding: 0 11px;
+        gap: 11px;
+    }
+
+    .salon-page .avatar {
+        width: 94px;
+        height: 94px;
+        border-radius: 26px;
+    }
+
+    .salon-page .name-row h1 {
+        font-size: 1.16rem;
+    }
+
+    .salon-page .stats {
+        gap: 12px;
+        margin-top: 9px;
+    }
+
+    .salon-page .stat b {
+        font-size: .76rem;
+    }
+
+    .salon-page .hero-bottom {
+        margin-inline: 11px;
+    }
+
+    .salon-page .hero-meta {
+        padding: 11px 12px;
+        border-radius: 14px;
+    }
+
+    .salon-page .chips {
+        margin-inline: 11px;
+    }
+
+    .salon-page .booking-cta {
+        margin-top: 28px;
+        padding: 20px 17px;
+        border-radius: 21px;
+    }
+
+    .salon-page .section {
+        margin-top: 62px;
+        scroll-margin-top: 118px;
+    }
+
+    .salon-page .section-topline {
+        gap: 12px;
+    }
+
+    .salon-page .section-topline h2 {
+        font-size: 1.05rem;
+    }
+
+    .salon-page .section-count {
+        min-height: 26px;
+        padding-inline: 8px;
+        font-size: .52rem;
+    }
+
+    .salon-page .services-grid {
+        grid-template-columns: 1fr;
+        gap: 11px;
+    }
+
+    .salon-page .service-card {
+        border-radius: 19px;
+    }
+
+    .salon-page .service-media {
+        aspect-ratio: 16 / 8;
+    }
+
+    .salon-page .service-content {
+        padding: 15px;
+    }
+
+    .salon-page .service-description {
+        min-height: 0;
+    }
+
+    .salon-page .related-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+    }
+
+    .salon-page .float-book {
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        inset-inline: 10px;
+    }
+
+    .salon-page .float-book button {
+        min-height: 54px;
+        border-radius: 16px;
+    }
+}
+
+@media (max-width: 430px) {
+    .salon-page .section {
+        margin-top: 55px;
+    }
+
+    .salon-page .section-topline {
+        align-items: flex-start;
+    }
+
+    .salon-page .hero-bottom {
+        gap: 10px;
+    }
+
+    .salon-page .related-grid {
+        gap: 8px;
     }
 }
