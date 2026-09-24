@@ -3440,18 +3440,11 @@ body.discover-location-open {
 }
 
 .discover-page .discover-team-card {
-    opacity: 0;
-    transform: translateY(10px);
-}
-
-.discover-page .discover-team-card.is-visible {
-    opacity: 1;
-    transform: translateY(0);
+    -webkit-tap-highlight-color: transparent;
     transition:
-        opacity .45s ease,
-        transform .45s ease,
         border-color .2s ease,
-        box-shadow .2s ease;
+        box-shadow .2s ease,
+        transform .2s ease;
 }
 
 .discover-page .discover-end-salon-strip {
