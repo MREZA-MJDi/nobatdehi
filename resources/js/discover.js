@@ -756,6 +756,17 @@
         button.addEventListener('click', closeLocationModal);
     });
 
+    if (
+        locationModal &&
+        new URL(window.location.href).searchParams.get('nearby') === '1'
+    ) {
+        openLocationModal();
+
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('nearby');
+        window.history.replaceState({}, '', cleanUrl.toString());
+    }
+
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
 
