@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html
-    lang="fa"
-    dir="rtl"
+    lang="en"
+    dir="ltr"
     class="brand-intro-html"
 >
 <head>
@@ -15,7 +15,12 @@
 
     <meta
         name="theme-color"
-        content="#090908"
+        content="#080809"
+    >
+
+    <meta
+        name="color-scheme"
+        content="dark"
     >
 
     <meta
@@ -25,7 +30,7 @@
 
     <meta
         name="description"
-        content="NOBAT؛ پیدا کن، انتخاب کن، نوبت بگیر."
+        content="NOBAT — discover salons, choose your service, and book your appointment."
     >
 
     <link
@@ -93,6 +98,12 @@
 
         <div class="brand-composition">
 
+            <div class="brand-kicker">
+                <span>BEAUTY APPOINTMENTS</span>
+                <span class="brand-kicker-rule"></span>
+                <span>EST. 2026</span>
+            </div>
+
             <div class="brand-word-wrap">
 
                 <div
@@ -118,11 +129,12 @@
             </div>
 
 
-            <p
-                class="brand-tagline"
-                dir="rtl"
-            >
-                پیدا کن، انتخاب کن، نوبت بگیر.
+            <p class="brand-tagline">
+                DISCOVER. CHOOSE. BOOK.
+            </p>
+
+            <p class="brand-subtitle">
+                Find salons, services, and available time slots — all in one place.
             </p>
 
         </div>
@@ -141,7 +153,13 @@
             <i></i>
 
             <span>
-                APPOINTMENT
+                BOOK
+            </span>
+
+            <i></i>
+
+            <span>
+                EXPERIENCE
             </span>
 
         </div>
@@ -155,18 +173,18 @@
             type="button"
             class="brand-enter"
             id="brandEnter"
-            aria-label="ورود به NOBAT"
+            aria-label="Explore NOBAT"
         >
 
             <span class="brand-enter-label">
-                ورود به NOBAT
+                Explore NOBAT
             </span>
 
             <span
                 class="brand-enter-arrow"
                 aria-hidden="true"
             >
-                ←
+                ↗
             </span>
 
         </button>
@@ -180,11 +198,15 @@
             class="brand-progress"
             aria-hidden="true"
         >
+            <span id="brandProgressBar"></span>
+        </div>
 
-            <span
-                id="brandProgressBar"
-            ></span>
-
+        <div class="brand-footer-meta" aria-hidden="true">
+            <span>CLIENTS</span>
+            <i></i>
+            <span>SALONS</span>
+            <i></i>
+            <span>APPOINTMENTS</span>
         </div>
 
     </div>
