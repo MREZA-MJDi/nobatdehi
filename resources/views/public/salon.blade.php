@@ -224,6 +224,16 @@
 
 
             <div class="mobile-anchor-bar">
+                @if($bookingEnabled)
+                    <button
+                        type="button"
+                        class="mobile-book-anchor"
+                        data-open-booking
+                    >
+                        رزرو
+                    </button>
+                @endif
+
                 @if($services->isNotEmpty())
                     <a href="#services">خدمات</a>
                 @endif
@@ -329,7 +339,7 @@
 
                             <span class="verified verified-live">
                                 <span></span>
-                                فعال
+                                سالن فعال
                             </span>
 
                         </div>
@@ -730,52 +740,57 @@
                         </button>
 
 
-                        <button
-                            type="button"
-                            class="tab"
-                            data-filter="reel"
-                            role="tab"
-                            aria-selected="false"
-                        >
-                            ریلز
-                            <span>{{ number_format($postTypeCounts['reel']) }}</span>
-                        </button>
+                        @if($postTypeCounts['reel'] > 0)
+                            <button
+                                type="button"
+                                class="tab"
+                                data-filter="reel"
+                                role="tab"
+                                aria-selected="false"
+                            >
+                                ریلز
+                                <span>{{ number_format($postTypeCounts['reel']) }}</span>
+                            </button>
+                        @endif
 
+                        @if($postTypeCounts['video'] > 0)
+                            <button
+                                type="button"
+                                class="tab"
+                                data-filter="video"
+                                role="tab"
+                                aria-selected="false"
+                            >
+                                ویدیو
+                                <span>{{ number_format($postTypeCounts['video']) }}</span>
+                            </button>
+                        @endif
 
-                        <button
-                            type="button"
-                            class="tab"
-                            data-filter="video"
-                            role="tab"
-                            aria-selected="false"
-                        >
-                            ویدیو
-                            <span>{{ number_format($postTypeCounts['video']) }}</span>
-                        </button>
+                        @if($postTypeCounts['image'] > 0)
+                            <button
+                                type="button"
+                                class="tab"
+                                data-filter="image"
+                                role="tab"
+                                aria-selected="false"
+                            >
+                                عکس
+                                <span>{{ number_format($postTypeCounts['image']) }}</span>
+                            </button>
+                        @endif
 
-
-                        <button
-                            type="button"
-                            class="tab"
-                            data-filter="image"
-                            role="tab"
-                            aria-selected="false"
-                        >
-                            عکس
-                            <span>{{ number_format($postTypeCounts['image']) }}</span>
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="tab"
-                            data-filter="gif"
-                            role="tab"
-                            aria-selected="false"
-                        >
-                            GIF
-                            <span>{{ number_format($postTypeCounts['gif']) }}</span>
-                        </button>
+                        @if($postTypeCounts['gif'] > 0)
+                            <button
+                                type="button"
+                                class="tab"
+                                data-filter="gif"
+                                role="tab"
+                                aria-selected="false"
+                            >
+                                GIF
+                                <span>{{ number_format($postTypeCounts['gif']) }}</span>
+                            </button>
+                        @endif
 
                     </div>
 
@@ -1486,10 +1501,16 @@
 
                                 <div class="related-logo">
 
-                                    @if($relatedLogo)
+                                    @php
+                                        $relatedImage = $related->cover_path
+                                            ? $resolveMediaUrl($related->cover_path)
+                                            : $relatedLogo;
+                                    @endphp
+
+                                    @if($relatedImage)
 
                                         <img
-                                            src="{{ $relatedLogo }}"
+                                            src="{{ $relatedImage }}"
                                             alt="{{ $related->name }}"
                                             loading="lazy"
                                         >
