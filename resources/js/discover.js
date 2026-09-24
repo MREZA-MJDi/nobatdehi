@@ -27,6 +27,9 @@
             push = true,
             scroll = true,
             openFilterResult = false,
+            timeoutMs = 15000,
+            onSlow = null,
+            onTimeout = null,
         } = {}
     ) => {
         const nextUrl = new URL(
@@ -82,6 +85,17 @@
 
         const controller = new AbortController();
         activeRequestController = controller;
+
+        let timedOut = false;
+
+        const slowTimer = window.setTimeout(() => {
+            onSlow?.();
+        }, 2500);
+
+        const timeoutTimer = window.setTimeout(() => {
+            timedOut = true;
+            controller.abort();
+        }, timeoutMs);
 
         setLoading(true);
 
@@ -252,6 +266,11 @@
 
             return true;
         } catch (error) {
+            if (timedOut) {
+                onTimeout?.();
+                return false;
+            }
+
             if (
                 error?.name === 'AbortError' ||
                 controller.signal.aborted ||
@@ -272,6 +291,9 @@
 
             return false;
         } finally {
+            window.clearTimeout(slowTimer);
+            window.clearTimeout(timeoutTimer);
+
             if (
                 requestId === activeRequestId
             ) {
@@ -648,7 +670,25 @@
         url.searchParams.set('radius', '15');
         url.searchParams.set('sort', 'distance');
 
-        const success = await requestDiscover(url);
+        const success = await requestDiscover(url, {
+            timeoutMs: 15000,
+            onSlow: () => {
+                if (locationMapState) {
+                    locationMapState.innerHTML =
+                        '<span class="discover-location-map-pin">…</span>' +
+                        '<strong>هنوز داریم نتایج را پیدا می‌کنیم</strong>' +
+                        '<small>موقعیت پیدا شده؛ حالا سرور در حال بررسی سالن‌های فعال داخل شعاع ۱۵ کیلومتر و مرتب‌سازی بر اساس فاصله است.</small>';
+                }
+            },
+            onTimeout: () => {
+                if (locationMapState) {
+                    locationMapState.innerHTML =
+                        '<span class="discover-location-map-pin">!</span>' +
+                        '<strong>پاسخ سرور بیش از حد طول کشید</strong>' +
+                        '<small>موقعیتت درست دریافت شد، اما پیدا کردن نتایج زمان زیادی برد. دوباره تلاش کن یا شهر و محله را دستی جست‌وجو کن.</small>';
+                }
+            },
+        });
 
         if (success) {
             closeLocationModal();
@@ -711,7 +751,7 @@
                     locationMapState.innerHTML =
                         '<span class="discover-location-map-pin">✓</span>' +
                         '<strong>موقعیت پیدا شد</strong>' +
-                        '<small>در حال مرتب‌سازی نزدیک‌ترین سالن‌ها...</small>';
+                        '<small>داریم سالن‌های فعال داخل شعاع ۱۵ کیلومتر را پیدا می‌کنیم و نزدیک‌ترین‌ها را مرتب می‌کنیم.</small>';
                 }
 
                 const success = await applyNearbyLocation(lat, lng);
