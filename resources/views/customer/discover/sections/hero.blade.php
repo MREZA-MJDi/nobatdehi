@@ -76,7 +76,7 @@
                 <span class="font-semibold">صاحب سالن هستید؟</span>
 
                 <a
-                    href="{{ route('salon.login') }}"
+                    href="{{ route('login', ['entry' => 'salon']) }}"
                     class="inline-flex items-center gap-1.5 font-black text-[var(--color-accent-600)] transition hover:text-[var(--color-accent-700)]"
                 >
                     ورود به پنل سالن
