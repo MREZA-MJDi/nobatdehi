@@ -21,7 +21,7 @@ class LoginController extends Controller
     public function create(Request $request): View
     {
         return view('auth.login', [
-            'entry' => $request->routeIs('salon.login')
+            'entry' => $request->query('entry') === 'salon'
                 ? 'salon'
                 : 'customer',
         ]);
