@@ -18,9 +18,13 @@ class LoginController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('auth.login');
+        return view('auth.login', [
+            'entry' => $request->routeIs('salon.login')
+                ? 'salon'
+                : 'customer',
+        ]);
     }
 
 
