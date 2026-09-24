@@ -67,10 +67,6 @@
         @include('customer.discover.sections.hero')
 
         <div id="discoverDynamicContent">
-            @if($hasGeo)
-                @include('customer.discover.sections.nearby')
-            @endif
-
             {{-- =====================================================
                 MAIN SEARCH RESULTS
             ====================================================== --}}
