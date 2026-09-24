@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Barber;
 use App\Models\Salon;
 use App\Models\Service;
+use App\Services\Booking\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
