@@ -662,11 +662,6 @@
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
 
-        if (searchModal?.classList.contains('is-open')) {
-            closeSearchModal();
-            return;
-        }
-
         if (locationModal?.classList.contains('is-open')) {
             closeLocationModal();
         }
@@ -778,7 +773,6 @@
         requestDiscover(window.location.href, {
             push: false,
             scroll: false,
-            showOverlay: false,
         });
     });
 })();
