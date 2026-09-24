@@ -297,6 +297,15 @@
                     @guest
 
                         <a
+                            href="{{ route('salon.login') }}"
+                            class="customer-salon-entry"
+                            aria-label="ورود به پنل سالن"
+                        >
+                            <span>برای سالن‌ها</span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+
+                        <a
                             href="{{ route('login') }}"
                             class="
                                 customer-btn
