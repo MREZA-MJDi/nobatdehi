@@ -207,7 +207,8 @@ class BookingController extends Controller
 
     public function prepare(
         BookingPrepareRequest $request,
-        Salon $salon
+        Salon $salon,
+        AvailabilityService $availability
     ): JsonResponse|RedirectResponse {
         abort_unless(
             $salon->is_active,
@@ -258,6 +259,50 @@ class BookingController extends Controller
         | Store normalized booking payload
         |--------------------------------------------------------------------------
         */
+
+        $timezone = config('app.timezone', 'Asia/Tehran');
+
+        try {
+            $bookingDate = Carbon::createFromFormat(
+                'Y-m-d',
+                $data['booking_date'],
+                $timezone
+            )->startOfDay();
+        } catch (\Throwable) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'تاریخ رزرو معتبر نیست.',
+                ], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withErrors([
+                    'booking_date' => 'تاریخ رزرو معتبر نیست.',
+                ]);
+        }
+
+        if (! $availability->isAvailable(
+            $salon,
+            $barber,
+            $service,
+            $bookingDate,
+            $data['start_time']
+        )) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'این زمان دیگر در دسترس نیست. زمان‌های آزاد را دوباره بررسی کن.',
+                ], 409);
+            }
+
+            return redirect()
+                ->back()
+                ->withErrors([
+                    'start_time' => 'این زمان دیگر در دسترس نیست. زمان دیگری انتخاب کنید.',
+                ]);
+        }
 
         $pending = [
             'salon_id' => (int) $salon->id,
@@ -315,6 +360,8 @@ class BookingController extends Controller
         */
 
         if (!$request->user()->isCustomer()) {
+            $request->session()->forget('booking.pending');
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'ok' => false,
