@@ -73,6 +73,15 @@ class RegisterController extends Controller
                 ->withInput();
         }
 
+        if (! config('auth-flow.registration_otp_required')) {
+            return $this->completeRegistrationWithoutOtp(
+                $request,
+                $phone,
+                trim($data['name']),
+                Hash::make($data['password'])
+            );
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Store Pending Registration
@@ -129,6 +138,94 @@ class RegisterController extends Controller
 
         return redirect()
             ->route('register.verify');
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Local / development registration without SMS OTP
+    |--------------------------------------------------------------------------
+    */
+
+    private function completeRegistrationWithoutOtp(
+        Request $request,
+        string $phone,
+        string $name,
+        string $passwordHash
+    ): RedirectResponse {
+        try {
+            $user = DB::transaction(function () use (
+                $phone,
+                $name,
+                $passwordHash
+            ) {
+                $existing = User::query()
+                    ->where('phone', $phone)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existing) {
+                    if (! $existing->isCustomer()) {
+                        throw new RuntimeException(
+                            'این شماره موبایل متعلق به یک حساب غیرمشتری است.'
+                        );
+                    }
+
+                    $existing->update([
+                        'name' => $name,
+                        'password' => $passwordHash,
+                        'phone_verified_at' => now(),
+                    ]);
+
+                    return $existing->fresh();
+                }
+
+                return User::create([
+                    'name' => $name,
+                    'phone' => $phone,
+                    'phone_verified_at' => now(),
+                    'role' => UserRole::CUSTOMER,
+                    'password' => $passwordHash,
+                    'email_verified_at' => null,
+                ]);
+            });
+        } catch (RuntimeException $e) {
+            return back()
+                ->withErrors([
+                    'phone' => $e->getMessage(),
+                ])
+                ->withInput();
+        }
+
+        $hasPendingBooking = $request
+            ->session()
+            ->has('booking.pending');
+
+        Auth::login($user);
+
+        $request
+            ->session()
+            ->regenerate();
+
+        $request
+            ->session()
+            ->forget('auth.otp');
+
+        if ($hasPendingBooking) {
+            return redirect()
+                ->route('customer.bookings.confirm')
+                ->with(
+                    'success',
+                    'ثبت‌نام موفق بود. نوبت را بررسی و نهایی کنید.'
+                );
+        }
+
+        return redirect()
+            ->route('salons.discover')
+            ->with(
+                'success',
+                'حساب شما با موفقیت ساخته شد.'
+            );
     }
 
 
