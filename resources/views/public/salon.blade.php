@@ -149,7 +149,7 @@
         data-salon-id="{{ $salon->id }}"
         data-salon-name="{{ $salon->name }}"
         data-is-auth="{{ auth()->check() ? '1' : '0' }}"
-        data-login-url="{{ route('login') }}"
+        data-login-url="{{ route('login', ['entry' => 'customer']) }}"
         data-availability-url="{{ route('public.salons.booking.availability', $salon) }}"
         data-prepare-url="{{ route('public.salons.booking.prepare', $salon) }}"
         data-csrf="{{ csrf_token() }}"
