@@ -406,18 +406,26 @@
         </div>
 
 
-        {{-- Login --}}
+        {{-- Login / Salon entry --}}
         <div class="border-t border-border bg-primary-50/70 px-6 py-5 text-center sm:px-8">
 
-        <span class="text-xs text-content-muted">
-            قبلاً حساب ساختی؟
-        </span>
+            <div class="text-xs text-content-muted">
+                قبلاً حساب ساختی؟
+
+                <a
+                    href="{{ route('login') }}"
+                    class="mr-1 font-black text-accent-600 transition hover:text-accent-800"
+                >
+                    وارد شو
+                </a>
+            </div>
 
             <a
-                href="{{ route('login') }}"
-                class="mr-1 text-xs font-black text-accent-600 transition hover:text-accent-800"
+                href="{{ route('salon.login') }}"
+                class="mt-2 inline-flex items-center gap-1.5 text-[10px] font-black text-content-muted transition hover:text-accent-600"
             >
-                وارد شو
+                صاحب سالن هستی؟ ورود به پنل سالن
+                <span aria-hidden="true">←</span>
             </a>
 
         </div>
