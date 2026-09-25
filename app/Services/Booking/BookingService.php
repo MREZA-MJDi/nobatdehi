@@ -801,12 +801,16 @@ class BookingService
                         $data['notes'] ?? null,
                 ]);
 
-                return $booking->fresh([
+                $updatedBooking = $booking->fresh([
                     'salon',
                     'barber',
                     'service',
                     'customer',
                 ]);
+
+                \App\Events\BookingUpdated::dispatch($updatedBooking);
+
+                return $updatedBooking;
             }
         );
     }
