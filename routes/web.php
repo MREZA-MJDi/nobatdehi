@@ -387,6 +387,11 @@ Route::middleware('auth')->group(function () {
                 [SalonDashboardController::class, 'data']
             )->name('dashboard.data');
 
+            Route::post(
+                '/dashboard/manual-booking',
+                [SalonDashboardController::class, 'storeManualBooking']
+            )->name('dashboard.manual-booking');
+
             Route::resource(
                 'barbers',
                 SalonBarberController::class
