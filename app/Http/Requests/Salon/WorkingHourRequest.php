@@ -21,7 +21,9 @@ class WorkingHourRequest extends FormRequest
                 'nullable',
                 'integer',
                 Rule::exists('barbers', 'id')->where(
-                    fn ($query) => $query->where('salon_id', $salonId)
+                    fn ($query) => $query
+                        ->where('salon_id', $salonId)
+                        ->where('is_active', true)
                 ),
             ],
 
@@ -210,7 +212,7 @@ class WorkingHourRequest extends FormRequest
                 'آرایشگر انتخاب‌شده معتبر نیست.',
 
             'barber_id.exists' =>
-                'آرایشگر انتخاب‌شده به این سالن تعلق ندارد.',
+                'آرایشگر انتخاب‌شده فعال نیست یا به این سالن تعلق ندارد.',
 
             'hours.required' =>
                 'برنامه ساعات کاری الزامی است.',
