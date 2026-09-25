@@ -46,6 +46,16 @@ class BookingService
         );
     }
 
+    public function assertCustomerCanCreatePendingBooking(User $customer): void
+    {
+        if ($this->pendingBookingCount($customer) >= self::MAX_PENDING_BOOKINGS) {
+            throw ValidationException::withMessages([
+                'pending_bookings' =>
+                    'در حال حاضر حداکثر ۲ نوبت در انتظار تأیید می‌توانی داشته باشی. بعد از تأیید، تکمیل یا لغو یکی از نوبت‌ها، دوباره می‌توانی نوبت جدید بگیری.',
+            ]);
+        }
+    }
+
     /**
      * Customer booking.
      *
@@ -84,17 +94,9 @@ class BookingService
                         ]);
                     }
 
-                    if (
-                        $lockedCustomer->bookings()
-                            ->where('status', BookingStatus::PENDING)
-                            ->count()
-                        >= self::MAX_PENDING_BOOKINGS
-                    ) {
-                        throw ValidationException::withMessages([
-                            'pending_bookings' =>
-                                'در حال حاضر حداکثر ۲ نوبت در انتظار تأیید می‌توانی داشته باشی. بعد از تأیید، تکمیل یا لغو یکی از نوبت‌ها، دوباره می‌توانی نوبت جدید بگیری.',
-                        ]);
-                    }
+                    $this->assertCustomerCanCreatePendingBooking(
+                        $lockedCustomer
+                    );
 
                     $customer = $lockedCustomer;
                 }
