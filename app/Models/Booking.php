@@ -79,4 +79,36 @@ class Booking extends Model
             Review::class
         );
     }
+
+
+    /**
+     * Customer-facing booking permissions.
+     *
+     * Business rules stay in the domain model so customer Blade views
+     * only render the already-decided UI state.
+     */
+    public function customerCanEdit(): bool
+    {
+        return $this->status === BookingStatus::PENDING;
+    }
+
+
+    public function customerCanCancel(): bool
+    {
+        return $this->status === BookingStatus::PENDING;
+    }
+
+
+    public function customerCanReview(): bool
+    {
+        return $this->status === BookingStatus::COMPLETED
+            && $this->review === null;
+    }
+
+
+    public function customerHasReview(): bool
+    {
+        return $this->status === BookingStatus::COMPLETED
+            && $this->review !== null;
+    }
 }
