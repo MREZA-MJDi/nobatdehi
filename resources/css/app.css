@@ -1292,3 +1292,40 @@
             auto !important;
     }
 }
+
+
+/* ==========================================================================
+   NOBAT — GLOBAL UI SCALE / RESPONSIVE CONTRACT
+   ========================================================================== */
+
+#app .app-navbar .app-container {
+    width: min(calc(100% - 48px), 1280px);
+}
+
+#app .page-content {
+    min-width: 0;
+}
+
+#app .page-content .page-title {
+    font-size: clamp(1.35rem, 2vw, 1.85rem);
+    line-height: 1.45;
+    letter-spacing: -.02em;
+}
+
+#app .page-content .page-subtitle {
+    max-width: 42rem;
+    font-size: .75rem;
+    line-height: 1.85;
+}
+
+@media (max-width: 759px) {
+    #app .app-navbar .app-container {
+        width: calc(100% - 24px);
+        padding-inline: .75rem;
+    }
+
+    #app .page-content .page-title {
+        font-size: clamp(1.20rem, 6vw, 1.55rem);
+    }
+}
+
