@@ -483,7 +483,13 @@ class SalonController extends Controller
     public function edit(
         Salon $salon
     ): View {
-        $salon->load('owner');
+        $salon->load([
+            'owner',
+            'services' => fn ($query) => $query->orderBy('sort_order')->orderBy('id'),
+            'barbers' => fn ($query) => $query->orderBy('name'),
+            'workingHours' => fn ($query) => $query->orderBy('day_of_week')->orderBy('sort_order'),
+        ]);
+
         $users = User::orderBy('name')->get();
         return view(
             'admin.salons.edit',
@@ -705,12 +711,9 @@ class SalonController extends Controller
                         $data['name'],
 
                     'slug' =>
-                        $salon->name !== $data['name']
-                            ? $this->generateUniqueSlug(
-                                $data['name'],
-                                $salon->id
-                            )
-                            : $salon->slug,
+                        Str::lower(
+                            trim($data['slug'])
+                        ),
 
                     'description' =>
                         $data['description']
@@ -816,6 +819,187 @@ class SalonController extends Controller
                 $salon->update(
                     $salonData
                 );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Services
+                |--------------------------------------------------------------------------
+                |
+                | Admin Edit owns the complete seeded service definition.
+                | Existing rows can be edited or soft-deleted; blank new rows
+                | can be added without touching unrelated salon data.
+                |--------------------------------------------------------------------------
+                */
+
+                foreach (
+                    $data['services'] ?? []
+                    as $index => $serviceData
+                ) {
+                    $serviceData = array_merge(
+                        [
+                            'id' => null,
+                            'name' => null,
+                            'description' => null,
+                            'duration_minutes' => 60,
+                            'price' => 0,
+                            'is_active' => false,
+                            'sort_order' => $index,
+                            'delete' => false,
+                        ],
+                        $serviceData
+                    );
+
+                    if (
+                        $serviceData['delete'] &&
+                        $serviceData['id']
+                    ) {
+                        $salon->services()
+                            ->whereKey($serviceData['id'])
+                            ->delete();
+
+                        continue;
+                    }
+
+                    if (
+                        ! filled($serviceData['name']) ||
+                        ! $serviceData['duration_minutes']
+                    ) {
+                        continue;
+                    }
+
+                    $service = $serviceData['id']
+                        ? $salon->services()->whereKey($serviceData['id'])->first()
+                        : null;
+
+                    if ($service) {
+                        $service->update([
+                            'name' => $serviceData['name'],
+                            'description' => $serviceData['description'] ?? null,
+                            'duration_minutes' => (int) $serviceData['duration_minutes'],
+                            'price' => (int) ($serviceData['price'] ?? 0),
+                            'is_active' => (bool) ($serviceData['is_active'] ?? false),
+                            'sort_order' => (int) ($serviceData['sort_order'] ?? $index),
+                        ]);
+                    } else {
+                        $salon->services()->create([
+                            'name' => $serviceData['name'],
+                            'description' => $serviceData['description'] ?? null,
+                            'duration_minutes' => (int) $serviceData['duration_minutes'],
+                            'price' => (int) ($serviceData['price'] ?? 0),
+                            'is_active' => (bool) ($serviceData['is_active'] ?? false),
+                            'sort_order' => (int) ($serviceData['sort_order'] ?? $index),
+                        ]);
+                    }
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Barbers
+                |--------------------------------------------------------------------------
+                */
+
+                foreach (
+                    $data['barbers'] ?? []
+                    as $barberData
+                ) {
+                    $barberData = array_merge(
+                        [
+                            'id' => null,
+                            'name' => null,
+                            'specialty' => null,
+                            'phone' => null,
+                            'bio' => null,
+                            'is_active' => false,
+                            'delete' => false,
+                        ],
+                        $barberData
+                    );
+
+                    if (
+                        $barberData['delete'] &&
+                        $barberData['id']
+                    ) {
+                        $salon->barbers()
+                            ->whereKey($barberData['id'])
+                            ->delete();
+
+                        continue;
+                    }
+
+                    if (! filled($barberData['name'])) {
+                        continue;
+                    }
+
+                    $barber = $barberData['id']
+                        ? $salon->barbers()->whereKey($barberData['id'])->first()
+                        : null;
+
+                    $payload = [
+                        'name' => $barberData['name'],
+                        'specialty' => $barberData['specialty'] ?? null,
+                        'phone' => $barberData['phone'] ?? null,
+                        'bio' => $barberData['bio'] ?? null,
+                        'is_active' => (bool) ($barberData['is_active'] ?? false),
+                    ];
+
+                    if ($barber) {
+                        $barber->update($payload);
+                    } else {
+                        $salon->barbers()->create($payload);
+                    }
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Working Hours
+                |--------------------------------------------------------------------------
+                */
+
+                foreach (
+                    $data['working_hours'] ?? []
+                    as $hourData
+                ) {
+                    if (! isset($hourData['day_of_week'])) {
+                        continue;
+                    }
+
+                    $dayOfWeek = (int) $hourData['day_of_week'];
+
+                    if ($dayOfWeek < 0 || $dayOfWeek > 6) {
+                        continue;
+                    }
+
+                    $payload = [
+                        'start_time' => ($hourData['is_closed'] ?? false)
+                            ? null
+                            : ($hourData['start_time'] ?? null),
+                        'end_time' => ($hourData['is_closed'] ?? false)
+                            ? null
+                            : ($hourData['end_time'] ?? null),
+                        'is_closed' => (bool) ($hourData['is_closed'] ?? false),
+                        'sort_order' => (int) ($hourData['sort_order'] ?? $dayOfWeek),
+                    ];
+
+                    $query = $salon->workingHours();
+
+                    if (! empty($hourData['id'])) {
+                        $workingHour = $query
+                            ->whereKey($hourData['id'])
+                            ->first();
+
+                        if ($workingHour) {
+                            $workingHour->update($payload);
+                            continue;
+                        }
+                    }
+
+                    $query->updateOrCreate(
+                        [
+                            'day_of_week' => $dayOfWeek,
+                        ],
+                        $payload
+                    );
+                }
             });
 
 
