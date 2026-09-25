@@ -4326,11 +4326,17 @@ body.discover-filters-open {
     }
 
     .discover-page .discover-hero-inner {
+        min-width: 0;
         min-height: 420px;
         grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
         gap: 48px;
         direction: rtl;
         align-items: center;
+    }
+
+    .discover-page .discover-hero-content,
+    .discover-page .discover-hero-media {
+        min-width: 0;
     }
 
     .discover-page .discover-hero-content {
@@ -4352,6 +4358,34 @@ body.discover-filters-open {
     }
 
     .discover-page .discover-search-box {
-        grid-template-columns: minmax(0, 1.35fr) minmax(150px, .85fr) 112px 100px;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, .85fr) 112px 100px;
+    }
+}
+
+@media (min-width: 760px) and (max-width: 1199px) {
+    .discover-page .discover-hero-inner {
+        min-height: 360px;
+        gap: 32px;
+    }
+
+    .discover-page .discover-hero-media,
+    .discover-page .discover-hero-media img {
+        min-height: 360px;
+    }
+
+    .discover-page .discover-search-box {
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr) 86px 78px;
+    }
+
+    .discover-page .discover-search-field {
+        padding-inline: 12px;
+    }
+
+    .discover-page .discover-search-submit,
+    .discover-page .discover-search-nearby {
+        padding-inline: 10px;
     }
 }
