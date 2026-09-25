@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <div class="mx-auto max-w-[1400px] px-4 py-5 md:px-6 md:py-7">
+    <div class="admin-dashboard-page mx-auto max-w-[1400px] px-4 py-5 md:px-6 md:py-7">
 
         {{-- Header --}}
         <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
