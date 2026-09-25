@@ -15,6 +15,27 @@
     ];
 @endphp
 
+@php
+    $timeOptions = [];
+    $persianDigitsMap = [
+        '0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴',
+        '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹',
+    ];
+
+    for ($hour = 0; $hour < 24; $hour++) {
+        foreach ([0, 15, 30, 45] as $minute) {
+            $value = str_pad((string) $hour, 2, '0', STR_PAD_LEFT)
+                . ':'
+                . str_pad((string) $minute, 2, '0', STR_PAD_LEFT);
+
+            $timeOptions[] = [
+                'value' => $value,
+                'label' => strtr($value, $persianDigitsMap),
+            ];
+        }
+    }
+@endphp
+
 <script>
     function workingHoursPage() {
         return {
@@ -62,26 +83,6 @@
                     this.currentSchedule.inherited = false;
                 }
                 this.formError = '';
-            },
-
-            timeOptions() {
-                const options = [];
-
-                for (let hour = 0; hour < 24; hour++) {
-                    for (const minute of [0, 15, 30, 45]) {
-                        const value =
-                            String(hour).padStart(2, '0') +
-                            ':' +
-                            String(minute).padStart(2, '0');
-
-                        options.push({
-                            value,
-                            label: this.persianDigits(value),
-                        });
-                    }
-                }
-
-                return options;
             },
 
             persianTime(value) {
@@ -508,9 +509,9 @@
                                             @change="markCustomized()"
                                             aria-label="ساعت شروع">
                                             <option value="">انتخاب کن</option>
-                                            <template x-for="option in timeOptions()" :key="'start-' + option.value">
-                                                <option :value="option.value" x-text="option.label"></option>
-                                            </template>
+                                            @foreach($timeOptions as $option)
+                                                <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
 
@@ -524,9 +525,9 @@
                                             @change="markCustomized()"
                                             aria-label="ساعت پایان">
                                             <option value="">انتخاب کن</option>
-                                            <template x-for="option in timeOptions()" :key="'end-' + option.value">
-                                                <option :value="option.value" x-text="option.label"></option>
-                                            </template>
+                                            @foreach($timeOptions as $option)
+                                                <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
 
@@ -617,9 +618,9 @@
                         <span>شروع استراحت</span>
                         <select x-model="breakEditor.start" aria-label="شروع استراحت">
                             <option value="">انتخاب کن</option>
-                            <template x-for="option in timeOptions()" :key="'break-start-' + option.value">
-                                <option :value="option.value" x-text="option.label"></option>
-                            </template>
+                            @foreach($timeOptions as $option)
+                                <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+                            @endforeach
                         </select>
                     </label>
 
@@ -627,9 +628,9 @@
                         <span>پایان استراحت</span>
                         <select x-model="breakEditor.end" aria-label="پایان استراحت">
                             <option value="">انتخاب کن</option>
-                            <template x-for="option in timeOptions()" :key="'break-end-' + option.value">
-                                <option :value="option.value" x-text="option.label"></option>
-                            </template>
+                            @foreach($timeOptions as $option)
+                                <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+                            @endforeach
                         </select>
                     </label>
                 </div>
