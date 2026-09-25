@@ -3291,6 +3291,20 @@ body.discover-location-open {
 
     .discover-page .discover-hero-inner {
         min-height: 0;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "content"
+            "media";
+        direction: ltr;
+    }
+
+    .discover-page .discover-hero-content {
+        grid-area: content;
+        direction: rtl;
+    }
+
+    .discover-page .discover-hero-media {
+        grid-area: media;
     }
 }
 
@@ -4329,14 +4343,24 @@ body.discover-filters-open {
         min-width: 0;
         min-height: 420px;
         grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+        grid-template-areas: "media content";
         gap: 48px;
-        direction: rtl;
+        direction: ltr;
         align-items: center;
     }
 
     .discover-page .discover-hero-content,
     .discover-page .discover-hero-media {
         min-width: 0;
+    }
+
+    .discover-page .discover-hero-content {
+        grid-area: content;
+        direction: rtl;
+    }
+
+    .discover-page .discover-hero-media {
+        grid-area: media;
     }
 
     .discover-page .discover-hero-content {
