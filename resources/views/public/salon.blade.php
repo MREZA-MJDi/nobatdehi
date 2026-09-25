@@ -346,13 +346,11 @@
 
 
                         <p class="tagline">
-                            {{
-                                Str::limit(
-                                    $salon->description
-                                        ?: 'سالن تخصصی زیبایی، مو و استایل',
-                                    130
-                                )
-                            }}
+                            @if($salon->owner?->name)
+                                به مدیریت {{ $salon->owner->name }}
+                            @else
+                                سالن تخصصی زیبایی، مو و استایل
+                            @endif
                         </p>
 
 
@@ -425,12 +423,11 @@
                 <div class="hero-bottom">
 
                     <div class="hero-bio">
-                        @if($salon->description)
-                            {{ $salon->description }}
-                        @else
-                            فضای حرفه‌ای، تیم متخصص و خدمات زیبایی با امکان
-                            نوبت‌دهی آنلاین.
-                        @endif
+                        {{ Str::limit(
+                            $salon->description
+                                ?: 'فضای حرفه‌ای، تیم متخصص و خدمات زیبایی با امکان نوبت‌دهی آنلاین.',
+                            220
+                        ) }}
                     </div>
 
 
@@ -472,6 +469,36 @@
 </div>
 
             </section>
+
+
+            @if($isDailyClosed)
+
+                <div
+                    class="salon-closure-alert reveal"
+                    role="status"
+                    aria-live="polite"
+                >
+
+                    <div class="salon-closure-icon" aria-hidden="true">
+                        !
+                    </div>
+
+                    <div class="salon-closure-copy">
+
+                        <strong>
+                            امروز سالن بسته است
+                        </strong>
+
+                        <p>
+                            {{ trim((string) ($dailyStatus?->note ?? ''))
+                                ?: 'امروز به دلیل عدم حضور سالن‌دار، سالن بسته است.' }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            @endif
 
 
             {{-- =======================================================
