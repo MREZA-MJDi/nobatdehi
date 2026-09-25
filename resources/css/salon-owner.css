@@ -2452,3 +2452,66 @@ html[data-theme="dark"] .salon-owner {
     padding:0 4px;
 }
 .salon-owner__nav-badge{margin-inline-start:auto}
+
+/* ==========================================================================
+   SALON OWNER — FINAL UI SCALE
+   ========================================================================== */
+
+.salon-owner__main {
+    width: min(100%, 1280px);
+    padding-inline: 24px;
+}
+
+.salon-dashboard-hero {
+    gap: 11px;
+}
+
+.salon-dashboard-hero h1 {
+    font-size: clamp(1.25rem, 1.8vw, 1.75rem);
+    line-height: 1.45;
+}
+
+.salon-dashboard-hero p {
+    max-width: 60ch;
+    font-size: .68rem;
+    line-height: 1.85;
+}
+
+.salon-dashboard-hero-actions {
+    gap: 6px;
+}
+
+.salon-btn {
+    min-height: 38px;
+    padding-inline: 11px;
+    font-size: .68rem;
+}
+
+@media (min-width: 1060px) {
+    .salon-owner__main {
+        width: min(100%, 1280px);
+        padding: 28px 30px 48px;
+    }
+}
+
+@media (max-width: 759px) {
+    .salon-owner__main {
+        width: 100%;
+        padding-inline: 14px;
+    }
+
+    .salon-dashboard-hero h1 {
+        font-size: 1.25rem !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .salon-owner__main {
+        padding-inline: 10px;
+    }
+
+    .salon-dashboard-hero h1 {
+        font-size: 1.15rem !important;
+    }
+}
+

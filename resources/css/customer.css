@@ -7666,3 +7666,71 @@
     }
 }
 
+/* ==========================================================================
+   CUSTOMER — FINAL UI SCALE
+   ========================================================================== */
+
+.customer-container {
+    width: min(calc(100% - 2.5rem), 1240px);
+}
+
+.customer-section {
+    padding-block: 4rem;
+}
+
+.customer-section-heading {
+    gap: 1rem;
+    margin-bottom: 1.15rem;
+}
+
+.customer-section-heading h2 {
+    font-size: clamp(1.20rem, 2.1vw, 1.70rem);
+    line-height: 1.45;
+}
+
+.customer-section-heading p {
+    font-size: .70rem;
+    line-height: 1.85;
+}
+
+.customer-page-title {
+    font-size: clamp(1.30rem, 2.4vw, 1.90rem);
+    line-height: 1.4;
+}
+
+.customer-page-lead {
+    max-width: 40rem;
+    font-size: .70rem;
+    line-height: 1.85;
+}
+
+@media (min-width: 760px) {
+    .customer-container {
+        width: min(calc(100% - 3rem), 1240px);
+    }
+}
+
+@media (max-width: 759px) {
+    .customer-container {
+        width: calc(100% - 1.25rem);
+    }
+
+    .customer-section {
+        padding-block: 3rem;
+    }
+
+    .customer-section-heading {
+        align-items: flex-start;
+        gap: .65rem;
+        margin-bottom: 1rem;
+    }
+
+    .customer-section-heading h2 {
+        font-size: clamp(1.05rem, 5vw, 1.30rem);
+    }
+
+    .customer-page-title {
+        font-size: clamp(1.15rem, 6vw, 1.45rem);
+    }
+}
+
