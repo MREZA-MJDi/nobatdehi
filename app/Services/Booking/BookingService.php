@@ -23,6 +23,30 @@ class BookingService
     }
 
     /**
+     * Maximum number of simultaneous pending bookings per customer.
+     *
+     * The limit is global across salons. Confirmed, completed and cancelled
+     * bookings do not consume this capacity.
+     */
+    public const MAX_PENDING_BOOKINGS = 2;
+
+    public function pendingBookingCount(User $customer): int
+    {
+        return $customer
+            ->bookings()
+            ->where('status', BookingStatus::PENDING)
+            ->count();
+    }
+
+    public function remainingPendingBookingSlots(User $customer): int
+    {
+        return max(
+            0,
+            self::MAX_PENDING_BOOKINGS - $this->pendingBookingCount($customer)
+        );
+    }
+
+    /**
      * Customer booking.
      *
      * Default status = PENDING
