@@ -1346,3 +1346,8 @@ body {
         transform: scale(.985);
     }
 }
+
+
+/* NOBAT INTRO — TRUE OPTICAL CENTER / SYMMETRIC SIDE LINES */
+.brand-word-wrap{width:max-content;max-width:100%}.brand-word{padding-left:0;padding-right:0;margin-inline:0;text-align:center}.kinetic-frame{width:min(780px,80vw);max-width:calc(100vw - 48px)}.line-left,.line-right{width:min(115px,12vw)}
+@media(max-width:640px){.kinetic-frame{width:min(360px,calc(100vw - 40px))}.line-left,.line-right{width:min(58px,14vw)}}

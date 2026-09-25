@@ -4,10 +4,10 @@
 
 @section('content')
 
-    <div class="mx-auto max-w-[1400px] px-4 py-5 md:px-6 md:py-7">
+    <div class="admin-dashboard-page mx-auto max-w-[1400px] px-4 py-5 md:px-6 md:py-7">
 
         {{-- Header --}}
-        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div class="admin-dashboard-header mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
             <div>
 
@@ -50,10 +50,10 @@
 
 
         {{-- Stats --}}
-        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div class="admin-dashboard-stat-grid grid grid-cols-2 gap-3 lg:grid-cols-4">
 
             {{-- Total Salons --}}
-            <div class="card p-4 md:p-5">
+            <div class="admin-dashboard-stat-card card p-4 md:p-5">
 
                 <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-accent-100 text-accent-700">
 
@@ -83,7 +83,7 @@
 
 
             {{-- Active Salons --}}
-            <div class="card p-4 md:p-5">
+            <div class="admin-dashboard-stat-card card p-4 md:p-5">
 
                 <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-700">
 
@@ -112,7 +112,7 @@
 
 
             {{-- Barbers --}}
-            <div class="card p-4 md:p-5">
+            <div class="admin-dashboard-stat-card card p-4 md:p-5">
 
                 <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-700">
 
@@ -142,7 +142,7 @@
 
 
             {{-- Customers --}}
-            <div class="card p-4 md:p-5">
+            <div class="admin-dashboard-stat-card card p-4 md:p-5">
 
                 <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
 
@@ -204,7 +204,7 @@
             </div>
 
 
-            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div class="admin-dashboard-salon-grid grid gap-3 md:grid-cols-2 xl:grid-cols-3">
 
                 @forelse($recentSalons as $salon)
 
@@ -212,7 +212,7 @@
                         $publicUrl = route('public.salons.show', $salon);
                     @endphp
 
-                    <article class="card overflow-hidden">
+                    <article class="admin-dashboard-salon-card card overflow-hidden">
 
                         <div class="relative h-28 bg-primary-950">
 
@@ -352,12 +352,12 @@
 
 
         {{-- Main Actions --}}
-        <div class="mt-6 grid gap-4 lg:grid-cols-2">
+        <div class="admin-dashboard-actions mt-6 grid gap-4 lg:grid-cols-2">
 
             {{-- Manage Salons --}}
             <a
                 href="{{ route('admin.salons.index') }}"
-                class="group rounded-2xl border border-border bg-white p-5 shadow-soft transition hover:-translate-y-1 hover:border-accent-200 hover:shadow-card"
+                class="admin-dashboard-action-card group rounded-2xl border border-border bg-white p-5 shadow-soft transition hover:-translate-y-1 hover:border-accent-200 hover:shadow-card"
             >
 
                 <div class="flex items-start justify-between gap-4">
@@ -414,7 +414,7 @@
             {{-- Create Salon --}}
             <a
                 href="{{ route('admin.salons.create') }}"
-                class="group rounded-2xl border border-primary-200 bg-primary-950 p-5 text-white shadow-soft transition hover:-translate-y-1 hover:shadow-card"
+                class="admin-dashboard-action-card group rounded-2xl border border-primary-200 bg-primary-950 p-5 text-white shadow-soft transition hover:-translate-y-1 hover:shadow-card"
             >
 
                 <div class="flex items-start justify-between gap-4">
