@@ -48,6 +48,7 @@
                         'booking_created' => 'نوبت جدید',
                         'booking_cancelled_by_customer' => 'لغو توسط مشتری',
                         'booking_status_changed' => 'تغییر وضعیت',
+                        'booking_updated' => 'ویرایش توسط مشتری',
                         default => 'اعلان',
                     };
                     $dateLabel = !empty($notification->data['booking_date'])
