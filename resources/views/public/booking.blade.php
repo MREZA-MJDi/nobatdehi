@@ -723,6 +723,33 @@
 
 
 
+                        <div
+                            x-show="
+                            !loading &&
+                            !availabilityError &&
+                            schedule.status === 'open' &&
+                            schedule.breaks.length > 0
+                        "
+                            x-cloak
+                            class="np-booking-break-notice"
+                            role="note"
+                        >
+                            <div class="np-booking-break-notice__icon" aria-hidden="true">☕</div>
+                            <div>
+                                <strong>استراحت سالن</strong>
+                                <span>
+                                    <template x-for="(breakItem, breakIndex) in schedule.breaks" :key="breakItem.start + '-' + breakItem.end + '-' + breakIndex">
+                                        <span class="np-booking-break-notice__range">
+                                            <b x-text="toPersianDigits(breakItem.start)"></b>
+                                            <span>تا</span>
+                                            <b x-text="toPersianDigits(breakItem.end)"></b>
+                                        </span>
+                                    </template>
+                                    در این بازه‌ها نوبت قابل رزرو نیست.
+                                </span>
+                            </div>
+                        </div>
+
                         {{-- Slots --}}
 
                         <div
@@ -1111,6 +1138,13 @@
                         time: '',
 
                         slots: [],
+
+                        schedule: {
+                            status: 'not_configured',
+                            is_closed: false,
+                            intervals: [],
+                            breaks: [],
+                        },
 
                         loading: false,
 
@@ -1512,6 +1546,12 @@
                             ) {
 
                                 this.slots = [];
+                                this.schedule = {
+                                    status: 'not_configured',
+                                    is_closed: false,
+                                    intervals: [],
+                                    breaks: [],
+                                };
 
                                 return;
 
@@ -1569,6 +1609,13 @@
                                 const data =
                                     await response.json();
 
+
+                                this.schedule = data.schedule || {
+                                    status: 'not_configured',
+                                    is_closed: false,
+                                    intervals: [],
+                                    breaks: [],
+                                };
 
                                 this.slots =
                                     Array.isArray(data.slots)
