@@ -64,8 +64,9 @@ class WorkingHourController extends Controller
                 'name' => $barber->name,
                 'specialty' => $barber->specialty,
                 'inherited' => !$hasCustomSchedule,
-                'hours' => $this->scheduleFromRows(
-                    $hasCustomSchedule ? $barberRows : $salonRows
+                'hours' => $this->scheduleFromRowsWithFallback(
+                    $barberRows,
+                    $salonRows
                 ),
             ];
         }
@@ -325,6 +326,27 @@ class WorkingHourController extends Controller
             );
     }
 
+    private function scheduleFromRowsWithFallback($rows, $fallbackRows): array
+    {
+        $schedule = [];
+
+        foreach (range(0, 6) as $day) {
+            $specificRows = $rows
+                ->where('day_of_week', $day)
+                ->values();
+
+            $dayRows = $specificRows->isNotEmpty()
+                ? $specificRows
+                : $fallbackRows
+                    ->where('day_of_week', $day)
+                    ->values();
+
+            $schedule[(string) $day] = $this->scheduleForDay($dayRows);
+        }
+
+        return $schedule;
+    }
+
     private function scheduleFromRows($rows): array
     {
         $schedule = [];
@@ -334,50 +356,48 @@ class WorkingHourController extends Controller
                 ->where('day_of_week', $day)
                 ->values();
 
-            $closedRow = $dayRows->first(
-                fn ($row) => $row->is_closed
-            );
-
-            if ($closedRow) {
-                $schedule[(string) $day] = [
-                    'closed' => true,
-                    'intervals' => [],
-                ];
-
-                continue;
-            }
-
-            $intervals = $dayRows
-                ->filter(
-                    fn ($row) =>
-                        !$row->is_closed &&
-                        $row->start_time &&
-                        $row->end_time
-                )
-                ->sortBy([
-                    ['sort_order', 'asc'],
-                    ['start_time', 'asc'],
-                ])
-                ->map(
-                    fn ($row) => [
-                        'start' => substr((string) $row->start_time, 0, 5),
-                        'end' => substr((string) $row->end_time, 0, 5),
-                    ]
-                )
-                ->values()
-                ->all();
-
-            /*
-             * No row means no configured availability for this day.
-             * Treat it as closed in the editor instead of showing a misleading
-             * "open" day with an impossible empty schedule.
-             */
-            $schedule[(string) $day] = [
-                'closed' => $dayRows->isEmpty() || $intervals === [],
-                'intervals' => $intervals,
-            ];
+            $schedule[(string) $day] = $this->scheduleForDay($dayRows);
         }
 
         return $schedule;
+    }
+
+    private function scheduleForDay($dayRows): array
+    {
+        $closedRow = $dayRows->first(
+            fn ($row) => $row->is_closed
+        );
+
+        if ($closedRow) {
+            return [
+                'closed' => true,
+                'intervals' => [],
+            ];
+        }
+
+        $intervals = $dayRows
+            ->filter(
+                fn ($row) =>
+                    !$row->is_closed &&
+                    $row->start_time &&
+                    $row->end_time
+            )
+            ->sortBy([
+                ['sort_order', 'asc'],
+                ['start_time', 'asc'],
+            ])
+            ->map(
+                fn ($row) => [
+                    'start' => substr((string) $row->start_time, 0, 5),
+                    'end' => substr((string) $row->end_time, 0, 5),
+                ]
+            )
+            ->values()
+            ->all();
+
+        return [
+            'closed' => false,
+            'intervals' => $intervals,
+        ];
     }
 }
