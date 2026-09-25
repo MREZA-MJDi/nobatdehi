@@ -163,12 +163,19 @@
 
                 if (!interval) return;
 
+                const suggestedBreak =
+                    interval.start <= '13:00' &&
+                    interval.end >= '15:00'
+                        ? { start: '13:00', end: '15:00' }
+                        : { start: '', end: '' };
+
                 this.breakEditor = {
                     open: true,
+                    saving: false,
                     day: Number(day),
                     intervalIndex: Number(intervalIndex),
-                    start: '',
-                    end: '',
+                    start: suggestedBreak.start,
+                    end: suggestedBreak.end,
                     error: '',
                 };
             },
@@ -293,7 +300,7 @@
                     ? orderedIntervals[orderedIntervals.length - 1]
                     : null;
 
-                if (last?.end && last.end < '23:30') {
+                if (last?.end && last.end <= '23:15') {
                     start = last.end;
 
                     const [hour, minute] = last.end.split(':').map(Number);
@@ -303,6 +310,12 @@
                         String(Math.floor(totalMinutes / 60)).padStart(2, '0') +
                         ':' +
                         String(totalMinutes % 60).padStart(2, '0');
+                }
+
+                if (!start || !end) {
+                    this.formError =
+                        'برای افزودن بازه جدید، باید بعد از آخرین بازه حداقل ۳۰ دقیقه فضای خالی وجود داشته باشد.';
+                    return;
                 }
 
                 target.intervals.push({start, end});
