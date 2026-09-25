@@ -547,7 +547,7 @@ body.salon-lightbox-open {
 
     color: #fff;
 
-    font-size: .66rem;
+    font-size: .68rem;
     font-weight: 700;
 }
 
@@ -783,7 +783,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .65rem;
+    font-size: .68rem;
 }
 
 .salon-page .hero-meta span {
@@ -1294,7 +1294,7 @@ body.salon-lightbox-open {
 
     color: #fff;
 
-    font-size: .65rem;
+    font-size: .68rem;
 
     backdrop-filter: blur(10px);
 }
@@ -1612,7 +1612,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .65rem;
+    font-size: .68rem;
     line-height: 1.9;
 }
 
@@ -2325,7 +2325,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .66rem;
+    font-size: .68rem;
     line-height: 2;
 }
 
@@ -2645,7 +2645,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .65rem;
+    font-size: .68rem;
 }
 
 .salon-page .m-filters {
@@ -2685,7 +2685,7 @@ body.salon-lightbox-open {
 
     background: rgba(255,255,255,.028);
 
-    font-size: .65rem;
+    font-size: .68rem;
 }
 
 .salon-page .field select:focus {
@@ -3104,7 +3104,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .65rem;
+    font-size: .68rem;
     line-height: 1.9;
 }
 
@@ -3429,7 +3429,7 @@ body.salon-lightbox-open {
     }
 
     .salon-page .hero-bio {
-        font-size: .66rem;
+        font-size: .68rem;
     }
 
     .salon-page .hero-meta {
@@ -3590,7 +3590,7 @@ body.salon-lightbox-open {
         box-shadow:
             0 18px 40px rgba(0,0,0,.42);
 
-        font-size: .69rem;
+        font-size: .68rem;
         font-weight: 650;
     }
 
