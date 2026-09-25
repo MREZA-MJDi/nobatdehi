@@ -109,7 +109,7 @@ class WorkingHoursPerBarberTest extends TestCase
         ]);
     }
 
-    public function test_working_hours_editor_renders_real_quarter_hour_values(): void
+    public function test_working_hours_editor_renders_half_hour_booking_grid_values(): void
     {
         [$owner] = $this->fixture();
 
@@ -117,6 +117,7 @@ class WorkingHoursPerBarberTest extends TestCase
             ->get(route('salon.working-hours.edit'))
             ->assertOk()
             ->assertSee('value="09:00">۰۹:۰۰', false)
+            ->assertSee('value="09:30">۰۹:۳۰', false)
             ->assertSee('value="22:00">۲۲:۰۰', false);
     }
 
@@ -143,9 +144,9 @@ class WorkingHoursPerBarberTest extends TestCase
             $date
         );
 
-        $this->assertCount(45, $slots);
+        $this->assertCount(25, $slots);
         $this->assertSame(
-            45,
+            25,
             collect($slots)->pluck('start')->unique()->count()
         );
     }
