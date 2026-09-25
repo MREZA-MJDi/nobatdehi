@@ -306,6 +306,43 @@ class SalonController extends Controller
             $todayHoursText = 'امروز ساعات کاری ثبت نشده';
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Public break display
+        |--------------------------------------------------------------------------
+        |
+        | A break is the real gap between two effective working intervals.
+        | Keep this derived from the same canonical interval list used by the
+        | open/closed status so the public profile never advertises a break
+        | that availability does not enforce.
+        |--------------------------------------------------------------------------
+        */
+        $todayBreaks = [];
+
+        if ($todayHours->count() > 1) {
+            $orderedTodayHours = $todayHours->values();
+
+            for ($index = 1, $count = $orderedTodayHours->count(); $index < $count; $index++) {
+                $previousEnd = substr(
+                    (string) $orderedTodayHours[$index - 1]->end_time,
+                    0,
+                    5
+                );
+                $currentStart = substr(
+                    (string) $orderedTodayHours[$index]->start_time,
+                    0,
+                    5
+                );
+
+                if ($previousEnd < $currentStart) {
+                    $todayBreaks[] = [
+                        'start' => $previousEnd,
+                        'end' => $currentStart,
+                    ];
+                }
+            }
+        }
+
         // public.salon derives its displayed "today" status from the loaded
         // workingHours relation. A daily close must therefore hide only today's
         // weekly rows so the cover badge cannot contradict the explicit close.
@@ -338,6 +375,7 @@ class SalonController extends Controller
                 'isOpenNow',
                 'statusText',
                 'todayHoursText',
+                'todayBreaks',
                 'dailyStatus',
                 'isDailyClosed',
                 'isFavorited',
