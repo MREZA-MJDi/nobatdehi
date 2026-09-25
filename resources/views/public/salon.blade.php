@@ -1555,7 +1555,32 @@
                                 </strong>
 
                             </div>
-</div>
+
+                            @if(!empty($todayBreaks))
+                                <div class="hours-break">
+                                    <span class="hours-label">
+                                        استراحت سالن
+                                    </span>
+
+                                    <strong>
+                                        @foreach($todayBreaks as $break)
+                                            {{ str_replace(
+                                                ['0','1','2','3','4','5','6','7','8','9'],
+                                                ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'],
+                                                $break['start']
+                                            ) }}
+                                            تا
+                                            {{ str_replace(
+                                                ['0','1','2','3','4','5','6','7','8','9'],
+                                                ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'],
+                                                $break['end']
+                                            ) }}{{ !$loop->last ? '  •  ' : '' }}
+                                        @endforeach
+                                    </strong>
+                                </div>
+                            @endif
+
+                        </div>
 
                     </div>
 
