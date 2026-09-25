@@ -3,1136 +3,449 @@
 @section('title', 'ساعات کاری')
 
 @section('content')
+@php
+    $days = [
+        0 => ['name' => 'شنبه', 'short' => 'ش'],
+        1 => ['name' => 'یکشنبه', 'short' => 'ی'],
+        2 => ['name' => 'دوشنبه', 'short' => 'د'],
+        3 => ['name' => 'سه‌شنبه', 'short' => 'س'],
+        4 => ['name' => 'چهارشنبه', 'short' => 'چ'],
+        5 => ['name' => 'پنجشنبه', 'short' => 'پ'],
+        6 => ['name' => 'جمعه', 'short' => 'ج'],
+    ];
+@endphp
 
-    @php
-        $days = [
-            0 => [
-                'name' => 'شنبه',
-                'short' => 'ش',
-            ],
+<script>
+    function workingHoursPage() {
+        return {
+            schedules: @js($schedules),
+            selectedScope: @js($selectedScope),
+            formError: '',
+            copyModalOpen: false,
+            copySourceDay: null,
+            copyTargets: { 0:false, 1:false, 2:false, 3:false, 4:false, 5:false, 6:false },
 
-            1 => [
-                'name' => 'یکشنبه',
-                'short' => 'ی',
-            ],
+            get currentSchedule() {
+                return this.schedules[this.selectedScope];
+            },
 
-            2 => [
-                'name' => 'دوشنبه',
-                'short' => 'د',
-            ],
+            get currentHours() {
+                return this.currentSchedule?.hours || {};
+            },
 
-            3 => [
-                'name' => 'سه‌شنبه',
-                'short' => 'س',
-            ],
+            get scopeLabel() {
+                return this.selectedScope === 'salon'
+                    ? 'برنامه کلی سالن'
+                    : 'برنامه اختصاصی ' + (this.currentSchedule?.name || 'آرایشگر');
+            },
 
-            4 => [
-                'name' => 'چهارشنبه',
-                'short' => 'چ',
-            ],
+            defaultSchedule() {
+                return {
+                    0:{closed:false,intervals:[{start:'09:00',end:'22:00'}]},
+                    1:{closed:false,intervals:[{start:'09:00',end:'22:00'}]},
+                    2:{closed:false,intervals:[{start:'09:00',end:'22:00'}]},
+                    3:{closed:false,intervals:[{start:'09:00',end:'22:00'}]},
+                    4:{closed:false,intervals:[{start:'09:00',end:'22:00'}]},
+                    5:{closed:false,intervals:[{start:'09:00',end:'22:00'}]},
+                    6:{closed:true,intervals:[]},
+                };
+            },
 
-            5 => [
-                'name' => 'پنجشنبه',
-                'short' => 'پ',
-            ],
+            selectScope(scope) {
+                this.selectedScope = String(scope);
+                this.formError = '';
+                this.copyModalOpen = false;
+            },
 
-            6 => [
-                'name' => 'جمعه',
-                'short' => 'ج',
-            ],
-        ];
+            markCustomized() {
+                if (this.selectedScope !== 'salon' && this.currentSchedule) {
+                    this.currentSchedule.inherited = false;
+                }
+                this.formError = '';
+            },
 
-        $persianDigits = [
-            '0' => '۰',
-            '1' => '۱',
-            '2' => '۲',
-            '3' => '۳',
-            '4' => '۴',
-            '5' => '۵',
-            '6' => '۶',
-            '7' => '۷',
-            '8' => '۸',
-            '9' => '۹',
-        ];
+            applyDefault() {
+                if (!confirm('برنامه پیشنهادی روی برنامه فعلی اعمال شود؟')) return;
+                this.currentSchedule.hours = JSON.parse(JSON.stringify(this.defaultSchedule()));
+                this.markCustomized();
+            },
 
-        $hoursData = [];
+            addInterval(day) {
+                const target = this.currentHours[day];
+                target.closed = false;
+                if (!Array.isArray(target.intervals)) target.intervals = [];
+                target.intervals.push({start:'',end:''});
+                this.markCustomized();
+            },
 
-        $oldHours = old('hours');
+            removeInterval(day,index) {
+                this.currentHours[day].intervals.splice(index,1);
+                if (!this.currentHours[day].intervals.length) {
+                    this.currentHours[day].closed = true;
+                }
+                this.markCustomized();
+            },
 
-        foreach ($days as $dayNumber => $day) {
+            closeDay(day) {
+                this.currentHours[day].closed = true;
+                this.currentHours[day].intervals = [];
+                this.markCustomized();
+            },
 
-            $existingRows = $hours->get($dayNumber, collect());
+            openDay(day) {
+                const target = this.currentHours[day];
+                target.closed = false;
+                if (!Array.isArray(target.intervals)) target.intervals = [];
+                if (!target.intervals.length) {
+                    target.intervals.push({start:'09:00',end:'22:00'});
+                }
+                this.markCustomized();
+            },
 
-            /*
-             |--------------------------------------------------------------------------
-             | اگر validation error داشتیم، اطلاعات فرم قبلی را نگه می‌داریم
-             |--------------------------------------------------------------------------
-             */
-            if (is_array($oldHours) && array_key_exists($dayNumber, $oldHours)) {
+            intervalError(day) {
+                const target = this.currentHours[day];
+                if (!target || target.closed) return '';
 
-                $oldDay = $oldHours[$dayNumber];
+                const intervals = Array.isArray(target.intervals) ? target.intervals : [];
+                if (!intervals.length) return 'حداقل یک بازه کاری لازم است.';
 
-                $intervals = [];
-
-                foreach (($oldDay['intervals'] ?? []) as $interval) {
-                    $intervals[] = [
-                        'start' => $interval['start_time'] ?? '',
-                        'end' => $interval['end_time'] ?? '',
-                    ];
+                const normalized = [];
+                for (const interval of intervals) {
+                    if (!interval.start || !interval.end) return 'ساعت شروع و پایان را کامل کنید.';
+                    if (interval.start >= interval.end) return 'ساعت پایان باید بعد از شروع باشد.';
+                    normalized.push({start:interval.start,end:interval.end});
                 }
 
-                $isClosed = filter_var(
-                    $oldDay['is_closed'] ?? false,
-                    FILTER_VALIDATE_BOOLEAN
-                );
+                normalized.sort((a,b) => a.start.localeCompare(b.start));
 
-                /*
-                 * اگر روز تعطیل است، نباید هیچ interval داشته باشد.
-                 */
-                if ($isClosed) {
-                    $intervals = [];
-                }
-
-                $hoursData[$dayNumber] = [
-                    'closed' => $isClosed,
-                    'intervals' => $intervals,
-                ];
-
-                continue;
-            }
-
-            /*
-             |--------------------------------------------------------------------------
-             | اطلاعات ذخیره‌شده فعلی
-             |--------------------------------------------------------------------------
-             */
-
-            $isClosed = false;
-            $intervals = [];
-
-            foreach ($existingRows as $row) {
-
-                if ($row->is_closed) {
-                    $isClosed = true;
-                    continue;
-                }
-
-                if (
-                    !$row->start_time ||
-                    !$row->end_time
-                ) {
-                    continue;
-                }
-
-                $intervals[] = [
-                    'start' => substr(
-                        (string) $row->start_time,
-                        0,
-                        5
-                    ),
-
-                    'end' => substr(
-                        (string) $row->end_time,
-                        0,
-                        5
-                    ),
-                ];
-            }
-
-            /*
-             * اگر هیچ رکوردی برای روز وجود ندارد،
-             * روز را باز نشان می‌دهیم تا کاربر بتواند ساعت وارد کند.
-             */
-            if ($existingRows->isEmpty()) {
-                $isClosed = false;
-            }
-
-            /*
-             * روز تعطیل نباید interval داشته باشد.
-             */
-            if ($isClosed) {
-                $intervals = [];
-            }
-
-            $hoursData[$dayNumber] = [
-                'closed' => $isClosed,
-                'intervals' => $intervals,
-            ];
-        }
-    @endphp
-
-
-    <script>
-        function workingHoursPage() {
-            return {
-
-                hours: @js($hoursData),
-
-                copyModalOpen: false,
-
-                copySourceDay: null,
-
-                copyTargets: {
-                    0: false,
-                    1: false,
-                    2: false,
-                    3: false,
-                    4: false,
-                    5: false,
-                    6: false,
-                },
-
-
-                /*
-                 |--------------------------------------------------------------------------
-                 | برنامه پیش‌فرض
-                 |--------------------------------------------------------------------------
-                 | شنبه تا پنجشنبه: 09:00 تا 22:00
-                 | جمعه: تعطیل
-                 |--------------------------------------------------------------------------
-                 */
-                defaultSchedule() {
-                    return {
-                        0: {
-                            closed: false,
-                            intervals: [
-                                {
-                                    start: '09:00',
-                                    end: '22:00'
-                                }
-                            ]
-                        },
-
-                        1: {
-                            closed: false,
-                            intervals: [
-                                {
-                                    start: '09:00',
-                                    end: '22:00'
-                                }
-                            ]
-                        },
-
-                        2: {
-                            closed: false,
-                            intervals: [
-                                {
-                                    start: '09:00',
-                                    end: '22:00'
-                                }
-                            ]
-                        },
-
-                        3: {
-                            closed: false,
-                            intervals: [
-                                {
-                                    start: '09:00',
-                                    end: '22:00'
-                                }
-                            ]
-                        },
-
-                        4: {
-                            closed: false,
-                            intervals: [
-                                {
-                                    start: '09:00',
-                                    end: '22:00'
-                                }
-                            ]
-                        },
-
-                        5: {
-                            closed: false,
-                            intervals: [
-                                {
-                                    start: '09:00',
-                                    end: '22:00'
-                                }
-                            ]
-                        },
-
-                        6: {
-                            closed: true,
-                            intervals: []
-                        }
-                    };
-                },
-
-
-                /*
-                 |--------------------------------------------------------------------------
-                 | اعمال برنامه پیش‌فرض
-                 |--------------------------------------------------------------------------
-                 */
-                applyDefault() {
-
-                    if (
-                        !confirm(
-                            'برنامه پیش‌فرض روی ساعات فعلی اعمال شود؟'
-                        )
-                    ) {
-                        return;
+                for (let index=1; index<normalized.length; index++) {
+                    if (normalized[index].start < normalized[index-1].end) {
+                        return 'بازه‌ها نباید با هم تداخل داشته باشند.';
                     }
+                }
 
-                    const defaults = this.defaultSchedule();
+                return '';
+            },
 
-                    Object.entries(defaults).forEach(
-                        ([day, value]) => {
+            validate() {
+                const days = ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
 
-                            this.hours[day] = JSON.parse(
-                                JSON.stringify(value)
-                            );
+                for (const day of Object.keys(this.currentHours)) {
+                    const error = this.intervalError(day);
+                    if (error) {
+                        this.formError = this.scopeLabel + ' · ' + days[Number(day)] + ': ' + error;
+                        return false;
+                    }
+                }
 
-                        }
-                    );
-                },
+                this.formError = '';
+                return true;
+            },
 
+            handleSubmit(event) {
+                if (!this.validate()) {
+                    event.preventDefault();
+                    window.scrollTo({top:0,behavior:'smooth'});
+                } else {
+                    event.currentTarget.querySelector('button[type="submit"]').disabled = true;
+                }
+            },
 
-                /*
-                 |--------------------------------------------------------------------------
-                 | کپی ساعات
-                 |--------------------------------------------------------------------------
-                 */
-                openCopyModal(day) {
+            openCopyModal(day) {
+                this.copySourceDay = Number(day);
+                Object.keys(this.copyTargets).forEach(dayNumber => this.copyTargets[dayNumber] = false);
+                this.copyModalOpen = true;
+            },
 
-                    this.copySourceDay = Number(day);
+            closeCopyModal() {
+                this.copyModalOpen = false;
+                this.copySourceDay = null;
+            },
 
-                    Object.keys(this.copyTargets).forEach(
-                        dayNumber => {
-                            this.copyTargets[dayNumber] = false;
-                        }
-                    );
+            selectWorkingDays() {
+                Object.keys(this.copyTargets).forEach(dayNumber => {
+                    const number = Number(dayNumber);
+                    this.copyTargets[dayNumber] = number !== this.copySourceDay && number <= 5;
+                });
+            },
 
-                    this.copyModalOpen = true;
-                },
+            applyCopy() {
+                if (this.copySourceDay === null) return;
 
+                const targets = Object.entries(this.copyTargets)
+                    .filter(([day,selected]) => selected && Number(day) !== this.copySourceDay)
+                    .map(([day]) => Number(day));
 
-                closeCopyModal() {
-
+                if (!targets.length) {
+                    this.formError = 'حداقل یک روز مقصد را انتخاب کنید.';
                     this.copyModalOpen = false;
-
-                    this.copySourceDay = null;
-                },
-
-
-                selectWorkingDays() {
-
-                    Object.keys(this.copyTargets).forEach(
-                        dayNumber => {
-
-                            const number = Number(dayNumber);
-
-                            this.copyTargets[dayNumber] =
-                                number >= 1 &&
-                                number <= 5 &&
-                                number !== this.copySourceDay;
-
-                        }
-                    );
-                },
-
-
-                applyCopy() {
-
-                    if (this.copySourceDay === null) {
-                        return;
-                    }
-
-                    const targets = Object.entries(
-                        this.copyTargets
-                    )
-                        .filter(
-                            ([day, selected]) =>
-                                selected &&
-                                Number(day) !== this.copySourceDay
-                        )
-                        .map(
-                            ([day]) => Number(day)
-                        );
-
-                    if (!targets.length) {
-
-                        alert(
-                            'حداقل یک روز را انتخاب کن.'
-                        );
-
-                        return;
-                    }
-
-                    const source =
-                        this.hours[this.copySourceDay];
-
-                    /*
-                     * اگر روز مبدا تعطیل باشد،
-                     * مقصد هم تعطیل می‌شود و interval ندارد.
-                     */
-                    targets.forEach(day => {
-
-                        this.hours[day] =
-                            JSON.parse(
-                                JSON.stringify(source)
-                            );
-
-                    });
-
-                    this.closeCopyModal();
-                },
-
-
-                /*
-                 |--------------------------------------------------------------------------
-                 | افزودن بازه
-                 |--------------------------------------------------------------------------
-                 */
-                addInterval(day) {
-
-                    if (
-                        this.hours[day].closed
-                    ) {
-                        this.hours[day].closed = false;
-                    }
-
-                    if (
-                        !Array.isArray(
-                            this.hours[day].intervals
-                        )
-                    ) {
-                        this.hours[day].intervals = [];
-                    }
-
-                    this.hours[day].intervals.push({
-                        start: '',
-                        end: ''
-                    });
-                },
-
-
-                /*
-                 |--------------------------------------------------------------------------
-                 | حذف بازه
-                 |--------------------------------------------------------------------------
-                 */
-                removeInterval(day, index) {
-
-                    this.hours[day].intervals.splice(
-                        index,
-                        1
-                    );
-
-                    /*
-                     * اگر هیچ بازه‌ای باقی نماند،
-                     * روز را تعطیل می‌کنیم.
-                     */
-                    if (
-                        this.hours[day].intervals.length === 0
-                    ) {
-                        this.hours[day].closed = true;
-                    }
-                },
-
-
-                /*
-                 |--------------------------------------------------------------------------
-                 | تعطیل کردن روز
-                 |--------------------------------------------------------------------------
-                 */
-                closeDay(day) {
-
-                    this.hours[day].closed = true;
-
-                    /*
-                     * خیلی مهم:
-                     * با تعطیل کردن روز، intervalها کاملاً پاک می‌شوند.
-                     */
-                    this.hours[day].intervals = [];
-                },
-
-
-                /*
-                 |--------------------------------------------------------------------------
-                 | باز کردن روز
-                 |--------------------------------------------------------------------------
-                 */
-                openDay(day) {
-
-                    this.hours[day].closed = false;
-
-                    if (
-                        !Array.isArray(
-                            this.hours[day].intervals
-                        )
-                    ) {
-                        this.hours[day].intervals = [];
-                    }
-
-                    if (
-                        this.hours[day].intervals.length === 0
-                    ) {
-                        this.hours[day].intervals.push({
-                            start: '09:00',
-                            end: '22:00'
-                        });
-                    }
-                },
-
-
-                hasIntervals(day) {
-
-                    return (
-                        !this.hours[day].closed &&
-                        Array.isArray(this.hours[day].intervals) &&
-                        this.hours[day].intervals.length > 0
-                    );
+                    return;
                 }
-            };
-        }
-    </script>
 
+                const source = JSON.parse(JSON.stringify(this.currentHours[this.copySourceDay]));
+                targets.forEach(day => this.currentHours[day] = JSON.parse(JSON.stringify(source)));
 
-    <div
-        x-data="workingHoursPage()"
-        dir="rtl"
-        class="mx-auto w-full max-w-5xl px-4 py-6 pb-32 sm:px-6 lg:px-8 lg:py-8"
-    >
+                this.markCustomized();
+                this.closeCopyModal();
+            },
+        };
+    }
+</script>
 
-        {{-- Header --}}
-        <div class="mb-6">
+<div x-data="workingHoursPage()" class="salon-working-hours-page">
+    <header class="salon-page-header">
+        <div>
+            <span class="salon-overline">زمان‌بندی سالن</span>
+            <h1>ساعات کاری</h1>
+            <p>
+                ابتدا مشخص کن برنامه برای کل سالن است یا برای کدام آرایشگر.
+                آرایشگرانی که برنامه اختصاصی ندارند از برنامه کلی سالن استفاده می‌کنند.
+            </p>
+        </div>
+    </header>
 
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    @if(session('success'))
+        <div class="salon-owner__flash is-success" role="status" aria-live="polite">
+            <span aria-hidden="true">✓</span>
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
 
-                <div>
-
-                    <div class="mb-2 text-[10px] font-black text-accent-600">
-                        {{ $salon->name }}
-                    </div>
-
-                    <h1 class="text-2xl font-black text-content sm:text-3xl">
-                        ساعات کاری
-                    </h1>
-
-                    <p class="mt-2 text-xs leading-6 text-content-muted sm:text-sm">
-                        فقط ساعت‌هایی را وارد کن که واقعاً نوبت می‌پذیری.
-                    </p>
-
-                </div>
-
+    @if($errors->any())
+        <div class="salon-owner__flash is-error" role="alert">
+            <span aria-hidden="true">!</span>
+            <div class="salon-owner__flash-copy">
+                <strong>ساعات کاری ذخیره نشد</strong>
+                @foreach($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
             </div>
+        </div>
+    @endif
 
+    <section class="salon-working-hours-scope salon-card">
+        <div class="salon-card-head">
+            <div>
+                <span class="salon-overline">مقصد برنامه</span>
+                <h2>این ساعت کاری برای چه کسی است؟</h2>
+            </div>
         </div>
 
-
-        {{-- Success --}}
-        @if(session('success'))
-
-            <div
-                x-data="{ show: true }"
-                x-show="show"
-                x-transition
-                class="mb-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4"
-            >
-
-                <div class="flex items-center justify-between gap-3">
-
-                    <div class="flex items-center gap-3">
-
-                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-white font-black text-emerald-600">
-                            ✓
-                        </div>
-
-                        <div>
-
-                            <div class="text-xs font-black text-emerald-800">
-                                ذخیره شد
-                            </div>
-
-                            <div class="mt-1 text-[10px] text-emerald-700">
-                                {{ session('success') }}
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <button
-                        type="button"
-                        @click="show = false"
-                        class="text-lg font-black text-emerald-600"
-                    >
-                        ×
-                    </button>
-
-                </div>
-
-            </div>
-
-        @endif
-
-
-        {{-- Errors --}}
-        @if($errors->any())
-
-            <div class="mb-5 rounded-2xl border border-red-100 bg-red-50 p-4">
-
-                <div class="text-xs font-black text-red-800">
-                    لطفاً ساعات کاری را بررسی کن
-                </div>
-
-                <div class="mt-2 space-y-1">
-
-                    @foreach($errors->all() as $error)
-
-                        <div class="text-[10px] font-bold leading-6 text-red-700">
-                            • {{ $error }}
-                        </div>
-
-                    @endforeach
-
-                </div>
-
-            </div>
-
-        @endif
-
-
-        {{-- Quick Actions --}}
-        <div class="mb-5 grid gap-3 sm:grid-cols-2">
-
-            <button
-                type="button"
-                @click="applyDefault()"
-                class="rounded-2xl border border-border bg-white p-4 text-right shadow-soft transition hover:-translate-y-0.5 hover:border-accent-200"
-            >
-
-                <div class="flex items-center gap-3">
-
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-50 text-accent-600">
-                        ⚡
-                    </div>
-
-                    <div>
-
-                        <div class="text-xs font-black text-content">
-                            برنامه پیشنهادی
-                        </div>
-
-                        <div class="mt-1 text-[10px] text-content-muted">
-                            شنبه تا پنجشنبه ۰۹ تا ۲۲
-                            · جمعه تعطیل
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </button>
-
-
-            <div class="rounded-2xl border border-border bg-primary-50 p-4">
-
-                <div class="flex items-start gap-3">
-
-                    <div class="text-lg">
-                        💡
-                    </div>
-
-                    <div>
-
-                        <div class="text-xs font-black text-content">
-                            بین دو بازه رزرو نمی‌شود
-                        </div>
-
-                        <div class="mt-1 text-[10px] leading-5 text-content-muted">
-                            مثلاً ۰۹ تا ۱۳ و ۱۴ تا ۲۲ یعنی بین ۱۳ تا ۱۴ نوبتی نمایش داده نمی‌شود.
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        {{-- Main Form --}}
-        <form
-            action="{{ route('salon.working-hours.update') }}"
-            method="POST"
-            class="space-y-3"
-        >
-
-            @csrf
-            @method('PUT')
-
-
-            @foreach($days as $dayNumber => $day)
-
-                <section
-                    class="overflow-hidden rounded-3xl border border-border bg-white shadow-soft"
-                >
-
-                    {{-- Day Header --}}
-                    <div class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-
-                        <div class="flex items-center gap-3">
-
-                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent-50 text-sm font-black text-accent-700">
-                                {{ $day['short'] }}
-                            </div>
-
-                            <div>
-
-                                <div class="text-sm font-black text-content sm:text-base">
-                                    {{ $day['name'] }}
-                                </div>
-
-                                <div
-                                    class="mt-1 text-[10px] font-bold"
-                                    :class="
-                                        hours[{{ $dayNumber }}].closed
-                                            ? 'text-content-faint'
-                                            : 'text-emerald-600'
-                                    "
-                                    x-text="
-                                        hours[{{ $dayNumber }}].closed
-                                            ? 'تعطیل'
-                                            : 'باز و آماده رزرو'
-                                    "
-                                ></div>
-
-                            </div>
-
-                        </div>
-
-
-                        {{-- Close/Open --}}
-                        <button
-                            type="button"
-                            @click="
-                                hours[{{ $dayNumber }}].closed
-                                    ? openDay({{ $dayNumber }})
-                                    : closeDay({{ $dayNumber }})
-                            "
-                            class="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-[10px] font-black transition"
-                            :class="
-                                hours[{{ $dayNumber }}].closed
-                                    ? 'bg-primary-100 text-content'
-                                    : 'bg-emerald-50 text-emerald-700'
-                            "
-                        >
-
-                            <span
-                                x-text="
-                                    hours[{{ $dayNumber }}].closed
-                                        ? 'باز کردن روز'
-                                        : 'تعطیل کردن'
-                                "
-                            ></span>
-
-                        </button>
-
-                    </div>
-
-
-                    {{-- Day Content --}}
-                    <div
-                        x-show="!hours[{{ $dayNumber }}].closed"
-                        x-transition
-                        class="border-t border-border bg-primary-50/60 p-4 sm:p-5"
-                    >
-
-                        {{-- فقط یک day_of_week برای هر روز --}}
-                        <input
-                            type="hidden"
-                            name="hours[{{ $dayNumber }}][day_of_week]"
-                            value="{{ $dayNumber }}"
-                        >
-
-                        {{-- فقط یک is_closed برای هر روز --}}
-                        <input
-                            type="hidden"
-                            name="hours[{{ $dayNumber }}][is_closed]"
-                            :value="hours[{{ $dayNumber }}].closed ? 1 : 0"
-                        >
-
-
-                        <div class="space-y-2">
-
-                            {{--
-                                خیلی مهم:
-                                از x-if استفاده شده تا وقتی روز تعطیل است،
-                                inputهای ساعت اصلاً در DOM وجود نداشته باشند.
-                            --}}
-                            <template x-if="!hours[{{ $dayNumber }}].closed">
-
-                                <div>
-
-                                    <template
-                                        x-for="(interval, intervalIndex) in hours[{{ $dayNumber }}].intervals"
-                                        :key="intervalIndex"
-                                    >
-
-                                        <div class="mb-2 flex flex-col gap-2 rounded-2xl border border-border bg-white p-3 sm:flex-row sm:items-end">
-
-                                            <div class="grid flex-1 grid-cols-2 gap-2">
-
-                                                {{-- Start --}}
-                                                <div>
-
-                                                    <label class="mb-1.5 block text-[9px] font-black text-content-muted">
-                                                        از
-                                                    </label>
-
-                                                    <select
-                                                        :name="`hours[{{ $dayNumber }}][intervals][${intervalIndex}][start_time]`"
-                                                        x-model="interval.start"
-                                                        class="form-control h-11 text-center"
-                                                        dir="rtl"
-                                                    >
-
-                                                        <option value="">
-                                                            انتخاب
-                                                        </option>
-
-                                                        @for($hourIndex = 0; $hourIndex < 24; $hourIndex++)
-
-                                                            @for($minute = 0; $minute < 60; $minute += 15)
-
-                                                                @php
-                                                                    $time = sprintf(
-                                                                        '%02d:%02d',
-                                                                        $hourIndex,
-                                                                        $minute
-                                                                    );
-
-                                                                    $displayTime = strtr(
-                                                                        $time,
-                                                                        $persianDigits
-                                                                    );
-                                                                @endphp
-
-                                                                <option value="{{ $time }}">
-                                                                    {{ $displayTime }}
-                                                                </option>
-
-                                                            @endfor
-
-                                                        @endfor
-
-                                                    </select>
-
-                                                </div>
-
-
-                                                {{-- End --}}
-                                                <div>
-
-                                                    <label class="mb-1.5 block text-[9px] font-black text-content-muted">
-                                                        تا
-                                                    </label>
-
-                                                    <select
-                                                        :name="`hours[{{ $dayNumber }}][intervals][${intervalIndex}][end_time]`"
-                                                        x-model="interval.end"
-                                                        class="form-control h-11 text-center"
-                                                        dir="rtl"
-                                                    >
-
-                                                        <option value="">
-                                                            انتخاب
-                                                        </option>
-
-                                                        @for($hourIndex = 0; $hourIndex < 24; $hourIndex++)
-
-                                                            @for($minute = 0; $minute < 60; $minute += 15)
-
-                                                                @php
-                                                                    $time = sprintf(
-                                                                        '%02d:%02d',
-                                                                        $hourIndex,
-                                                                        $minute
-                                                                    );
-
-                                                                    $displayTime = strtr(
-                                                                        $time,
-                                                                        $persianDigits
-                                                                    );
-                                                                @endphp
-
-                                                                <option value="{{ $time }}">
-                                                                    {{ $displayTime }}
-                                                                </option>
-
-                                                            @endfor
-
-                                                        @endfor
-
-                                                    </select>
-
-                                                </div>
-
-                                            </div>
-
-
-                                            {{-- Delete --}}
-                                            <button
-                                                type="button"
-                                                @click="
-                                                    removeInterval(
-                                                        {{ $dayNumber }},
-                                                        intervalIndex
-                                                    )
-                                                "
-                                                class="flex h-11 items-center justify-center rounded-xl border border-red-100 bg-red-50 px-4 text-xs font-black text-red-600 transition hover:bg-red-100"
-                                            >
-                                                حذف
-                                            </button>
-
-                                        </div>
-
-                                    </template>
-
-
-                                    {{-- Add interval --}}
-                                    <button
-                                        type="button"
-                                        @click="addInterval({{ $dayNumber }})"
-                                        class="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-accent-200 bg-white py-3 text-[10px] font-black text-accent-600 transition hover:bg-accent-50"
-                                    >
-                                        <span class="text-base">+</span>
-                                        افزودن بازه
-                                    </button>
-
-                                </div>
-
-                            </template>
-
-                        </div>
-
-
-                        {{-- Copy --}}
-                        <div class="mt-3 border-t border-border pt-3">
-
-                            <button
-                                type="button"
-                                @click="openCopyModal({{ $dayNumber }})"
-                                class="text-[10px] font-black text-content-muted transition hover:text-accent-600"
-                            >
-                                کپی این ساعت برای روزهای دیگر ←
-                            </button>
-
-                        </div>
-
-                    </div>
-
-
-                    {{-- Closed Content --}}
-                    <div
-                        x-show="hours[{{ $dayNumber }}].closed"
-                        x-transition
-                        class="border-t border-border bg-primary-50/50 px-4 py-5 sm:px-5"
-                    >
-
-                        {{--
-                            اینجا دیگر هیچ input مربوط به day_of_week یا is_closed نداریم.
-                            آن‌ها بالاتر، یک بار برای هر روز تعریف شده‌اند.
-                        --}}
-
-                        <div class="flex items-center justify-between gap-4">
-
-                            <div>
-
-                                <div class="text-xs font-black text-content">
-                                    این روز تعطیل است
-                                </div>
-
-                                <div class="mt-1 text-[10px] leading-5 text-content-muted">
-                                    مشتری در این روز هیچ زمان قابل رزروی نمی‌بیند.
-                                </div>
-
-                            </div>
-
-                            <button
-                                type="button"
-                                @click="openDay({{ $dayNumber }})"
-                                class="rounded-xl bg-white px-4 py-2.5 text-[10px] font-black text-content shadow-sm"
-                            >
-                                باز کردن
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </section>
-
-            @endforeach
-
-
-            {{-- Save --}}
-            <div class="sticky bottom-4 z-20 pt-3">
-
-                <button
-                    type="submit"
-                    class="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent-600 px-5 py-4 text-sm font-black text-white shadow-lg transition hover:bg-accent-700"
-                >
-                    ذخیره ساعات کاری
-                    <span>✓</span>
+        <div class="salon-working-hours-scope__body">
+            <div class="salon-working-hours-scopes" role="tablist">
+                <button type="button"
+                    role="tab"
+                    @click="selectScope('salon')"
+                    :aria-selected="selectedScope === 'salon'"
+                    class="salon-working-hours-scope-button"
+                    :class="selectedScope === 'salon' ? 'is-active' : ''">
+                    <span class="salon-working-hours-scope-button__icon">⌂</span>
+                    <span>
+                        <strong>کل سالن</strong>
+                        <small>برنامه پایه</small>
+                    </span>
                 </button>
 
-            </div>
-
-        </form>
-
-
-        {{-- Copy Modal --}}
-        <div
-            x-show="copyModalOpen"
-            x-transition.opacity
-            x-cloak
-            class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center"
-            @keydown.escape.window="closeCopyModal()"
-        >
-
-            <div
-                @click.outside="closeCopyModal()"
-                x-transition
-                class="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
-            >
-
-                <div class="p-5 sm:p-6">
-
-                    <div class="mb-5 flex items-start justify-between gap-4">
-
-                        <div>
-
-                            <div class="text-base font-black text-content">
-                                اعمال این ساعت برای...
-                            </div>
-
-                            <div class="mt-1 text-[10px] leading-5 text-content-muted">
-                                ساعت‌های انتخاب‌شده روی روزهای مقصد کپی می‌شوند.
-                            </div>
-
-                        </div>
-
-                        <button
-                            type="button"
-                            @click="closeCopyModal()"
-                            class="text-lg font-black text-content-faint"
-                        >
-                            ×
-                        </button>
-
-                    </div>
-
-
-                    <div class="mb-4 rounded-2xl bg-primary-50 p-3">
-
-                        <div class="text-[9px] font-black text-content-muted">
-                            ساعت فعلی
-                        </div>
-
-                        <div class="mt-2 space-y-1">
-
-                            <template
-                                x-for="interval in (
-                                    copySourceDay !== null
-                                        ? hours[copySourceDay].intervals
-                                        : []
-                                )"
-                                :key="interval.start + interval.end"
-                            >
-
-                                <div
-                                    class="text-xs font-black text-content"
-                                    dir="ltr"
-                                >
-                                    <span x-text="interval.start"></span>
-                                    <span class="px-1">—</span>
-                                    <span x-text="interval.end"></span>
-                                </div>
-
-                            </template>
-
-                            <div
-                                x-show="
-                                    copySourceDay !== null &&
-                                    hours[copySourceDay].closed
-                                "
-                                class="text-xs font-black text-content"
-                            >
-                                تعطیل
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        @click="selectWorkingDays()"
-                        class="mb-4 w-full rounded-xl bg-primary-50 py-2.5 text-[10px] font-black text-content transition hover:bg-primary-100"
-                    >
-                        انتخاب روزهای کاری
+                @foreach($barbers as $barber)
+                    <button type="button"
+                        role="tab"
+                        @click="selectScope('{{ $barber->id }}')"
+                        :aria-selected="selectedScope === '{{ $barber->id }}'"
+                        class="salon-working-hours-scope-button"
+                        :class="selectedScope === '{{ $barber->id }}' ? 'is-active' : ''">
+                        <span class="salon-working-hours-scope-button__avatar">
+                            {{ mb_substr($barber->name,0,1) }}
+                        </span>
+                        <span>
+                            <strong>{{ $barber->name }}</strong>
+                            <small>{{ $barber->specialty ?: 'آرایشگر' }}</small>
+                        </span>
                     </button>
+                @endforeach
+            </div>
+        </div>
+    </section>
 
+    <section class="salon-working-hours-context salon-card">
+        <div class="salon-working-hours-context__main">
+            <div>
+                <span class="salon-overline">برنامه فعال</span>
+                <h2 x-text="scopeLabel"></h2>
 
-                    <div class="space-y-2">
+                <p x-show="selectedScope !== 'salon' && currentSchedule?.inherited" x-cloak>
+                    این آرایشگر برنامه اختصاصی ندارد و فعلاً از برنامه کلی سالن استفاده می‌کند.
+                    با ذخیره این فرم، برنامه اختصاصی او ثبت خواهد شد.
+                </p>
 
-                        @foreach($days as $dayNumber => $day)
-
-                            <label
-                                class="flex cursor-pointer items-center justify-between rounded-2xl border border-border bg-white px-4 py-3 transition hover:bg-primary-50"
-                                x-show="copySourceDay !== {{ $dayNumber }}"
-                            >
-
-                                <span class="text-xs font-black text-content">
-                                    {{ $day['name'] }}
-                                </span>
-
-                                <input
-                                    type="checkbox"
-                                    x-model="copyTargets[{{ $dayNumber }}]"
-                                    class="h-5 w-5 rounded border-border text-accent-600 focus:ring-accent-500"
-                                >
-
-                            </label>
-
-                        @endforeach
-
-                    </div>
-
-
-                    <div class="mt-5 grid grid-cols-2 gap-2">
-
-                        <button
-                            type="button"
-                            @click="closeCopyModal()"
-                            class="rounded-2xl border border-border bg-white py-3 text-xs font-black text-content"
-                        >
-                            انصراف
-                        </button>
-
-                        <button
-                            type="button"
-                            @click="applyCopy()"
-                            class="rounded-2xl bg-accent-600 py-3 text-xs font-black text-white"
-                        >
-                            اعمال
-                        </button>
-
-                    </div>
-
-                </div>
-
+                <p x-show="selectedScope !== 'salon' && !currentSchedule?.inherited" x-cloak>
+                    این برنامه مستقل از برنامه کلی سالن است.
+                </p>
             </div>
 
+            <div class="salon-working-hours-actions">
+                <button type="button" class="salon-btn salon-btn--quiet" @click="applyDefault()">
+                    ⚡ برنامه پیشنهادی
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <template x-if="formError">
+        <div class="salon-owner__flash is-error" role="alert" x-text="formError"></div>
+    </template>
+
+    <form method="POST"
+        action="{{ route('salon.working-hours.update') }}"
+        @submit="handleSubmit($event)"
+        class="salon-working-hours-form">
+        @csrf
+        @method('PUT')
+
+        <input type="hidden" name="barber_id" :value="selectedScope === 'salon' ? '' : selectedScope">
+
+        <div class="salon-working-hours-days">
+            @foreach($days as $dayNumber => $day)
+                <section class="salon-working-day salon-card">
+                    <input type="hidden" name="hours[{{ $dayNumber }}][day_of_week]" value="{{ $dayNumber }}">
+                    <input type="hidden" name="hours[{{ $dayNumber }}][is_closed]" :value="currentHours[{{ $dayNumber }}].closed ? 1 : 0">
+
+                    <header class="salon-working-day__head">
+                        <div class="salon-working-day__identity">
+                            <span class="salon-working-day__index">{{ $day['short'] }}</span>
+                            <div>
+                                <strong>{{ $day['name'] }}</strong>
+                                <small
+                                    :class="currentHours[{{ $dayNumber }}].closed ? 'is-closed' : 'is-open'"
+                                    x-text="currentHours[{{ $dayNumber }}].closed ? 'تعطیل' : 'باز و آماده رزرو'">
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="salon-working-day__tools">
+                            <button type="button"
+                                class="salon-working-day__toggle"
+                                @click="currentHours[{{ $dayNumber }}].closed ? openDay({{ $dayNumber }}) : closeDay({{ $dayNumber }})"
+                                x-text="currentHours[{{ $dayNumber }}].closed ? 'باز کردن' : 'تعطیل کردن'">
+                            </button>
+
+                            <button type="button"
+                                class="salon-working-day__copy"
+                                @click="openCopyModal({{ $dayNumber }})">
+                                کپی
+                            </button>
+                        </div>
+                    </header>
+
+                    <div x-show="!currentHours[{{ $dayNumber }}].closed" x-cloak class="salon-working-day__body">
+                        <div class="salon-working-intervals">
+                            <template x-for="(interval, intervalIndex) in currentHours[{{ $dayNumber }}].intervals" :key="intervalIndex">
+                                <div class="salon-working-interval">
+                                    <div class="salon-working-time-field">
+                                        <label :for="'working-start-{{ $dayNumber }}-' + intervalIndex">شروع</label>
+                                        <input
+                                            type="time"
+                                            step="900"
+                                            :id="'working-start-{{ $dayNumber }}-' + intervalIndex"
+                                            :name="'hours[{{ $dayNumber }}][intervals][' + intervalIndex + '][start_time]'"
+                                            x-model="interval.start"
+                                            @change="markCustomized()">
+                                    </div>
+
+                                    <span class="salon-working-interval-separator">تا</span>
+
+                                    <div class="salon-working-time-field">
+                                        <label :for="'working-end-{{ $dayNumber }}-' + intervalIndex">پایان</label>
+                                        <input
+                                            type="time"
+                                            step="900"
+                                            :id="'working-end-{{ $dayNumber }}-' + intervalIndex"
+                                            :name="'hours[{{ $dayNumber }}][intervals][' + intervalIndex + '][end_time]'"
+                                            x-model="interval.end"
+                                            @change="markCustomized()">
+                                    </div>
+
+                                    <button type="button"
+                                        class="salon-working-interval-remove"
+                                        @click="removeInterval({{ $dayNumber }}, intervalIndex)">
+                                        حذف
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div class="salon-working-day__footer">
+                            <button type="button" class="salon-working-add" @click="addInterval({{ $dayNumber }})">
+                                ＋ افزودن بازه
+                            </button>
+
+                            <span class="salon-working-day__error"
+                                x-show="intervalError({{ $dayNumber }})"
+                                x-cloak
+                                x-text="intervalError({{ $dayNumber }})">
+                            </span>
+                        </div>
+                    </div>
+
+                    <div x-show="currentHours[{{ $dayNumber }}].closed" x-cloak class="salon-working-day__closed">
+                        <div>
+                            <strong>این روز برای این برنامه تعطیل است.</strong>
+                            <span>مشتری در این روز زمان قابل رزرو نمی‌بیند.</span>
+                        </div>
+
+                        <button type="button" class="salon-btn salon-btn--quiet" @click="openDay({{ $dayNumber }})">
+                            باز کردن روز
+                        </button>
+                    </div>
+                </section>
+            @endforeach
         </div>
 
-    </div>
+        <div class="salon-working-hours-save">
+            <div>
+                <strong>برنامه انتخاب‌شده را ذخیره کن</strong>
+                <span x-text="scopeLabel"></span>
+            </div>
 
+            <button type="submit" class="salon-btn salon-btn--primary salon-working-hours-save__button">
+                ذخیره ساعات کاری
+                <span aria-hidden="true">✓</span>
+            </button>
+        </div>
+    </form>
+
+    <div x-show="copyModalOpen" x-cloak x-transition.opacity class="salon-working-hours-modal">
+        <div class="salon-working-hours-modal__dialog" @click.outside="closeCopyModal()">
+            <header>
+                <div>
+                    <span class="salon-overline">کپی برنامه</span>
+                    <h2>این بازه برای کدام روزها کپی شود؟</h2>
+                </div>
+                <button type="button" @click="closeCopyModal()" aria-label="بستن">×</button>
+            </header>
+
+            <div class="salon-working-hours-modal__source">
+                <span>مبدا</span>
+                <strong x-text="copySourceDay !== null ? ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'][copySourceDay] : ''"></strong>
+            </div>
+
+            <button type="button" class="salon-working-hours-modal__select-all" @click="selectWorkingDays()">
+                انتخاب روزهای کاری
+            </button>
+
+            <div class="salon-working-hours-modal__days">
+                @foreach($days as $dayNumber => $day)
+                    <label x-show="copySourceDay !== {{ $dayNumber }}">
+                        <span>{{ $day['name'] }}</span>
+                        <input type="checkbox" x-model="copyTargets[{{ $dayNumber }}]">
+                    </label>
+                @endforeach
+            </div>
+
+            <footer>
+                <button type="button" class="salon-btn" @click="closeCopyModal()">انصراف</button>
+                <button type="button" class="salon-btn salon-btn--primary" @click="applyCopy()">اعمال کپی</button>
+            </footer>
+        </div>
+    </div>
+</div>
 @endsection
