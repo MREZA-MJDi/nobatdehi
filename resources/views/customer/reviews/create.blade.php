@@ -239,7 +239,7 @@
             ====================================================== --}}
 
             <form
-                action="{{ route('customer.reviews.store', $booking) }}"
+                action="{{ route('customer.bookings.review.store', $booking) }}"
                 method="POST"
                 class="
                 overflow-hidden

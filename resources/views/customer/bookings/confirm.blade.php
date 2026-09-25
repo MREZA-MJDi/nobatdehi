@@ -1,139 +1,171 @@
 @extends('layouts.customer')
 
-@section('title', 'تأیید نوبت')
+@section('title', 'بررسی نهایی نوبت')
 
 @section('content')
-
     <div class="customer-container confirm-page">
+        <div class="confirm-shell">
 
-        <div class="confirm-header">
+            <header class="confirm-header">
+                <div class="confirm-header-top">
+                    <a
+                        href="{{ route('public.salons.booking.create', $salon) }}"
+                        class="confirm-back"
+                    >
+                        <span aria-hidden="true">→</span>
+                        تغییر انتخاب‌ها
+                    </a>
 
-            <a
-                href="{{ route(
-                'public.salons.booking.create',
-                $salon
-            ) }}"
-                class="back-link"
-            >
-                ← تغییر انتخاب‌ها
-            </a>
-
-            <span class="section-kicker">
-            FINAL CHECK
-        </span>
-
-            <h1>
-                نوبتت آماده ثبت است.
-            </h1>
-
-            <p>
-                اطلاعات را یک‌بار بررسی کن و بعد نوبت را قطعی کن.
-            </p>
-
-        </div>
-
-
-        <div class="confirm-layout">
-
-            <section class="confirm-card">
-
-                <div class="confirm-card-hero">
-
-                <span>
-                    {{ $salon->name }}
-                </span>
-
-                    <strong>
-                        {{ $service->name }}
-                    </strong>
-
-                    <small>
-                        {{ $barber->name }}
-                    </small>
-
-                </div>
-
-
-                <div class="confirm-details">
-
-                    <div>
-                        <span>تاریخ</span>
-                        <strong>
-                            {{ jalali_date($pending['booking_date']) }}
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>ساعت</span>
-                        <strong dir="ltr">
-                            {{ $pending['start_time'] }}
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>مدت</span>
-                        <strong>
-                            {{ $service->duration_minutes }}
-                            دقیقه
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>مبلغ</span>
-                        <strong>
-                            {{ number_format($service->price) }}
-                            تومان
-                        </strong>
-                    </div>
-
-                </div>
-
-
-                @if(!empty($pending['notes']))
-
-                    <div class="confirm-notes">
-
-                    <span>
-                        توضیحات
+                    <span class="confirm-status-pill">
+                        <span aria-hidden="true"></span>
+                        آماده ثبت
                     </span>
+                </div>
 
-                        <p>
-                            {{ $pending['notes'] }}
-                        </p>
+                <div class="confirm-title-block">
+                    <span class="confirm-kicker">بررسی نهایی</span>
 
-                    </div>
-
-                @endif
-
-            </section>
-
-
-            <aside class="confirm-side">
-
-                <div class="confirm-side-inner">
-
-                <span class="section-kicker">
-                    READY TO BOOK
-                </span>
-
-                    <h2>
-                        ثبت نهایی
-                    </h2>
+                    <h1>
+                        همه‌چیز آماده‌ست.
+                    </h1>
 
                     <p>
-                        با ثبت این فرم، زمان انتخاب‌شده برای شما ایجاد می‌شود.
+                        اطلاعات نوبتت را یک‌بار بررسی کن. بعد از ثبت، درخواست برای سالن ارسال می‌شود
+                        و تا زمان تأیید، نوبتت در وضعیت «در انتظار تأیید» قرار دارد.
                     </p>
+                </div>
+            </header>
 
+            @if($errors->any())
+                <section class="confirm-error" role="alert">
+                    <div class="confirm-error-icon" aria-hidden="true">!</div>
+
+                    <div>
+                        <strong>ثبت نوبت انجام نشد</strong>
+
+                        <div class="confirm-error-list">
+                            @foreach($errors->all() as $error)
+                                <span>{{ $error }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                </section>
+            @endif
+
+            <main class="confirm-stack">
+
+                <section class="confirm-summary-card">
+                    <div class="confirm-summary-top">
+                        <div class="confirm-salon-block">
+                            <span>سالن</span>
+                            <h2>{{ $salon->name }}</h2>
+
+                            <p>
+                                {{ $service->name }}
+                                <span aria-hidden="true">·</span>
+                                {{ $barber->name }}
+                            </p>
+                        </div>
+
+                        <span class="confirm-summary-state">
+                            پیش از ثبت
+                        </span>
+                    </div>
+
+                    <div class="confirm-primary-facts">
+                        <div class="confirm-primary-fact">
+                            <span>تاریخ</span>
+
+                            <strong>
+                                {{ jalali_date($pending['booking_date']) }}
+                            </strong>
+
+                            <small>
+                                تاریخ نوبت
+                            </small>
+                        </div>
+
+                        <div class="confirm-primary-fact is-accent">
+                            <span>ساعت شروع</span>
+
+                            <strong dir="ltr">
+                                {{ substr((string) $pending['start_time'], 0, 5) }}
+                            </strong>
+
+                            <small>
+                                زمان ورود
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="confirm-secondary-facts">
+                        <div>
+                            <span>متخصص</span>
+                            <strong>{{ $barber->name }}</strong>
+                        </div>
+
+                        <div>
+                            <span>خدمت</span>
+                            <strong>{{ $service->name }}</strong>
+                        </div>
+
+                        <div>
+                            <span>مدت</span>
+                            <strong>{{ $service->duration_minutes }} دقیقه</strong>
+                        </div>
+
+                        <div>
+                            <span>مبلغ</span>
+                            <strong>{{ number_format($service->price) }} تومان</strong>
+                        </div>
+                    </div>
+
+                    @if(!empty($pending['notes']))
+                        <div class="confirm-note">
+                            <div class="confirm-note-head">
+                                <span>یادداشت تو</span>
+                                <small>برای سالن ارسال می‌شود</small>
+                            </div>
+
+                            <p>{{ $pending['notes'] }}</p>
+                        </div>
+                    @endif
+                </section>
+
+                <section class="confirm-info-card">
+                    <div class="confirm-info-icon" aria-hidden="true">✓</div>
+
+                    <div>
+                        <strong>بعد از ثبت چه اتفاقی می‌افتد؟</strong>
+
+                        <p>
+                            نوبت ابتدا در وضعیت «در انتظار تأیید» ثبت می‌شود.
+                            از بخش «نوبت‌های من» می‌توانی وضعیتش را ببینی و تا قبل از تأیید سالن،
+                            آن را ویرایش یا لغو کنی.
+                        </p>
+                    </div>
+                </section>
+
+                <section class="confirm-action-card">
+                    <div class="confirm-action-copy">
+                        <span>مبلغ نهایی خدمت</span>
+
+                        <strong>
+                            {{ number_format($service->price) }}
+                            <small>تومان</small>
+                        </strong>
+
+                        <p>
+                            با ثبت نوبت، اطلاعات فعلی برای سالن ارسال می‌شود.
+                        </p>
+                    </div>
 
                     <form
-                        action="{{ route(
-                        'customer.bookings.store'
-                    ) }}"
+                        action="{{ route('customer.bookings.store') }}"
                         method="POST"
+                        class="confirm-form"
                     >
-
                         @csrf
-
 
                         <input
                             type="hidden"
@@ -171,40 +203,24 @@
                             value="{{ $pending['notes'] ?? '' }}"
                         >
 
-
-                        @if($errors->any())
-
-                            <div class="booking-errors">
-
-                                @foreach($errors->all() as $error)
-
-                                    <div>
-                                        {{ $error }}
-                                    </div>
-
-                                @endforeach
-
-                            </div>
-
-                        @endif
-
-
                         <button
                             type="submit"
-                            class="customer-btn customer-btn-primary customer-btn-lg w-full"
+                            class="customer-btn customer-btn-primary customer-btn-lg confirm-submit"
                         >
-                            تأیید و ثبت نوبت
-                            ✓
+                            <span>ثبت نهایی نوبت</span>
+                            <span aria-hidden="true">✓</span>
                         </button>
 
+                        <a
+                            href="{{ route('public.salons.booking.create', $salon) }}"
+                            class="confirm-change-link"
+                        >
+                            ← می‌خواهم انتخابم را تغییر بدهم
+                        </a>
                     </form>
+                </section>
 
-                </div>
-
-            </aside>
-
+            </main>
         </div>
-
     </div>
-
 @endsection

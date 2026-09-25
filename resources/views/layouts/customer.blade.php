@@ -484,6 +484,49 @@
 
 
         {{-- =====================================================
+            FLASH: VALIDATION ERRORS
+        ====================================================== --}}
+
+        @if($errors->any())
+
+            <div class="customer-container customer-flash-wrap">
+
+                <div
+                    class="customer-flash customer-flash-danger"
+                    role="alert"
+                    aria-live="polite"
+                >
+
+                    <span aria-hidden="true">
+                        !
+                    </span>
+
+                    <div class="min-w-0">
+                        <div class="font-black">
+                            بعضی اطلاعات نیاز به بررسی دارد.
+                        </div>
+
+                        @if($errors->count() > 1)
+                            <div class="mt-1 space-y-0.5 text-[10px] font-medium">
+                                @foreach($errors->all() as $error)
+                                    <div>{{ $error }}</div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="mt-1 text-[10px] font-medium">
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
+                    </div>
+
+                </div>
+
+            </div>
+
+        @endif
+
+
+        {{-- =====================================================
             PAGE
         ====================================================== --}}
 

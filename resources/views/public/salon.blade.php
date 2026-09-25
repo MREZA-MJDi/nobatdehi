@@ -397,6 +397,42 @@
 
                     <div class="profile-actions">
 
+                        @auth
+                            @if(auth()->user()->isCustomer())
+                                @if($isFavorited)
+                                    <form action="{{ route('customer.favorites.destroy', $salon) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button
+                                            type="submit"
+                                            class="btn-ghost"
+                                            aria-label="حذف {{ $salon->name }} از علاقه‌مندی‌ها"
+                                        >
+                                            ♥ ذخیره‌شده
+                                        </button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('customer.favorites.store', $salon) }}" method="POST">
+                                        @csrf
+                                        <button
+                                            type="submit"
+                                            class="btn-ghost"
+                                            aria-label="افزودن {{ $salon->name }} به علاقه‌مندی‌ها"
+                                        >
+                                            ♡ ذخیره سالن
+                                        </button>
+                                    </form>
+                                @endif
+                            @endif
+                        @else
+                            <a
+                                href="{{ route('login', ['entry' => 'customer']) }}"
+                                class="btn-ghost"
+                            >
+                                ♡ ذخیره سالن
+                            </a>
+                        @endauth
+
                         @if($bookingEnabled)
 
                             <button
@@ -985,11 +1021,11 @@
                         </span>
 
                         <h2>
-                            تجربه مشتریان
+                            امتیاز و نظر مشتریان
                         </h2>
 
                         <p>
-                            نظرهایی که مشتریان درباره این سالن ثبت کرده‌اند.
+                            امتیازها و نظرهایی که مشتریان درباره این سالن ثبت کرده‌اند.
                         </p>
 
                     </div>
@@ -1019,13 +1055,44 @@
 
                             <span>
                                 {{ number_format($reviewsCount) }}
-                                نظر منتشرشده
+                                امتیاز و نظر ثبت‌شده
                             </span>
 
                         </div>
 
                     </div>
 
+                </div>
+
+
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-[10px] leading-6 text-content-muted">
+                        همین حالا هم می‌توانی به این سالن امتیاز بدهی.
+                    </p>
+
+                    @auth
+                        @if(auth()->user()->isCustomer())
+                            <a
+                                href="{{ route('customer.salons.review.create', $salon) }}"
+                                class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-surface px-4 text-[10px] font-black text-content transition hover:-translate-y-0.5 hover:border-accent-400 hover:text-accent-700"
+                            >
+                                ثبت امتیاز به این سالن
+                                <span class="mr-2" aria-hidden="true">★</span>
+                            </a>
+                        @else
+                            <span class="text-[10px] font-bold text-content-faint">
+                                امتیازدهی برای حساب مشتری فعال است.
+                            </span>
+                        @endif
+                    @else
+                        <a
+                            href="{{ route('login', ['entry' => 'customer']) }}"
+                            class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-surface px-4 text-[10px] font-black text-content transition hover:-translate-y-0.5 hover:border-accent-400 hover:text-accent-700"
+                        >
+                            ورود برای امتیاز دادن
+                            <span class="mr-2" aria-hidden="true">★</span>
+                        </a>
+                    @endauth
                 </div>
 
 

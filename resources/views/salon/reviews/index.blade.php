@@ -535,8 +535,11 @@
 
 
                             $serviceName =
-                                $review->booking?->service?->name
-                                    ?: 'خدمت';
+                                $review->booking?->service?->name;
+
+                            $reviewContext =
+                                $serviceName
+                                    ?: 'امتیاز عمومی سالن';
 
 
                             $barberName =
@@ -587,12 +590,12 @@
                                             @endif
 
 
-                                            @if($serviceName)
+                                            @if($reviewContext)
 
                                                 <span class="h-1 w-1 rounded-full bg-content-faint"></span>
 
                                                 <span>
-                                                    {{ $serviceName }}
+                                                    {{ $reviewContext }}
                                                 </span>
 
                                             @endif

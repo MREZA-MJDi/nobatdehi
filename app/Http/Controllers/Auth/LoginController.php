@@ -75,7 +75,13 @@ class LoginController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $pendingBooking = $request->session()->get('booking.pending');
+
         $request->session()->regenerate();
+
+        if (is_array($pendingBooking)) {
+            $request->session()->put('booking.pending', $pendingBooking);
+        }
 
 
         /*

@@ -5,34 +5,24 @@
    SOURCES
    ========================================================================== */
 
-@source "../**/*.blade.php";
-@source "../**/*.js";
+@source "../views/**/*.blade.php";
+@source "../js/**/*.js";
 
 @source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
-@source "../../storage/framework/views/*.php";
 
 
 /* ==========================================================================
    FONT
    ========================================================================== */
 
+
 @font-face {
-    font-family: "Vazirmatn";
-
-    src:
-        url("../fonts/webfonts/Vazirmatn[wght].woff2")
-        format("woff2");
-
+    font-family: "Estedad";
+    src: url("../estead/Estedad[wght,kshd].woff2") format("woff2");
     font-style: normal;
     font-weight: 100 900;
     font-display: swap;
-
-    ascent-override: 90%;
-    descent-override: 22%;
-    line-gap-override: 0%;
 }
-
-
 /* ==========================================================================
    TAILWIND THEME
    ========================================================================== */
@@ -44,10 +34,22 @@
        ---------------------------------------------------------------------- */
 
     --font-sans:
-        "Vazirmatn",
+        "Estedad",
         Tahoma,
         Arial,
         sans-serif;
+
+    /* ----------------------------------------------------------------------
+       TYPOGRAPHY WEIGHTS
+       Keep the UI expressive without making Persian text visually heavy.
+       ---------------------------------------------------------------------- */
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 750;
+    --font-weight-black: 800;
 
 
     /* ----------------------------------------------------------------------
@@ -422,7 +424,9 @@
 
         font-weight: 400;
 
-        line-height: 1.8;
+        line-height: 1.75;
+
+        letter-spacing: 0;
 
         font-synthesis: none;
 
@@ -1041,6 +1045,222 @@
     line-height: 1;
 
     white-space: nowrap;
+}
+
+
+
+/* ==========================================================================
+   ADMIN / MOBILE RESPONSIVE
+   Scoped to the admin application shell so other roles stay untouched.
+   ========================================================================== */
+
+@media (max-width: 767px) {
+
+    #app {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: clip;
+    }
+
+    #app .app-navbar {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    #app .app-navbar .app-container {
+        width: 100%;
+        max-width: 1400px;
+        margin-inline: auto;
+        padding-inline: 1rem;
+    }
+
+    #app .app-navbar .navbar-inner {
+        min-height: 4rem;
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+    }
+
+    #app .app-navbar .brand {
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: .6rem;
+    }
+
+    #app .app-navbar .brand-mark {
+        width: 2.3rem;
+        height: 2.3rem;
+        flex: 0 0 2.3rem;
+        display: grid;
+        place-items: center;
+        border-radius: .75rem;
+        background: var(--app-primary);
+        color: var(--app-on-primary);
+        font-weight: 800;
+    }
+
+    #app .app-navbar .brand-text {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #app .app-navbar .brand-name,
+    #app .app-navbar .brand-caption {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #app .app-navbar .brand-name {
+        color: var(--app-content);
+        font-size: .78rem;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    #app .app-navbar .brand-caption {
+        margin-top: .1rem;
+        color: var(--app-content-muted);
+        font-size: .62rem;
+        font-weight: 400;
+        line-height: 1.3;
+    }
+
+    #app .app-navbar .theme-toggle-label {
+        display: none;
+    }
+
+    #app .app-navbar .theme-toggle {
+        min-height: 2.45rem;
+        min-width: 2.45rem;
+        padding: .3rem;
+        border-radius: .75rem;
+    }
+
+    #app .app-navbar .theme-toggle-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+        flex-basis: 1.75rem;
+    }
+
+    #app .app-navbar form .btn,
+    #app .app-navbar form button {
+        min-height: 2.45rem;
+        padding-inline: .7rem;
+    }
+
+    #app .page-content {
+        min-width: 0;
+        padding-bottom: 6.8rem;
+    }
+
+    #app .page-content > *,
+    #app .page-content main,
+    #app .page-content section,
+    #app .page-content form {
+        min-width: 0;
+    }
+
+    #app .table-wrap {
+        width: 100%;
+        min-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    #app .app-table {
+        min-width: 760px;
+    }
+
+    #app .card {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    #app .page-title {
+        font-size: clamp(1.35rem, 6vw, 1.8rem);
+        line-height: 1.45;
+    }
+
+    #app .page-subtitle {
+        max-width: 42rem;
+        line-height: 1.9;
+    }
+
+    #app .empty-state {
+        min-width: 0;
+    }
+
+    #app > nav.fixed {
+        bottom: max(.75rem, env(safe-area-inset-bottom));
+    }
+
+    #app > nav.fixed > div {
+        width: 100%;
+        min-width: 0;
+    }
+
+    #app > nav.fixed a {
+        min-width: 0;
+        min-height: 3.55rem;
+        justify-content: center;
+        white-space: nowrap;
+    }
+
+    #app > nav.fixed a svg {
+        flex: 0 0 auto;
+    }
+}
+
+@media (max-width: 420px) {
+
+    #app .app-navbar .app-container {
+        padding-inline: .8rem;
+    }
+
+    #app .app-navbar .brand-caption {
+        display: none;
+    }
+
+    #app .app-navbar .brand-name {
+        font-size: .74rem;
+    }
+
+    #app .app-navbar .brand-mark {
+        width: 2.15rem;
+        height: 2.15rem;
+        flex-basis: 2.15rem;
+        border-radius: .7rem;
+    }
+
+    #app .app-navbar .navbar-inner {
+        gap: .45rem;
+    }
+
+    #app .app-navbar .theme-toggle,
+    #app .app-navbar form .btn,
+    #app .app-navbar form button {
+        min-height: 2.3rem;
+    }
+
+    #app > nav.fixed {
+        inset-inline: .6rem;
+    }
+
+    #app > nav.fixed > div {
+        padding: .3rem;
+        border-radius: 1rem;
+    }
+
+    #app > nav.fixed a {
+        min-height: 3.35rem;
+        padding-inline: .3rem;
+        font-size: .58rem;
+    }
 }
 
 

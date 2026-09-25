@@ -158,6 +158,15 @@ class SalonController extends Controller
             $mapsEmbedUrl = 'https://www.google.com/maps?q=' . rawurlencode($fullAddress) . '&z=16&output=embed';
         }
 
+        $isFavorited = false;
+
+        if (auth()->check() && auth()->user()->isCustomer()) {
+            $isFavorited = auth()->user()
+                ->favoriteSalons()
+                ->whereKey($salon->id)
+                ->exists();
+        }
+
         $timezone = config('app.timezone', 'Asia/Tehran');
         $now = now($timezone);
         $today = $now->copy()->startOfDay();
@@ -271,7 +280,8 @@ class SalonController extends Controller
                 'isOpenToday',
                 'isOpenNow',
                 'statusText',
-                'todayHoursText'
+                'todayHoursText',
+                'isFavorited'
             )
         );
     }

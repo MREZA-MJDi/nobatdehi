@@ -23,6 +23,40 @@ class BookingService
     }
 
     /**
+     * Maximum number of simultaneous pending bookings per customer.
+     *
+     * The limit is global across salons. Confirmed, completed and cancelled
+     * bookings do not consume this capacity.
+     */
+    public const MAX_PENDING_BOOKINGS = 2;
+
+    public function pendingBookingCount(User $customer): int
+    {
+        return $customer
+            ->bookings()
+            ->where('status', BookingStatus::PENDING)
+            ->count();
+    }
+
+    public function remainingPendingBookingSlots(User $customer): int
+    {
+        return max(
+            0,
+            self::MAX_PENDING_BOOKINGS - $this->pendingBookingCount($customer)
+        );
+    }
+
+    public function assertCustomerCanCreatePendingBooking(User $customer): void
+    {
+        if ($this->pendingBookingCount($customer) >= self::MAX_PENDING_BOOKINGS) {
+            throw ValidationException::withMessages([
+                'pending_bookings' =>
+                    'در حال حاضر حداکثر ۲ نوبت در انتظار تأیید می‌توانی داشته باشی. بعد از تأیید، تکمیل یا لغو یکی از نوبت‌ها، دوباره می‌توانی نوبت جدید بگیری.',
+            ]);
+        }
+    }
+
+    /**
      * Customer booking.
      *
      * Default status = PENDING
@@ -38,6 +72,35 @@ class BookingService
                 $data,
                 $status
             ) {
+                /*
+                |--------------------------------------------------------------------------
+                | Customer pending limit
+                |--------------------------------------------------------------------------
+                |
+                | This is intentionally enforced inside the transaction so the
+                | rule cannot be bypassed by manipulating the frontend or by
+                | submitting two booking requests at nearly the same time.
+                */
+
+                if ($status === BookingStatus::PENDING) {
+                    $lockedCustomer = User::query()
+                        ->lockForUpdate()
+                        ->find($customer->id);
+
+                    if (!$lockedCustomer || !$lockedCustomer->isCustomer()) {
+                        throw ValidationException::withMessages([
+                            'customer_id' =>
+                                'حساب مشتری معتبر نیست.',
+                        ]);
+                    }
+
+                    $this->assertCustomerCanCreatePendingBooking(
+                        $lockedCustomer
+                    );
+
+                    $customer = $lockedCustomer;
+                }
+
                 return $this->createBooking(
                     $customer,
                     $data,

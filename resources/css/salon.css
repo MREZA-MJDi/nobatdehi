@@ -66,7 +66,7 @@
     color: var(--text);
 
     font-family:
-        "Vazirmatn",
+        "Estedad",
         Tahoma,
         Arial,
         sans-serif;
@@ -236,7 +236,7 @@ body.salon-lightbox-open {
     color: #0a0b0d;
 
     font-size: .76rem;
-    font-weight: 900;
+    font-weight: 650;
 
     box-shadow:
         0 9px 24px rgba(214,224,233,.12);
@@ -267,7 +267,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .61rem;
+    font-size: .68rem;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -345,7 +345,7 @@ body.salon-lightbox-open {
     border-radius: 12px;
 
     font-size: .72rem;
-    font-weight: 850;
+    font-weight: 700;
 }
 
 .salon-page .btn-diamond:hover {
@@ -513,13 +513,13 @@ body.salon-lightbox-open {
         Arial,
         sans-serif;
 
-    font-size: .55rem;
+    font-size: .68rem;
     letter-spacing: .15em;
 }
 
 .salon-page .cover-location {
     font-family:
-        "Vazirmatn",
+        "Estedad",
         Tahoma,
         sans-serif;
 
@@ -547,7 +547,7 @@ body.salon-lightbox-open {
 
     color: #fff;
 
-    font-size: .66rem;
+    font-size: .68rem;
     font-weight: 700;
 }
 
@@ -627,7 +627,7 @@ body.salon-lightbox-open {
     color: var(--diamond);
 
     font-size: 2.5rem;
-    font-weight: 900;
+    font-weight: 650;
 
     box-shadow:
         0 22px 50px rgba(0,0,0,.52),
@@ -666,7 +666,7 @@ body.salon-lightbox-open {
     );
 
     line-height: 1.3;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .salon-page .verified-live {
@@ -685,8 +685,8 @@ body.salon-lightbox-open {
 
     background: rgba(125,214,179,.045);
 
-    font-size: .58rem;
-    font-weight: 800;
+    font-size: .68rem;
+    font-weight: 700;
 }
 
 .salon-page .verified-live span {
@@ -743,7 +743,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .60rem;
+    font-size: .68rem;
 }
 
 .salon-page .stat.rate b {
@@ -783,7 +783,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .65rem;
+    font-size: .68rem;
 }
 
 .salon-page .hero-meta span {
@@ -817,7 +817,7 @@ body.salon-lightbox-open {
 
     background: rgba(255,255,255,.022);
 
-    font-size: .60rem;
+    font-size: .68rem;
     font-weight: 700;
 }
 
@@ -908,8 +908,8 @@ body.salon-lightbox-open {
 
     color: var(--diamond-2);
 
-    font-size: .62rem;
-    font-weight: 800;
+    font-size: .68rem;
+    font-weight: 700;
 }
 
 .salon-page .bk-text h2 {
@@ -919,7 +919,7 @@ body.salon-lightbox-open {
 
     font-size: 1.25rem;
     line-height: 1.5;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .salon-page .bk-text p {
@@ -957,7 +957,7 @@ body.salon-lightbox-open {
     border-radius: 15px;
 
     font-size: .77rem;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .salon-page .btn-book:hover {
@@ -981,7 +981,7 @@ body.salon-lightbox-open {
 
     text-align: center;
 
-    font-size: .57rem;
+    font-size: .68rem;
 }
 
 /* ================================================================
@@ -1014,7 +1014,7 @@ body.salon-lightbox-open {
         Arial,
         sans-serif;
 
-    font-size: .54rem;
+    font-size: .68rem;
     letter-spacing: .18em;
 }
 
@@ -1025,7 +1025,7 @@ body.salon-lightbox-open {
 
     font-size: 1.22rem;
     line-height: 1.45;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .salon-page .section-topline p {
@@ -1043,7 +1043,7 @@ body.salon-lightbox-open {
         Arial,
         sans-serif;
 
-    font-size: .60rem;
+    font-size: .68rem;
     white-space: nowrap;
 }
 
@@ -1092,8 +1092,8 @@ body.salon-lightbox-open {
 
     background: transparent;
 
-    font-size: .62rem;
-    font-weight: 750;
+    font-size: .68rem;
+    font-weight: 650;
 
     transition:
         background .2s ease,
@@ -1113,7 +1113,7 @@ body.salon-lightbox-open {
         Arial,
         sans-serif;
 
-    font-size: .50rem;
+    font-size: .68rem;
 }
 
 .salon-page .tab.active {
@@ -1260,8 +1260,8 @@ body.salon-lightbox-open {
 
     color: var(--diamond);
 
-    font-size: .54rem;
-    font-weight: 800;
+    font-size: .68rem;
+    font-weight: 700;
 }
 
 .salon-page .badge-type.reel {
@@ -1294,7 +1294,7 @@ body.salon-lightbox-open {
 
     color: #fff;
 
-    font-size: .65rem;
+    font-size: .68rem;
 
     backdrop-filter: blur(10px);
 }
@@ -1328,7 +1328,7 @@ body.salon-lightbox-open {
 
     color: rgba(255,255,255,.55);
 
-    font-size: .56rem;
+    font-size: .68rem;
     line-height: 1.65;
 
     text-overflow: ellipsis;
@@ -1403,7 +1403,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .62rem;
+    font-size: .68rem;
 }
 
 /* ================================================================
@@ -1582,8 +1582,8 @@ body.salon-lightbox-open {
 
     color: var(--diamond-3);
 
-    font-size: .56rem;
-    font-weight: 800;
+    font-size: .68rem;
+    font-weight: 700;
 }
 
 .salon-page .lightbox-info strong {
@@ -1592,7 +1592,7 @@ body.salon-lightbox-open {
     color: var(--text);
 
     font-size: .83rem;
-    font-weight: 850;
+    font-weight: 700;
 }
 
 .salon-page .lightbox-info > span:not(.lightbox-type) {
@@ -1602,7 +1602,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .61rem;
+    font-size: .68rem;
 }
 
 .salon-page .lightbox-info p {
@@ -1612,7 +1612,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .65rem;
+    font-size: .68rem;
     line-height: 1.9;
 }
 
@@ -1727,7 +1727,7 @@ body.salon-lightbox-open {
     background: rgba(0,0,0,.32);
 
     font-family: Arial, sans-serif;
-    font-size: .50rem;
+    font-size: .68rem;
 
     backdrop-filter: blur(9px);
 }
@@ -1740,7 +1740,7 @@ body.salon-lightbox-open {
     color: var(--text);
 
     font-size: .83rem;
-    font-weight: 850;
+    font-weight: 700;
 }
 
 .salon-page .service-description {
@@ -1748,7 +1748,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .63rem;
+    font-size: .68rem;
     line-height: 1.9;
 }
 
@@ -1773,14 +1773,14 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .50rem;
+    font-size: .68rem;
     font-weight: 600;
 }
 
 .salon-page .service-duration {
     color: var(--muted-2);
 
-    font-size: .58rem;
+    font-size: .68rem;
 }
 
 .salon-page .service-book {
@@ -1803,8 +1803,8 @@ body.salon-lightbox-open {
 
     color: var(--text);
 
-    font-size: .62rem;
-    font-weight: 800;
+    font-size: .68rem;
+    font-weight: 700;
 
     transition:
         background .2s ease,
@@ -1834,13 +1834,13 @@ body.salon-lightbox-open {
     color: var(--diamond);
 
     font-size: 1.25rem;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .salon-page .rating-stars {
     color: var(--diamond-2);
 
-    font-size: .60rem;
+    font-size: .68rem;
     letter-spacing: 2px;
 }
 
@@ -1851,7 +1851,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .53rem;
+    font-size: .68rem;
 }
 
 .salon-page .comments {
@@ -1918,7 +1918,7 @@ body.salon-lightbox-open {
         );
 
     font-size: .75rem;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .salon-page .c-av img {
@@ -1940,7 +1940,7 @@ body.salon-lightbox-open {
     color: var(--text);
 
     font-size: .68rem;
-    font-weight: 850;
+    font-weight: 700;
 
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1951,7 +1951,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .53rem;
+    font-size: .68rem;
 }
 
 .salon-page .c-stars {
@@ -1959,7 +1959,7 @@ body.salon-lightbox-open {
 
     white-space: nowrap;
 
-    font-size: .59rem;
+    font-size: .68rem;
     letter-spacing: 1px;
 }
 
@@ -1976,7 +1976,7 @@ body.salon-lightbox-open {
 
     color: var(--text-soft);
 
-    font-size: .64rem;
+    font-size: .68rem;
     line-height: 2;
 }
 
@@ -1988,7 +1988,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .55rem;
+    font-size: .68rem;
 }
 
 /* ================================================================
@@ -2086,7 +2086,7 @@ body.salon-lightbox-open {
         );
 
     font-size: 1.15rem;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .salon-page .t-av img {
@@ -2106,7 +2106,7 @@ body.salon-lightbox-open {
     color: var(--text);
 
     font-size: .80rem;
-    font-weight: 850;
+    font-weight: 700;
 }
 
 .salon-page .t-role {
@@ -2114,7 +2114,7 @@ body.salon-lightbox-open {
 
     color: var(--diamond-2);
 
-    font-size: .59rem;
+    font-size: .68rem;
 }
 
 .salon-page .t-rating {
@@ -2142,7 +2142,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .50rem;
+    font-size: .68rem;
 }
 
 .salon-page .t-bio {
@@ -2150,7 +2150,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .64rem;
+    font-size: .68rem;
     line-height: 1.95;
 }
 
@@ -2237,7 +2237,7 @@ body.salon-lightbox-open {
     color: var(--text);
 
     font-size: .75rem;
-    font-weight: 850;
+    font-weight: 700;
 }
 
 .salon-page .map-addr span {
@@ -2247,7 +2247,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .60rem;
+    font-size: .68rem;
     line-height: 1.8;
 }
 
@@ -2283,7 +2283,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .57rem;
+    font-size: .68rem;
 }
 
 .salon-page .about-card {
@@ -2307,7 +2307,7 @@ body.salon-lightbox-open {
 
     font-family: Arial, sans-serif;
 
-    font-size: .52rem;
+    font-size: .68rem;
     letter-spacing: .17em;
 }
 
@@ -2317,7 +2317,7 @@ body.salon-lightbox-open {
     color: var(--text);
 
     font-size: 1rem;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .salon-page .about-card > p {
@@ -2325,7 +2325,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .66rem;
+    font-size: .68rem;
     line-height: 2;
 }
 
@@ -2357,7 +2357,7 @@ body.salon-lightbox-open {
 
     background: rgba(255,255,255,.018);
 
-    font-size: .58rem;
+    font-size: .68rem;
 }
 
 .salon-page .feat i {
@@ -2383,7 +2383,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .53rem;
+    font-size: .68rem;
 }
 
 .salon-page .hours strong {
@@ -2393,7 +2393,7 @@ body.salon-lightbox-open {
 
     color: var(--text);
 
-    font-size: .62rem;
+    font-size: .68rem;
 }
 
 .salon-page .hours .open {
@@ -2403,8 +2403,8 @@ body.salon-lightbox-open {
 
     color: var(--green);
 
-    font-size: .58rem;
-    font-weight: 800;
+    font-size: .68rem;
+    font-weight: 700;
 }
 
 .salon-page .hours .open.is-closed {
@@ -2465,7 +2465,7 @@ body.salon-lightbox-open {
         );
 
     font-size: 1.2rem;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .salon-page .related-logo img {
@@ -2486,8 +2486,8 @@ body.salon-lightbox-open {
 
     color: var(--text);
 
-    font-size: .59rem;
-    font-weight: 800;
+    font-size: .68rem;
+    font-weight: 700;
 
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2503,7 +2503,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .50rem;
+    font-size: .68rem;
 }
 
 /* ================================================================
@@ -2627,8 +2627,8 @@ body.salon-lightbox-open {
 .salon-page .m-head .eyebrow {
     color: var(--diamond-2);
 
-    font-size: .58rem;
-    font-weight: 800;
+    font-size: .68rem;
+    font-weight: 700;
 }
 
 .salon-page .m-head h2 {
@@ -2637,7 +2637,7 @@ body.salon-lightbox-open {
     color: var(--text);
 
     font-size: 1.2rem;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .salon-page .m-head p {
@@ -2645,7 +2645,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .65rem;
+    font-size: .68rem;
 }
 
 .salon-page .m-filters {
@@ -2666,7 +2666,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .57rem;
+    font-size: .68rem;
 }
 
 .salon-page .field select {
@@ -2685,7 +2685,7 @@ body.salon-lightbox-open {
 
     background: rgba(255,255,255,.028);
 
-    font-size: .65rem;
+    font-size: .68rem;
 }
 
 .salon-page .field select:focus {
@@ -2719,7 +2719,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .50rem;
+    font-size: .68rem;
 }
 
 .salon-page .cal-head b {
@@ -2773,7 +2773,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .53rem;
+    font-size: .68rem;
 }
 
 .salon-page .day {
@@ -2789,7 +2789,7 @@ body.salon-lightbox-open {
 
     background: rgba(255,255,255,.025);
 
-    font-size: .62rem;
+    font-size: .68rem;
     font-weight: 700;
 
     transition:
@@ -2839,7 +2839,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .48rem;
+    font-size: .68rem;
 }
 
 .salon-page .legend i {
@@ -2889,7 +2889,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .50rem;
+    font-size: .68rem;
 }
 
 .salon-page .slots-title strong {
@@ -2905,7 +2905,7 @@ body.salon-lightbox-open {
 .salon-page .slots-title > span {
     color: var(--muted);
 
-    font-size: .54rem;
+    font-size: .68rem;
 
     white-space: nowrap;
 }
@@ -2938,7 +2938,7 @@ body.salon-lightbox-open {
 
     color: var(--text);
 
-    font-size: .60rem;
+    font-size: .68rem;
     font-weight: 700;
 }
 
@@ -2977,7 +2977,7 @@ body.salon-lightbox-open {
 
     text-align: center;
 
-    font-size: .60rem;
+    font-size: .68rem;
 }
 
 .salon-page .slots-msg.error {
@@ -3019,7 +3019,7 @@ body.salon-lightbox-open {
 
     color: var(--muted-2);
 
-    font-size: .51rem;
+    font-size: .68rem;
 }
 
 .salon-page .m-summary .row b {
@@ -3027,7 +3027,7 @@ body.salon-lightbox-open {
 
     color: var(--text);
 
-    font-size: .58rem;
+    font-size: .68rem;
 
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -3041,8 +3041,8 @@ body.salon-lightbox-open {
 
     border-radius: 12px;
 
-    font-size: .64rem;
-    font-weight: 850;
+    font-size: .68rem;
+    font-weight: 700;
 }
 
 .salon-page .btn-confirm:disabled {
@@ -3104,7 +3104,7 @@ body.salon-lightbox-open {
 
     color: var(--muted);
 
-    font-size: .65rem;
+    font-size: .68rem;
     line-height: 1.9;
 }
 
@@ -3149,7 +3149,7 @@ body.salon-lightbox-open {
         opacity .2s ease,
         transform .2s ease;
 
-    font-size: .63rem;
+    font-size: .68rem;
     font-weight: 700;
 }
 
@@ -3177,7 +3177,7 @@ body.salon-lightbox-open {
         Arial,
         sans-serif;
 
-    font-size: .58rem;
+    font-size: .68rem;
     letter-spacing: .04em;
 }
 
@@ -3318,7 +3318,7 @@ body.salon-lightbox-open {
 
         background: rgba(255,255,255,.02);
 
-        font-size: .54rem;
+        font-size: .68rem;
     }
 
     .salon-page .topnav .btn-top-book {
@@ -3349,7 +3349,7 @@ body.salon-lightbox-open {
     }
 
     .salon-page .cover-label {
-        font-size: .46rem;
+        font-size: .68rem;
     }
 
     .salon-page .cover-location {
@@ -3360,7 +3360,7 @@ body.salon-lightbox-open {
         text-overflow: ellipsis;
         white-space: nowrap;
 
-        font-size: .49rem;
+        font-size: .68rem;
     }
 
     .salon-page .profile-bar {
@@ -3388,7 +3388,7 @@ body.salon-lightbox-open {
     }
 
     .salon-page .tagline {
-        font-size: .62rem;
+        font-size: .68rem;
     }
 
     .salon-page .stats {
@@ -3401,7 +3401,7 @@ body.salon-lightbox-open {
     }
 
     .salon-page .stat span {
-        font-size: .47rem;
+        font-size: .68rem;
     }
 
     .salon-page .profile-actions {
@@ -3429,11 +3429,11 @@ body.salon-lightbox-open {
     }
 
     .salon-page .hero-bio {
-        font-size: .66rem;
+        font-size: .68rem;
     }
 
     .salon-page .hero-meta {
-        font-size: .55rem;
+        font-size: .68rem;
     }
 
     .salon-page .booking-cta {
@@ -3461,11 +3461,11 @@ body.salon-lightbox-open {
     }
 
     .salon-page .section-topline p {
-        font-size: .58rem;
+        font-size: .68rem;
     }
 
     .salon-page .section-count {
-        font-size: .52rem;
+        font-size: .68rem;
     }
 
     .salon-page .gallery {
@@ -3590,8 +3590,8 @@ body.salon-lightbox-open {
         box-shadow:
             0 18px 40px rgba(0,0,0,.42);
 
-        font-size: .69rem;
-        font-weight: 900;
+        font-size: .68rem;
+        font-weight: 650;
     }
 
     .salon-page .float-book button small {
@@ -3599,7 +3599,7 @@ body.salon-lightbox-open {
 
         color: rgba(0,0,0,.48);
 
-        font-size: .50rem;
+        font-size: .68rem;
         font-weight: 700;
     }
 
@@ -3651,7 +3651,7 @@ body.salon-lightbox-open {
     display: block;
     margin-top: 5px;
     color: rgba(255,255,255,.45);
-    font-size: 9px;
+    font-size: 10px;
     line-height: 1.7;
     text-align: left;
 }
@@ -3849,13 +3849,13 @@ body.salon-lightbox-open {
     padding: 0 8px;
 
     font-family: Arial, sans-serif;
-    font-size: .58rem;
+    font-size: .68rem;
 }
 
 .salon-page .cvp-time {
     color: rgba(255,255,255,.80);
     font-family: Arial, sans-serif;
-    font-size: .56rem;
+    font-size: .68rem;
     white-space: nowrap;
 }
 
@@ -4147,7 +4147,7 @@ body.salon-lightbox-open {
 
 .salon-page .stat span {
     color: rgba(245,246,248,.42);
-    font-size: .58rem;
+    font-size: .68rem;
 }
 
 .salon-page .hero-bottom {
@@ -4272,7 +4272,7 @@ body.salon-lightbox-open {
 
 .salon-page .service-description {
     min-height: 0;
-    font-size: .58rem;
+    font-size: .68rem;
 }
 
 .salon-page .service-info {
@@ -4370,7 +4370,7 @@ body.salon-lightbox-open {
 }
 
 .salon-page .related-name {
-    font-size: .62rem;
+    font-size: .68rem;
 }
 
 .salon-page .float-book button {
@@ -4396,8 +4396,8 @@ body.salon-lightbox-open {
     border-radius: 999px;
     color: #0a0b0d !important;
     background: linear-gradient(135deg,#fff,#dce5ec) !important;
-    font-size: .56rem;
-    font-weight: 900;
+    font-size: .68rem;
+    font-weight: 650;
     box-shadow: 0 8px 24px rgba(0,0,0,.18);
 }
 
@@ -4492,7 +4492,7 @@ body.salon-lightbox-open {
     .salon-page .section-count {
         min-height: 26px;
         padding-inline: 8px;
-        font-size: .52rem;
+        font-size: .68rem;
     }
 
     .salon-page .services-grid {

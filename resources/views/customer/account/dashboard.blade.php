@@ -1,780 +1,258 @@
 @extends('layouts.customer')
 
-@section('title', 'نوبت‌های من')
+@section('title', 'داشبورد من')
 
-@section(
-    'meta_description',
-    'مشاهده و مدیریت نوبت‌های ثبت‌شده شما در NOBAT.'
-)
+@section('meta_description', 'مدیریت نوبت‌ها، سالن‌های مورد علاقه و فعالیت حساب مشتری.')
 
 @section('content')
-
-    <div class="customer-container py-5 pb-28 sm:py-8">
-
-        <div class="mx-auto w-full max-w-5xl">
-
-            {{-- =====================================================
-                WELCOME
-            ====================================================== --}}
-
-            <section
-                class="
-                    mb-7
-                    flex
-                    flex-col
-                    gap-5
-                    rounded-3xl
-                    border
-                    border-border
-                    bg-surface
-                    p-5
-                    shadow-soft
-                    sm:flex-row
-                    sm:items-end
-                    sm:justify-between
-                    sm:p-7
-                "
-            >
-
-                <div class="min-w-0">
-
-                    <span
-                        class="
-                            text-[10px]
-                            font-black
-                            tracking-[0.18em]
-                            text-accent-600
-                        "
-                    >
-                        MY NOBAT
-                    </span>
-
-                    <h1
-                        class="
-                            mt-2
-                            text-2xl
-                            font-black
-                            leading-tight
-                            text-content
-                            sm:text-3xl
-                        "
-                    >
-                        سلام
-                        {{ auth()->user()->name ?: 'دوست خوبم' }}
-                        👋
-                    </h1>
-
-                    <p
-                        class="
-                            mt-2
-                            max-w-xl
-                            text-xs
-                            leading-7
-                            text-content-muted
-                        "
-                    >
-                        نوبت‌هات اینجا هستند. برای رزرو جدید فقط سالن موردنظرت رو پیدا کن.
-                    </p>
-
-                </div>
-
-
-                <a
-                    href="{{ route('salons.discover') }}"
-                    class="
-                        inline-flex
-                        min-h-11
-                        shrink-0
-                        items-center
-                        justify-center
-                        gap-2
-                        rounded-xl
-                        bg-accent-600
-                        px-5
-                        text-xs
-                        font-black
-                        text-white
-                        shadow-sm
-                        transition
-                        hover:-translate-y-0.5
-                        hover:bg-accent-700
-                        hover:shadow-md
-                        focus:outline-none
-                        focus:ring-2
-                        focus:ring-accent-500/30
-                    "
-                >
-                    <span>
-                        رزرو نوبت جدید
-                    </span>
-
-                    <span
-                        class="text-base leading-none"
-                        aria-hidden="true"
-                    >
-                        +
-                    </span>
-                </a>
-
-            </section>
-
-
-            {{-- =====================================================
-                BOOKINGS
-            ====================================================== --}}
-
-            <section>
-
-                <div
-                    class="
-                        mb-4
-                        flex
-                        items-end
-                        justify-between
-                        gap-4
-                    "
-                >
-
-                    <div>
-
-                        <span
-                            class="
-                                text-[10px]
-                                font-black
-                                tracking-[0.16em]
-                                text-content-faint
-                            "
-                        >
-                            BOOKINGS
-                        </span>
-
-                        <h2
-                            class="
-                                mt-1
-                                text-xl
-                                font-black
-                                text-content
-                                sm:text-2xl
-                            "
-                        >
-                            نوبت‌های من
-                        </h2>
-
-                    </div>
-
-
-                    <a
-                        href="{{ route('customer.profile.edit') }}"
-                        class="
-                            text-xs
-                            font-bold
-                            text-content-muted
-                            transition
-                            hover:text-content
-                        "
-                    >
-                        پروفایل
-                    </a>
-
-                </div>
-
-
-                @if($bookings->isNotEmpty())
-
-                    <div class="space-y-3">
-
-                        @foreach($bookings as $booking)
-
-                            <article
-                                class="
-                                    overflow-hidden
-                                    rounded-3xl
-                                    border
-                                    border-border
-                                    bg-surface
-                                    shadow-soft
-                                    transition
-                                    hover:-translate-y-0.5
-                                    hover:shadow-md
-                                "
-                            >
-
-                                <div
-                                    class="
-                                        flex
-                                        flex-col
-                                        gap-5
-                                        p-5
-                                        sm:p-6
-                                    "
-                                >
-
-                                    {{-- =================================================
-                                        TOP ROW
-                                    ================================================== --}}
-
-                                    <div
-                                        class="
-                                            flex
-                                            flex-col
-                                            gap-4
-                                            sm:flex-row
-                                            sm:items-start
-                                            sm:justify-between
-                                        "
-                                    >
-
-                                        <div class="min-w-0">
-
-                                            <div
-                                                class="
-                                                    flex
-                                                    flex-wrap
-                                                    items-center
-                                                    gap-2
-                                                "
-                                            >
-
-                                                <h3
-                                                    class="
-                                                        truncate
-                                                        text-base
-                                                        font-black
-                                                        text-content
-                                                    "
-                                                >
-                                                    {{ $booking->salon?->name ?? 'سالن' }}
-                                                </h3>
-
-
-                                                <span
-                                                    class="
-                                                        booking-status
-                                                        booking-status-{{ $booking->status->value }}
-                                                        "
-                                                >
-                                                    {{ $booking->status->label() }}
-                                                </span>
-
-                                            </div>
-
-
-                                            <p
-                                                class="
-                                                    mt-1.5
-                                                    text-xs
-                                                    text-content-muted
-                                                "
-                                            >
-                                                {{ $booking->service?->name ?? 'خدمت' }}
-
-                                                @if($booking->barber?->name)
-                                                    <span class="mx-1 text-content-faint">
-                                                        ·
-                                                    </span>
-
-                                                    {{ $booking->barber->name }}
-                                                @endif
-                                            </p>
-
-                                        </div>
-
-
-                                        <a
-                                            href="{{ route('public.salons.show', $booking->salon) }}"
-                                            class="
-                                                inline-flex
-                                                shrink-0
-                                                items-center
-                                                gap-1.5
-                                                text-[10px]
-                                                font-bold
-                                                text-content-muted
-                                                transition
-                                                hover:text-accent-600
-                                            "
-                                        >
-                                            مشاهده سالن
-                                            <span aria-hidden="true">
-                                                ←
-                                            </span>
-                                        </a>
-
-                                    </div>
-
-
-                                    {{-- =================================================
-                                        DATE + TIME
-                                    ================================================== --}}
-
-                                    <div
-                                        class="
-                                            grid
-                                            gap-3
-                                            sm:grid-cols-2
-                                        "
-                                    >
-
-                                        <div
-                                            class="
-                                                rounded-2xl
-                                                bg-primary-50/60
-                                                px-4
-                                                py-3
-                                            "
-                                        >
-
-                                            <div
-                                                class="
-                                                    text-[10px]
-                                                    font-bold
-                                                    text-content-muted
-                                                "
-                                            >
-                                                تاریخ
-                                            </div>
-
-                                            <div
-                                                class="
-                                                    mt-1
-                                                    text-sm
-                                                    font-black
-                                                    text-content
-                                                "
-                                            >
-                                                {{ jalali_date($booking->booking_date) }}
-                                            </div>
-
-                                        </div>
-
-
-                                        <div
-                                            class="
-                                                rounded-2xl
-                                                bg-primary-50/60
-                                                px-4
-                                                py-3
-                                            "
-                                        >
-
-                                            <div
-                                                class="
-                                                    text-[10px]
-                                                    font-bold
-                                                    text-content-muted
-                                                "
-                                            >
-                                                ساعت
-                                            </div>
-
-                                            <div
-                                                class="
-                                                    mt-1
-                                                    text-sm
-                                                    font-black
-                                                    text-content
-                                                "
-                                                dir="ltr"
-                                            >
-                                                {{ \Illuminate\Support\Str::substr(
-                                                    $booking->start_time,
-                                                    0,
-                                                    5
-                                                ) }}
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    {{-- =================================================
-                                        EXTRA DETAILS
-                                    ================================================== --}}
-
-                                    <div
-                                        class="
-                                            flex
-                                            flex-wrap
-                                            gap-x-5
-                                            gap-y-2
-                                            border-t
-                                            border-border
-                                            pt-4
-                                            text-[10px]
-                                            text-content-muted
-                                        "
-                                    >
-
-                                        @if($booking->service?->duration_minutes)
-
-                                            <span>
-                                                مدت:
-                                                {{ $booking->service->duration_minutes }}
-                                                دقیقه
-                                            </span>
-
-                                        @endif
-
-
-                                        @if($booking->price !== null)
-
-                                            <span>
-                                                مبلغ:
-                                                {{ number_format($booking->price) }}
-                                                تومان
-                                            </span>
-
-                                        @endif
-
-                                    </div>
-
-
-                                    {{-- =================================================
-                                        ACTION
-                                    ================================================== --}}
-
-                                    @if(
-                                        $booking->status === \App\Enums\BookingStatus::PENDING
-                                    )
-
-                                        <div
-                                            class="
-                                                flex
-                                                flex-col
-                                                gap-2
-                                                border-t
-                                                border-border
-                                                pt-4
-                                                sm:flex-row
-                                                sm:items-center
-                                                sm:justify-between
-                                            "
-                                        >
-
-                                            <span
-                                                class="
-                                                    text-[10px]
-                                                    font-bold
-                                                    text-content-muted
-                                                "
-                                            >
-                                                در انتظار تأیید سالن
-                                            </span>
-
-
-                                            <div
-                                                class="
-                                                    flex
-                                                    flex-col
-                                                    gap-2
-                                                    sm:flex-row
-                                                "
-                                            >
-
-                                                <a
-                                                    href="{{ route('customer.bookings.edit', $booking) }}"
-                                                    class="
-                                                        inline-flex
-                                                        min-h-10
-                                                        items-center
-                                                        justify-center
-                                                        rounded-xl
-                                                        border
-                                                        border-border
-                                                        px-4
-                                                        text-[10px]
-                                                        font-black
-                                                        text-content
-                                                        transition
-                                                        hover:bg-primary-50
-                                                    "
-                                                >
-                                                    ویرایش نوبت
-                                                </a>
-
-
-                                                <form
-                                                    action="{{ route('customer.bookings.cancel', $booking) }}"
-                                                    method="POST"
-                                                    onsubmit="return confirm('از لغو این نوبت مطمئن هستید؟')"
-                                                >
-
-                                                    @csrf
-                                                    @method('DELETE')
-
-                                                    <button
-                                                        type="submit"
-                                                        class="
-                                                            inline-flex
-                                                            min-h-10
-                                                            w-full
-                                                            items-center
-                                                            justify-center
-                                                            rounded-xl
-                                                            border
-                                                            border-red-200
-                                                            bg-red-50
-                                                            px-4
-                                                            text-[10px]
-                                                            font-black
-                                                            text-red-600
-                                                            transition
-                                                            hover:bg-red-100
-                                                            sm:w-auto
-                                                        "
-                                                    >
-                                                        لغو نوبت
-                                                    </button>
-
-                                                </form>
-
-                                            </div>
-
-                                        </div>
-
-
-                                    @elseif(
-                                        $booking->status === \App\Enums\BookingStatus::COMPLETED
-                                        && !$booking->review
-                                    )
-
-                                        <div
-                                            class="
-                                                flex
-                                                flex-col
-                                                gap-3
-                                                rounded-2xl
-                                                bg-accent-50
-                                                p-4
-                                                sm:flex-row
-                                                sm:items-center
-                                                sm:justify-between
-                                            "
-                                        >
-
-                                            <div>
-
-                                                <div
-                                                    class="
-                                                        text-xs
-                                                        font-black
-                                                        text-content
-                                                    "
-                                                >
-                                                    تجربه‌ات چطور بود؟ ⭐
-                                                </div>
-
-                                                <div
-                                                    class="
-                                                        mt-1
-                                                        text-[10px]
-                                                        text-content-muted
-                                                    "
-                                                >
-                                                    چند ثانیه وقت بگذار و نظرت را ثبت کن.
-                                                </div>
-
-                                            </div>
-
-
-                                            <a
-                                                href="{{ route(
-                                                    'customer.bookings.review.create',
-                                                    $booking
-                                                ) }}"
-                                                class="
-                                                    inline-flex
-                                                    min-h-10
-                                                    shrink-0
-                                                    items-center
-                                                    justify-center
-                                                    rounded-xl
-                                                    bg-content
-                                                    px-4
-                                                    text-[10px]
-                                                    font-black
-                                                    text-surface
-                                                    transition
-                                                    hover:-translate-y-0.5
-                                                "
-                                            >
-                                                ثبت نظر
-                                                <span
-                                                    class="mr-2"
-                                                    aria-hidden="true"
-                                                >
-                                                    ←
-                                                </span>
-                                            </a>
-
-                                        </div>
-
-
-                                    @elseif(
-                                        $booking->status === \App\Enums\BookingStatus::COMPLETED
-                                        && $booking->review
-                                    )
-
-                                        <div
-                                            class="
-                                                flex
-                                                items-center
-                                                gap-2
-                                                border-t
-                                                border-border
-                                                pt-4
-                                            "
-                                        >
-
-                                            <span
-                                                class="
-                                                    flex
-                                                    h-7
-                                                    w-7
-                                                    items-center
-                                                    justify-center
-                                                    rounded-full
-                                                    bg-success-50
-                                                    text-success-700
-                                                "
-                                                aria-hidden="true"
-                                            >
-                                                ✓
-                                            </span>
-
-                                            <span
-                                                class="
-                                                    text-[10px]
-                                                    font-black
-                                                    text-content-muted
-                                                "
-                                            >
-                                                نظر شما ثبت شده است.
-                                            </span>
-
-                                        </div>
-
-                                    @endif
-
-                                </div>
-
-                            </article>
-
-                        @endforeach
-
-                    </div>
-
-
-                    @if($bookings->hasPages())
-
-                        <div class="mt-6">
-                            {{ $bookings->links() }}
-                        </div>
-
-                    @endif
-
-
-                @else
-
-                    {{-- =================================================
-                        EMPTY STATE
-                    ================================================== --}}
-
-                    <section
-                        class="
-                            rounded-3xl
-                            border
-                            border-dashed
-                            border-border
-                            bg-surface
-                            px-5
-                            py-12
-                            text-center
-                            shadow-soft
-                        "
-                    >
-
-                        <div
-                            class="
-                                mx-auto
-                                flex
-                                h-14
-                                w-14
-                                items-center
-                                justify-center
-                                rounded-2xl
-                                bg-accent-50
-                                text-xl
-                                text-accent-600
-                            "
-                            aria-hidden="true"
-                        >
-                            ◷
-                        </div>
-
-
-                        <h3
-                            class="
-                                mt-4
-                                text-base
-                                font-black
-                                text-content
-                            "
-                        >
-                            هنوز نوبتی نداری
-                        </h3>
-
-
-                        <p
-                            class="
-                                mx-auto
-                                mt-2
-                                max-w-sm
-                                text-xs
-                                leading-7
-                                text-content-muted
-                            "
-                        >
-                            یک سالن پیدا کن و اولین نوبتت را همین الان رزرو کن.
+    <div class="customer-container py-6 pb-28 sm:py-10">
+        <div class="mx-auto w-full max-w-6xl">
+
+            <section class="customer-dashboard-hero">
+                <div class="customer-dashboard-hero-grid">
+                    <div class="customer-dashboard-intro">
+                        <span class="customer-eyebrow">YOUR SPACE</span>
+                        <h1 class="customer-dashboard-title">
+                            سلام، {{ auth()->user()->name ?: 'دوست خوبم' }}
+                            <span aria-hidden="true">👋</span>
+                        </h1>
+                        <p class="customer-dashboard-lead">
+                            همه‌چیز درباره نوبت‌ها و سالن‌هایی که دنبال می‌کنی، همین‌جاست.
                         </p>
 
+                        <div class="customer-dashboard-actions">
+                            <a href="{{ route('salons.discover') }}" class="customer-btn customer-btn-primary customer-btn-lg">
+                                یک نوبت جدید بگیر
+                                <span aria-hidden="true">←</span>
+                            </a>
+                            <a href="{{ route('customer.bookings.index') }}" class="customer-btn customer-btn-secondary customer-btn-lg">
+                                همه نوبت‌ها
+                            </a>
+                        </div>
+                    </div>
 
-                        <a
-                            href="{{ route('salons.discover') }}"
-                            class="
-                                mt-5
-                                inline-flex
-                                min-h-10
-                                items-center
-                                justify-center
-                                rounded-xl
-                                bg-accent-600
-                                px-5
-                                text-[10px]
-                                font-black
-                                text-white
-                                transition
-                                hover:bg-accent-700
-                            "
-                        >
-                            پیدا کردن سالن
-                            <span
-                                class="mr-2"
-                                aria-hidden="true"
-                            >
-                                ←
-                            </span>
-                        </a>
-
-                    </section>
-
-                @endif
-
+                    <div class="customer-dashboard-visual" aria-hidden="true">
+                        <div class="customer-dashboard-orbit customer-dashboard-orbit-one"></div>
+                        <div class="customer-dashboard-orbit customer-dashboard-orbit-two"></div>
+                        <div class="customer-dashboard-visual-copy">
+                            <span>BOOK SMART</span>
+                            <strong>وقتت، انتخابت، کنترلش با تو.</strong>
+                        </div>
+                    </div>
+                </div>
             </section>
 
+            <section class="customer-stats-grid mt-5">
+                <a href="{{ route('customer.bookings.index') }}" class="customer-stat-card">
+                    <span>همه نوبت‌ها</span>
+                    <strong>{{ number_format($stats['total']) }}</strong>
+                    <small>تاریخچه رزروها</small>
+                </a>
+
+                <a href="{{ route('customer.bookings.index', ['status' => 'pending']) }}" class="customer-stat-card">
+                    <span>در انتظار</span>
+                    <strong>{{ number_format($stats['pending']) }}</strong>
+                    <small>قابل پیگیری و ویرایش</small>
+                </a>
+
+                <a href="{{ route('customer.bookings.index', ['status' => 'completed']) }}" class="customer-stat-card">
+                    <span>تکمیل‌شده</span>
+                    <strong>{{ number_format($stats['completed']) }}</strong>
+                    <small>برای امتیاز و نظر</small>
+                </a>
+
+                <a href="{{ route('customer.favorites.index') }}" class="customer-stat-card">
+                    <span>علاقه‌مندی‌ها</span>
+                    <strong>{{ number_format($stats['favorites']) }}</strong>
+                    <small>سالن‌های ذخیره‌شده</small>
+                </a>
+
+                @if($stats['unread'] > 0)
+                    <a href="{{ route('customer.notifications.index') }}" class="customer-stat-card customer-stat-card-alert">
+                        <span>اعلان جدید</span>
+                        <strong>{{ number_format($stats['unread']) }}</strong>
+                        <small>برای بررسی</small>
+                    </a>
+                @endif
+            </section>
+
+            <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+                <section class="min-w-0">
+                    <div class="customer-section-heading">
+                        <div>
+                            <span>UP NEXT</span>
+                            <h2>نوبت بعدی</h2>
+                            <p>مهم‌ترین اتفاق بعدی حساب تو.</p>
+                        </div>
+                        <a href="{{ route('customer.bookings.index') }}">
+                            مشاهده همه <span aria-hidden="true">←</span>
+                        </a>
+                    </div>
+
+                    @if($upcoming)
+                        <div class="customer-next-booking">
+                            <div class="customer-next-booking-top">
+                                <div class="min-w-0">
+                                    <span class="customer-card-kicker">
+                                        {{ $upcoming->booking_date ? jalali_date($upcoming->booking_date) : '—' }}
+                                    </span>
+                                    <h3>{{ $upcoming->salon?->name ?? 'سالن' }}</h3>
+                                    <p>
+                                        {{ $upcoming->service?->name ?? 'خدمت' }}
+                                        @if($upcoming->barber?->name)
+                                            <span aria-hidden="true">·</span>
+                                            {{ $upcoming->barber->name }}
+                                        @endif
+                                    </p>
+                                </div>
+
+                                <span class="booking-status booking-status-{{ $upcoming->status->value }}">
+                                    {{ $upcoming->status->label() }}
+                                </span>
+                            </div>
+
+                            <div class="customer-next-booking-details">
+                                <div>
+                                    <span>ساعت</span>
+                                    <strong dir="ltr">{{ substr((string) $upcoming->start_time, 0, 5) }}</strong>
+                                </div>
+                                <div>
+                                    <span>مبلغ</span>
+                                    <strong>
+                                        {{ $upcoming->price !== null ? number_format($upcoming->price).' تومان' : '—' }}
+                                    </strong>
+                                </div>
+                                <div>
+                                    <span>وضعیت</span>
+                                    <strong>{{ $upcoming->status->label() }}</strong>
+                                </div>
+                            </div>
+
+                            <div class="customer-next-booking-footer">
+                                <a href="{{ route('customer.bookings.show', $upcoming) }}" class="customer-btn customer-btn-primary">
+                                    مشاهده نوبت
+                                </a>
+
+                                @if($upcomingActions['can_edit'])
+                                    <a href="{{ route('customer.bookings.edit', $upcoming) }}" class="customer-btn customer-btn-secondary">
+                                        ویرایش
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    @else
+                        <div class="customer-empty-panel customer-empty-panel-compact">
+                            <div class="customer-empty-icon">◷</div>
+                            <h3>هنوز نوبت آینده‌ای نداری</h3>
+                            <p>یک سالن پیدا کن و وقت بعدی‌ات را همین حالا ثبت کن.</p>
+                            <a href="{{ route('salons.discover') }}" class="customer-btn customer-btn-primary">
+                                پیدا کردن سالن
+                            </a>
+                        </div>
+                    @endif
+                </section>
+
+                <aside class="space-y-5">
+                    <section class="customer-quick-panel">
+                        <span class="customer-eyebrow">QUICK ACCESS</span>
+                        <h2>میانبرهای تو</h2>
+
+                        <div class="customer-quick-list">
+                            <a href="{{ route('customer.favorites.index') }}">
+                                <span>♥</span>
+                                <div>
+                                    <strong>سالن‌های مورد علاقه</strong>
+                                    <small>{{ $stats['favorites'] }} سالن ذخیره شده</small>
+                                </div>
+                                <span aria-hidden="true">←</span>
+                            </a>
+
+                            <a href="{{ route('customer.notifications.index') }}">
+                                <span>◌</span>
+                                <div>
+                                    <strong>اعلان‌ها</strong>
+                                    <small>{{ $stats['unread'] ? $stats['unread'].' اعلان خوانده‌نشده' : 'همه‌چیز به‌روز است' }}</small>
+                                </div>
+                                <span aria-hidden="true">←</span>
+                            </a>
+
+                            <a href="{{ route('customer.profile.edit') }}">
+                                <span>◎</span>
+                                <div>
+                                    <strong>پروفایل</strong>
+                                    <small>اطلاعات حساب و شماره تماس</small>
+                                </div>
+                                <span aria-hidden="true">←</span>
+                            </a>
+                        </div>
+                    </section>
+
+                    @if($favoriteSalons->isNotEmpty())
+                        <section class="customer-quick-panel">
+                            <div class="flex items-end justify-between gap-3">
+                                <div>
+                                    <span class="customer-eyebrow">SAVED</span>
+                                    <h2>سالن‌های مورد علاقه</h2>
+                                </div>
+                                <a href="{{ route('customer.favorites.index') }}" class="text-[10px] font-black text-content-muted hover:text-content">
+                                    همه
+                                </a>
+                            </div>
+
+                            <div class="customer-mini-salon-list">
+                                @foreach($favoriteSalons as $salon)
+                                    <a href="{{ route('public.salons.show', $salon) }}" class="customer-mini-salon">
+                                        <span class="customer-mini-salon-mark">
+                                            @if($salon->logo_path)
+                                                <img src="{{ asset('storage/'.$salon->logo_path) }}" alt="" loading="lazy">
+                                            @else
+                                                {{ mb_substr($salon->name ?: 'س', 0, 1) }}
+                                            @endif
+                                        </span>
+                                        <span class="min-w-0">
+                                            <strong>{{ $salon->name }}</strong>
+                                            <small>
+                                                @if($salon->reviews_avg_rating !== null)
+                                                    ★ {{ number_format((float) $salon->reviews_avg_rating, 1) }} ·
+                                                @endif
+                                                {{ $salon->services_count }} خدمت
+                                            </small>
+                                        </span>
+                                        <span aria-hidden="true">←</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </section>
+                    @endif
+                </aside>
+            </div>
+
+            <section class="mt-10">
+                <div class="customer-section-heading">
+                    <div>
+                        <span>RECENT ACTIVITY</span>
+                        <h2>آخرین نوبت‌ها</h2>
+                        <p>آخرین تغییرات و رزروهای تو.</p>
+                    </div>
+                </div>
+
+                @if($recentBookings->isNotEmpty())
+                    <div class="space-y-3">
+                        @foreach($recentBookings as $booking)
+                            @include('customer.bookings._card', ['booking' => $booking])
+                        @endforeach
+                    </div>
+                @else
+                    <div class="customer-empty-panel">
+                        <div class="customer-empty-icon">+</div>
+                        <h3>شروع کن</h3>
+                        <p>هنوز هیچ نوبتی ثبت نکردی. اولین تجربه‌ات را بساز.</p>
+                        <a href="{{ route('salons.discover') }}" class="customer-btn customer-btn-primary">
+                            کشف سالن‌ها
+                        </a>
+                    </div>
+                @endif
+            </section>
         </div>
-
     </div>
-
 @endsection

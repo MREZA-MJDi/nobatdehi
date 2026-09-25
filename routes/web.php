@@ -14,6 +14,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Customer\BookingController as CustomerBookingController;
 use App\Http\Controllers\Customer\NotificationController as CustomerNotificationController;
 use App\Http\Controllers\Customer\ProfileController as CustomerProfileController;
+use App\Http\Controllers\Customer\FavoriteController as CustomerFavoriteController;
 use App\Http\Controllers\Customer\ReviewController as CustomerReviewController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
 
@@ -244,9 +245,31 @@ Route::middleware('auth')->group(function () {
                 [CustomerNotificationController::class, 'readAll']
             )->name('notifications.read-all');
 
+            /*
+            |--------------------------------------------------------------------------
+            | Favorites
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                '/favorites',
+                [CustomerFavoriteController::class, 'index']
+            )->name('favorites.index');
+
+            Route::post(
+                '/favorites/{salon}',
+                [CustomerFavoriteController::class, 'store']
+            )->name('favorites.store');
+
+            Route::delete(
+                '/favorites/{salon}',
+                [CustomerFavoriteController::class, 'destroy']
+            )->name('favorites.destroy');
 
             /*
+            |--------------------------------------------------------------------------
             | Booking
+            |--------------------------------------------------------------------------
             */
 
             Route::get(
@@ -258,6 +281,17 @@ Route::middleware('auth')->group(function () {
                 '/bookings',
                 [CustomerBookingController::class, 'store']
             )->name('bookings.store');
+
+            Route::get(
+                '/bookings/{booking}/success',
+                [CustomerBookingController::class, 'success']
+            )->name('bookings.success');
+
+            Route::get(
+                '/bookings/{booking}',
+                [CustomerBookingController::class, 'show']
+            )->name('bookings.show');
+
             Route::get(
                 '/bookings/{booking}/edit',
                 [CustomerBookingController::class, 'edit']
@@ -279,7 +313,9 @@ Route::middleware('auth')->group(function () {
             )->name('bookings.edit-availability');
 
             /*
+            |--------------------------------------------------------------------------
             | Reviews
+            |--------------------------------------------------------------------------
             */
 
             Route::get(
@@ -291,8 +327,17 @@ Route::middleware('auth')->group(function () {
                 '/bookings/{booking}/review',
                 [CustomerReviewController::class, 'store']
             )->name('bookings.review.store');
-        });
 
+            Route::get(
+                '/salons/{salon}/review',
+                [CustomerReviewController::class, 'createSalon']
+            )->name('salons.review.create');
+
+            Route::post(
+                '/salons/{salon}/review',
+                [CustomerReviewController::class, 'storeSalon']
+            )->name('salons.review.store');
+        });
 
     /*
     |--------------------------------------------------------------------------

@@ -42,7 +42,7 @@
     direction: rtl;
 
     font-family:
-        "Vazirmatn",
+        "Estedad",
         Tahoma,
         Arial,
         sans-serif;
@@ -160,7 +160,7 @@
         sans-serif;
 
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .discover-logo-word {
@@ -169,7 +169,7 @@
         sans-serif;
 
     font-size: 21px;
-    font-weight: 800;
+    font-weight: 700;
 
     letter-spacing: -.04em;
 
@@ -268,7 +268,7 @@
     color: #ffffff !important;
 
     font-size: 12px;
-    font-weight: 750;
+    font-weight: 650;
     line-height: 1;
 
     cursor: pointer;
@@ -402,7 +402,7 @@
     color: var(--discover-primary);
 
     font-size: 11px;
-    font-weight: 750;
+    font-weight: 650;
 }
 
 .discover-eyebrow::before {
@@ -427,7 +427,7 @@
 
     line-height: 1.12;
 
-    font-weight: 850;
+    font-weight: 700;
 
     letter-spacing: -.04em;
 }
@@ -542,7 +542,7 @@
     color: #fff !important;
 
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 700;
 
     line-height: 1.4;
 
@@ -754,8 +754,8 @@
 
     color: var(--discover-primary);
 
-    font-size: 9px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
 
     letter-spacing: .08em;
 }
@@ -769,7 +769,7 @@
 
     line-height: 1.35;
 
-    font-weight: 820;
+    font-weight: 700;
 
     letter-spacing: -.03em;
 }
@@ -793,7 +793,7 @@
     color: var(--discover-primary);
 
     font-size: 11px;
-    font-weight: 750;
+    font-weight: 650;
 
     white-space: nowrap;
 
@@ -925,7 +925,7 @@
     font-size: 16px;
     line-height: 1.5;
 
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .discover-salon-rating {
@@ -940,7 +940,7 @@
     color: var(--discover-text);
 
     font-size: 10px;
-    font-weight: 750;
+    font-weight: 650;
 }
 
 .discover-salon-rating svg {
@@ -991,7 +991,7 @@
 
     color: var(--discover-text-soft);
 
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 600;
 }
 
@@ -1013,7 +1013,7 @@
 .discover-salon-price {
     color: var(--discover-muted);
 
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .discover-salon-price strong {
@@ -1042,7 +1042,7 @@
     color: var(--discover-primary) !important;
 
     font-size: 10px;
-    font-weight: 750;
+    font-weight: 650;
 
     white-space: nowrap;
 }
@@ -1133,7 +1133,7 @@
         Arial,
         sans-serif;
 
-    font-size: 8px;
+    font-size: 10px;
 
     letter-spacing: .04em;
 }
@@ -1144,7 +1144,7 @@
     color: #fff;
 
     font-size: 13px;
-    font-weight: 750;
+    font-weight: 650;
 }
 
 
@@ -1204,8 +1204,8 @@
 .discover-featured-kicker {
     color: var(--discover-primary);
 
-    font-size: 9px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .discover-featured-content h3 {
@@ -1217,7 +1217,7 @@
 
     line-height: 1.25;
 
-    font-weight: 850;
+    font-weight: 700;
 }
 
 .discover-featured-content p {
@@ -1274,7 +1274,7 @@
     color: #fff !important;
 
     font-size: 11px;
-    font-weight: 750;
+    font-weight: 650;
 
     line-height: 1;
 
@@ -1354,7 +1354,7 @@
     color: var(--discover-text);
 
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .discover-stylist-role {
@@ -1362,7 +1362,7 @@
 
     color: var(--discover-primary);
 
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
 }
 
@@ -1371,7 +1371,7 @@
 
     color: var(--discover-muted);
 
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .discover-stylist-bottom {
@@ -1391,8 +1391,8 @@
 
     gap: 4px;
 
-    font-size: 9px;
-    font-weight: 750;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .discover-stylist-button {
@@ -1412,7 +1412,7 @@
 
     color: var(--discover-primary) !important;
 
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
 }
 
@@ -1504,7 +1504,7 @@
     color: var(--discover-text);
 
     font-size: 11px;
-    font-weight: 750;
+    font-weight: 650;
 
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1515,7 +1515,7 @@
 
     color: var(--discover-muted);
 
-    font-size: 8px;
+    font-size: 10px;
 }
 
 .discover-nearby-arrow {
@@ -1702,7 +1702,7 @@
     color: var(--discover-text);
 
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .discover-booking-card-city {
@@ -1710,7 +1710,7 @@
 
     color: var(--discover-muted);
 
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .discover-booking-slots {
@@ -1738,7 +1738,7 @@
 
     color: var(--discover-text-soft);
 
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 650;
 }
 
@@ -1756,7 +1756,7 @@
 .discover-booking-day {
     color: var(--discover-muted);
 
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .discover-booking-button {
@@ -1774,8 +1774,8 @@
 
     color: #fff !important;
 
-    font-size: 9px;
-    font-weight: 750;
+    font-size: 10px;
+    font-weight: 650;
 
     line-height: 1;
 
@@ -1829,7 +1829,7 @@
         sans-serif;
 
     font-size: 29px;
-    font-weight: 800;
+    font-weight: 700;
 
     direction: ltr;
 }
@@ -1907,8 +1907,8 @@
 .discover-blog-meta {
     color: var(--discover-primary);
 
-    font-size: 8px;
-    font-weight: 750;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .discover-blog-title {
@@ -1919,7 +1919,7 @@
     font-size: 13px;
     line-height: 1.7;
 
-    font-weight: 750;
+    font-weight: 650;
 }
 
 .discover-blog-link {
@@ -1931,8 +1931,8 @@
 
     color: var(--discover-primary);
 
-    font-size: 9px;
-    font-weight: 750;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 
@@ -1997,9 +1997,9 @@
 
     color: rgba(255,255,255,.58);
 
-    font-size: 8px;
+    font-size: 10px;
 
-    font-weight: 800;
+    font-weight: 700;
 
     letter-spacing: .08em;
 }
@@ -2013,7 +2013,7 @@
 
     line-height: 1.3;
 
-    font-weight: 820;
+    font-weight: 700;
 }
 
 .discover-owner-description {
@@ -2050,7 +2050,7 @@
     color: var(--discover-primary) !important;
 
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 700;
 
     line-height: 1;
 
@@ -2115,7 +2115,7 @@
 
     font-size: 22px;
 
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .discover-footer-column h4 {
@@ -2124,7 +2124,7 @@
     color: #fff;
 
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .discover-footer-column a {
@@ -2134,7 +2134,7 @@
 
     color: rgba(255,255,255,.52);
 
-    font-size: 9px;
+    font-size: 10px;
 
     transition: color 180ms ease;
 }
@@ -2159,7 +2159,7 @@
 
     color: rgba(255,255,255,.34);
 
-    font-size: 8px;
+    font-size: 10px;
 }
 
 
@@ -2677,7 +2677,7 @@
     margin-bottom: 8px;
     color: var(--discover-primary);
     font-size: 10px;
-    font-weight: 850;
+    font-weight: 700;
     letter-spacing: .12em;
 }
 
@@ -2687,7 +2687,7 @@
     color: var(--discover-text);
     font-size: clamp(22px, 3vw, 30px);
     line-height: 1.35;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .discover-location-copy {
@@ -2731,7 +2731,7 @@
 .discover-location-map-state strong {
     color: var(--discover-text);
     font-size: 13px;
-    font-weight: 850;
+    font-weight: 700;
 }
 
 .discover-location-map-state small {
@@ -2765,7 +2765,7 @@
     border-radius: 14px;
     font: inherit;
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 700;
     cursor: pointer;
 }
 
@@ -2922,8 +2922,8 @@ body.discover-location-open {
     color: #fff;
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    font-size: 8px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .discover-page .discover-hero-media-badge-dot {
@@ -2939,7 +2939,7 @@ body.discover-location-open {
     font-size: clamp(2rem, 8.8vw, 4.8rem);
     line-height: 1.06;
     letter-spacing: -.055em;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .discover-page .discover-hero-title span {
@@ -2996,7 +2996,7 @@ body.discover-location-open {
     outline: 0;
     background: transparent;
     color: var(--discover-text);
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .discover-page .discover-search-field input::placeholder {
@@ -3007,8 +3007,8 @@ body.discover-location-open {
 .discover-page .discover-search-submit {
     min-height: 47px;
     border-radius: 13px;
-    font-size: 9px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .discover-page .discover-search-nearby {
@@ -3039,8 +3039,8 @@ body.discover-location-open {
     flex: 0 0 auto;
     align-self: center;
     color: var(--discover-faint, var(--discover-muted));
-    font-size: 7px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .discover-page .discover-quick-link {
@@ -3053,8 +3053,8 @@ body.discover-location-open {
     border-radius: 999px;
     background: var(--discover-surface);
     color: var(--discover-text-soft);
-    font-size: 7px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .discover-page .discover-section {
@@ -3339,7 +3339,7 @@ body.discover-location-open {
 .discover-page .discover-team-copy > small {
     display: block;
     color: var(--discover-muted);
-    font-size: 8px;
+    font-size: 10px;
     line-height: 1.7;
 }
 
@@ -3350,7 +3350,7 @@ body.discover-location-open {
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 13px;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .discover-page .discover-team-arrow {
@@ -3396,7 +3396,7 @@ body.discover-location-open {
     align-items: center;
     justify-content: center;
     font-size: 10px;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .discover-page .discover-team-members {
@@ -3407,7 +3407,7 @@ body.discover-location-open {
     overflow: hidden;
     white-space: nowrap;
     color: var(--discover-text-soft);
-    font-size: 8px;
+    font-size: 10px;
     line-height: 1.7;
 }
 
@@ -3484,7 +3484,7 @@ body.discover-location-open {
 .discover-page .discover-end-salon span {
     color: var(--discover-primary);
     font-size: 12px;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 @media (max-width: 759px) {
@@ -3566,12 +3566,12 @@ body.discover-location-open {
     .discover-mobile-filter-trigger__copy strong {
         font-size: 11px;
         line-height: 1.4;
-        font-weight: 900;
+        font-weight: 650;
     }
 
     .discover-mobile-filter-trigger__copy small {
         color: var(--discover-muted);
-        font-size: 8px;
+        font-size: 10px;
         line-height: 1.5;
     }
 
@@ -3584,8 +3584,8 @@ body.discover-location-open {
         border-radius: 999px;
         background: var(--discover-primary);
         color: #fff;
-        font-size: 9px;
-        font-weight: 900;
+        font-size: 10px;
+        font-weight: 650;
     }
 
     .discover-filters-backdrop {
@@ -3642,8 +3642,8 @@ body.discover-location-open {
     .discover-mobile-filter-head span {
         display: block;
         color: var(--discover-primary);
-        font-size: 7px;
-        font-weight: 950;
+        font-size: 10px;
+        font-weight: 700;
         letter-spacing: .14em;
     }
 
@@ -3652,7 +3652,7 @@ body.discover-location-open {
         color: var(--discover-text);
         font-size: 15px;
         line-height: 1.35;
-        font-weight: 950;
+        font-weight: 700;
     }
 
     .discover-mobile-filter-close {
@@ -3766,13 +3766,13 @@ body.discover-filters-open {
 
 .discover-filter-trigger__copy strong {
     font-size: 11px;
-    font-weight: 900;
+    font-weight: 650;
     line-height: 1.3;
 }
 
 .discover-filter-trigger__copy small {
     color: var(--discover-muted);
-    font-size: 8px;
+    font-size: 10px;
     line-height: 1.5;
 }
 
@@ -3785,8 +3785,8 @@ body.discover-filters-open {
     border-radius: 999px;
     background: var(--discover-primary);
     color: #fff;
-    font-size: 9px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .discover-filter-trigger__arrow {
@@ -3807,8 +3807,8 @@ body.discover-filters-open {
     padding-inline: 12px;
     border-radius: 12px;
     color: var(--discover-text-soft);
-    font-size: 9px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .discover-page .discover-filter-reset:hover {
@@ -3889,8 +3889,8 @@ body.discover-filters-open {
 .discover-filter-dialog__head > div > span {
     display: block;
     color: var(--discover-primary);
-    font-size: 7px;
-    font-weight: 950;
+    font-size: 10px;
+    font-weight: 700;
     letter-spacing: .16em;
 }
 
@@ -3898,13 +3898,13 @@ body.discover-filters-open {
     margin: 4px 0 0;
     font-size: 17px;
     line-height: 1.35;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .discover-filter-dialog__head p {
     margin: 6px 0 0;
     color: var(--discover-text-soft);
-    font-size: 9px;
+    font-size: 10px;
     line-height: 1.8;
 }
 
@@ -3940,8 +3940,8 @@ body.discover-filters-open {
     display: block;
     margin: 0 0 6px;
     color: var(--discover-text-soft);
-    font-size: 9px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .discover-filter-input {
@@ -4000,13 +4000,13 @@ body.discover-filters-open {
 }
 
 .discover-filter-check strong {
-    font-size: 9px;
+    font-size: 10px;
     line-height: 1.4;
 }
 
 .discover-filter-check small {
     color: var(--discover-muted);
-    font-size: 7px;
+    font-size: 10px;
     line-height: 1.5;
 }
 
@@ -4014,8 +4014,8 @@ body.discover-filters-open {
     justify-content: center;
     border-color: color-mix(in srgb, var(--discover-primary) 24%, var(--discover-border));
     color: var(--discover-primary);
-    font-size: 9px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
     cursor: pointer;
 }
 
@@ -4040,8 +4040,8 @@ body.discover-filters-open {
     gap: 8px;
     padding-inline: 17px;
     border-radius: 13px;
-    font-size: 9px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
     cursor: pointer;
 }
 
@@ -4100,13 +4100,13 @@ body.discover-filters-open {
 .discover-filter-results__idle strong,
 .discover-filter-results__empty strong {
     font-size: 10px;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .discover-filter-results__idle small,
 .discover-filter-results__empty small {
     color: var(--discover-muted);
-    font-size: 8px;
+    font-size: 10px;
     line-height: 1.7;
 }
 
@@ -4114,7 +4114,7 @@ body.discover-filters-open {
     margin-bottom: 10px;
     color: var(--discover-text);
     font-size: 10px;
-    font-weight: 900;
+    font-weight: 650;
 }
 
 .discover-filter-results__cards {
@@ -4151,12 +4151,12 @@ body.discover-filters-open {
 }
 
 .discover-filter-results__cards .discover-result-card .text-sm {
-    font-size: 8px !important;
+    font-size: 10px !important;
     line-height: 1.7 !important;
 }
 
 .discover-filter-results__cards .discover-result-card .text-xs {
-    font-size: 7px !important;
+    font-size: 10px !important;
 }
 
 @media (max-width: 759px) {

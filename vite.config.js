@@ -30,4 +30,15 @@ export default defineConfig({
 
         tailwindcss(),
     ],
+
+    server: {
+        warmup: {
+            clientFiles: [
+                'resources/css/app.css',
+                'resources/css/customer.css',
+                'resources/js/app.js',
+                'resources/js/customer.js',
+            ],
+        },
+    },
 })
