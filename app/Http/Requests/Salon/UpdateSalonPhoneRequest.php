@@ -38,7 +38,7 @@ class UpdateSalonPhoneRequest extends FormRequest
                 Rule::unique('users', 'phone')
                     ->ignore($this->user()?->id),
             ],
-            'current_password' => [
+            'phone_current_password' => [
                 'required',
                 'current_password:web',
             ],
@@ -51,8 +51,8 @@ class UpdateSalonPhoneRequest extends FormRequest
             'phone.required' => 'شماره موبایل الزامی است.',
             'phone.regex' => 'شماره موبایل معتبر نیست.',
             'phone.unique' => 'این شماره موبایل قبلاً برای حساب دیگری ثبت شده است.',
-            'current_password.required' => 'برای تغییر شماره، رمز عبور فعلی را وارد کنید.',
-            'current_password.current_password' => 'رمز عبور فعلی صحیح نیست.',
+            'phone_current_password.required' => 'برای تغییر شماره، رمز عبور فعلی را وارد کنید.',
+            'phone_current_password.current_password' => 'رمز عبور فعلی صحیح نیست.',
         ];
     }
 }
