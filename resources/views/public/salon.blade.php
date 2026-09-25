@@ -397,6 +397,42 @@
 
                     <div class="profile-actions">
 
+                        @auth
+                            @if(auth()->user()->isCustomer())
+                                @if($isFavorited)
+                                    <form action="{{ route('customer.favorites.destroy', $salon) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button
+                                            type="submit"
+                                            class="btn-ghost"
+                                            aria-label="حذف {{ $salon->name }} از علاقه‌مندی‌ها"
+                                        >
+                                            ♥ ذخیره‌شده
+                                        </button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('customer.favorites.store', $salon) }}" method="POST">
+                                        @csrf
+                                        <button
+                                            type="submit"
+                                            class="btn-ghost"
+                                            aria-label="افزودن {{ $salon->name }} به علاقه‌مندی‌ها"
+                                        >
+                                            ♡ ذخیره سالن
+                                        </button>
+                                    </form>
+                                @endif
+                            @endif
+                        @else
+                            <a
+                                href="{{ route('login', ['entry' => 'customer']) }}"
+                                class="btn-ghost"
+                            >
+                                ♡ ذخیره سالن
+                            </a>
+                        @endauth
+
                         @if($bookingEnabled)
 
                             <button
