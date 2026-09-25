@@ -133,7 +133,7 @@
                                     مشاهده نوبت
                                 </a>
 
-                                @if($upcoming->status === \App\Enums\BookingStatus::PENDING)
+                                @if($upcomingActions['can_edit'])
                                     <a href="{{ route('customer.bookings.edit', $upcoming) }}" class="customer-btn customer-btn-secondary">
                                         ویرایش
                                     </a>
