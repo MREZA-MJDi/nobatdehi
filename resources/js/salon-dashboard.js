@@ -250,9 +250,35 @@
         }
 
         if (next) {
-            if (heading) heading.textContent = 'نوبت بعدی ساعت ' + (next.startTime || '—');
-            if (desc) desc.textContent = (next.customer || 'مشتری') + ' · ' + (next.service || 'خدمت') + ' · ' + (next.barber || 'متخصص');
-            if (action) { action.href = bookingBaseUrl.replace(/\/$/, '') + '/' + encodeURIComponent(next.id); action.innerHTML = 'باز کردن نوبت <span>←</span>'; }
+            const nextDate = next.date || '';
+            const today = root.dataset.today || '';
+            const dateLabel = nextDate
+                ? faDigits(jalaliDate(nextDate))
+                : '';
+            const dayLabel = nextDate === today ? 'امروز' : 'تاریخ نوبت';
+
+            if (heading) {
+                heading.textContent =
+                    'نوبت بعدی · ' + faDigits(next.startTime || '—');
+            }
+
+            if (desc) {
+                desc.textContent =
+                    dayLabel + ' · ' +
+                    dateLabel + ' · ' +
+                    (next.customer || 'مشتری') + ' · ' +
+                    (next.service || 'خدمت') + ' · ' +
+                    (next.barber || 'متخصص');
+            }
+
+            if (action) {
+                action.href =
+                    bookingBaseUrl.replace(/\/$/, '') +
+                    '/' +
+                    encodeURIComponent(next.id);
+                action.innerHTML =
+                    'باز کردن نوبت <span>←</span>';
+            }
             return;
         }
 
