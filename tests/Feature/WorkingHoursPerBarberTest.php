@@ -55,6 +55,101 @@ class WorkingHoursPerBarberTest extends TestCase
         ]);
     }
 
+    public function test_default_schedule_is_saved_for_salon(): void
+    {
+        [$owner, $salon, $barberA, $barberB] = $this->fixture();
+
+        $this->actingAs($owner)
+            ->post(route('salon.working-hours.apply-default'))
+            ->assertSessionHasNoErrors();
+
+        foreach (range(0, 5) as $day) {
+            $this->assertDatabaseHas('working_hours', [
+                'salon_id' => $salon->id,
+                'barber_id' => null,
+                'day_of_week' => $day,
+                'start_time' => '09:00:00',
+                'end_time' => '22:00:00',
+                'is_closed' => false,
+            ]);
+        }
+
+        $this->assertDatabaseHas('working_hours', [
+            'salon_id' => $salon->id,
+            'barber_id' => null,
+            'day_of_week' => 6,
+            'start_time' => null,
+            'end_time' => null,
+            'is_closed' => true,
+        ]);
+    }
+
+    public function test_default_schedule_is_saved_for_selected_active_barber_only(): void
+    {
+        [$owner, $salon, $barberA, $barberB] = $this->fixture();
+
+        $this->actingAs($owner)
+            ->post(route('salon.working-hours.apply-default'), [
+                'barber_id' => $barberA->id,
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('working_hours', [
+            'salon_id' => $salon->id,
+            'barber_id' => $barberA->id,
+            'day_of_week' => 0,
+            'start_time' => '09:00:00',
+            'end_time' => '22:00:00',
+            'is_closed' => false,
+        ]);
+
+        $this->assertDatabaseMissing('working_hours', [
+            'salon_id' => $salon->id,
+            'barber_id' => $barberB->id,
+        ]);
+    }
+
+    public function test_working_hours_editor_renders_real_quarter_hour_values(): void
+    {
+        [$owner] = $this->fixture();
+
+        $this->actingAs($owner)
+            ->get(route('salon.working-hours.edit'))
+            ->assertOk()
+            ->assertSee('value="09:00">۰۹:۰۰', false)
+            ->assertSee('value="22:00">۲۲:۰۰', false);
+    }
+
+    public function test_availability_does_not_duplicate_identical_working_hour_slots(): void
+    {
+        [$owner, $salon, $barberA, $barberB, $service, $date] = $this->fixture(true);
+
+        $dayOfWeek = ($date->dayOfWeek + 1) % 7;
+
+        WorkingHour::create([
+            'salon_id' => $salon->id,
+            'barber_id' => null,
+            'day_of_week' => $dayOfWeek,
+            'start_time' => '09:00',
+            'end_time' => '21:00',
+            'is_closed' => false,
+            'sort_order' => 1,
+        ]);
+
+        $slots = app(AvailabilityService::class)->slots(
+            $salon,
+            $barberB,
+            $service,
+            $date
+        );
+
+        $this->assertCount(45, $slots);
+        $this->assertSame(
+            45,
+            collect($slots)->pluck('start')->unique()->count()
+        );
+    }
+
     public function test_availability_uses_barber_schedule_and_keeps_salon_fallback(): void
     {
         [$owner, $salon, $barberA, $barberB, $service, $date] = $this->fixture(true);
