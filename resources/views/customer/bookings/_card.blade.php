@@ -1,7 +1,3 @@
-@php
-    $status = $booking->status;
-@endphp
-
 <article class="customer-booking-card">
     <div class="customer-booking-card-main">
 
@@ -24,8 +20,8 @@
                 </p>
             </div>
 
-            <span class="booking-status booking-status-{{ $status->value }}">
-                {{ $status->label() }}
+            <span class="booking-status booking-status-{{ $booking->status->value }}">
+                {{ $booking->status->label() }}
             </span>
         </div>
 
@@ -72,7 +68,7 @@
                 مشاهده سالن
             </a>
 
-            @if($status->value === 'pending')
+            @if($booking->_customer_can_edit)
                 <a
                     href="{{ route('customer.bookings.edit', $booking) }}"
                     class="customer-btn customer-btn-secondary"
@@ -96,7 +92,7 @@
                         لغو نوبت
                     </button>
                 </form>
-            @elseif($status->value === 'completed' && !$booking->review)
+            @elseif($booking->_customer_can_review)
                 <a
                     href="{{ route('customer.bookings.review.create', $booking) }}"
                     class="customer-btn customer-btn-primary"
@@ -104,7 +100,7 @@
                     امتیاز و نظر
                     <span aria-hidden="true">★</span>
                 </a>
-            @elseif($status->value === 'completed')
+            @elseif($booking->_customer_has_review)
                 <span class="customer-booking-reviewed">
                     ✓ نظر ثبت شده
                 </span>
