@@ -89,6 +89,29 @@
                 return String(value || '').replace(/[0-9]/g, digit => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)]);
             },
 
+            applyDefault() {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = @json(route('salon.working-hours.apply-default'));
+                form.style.display = 'none';
+
+                const csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = '_token';
+                csrf.value = @json(csrf_token());
+
+                const barber = document.createElement('input');
+                barber.type = 'hidden';
+                barber.name = 'barber_id';
+                barber.value = this.selectedScope === 'salon'
+                    ? ''
+                    : String(this.selectedScope);
+
+                form.append(csrf, barber);
+                document.body.appendChild(form);
+                form.submit();
+            },
+
             async persistDay(day) {
                 const target = this.currentHours[day];
 
@@ -248,31 +271,38 @@
                  * یک بازه قابل ویرایش بساز تا کاربر بعد از کلیک
                  * فوراً ساعت شروع و پایان را ببیند.
                  */
+                const emptyInterval = target.intervals.find(
+                    interval => !interval?.start || !interval?.end
+                );
+
+                if (emptyInterval) {
+                    emptyInterval.start = '09:00';
+                    emptyInterval.end = '10:00';
+                    this.markCustomized();
+                    return;
+                }
+
                 let start = '';
                 let end = '';
 
-                if (target.intervals.length === 0) {
-                    start = '09:00';
-                    end = '10:00';
-                } else {
-                    const orderedIntervals = [...target.intervals]
-                        .filter(interval => interval?.end)
-                        .sort((a, b) => a.end.localeCompare(b.end));
-                    const last = orderedIntervals.length
-                        ? orderedIntervals[orderedIntervals.length - 1]
-                        : null;
+                const orderedIntervals = [...target.intervals]
+                    .filter(interval => interval?.end)
+                    .sort((a, b) => a.end.localeCompare(b.end));
 
-                    if (last?.end && last.end < '22:00') {
-                        start = last.end;
-                        const [hour, minute] = last.end.split(':').map(Number);
-                        const nextHour = Math.min(hour + 1, 22);
-                        end = String(nextHour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+                const last = orderedIntervals.length
+                    ? orderedIntervals[orderedIntervals.length - 1]
+                    : null;
 
-                        if (end <= start) {
-                            start = '';
-                            end = '';
-                        }
-                    }
+                if (last?.end && last.end < '23:30') {
+                    start = last.end;
+
+                    const [hour, minute] = last.end.split(':').map(Number);
+                    const totalMinutes = hour * 60 + minute + 30;
+
+                    end =
+                        String(Math.floor(totalMinutes / 60)).padStart(2, '0') +
+                        ':' +
+                        String(totalMinutes % 60).padStart(2, '0');
                 }
 
                 target.intervals.push({start, end});
