@@ -1315,3 +1315,12 @@ html{font-size:100%}
 body{font-family:var(--ui-font-family)}
 button,input,select,textarea{font-family:inherit}
 h1,h2,h3,h4,h5,h6{line-height:var(--ui-line-tight)}
+
+
+/* SUPER ADMIN DASHBOARD — FINAL RESPONSIVE POLISH */
+#app .admin-dashboard-page{min-width:0}
+#app .admin-dashboard-page .admin-dashboard-stat-card,#app .admin-dashboard-page .admin-dashboard-salon-card{min-width:0;overflow:hidden}
+#app .admin-dashboard-page .admin-dashboard-stat-value{white-space:nowrap;letter-spacing:-.03em}
+#app .admin-dashboard-page .admin-dashboard-actions>a{min-width:0}
+@media(max-width:767px){#app .admin-dashboard-page{padding-inline:.9rem}#app .admin-dashboard-page .admin-dashboard-header{gap:.8rem;margin-bottom:1rem}#app .admin-dashboard-page .admin-dashboard-header .btn{width:100%}#app .admin-dashboard-page .admin-dashboard-stat-grid{gap:.55rem}#app .admin-dashboard-page .admin-dashboard-stat-card{padding:.85rem;border-radius:1rem}#app .admin-dashboard-page .admin-dashboard-stat-value{font-size:1.35rem}#app .admin-dashboard-page .admin-dashboard-salon-grid{grid-template-columns:1fr!important;gap:.7rem}#app .admin-dashboard-page .admin-dashboard-salon-card{border-radius:1rem}#app .admin-dashboard-page .admin-dashboard-salon-actions{gap:.45rem}#app .admin-dashboard-page .admin-dashboard-actions{grid-template-columns:1fr!important;gap:.7rem}#app .admin-dashboard-page .admin-dashboard-action-card{padding:1rem;border-radius:1rem}}
+@media(max-width:420px){#app .admin-dashboard-page{padding-inline:.75rem}#app .admin-dashboard-page .admin-dashboard-stat-value{font-size:1.2rem}}
