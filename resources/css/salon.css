@@ -5406,3 +5406,58 @@ html:has(.salon-page){font-size:100%}
     .salon-page .hero-bio,
     .salon-page .section-topline p{font-size:.72rem}
 }
+
+
+.salon-page .topbar-left-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.salon-page .owner-dashboard-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 34px;
+    padding: 0 11px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px;
+    color: var(--text);
+    background: rgba(255,255,255,.055);
+    font-size: .68rem;
+    font-weight: 750;
+    transition: .2s ease;
+}
+
+.salon-page .owner-dashboard-link:hover {
+    border-color: rgba(255,255,255,.25);
+    background: rgba(255,255,255,.09);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 760px) {
+    .salon-page .topbar-in {
+        gap: 10px;
+        min-height: 62px;
+    }
+
+    .salon-page .topbar-left-actions {
+        order: 1;
+        flex: 1 1 auto;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .salon-page .topbar-left-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .salon-page .brand {
+        order: 2;
+    }
+
+    .salon-page .owner-dashboard-link span:last-child {
+        display: none;
+    }
+}
