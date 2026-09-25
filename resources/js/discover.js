@@ -220,6 +220,37 @@
             bindResultInteractions();
             bindFilterPanel();
 
+    /*
+    |--------------------------------------------------------------------------
+    | Filter trigger fallback
+    |--------------------------------------------------------------------------
+    |
+    | Keep the trigger resilient even when another page script rebinds or
+    | replaces Discover markup after the initial boot.
+    |
+    */
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('#discoverFiltersOpen');
+        const panel = page.querySelector('#discoverFiltersPanel');
+        const backdrop = page.querySelector('#discoverFiltersBackdrop');
+
+        if (!trigger || !panel) {
+            return;
+        }
+
+        panel.hidden = false;
+        panel.classList.add('is-open');
+        panel.setAttribute('aria-hidden', 'false');
+        trigger.setAttribute('aria-expanded', 'true');
+
+        if (backdrop) {
+            backdrop.hidden = false;
+            backdrop.setAttribute('aria-hidden', 'false');
+        }
+
+        document.body.classList.add('discover-filters-open');
+    });
+
             page.querySelectorAll('[data-discover-reset]').forEach((link) => {
                 if (link.dataset.discoverResetBound) return;
 
