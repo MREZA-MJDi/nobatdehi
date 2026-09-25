@@ -64,21 +64,6 @@ php artisan migrate
 
 npm run dev
 php artisan serve
-```
-
-## Production / server deployment
-The current test server is:
-`http://171.22.26.184:8081/`
-
-Typical update flow:
-```bash
-cd /var/www/nobatdehi-test
-git checkout main
-git pull --ff-only origin main
-npm run build
-php artisan migrate --force
-php artisan optimize:clear
-```
 
 ## Notes
 The repository intentionally keeps feature fixes scoped where possible. UI changes should avoid unrelated role or page regressions.
