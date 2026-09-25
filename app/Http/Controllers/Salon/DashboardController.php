@@ -733,6 +733,7 @@ class DashboardController extends Controller
                             'customer' =>
                                 $booking
                                     ->customer?->name
+                                    ?? $booking->customer_name
                                     ?? 'مشتری',
                             'service' =>
                                 $booking
