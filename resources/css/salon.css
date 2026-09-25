@@ -4065,11 +4065,11 @@ body.salon-lightbox-open {
    ================================================================ */
 
 .salon-page .wrap {
-    width: min(calc(100% - 40px), 1180px);
+    width: min(calc(100% - 32px), 1220px);
 }
 
 .salon-page .topbar-in {
-    width: min(calc(100% - 40px), 1180px);
+    width: min(calc(100% - 32px), 1220px);
 }
 
 .salon-page .topbar {
@@ -4081,8 +4081,8 @@ body.salon-lightbox-open {
 }
 
 .salon-page .cover {
-    min-height: 370px;
-    border-radius: 28px;
+    min-height: 420px;
+    border-radius: 32px;
     border-color: rgba(255,255,255,.09);
     box-shadow: 0 30px 90px rgba(0,0,0,.24);
 }
@@ -4111,23 +4111,23 @@ body.salon-lightbox-open {
 }
 
 .salon-page .profile-bar {
-    margin-top: -58px;
-    padding: 0 26px;
-    gap: 16px;
+    margin-top: -68px;
+    padding: 0 30px;
+    gap: 20px;
 }
 
 .salon-page .avatar {
-    width: 118px;
-    height: 118px;
-    border-radius: 28px;
+    width: 136px;
+    height: 136px;
+    border-radius: 34px;
 }
 
 .salon-page .profile-info {
-    padding-bottom: 7px;
+    padding-bottom: 9px;
 }
 
 .salon-page .name-row h1 {
-    font-size: clamp(1.45rem, 2.25vw, 1.9rem);
+    font-size: clamp(1.55rem, 2.7vw, 2.2rem);
     letter-spacing: -.02em;
 }
 
@@ -4137,8 +4137,8 @@ body.salon-lightbox-open {
 }
 
 .salon-page .stats {
-    gap: 18px;
-    margin-top: 14px;
+    gap: 24px;
+    margin-top: 17px;
 }
 
 .salon-page .stat b {
@@ -4151,15 +4151,15 @@ body.salon-lightbox-open {
 }
 
 .salon-page .hero-bottom {
-    margin: 18px 26px 0;
-    grid-template-columns: minmax(0, 1.5fr) minmax(280px, .7fr);
-    gap: 26px;
+    margin: 20px 30px 0;
+    grid-template-columns: minmax(0, 1.5fr) minmax(300px, .7fr);
+    gap: 34px;
 }
 
 .salon-page .hero-bio {
-    max-width: 700px;
-    font-size: .72rem;
-    line-height: 1.95;
+    max-width: 760px;
+    font-size: .78rem;
+    line-height: 2.05;
 }
 
 .salon-page .hero-meta {
@@ -4171,7 +4171,7 @@ body.salon-lightbox-open {
 }
 
 .salon-page .chips {
-    margin: 12px 26px 0;
+    margin: 14px 30px 0;
 }
 
 .salon-page .chip {
@@ -4181,9 +4181,9 @@ body.salon-lightbox-open {
 }
 
 .salon-page .booking-cta {
-    margin-top: 32px;
-    padding: 24px 26px;
-    border-radius: 22px;
+    margin-top: 38px;
+    padding: 28px 30px;
+    border-radius: 24px;
     border-color: color-mix(
         in srgb,
         var(--salon-brand-primary, #edf3f8) 18%,
@@ -4208,7 +4208,7 @@ body.salon-lightbox-open {
 }
 
 .salon-page .bk-text h2 {
-    font-size: 1.22rem;
+    font-size: 1.38rem;
 }
 
 .salon-page .bk-text p {
@@ -4216,15 +4216,15 @@ body.salon-lightbox-open {
 }
 
 .salon-page .section {
-    margin-top: 70px;
+    margin-top: 86px;
 }
 
 .salon-page .section-topline {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .salon-page .section-topline h2 {
-    font-size: 1.18rem;
+    font-size: 1.34rem;
     letter-spacing: -.02em;
 }
 
