@@ -203,9 +203,10 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware(
-        'role:' . UserRole::CUSTOMER->value
-    )
+    Route::middleware([
+        'customer.inactive',
+        'role:' . UserRole::CUSTOMER->value,
+    ])
         ->prefix('customer')
         ->name('customer.')
         ->group(function () {

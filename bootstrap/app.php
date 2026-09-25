@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureUserRole;
+use App\Http\Middleware\ExpireCustomerInactivity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +20,7 @@ return Application::configure(
         $middleware->alias([
             'role' => EnsureUserRole::class,
             'password.changed' => EnsurePasswordChanged::class,
+            'customer.inactive' => ExpireCustomerInactivity::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
