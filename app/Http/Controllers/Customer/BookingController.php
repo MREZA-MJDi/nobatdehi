@@ -877,7 +877,7 @@ class BookingController extends Controller
         */
 
         return redirect()
-            ->route('customer.dashboard')
+            ->route('customer.bookings.show', $booking)
             ->with(
                 'success',
                 'نوبت شما با موفقیت ویرایش شد.'
@@ -911,10 +911,10 @@ class BookingController extends Controller
         }
 
         return redirect()
-            ->route('customer.dashboard')
+            ->route('customer.bookings.index')
             ->with(
                 'success',
-                'نوبت شما لغو شد.'
+                'نوبت شما با موفقیت لغو شد.'
             );
     }
 
