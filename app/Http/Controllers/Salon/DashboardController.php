@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Salon;
 
 use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Salon\ManualBookingRequest;
 use App\Models\Salon;
+use App\Services\Booking\BookingService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,6 +24,34 @@ class DashboardController extends Controller
             'salon.dashboard',
             $dashboard
         );
+    }
+
+    public function storeManualBooking(
+        ManualBookingRequest $request,
+        BookingService $bookingService
+    ): JsonResponse {
+        $salon = $this->managedSalon($request);
+
+        $data = $request->validated();
+
+        $booking = $bookingService->createManual(
+            $request->user(),
+            [
+                ...$data,
+                'salon_id' => $salon->id,
+            ]
+        );
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'نوبت دستی با موفقیت ثبت و تأیید شد.',
+            'booking' => [
+                'id' => $booking->id,
+                'status' => $booking->status->value,
+                'booking_date' => $booking->booking_date,
+                'start_time' => substr((string) $booking->start_time, 0, 5),
+            ],
+        ], 201);
     }
 
     public function data(Request $request): JsonResponse
