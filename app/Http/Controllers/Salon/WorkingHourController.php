@@ -392,6 +392,10 @@ class WorkingHourController extends Controller
                     'end' => substr((string) $row->end_time, 0, 5),
                 ]
             )
+            ->unique(
+                fn (array $interval): string =>
+                    $interval['start'] . '|' . $interval['end']
+            )
             ->values()
             ->all();
 
