@@ -4024,3 +4024,138 @@ html[data-theme="dark"] .salon-owner {
         gap: 20px !important;
     }
 }
+
+/* ==========================================================================
+   Manual booking — hard mobile overflow guard
+   Scoped only to /salon/bookings/create.
+   ========================================================================== */
+
+.salon-manual-booking,
+.salon-manual-booking *,
+.salon-manual-booking *::before,
+.salon-manual-booking *::after {
+    box-sizing: border-box;
+}
+
+.salon-manual-booking {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+}
+
+.salon-manual-booking > form,
+.salon-manual-booking > form > .grid,
+.salon-manual-booking > form > .grid > main,
+.salon-manual-booking > form > .grid > aside,
+.salon-manual-booking section,
+.salon-manual-booking section > div {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.salon-manual-booking img,
+.salon-manual-booking video,
+.salon-manual-booking canvas,
+.salon-manual-booking iframe {
+    max-width: 100%;
+}
+
+.salon-manual-booking h1,
+.salon-manual-booking h2,
+.salon-manual-booking h3,
+.salon-manual-booking p,
+.salon-manual-booking span,
+.salon-manual-booking div {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.salon-manual-booking input,
+.salon-manual-booking select,
+.salon-manual-booking textarea,
+.salon-manual-booking button {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.salon-manual-booking .salon-manual-quick-dates {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.salon-manual-booking .relative > .absolute {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+@media (max-width: 759px) {
+    .salon-manual-booking {
+        width: 100vw;
+        max-width: 100vw;
+        padding-inline: 0;
+    }
+
+    .salon-manual-booking > form {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .salon-manual-booking > form > .grid {
+        width: 100%;
+        max-width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .salon-manual-booking > form > .grid > main,
+    .salon-manual-booking > form > .grid > aside {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .salon-manual-booking > form > .grid > main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .salon-manual-booking > form > .grid > main > section {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .salon-manual-booking .salon-manual-quick-dates {
+        touch-action: pan-x;
+        overscroll-behavior-x: contain;
+    }
+
+    .salon-manual-booking .salon-manual-slot-grid {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .salon-manual-booking .salon-manual-slot-grid button {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .salon-manual-booking .relative > .absolute {
+        inset-inline: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .salon-manual-booking .lightbox,
+    .salon-manual-booking .modal {
+        max-width: 100%;
+    }
+}
