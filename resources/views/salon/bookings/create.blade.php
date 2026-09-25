@@ -57,6 +57,7 @@
                     day_name: '',
                     status: 'not_configured',
                     intervals: [],
+                    breaks: [],
                 },
 
                 slots: [],
@@ -737,6 +738,7 @@
                             day_name: '',
                             status: 'not_configured',
                             intervals: [],
+                            breaks: [],
                         };
                         this.slotError = '';
                         return;
@@ -822,6 +824,7 @@
                                 status:
                                     'not_configured',
                                 intervals: [],
+                                breaks: [],
                             };
 
                         this.slots =
@@ -1553,6 +1556,28 @@
                                         </div>
 
                                         <div class="flex flex-wrap gap-2">
+
+                                            <template
+                                                x-if="schedule.breaks && schedule.breaks.length"
+                                            >
+                                                <div class="w-full basis-full rounded-2xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-800/40 dark:bg-amber-900/10">
+                                                    <div class="text-[9px] font-black text-amber-800 dark:text-amber-300">
+                                                        زمان‌های استراحت
+                                                    </div>
+                                                    <div class="mt-1 flex flex-wrap gap-2 text-[9px] font-bold text-amber-900 dark:text-amber-200">
+                                                        <template x-for="(breakItem, breakIndex) in schedule.breaks" :key="breakItem.start + '-' + breakItem.end + '-' + breakIndex">
+                                                            <span>
+                                                                <span x-text="formatTime(breakItem.start)"></span>
+                                                                <span class="mx-1">تا</span>
+                                                                <span x-text="formatTime(breakItem.end)"></span>
+                                                            </span>
+                                                        </template>
+                                                    </div>
+                                                    <div class="mt-1 text-[8px] font-semibold text-amber-700 dark:text-amber-400">
+                                                        این بازه‌ها برای نوبت دستی هم قابل رزرو نیستند.
+                                                    </div>
+                                                </div>
+                                            </template>
 
                                             <template
                                                 x-for="(range, index) in schedule.intervals"
