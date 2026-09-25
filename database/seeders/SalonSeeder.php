@@ -168,31 +168,24 @@ class SalonSeeder extends Seeder
             |--------------------------------------------------------------------------
             */
 
-            $owner = User::updateOrCreate(
-                [
-                    'phone' =>
-                        $data['owner_phone'],
-                ],
-                [
-                    'name' =>
-                        $data['owner_name'],
+            $owner = User::firstOrNew([
+                'phone' => $data['owner_phone'],
+            ]);
 
-                    'email' =>
-                        null,
+            $owner->fill([
+                'name' => $data['owner_name'],
+                'email' => null,
+                'role' => UserRole::SALON_OWNER,
+                'phone_verified_at' => $owner->phone_verified_at ?? now(),
+                'email_verified_at' => null,
+            ]);
 
-                    'password' =>
-                        $data['owner_password'],
+            if (! $owner->exists) {
+                $owner->password = $data['owner_password'];
+                $owner->must_change_password = true;
+            }
 
-                    'role' =>
-                        UserRole::SALON_OWNER,
-
-                    'phone_verified_at' =>
-                        now(),
-
-                    'email_verified_at' =>
-                        null,
-                ]
-            );
+            $owner->save();
 
 
             /*
@@ -261,31 +254,18 @@ class SalonSeeder extends Seeder
             |--------------------------------------------------------------------------
             */
 
-            $salon->services()->delete();
-
-            foreach (
-                $data['services']
-                as $index => $service
-            ) {
-                Service::create([
-                    'salon_id' =>
-                        $salon->id,
-
-                    'name' =>
-                        $service['name'],
-
-                    'duration_minutes' =>
-                        $service['duration_minutes'],
-
-                    'price' =>
-                        $service['price'],
-
-                    'is_active' =>
-                        true,
-
-                    'sort_order' =>
-                        $index,
-                ]);
+            foreach ($data['services'] as $index => $service) {
+                $salon->services()->updateOrCreate(
+                    [
+                        'name' => $service['name'],
+                    ],
+                    [
+                        'duration_minutes' => $service['duration_minutes'],
+                        'price' => $service['price'],
+                        'is_active' => true,
+                        'sort_order' => $index,
+                    ]
+                );
             }
 
 
@@ -295,34 +275,16 @@ class SalonSeeder extends Seeder
             |--------------------------------------------------------------------------
             */
 
-            $salon->barbers()->delete();
-
-            foreach (
-                $data['barbers']
-                as $barber
-            ) {
-                Barber::create([
-                    'salon_id' =>
-                        $salon->id,
-
-                    'name' =>
-                        $barber['name'],
-
-                    'specialty' =>
-                        $barber['specialty'],
-
-                    'phone' =>
-                        null,
-
-                    'bio' =>
-                        null,
-
-                    'image_path' =>
-                        null,
-
-                    'is_active' =>
-                        true,
-                ]);
+            foreach ($data['barbers'] as $barber) {
+                $salon->barbers()->updateOrCreate(
+                    [
+                        'name' => $barber['name'],
+                    ],
+                    [
+                        'specialty' => $barber['specialty'],
+                        'is_active' => true,
+                    ]
+                );
             }
 
 
