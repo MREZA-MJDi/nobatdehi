@@ -383,6 +383,24 @@ class AvailabilityService
         |--------------------------------------------------------------------------
         */
 
+        /*
+        |--------------------------------------------------------------------------
+        | De-duplicate starts
+        |--------------------------------------------------------------------------
+        |
+        | Legacy data can contain repeated working-hour rows. Availability is a
+        | booking contract, so the same start time must never be exposed twice.
+        |--------------------------------------------------------------------------
+        */
+
+        $slots = collect($slots)
+            ->unique(
+                fn (array $slot): string =>
+                $slot['start'] . '|' . $slot['end']
+            )
+            ->values()
+            ->all();
+
         usort(
             $slots,
             fn (array $a, array $b): int =>
