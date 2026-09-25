@@ -2515,3 +2515,31 @@ html[data-theme="dark"] .salon-owner {
     }
 }
 
+/* ==========================================================================
+   SALON OWNER — STANDARD TYPE SCALE
+   ========================================================================== */
+.salon-owner,
+.salon-owner input,
+.salon-owner select,
+.salon-owner textarea,
+.salon-owner button{
+    font-family:var(--ui-font-family,"Estedad",Tahoma,Arial,sans-serif);
+}
+.salon-owner__main h1{font-size:var(--ui-title-xl);line-height:1.35}
+.salon-owner__main h2{font-size:var(--ui-title-lg);line-height:1.45}
+.salon-owner__main h3{font-size:var(--ui-text-lg);line-height:1.5}
+.salon-owner__main p{font-size:var(--ui-text-sm);line-height:var(--ui-line-body)}
+.salon-owner__main label,
+.salon-owner__main .salon-btn,
+.salon-owner__main button{font-size:var(--ui-text-sm);line-height:1.5}
+.salon-owner__main small,
+.salon-owner__main .meta,
+.salon-owner__main .hint{font-size:var(--ui-text-xs);line-height:var(--ui-line-meta)}
+.salon-owner__nav strong,
+.salon-owner__topbar,
+.salon-owner__sidebar-footer{font-size:var(--ui-text-sm)}
+@media(max-width:759px){
+    .salon-owner__main h1{font-size:clamp(1.2rem,6vw,1.55rem)}
+    .salon-owner__main h2{font-size:clamp(1.05rem,5vw,1.3rem)}
+    .salon-owner__main p{font-size:.72rem}
+}
