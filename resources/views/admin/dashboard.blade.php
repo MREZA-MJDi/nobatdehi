@@ -219,7 +219,7 @@
                             @if($salon->cover_path)
 
                                 <img
-                                    src="{{ IlluminateSupportFacadesStorage::url($salon->cover_path) }}"
+                                    src="{{ Illuminate\Support\Facades\Storage::url($salon->cover_path) }}"
                                     alt="{{ $salon->name }}"
                                     class="h-full w-full object-cover"
                                     loading="lazy"
