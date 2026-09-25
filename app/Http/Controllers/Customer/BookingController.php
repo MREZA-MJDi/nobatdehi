@@ -236,7 +236,8 @@ class BookingController extends Controller
     public function prepare(
         BookingPrepareRequest $request,
         Salon $salon,
-        AvailabilityService $availability
+        AvailabilityService $availability,
+        BookingService $bookingService
     ): JsonResponse|RedirectResponse {
         abort_unless(
             $salon->is_active,
