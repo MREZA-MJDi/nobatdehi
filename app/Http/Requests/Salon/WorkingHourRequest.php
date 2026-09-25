@@ -14,7 +14,17 @@ class WorkingHourRequest extends FormRequest
 
     public function rules(): array
     {
+        $salonId = $this->user()?->managedSalons()->value('id');
+
         return [
+            'barber_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('barbers', 'id')->where(
+                    fn ($query) => $query->where('salon_id', $salonId)
+                ),
+            ],
+
             'hours' => [
                 'required',
                 'array',
@@ -196,6 +206,12 @@ class WorkingHourRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'barber_id.integer' =>
+                'آرایشگر انتخاب‌شده معتبر نیست.',
+
+            'barber_id.exists' =>
+                'آرایشگر انتخاب‌شده به این سالن تعلق ندارد.',
+
             'hours.required' =>
                 'برنامه ساعات کاری الزامی است.',
 
