@@ -7734,3 +7734,22 @@
     }
 }
 
+/* ==========================================================================
+   CUSTOMER — STANDARD TYPE SCALE
+   ========================================================================== */
+.customer-page,
+.customer-dashboard,
+.customer-container,
+.customer-modal,
+.customer-sheet{
+    font-family:var(--ui-font-family,"Estedad",Tahoma,Arial,sans-serif);
+}
+.customer-page h1,.customer-dashboard h1{font-size:var(--ui-title-xl);line-height:1.35}
+.customer-page h2,.customer-dashboard h2{font-size:var(--ui-title-lg);line-height:1.45}
+.customer-page h3,.customer-dashboard h3{font-size:var(--ui-text-lg);line-height:1.5}
+.customer-page p,.customer-dashboard p{font-size:var(--ui-text-sm);line-height:var(--ui-line-body)}
+.customer-page small,.customer-dashboard small{font-size:var(--ui-text-xs)}
+@media(max-width:759px){
+    .customer-page h1,.customer-dashboard h1{font-size:clamp(1.2rem,6vw,1.55rem)}
+    .customer-page h2,.customer-dashboard h2{font-size:clamp(1.05rem,5vw,1.3rem)}
+}
