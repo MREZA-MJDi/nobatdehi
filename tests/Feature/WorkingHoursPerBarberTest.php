@@ -139,6 +139,7 @@ class WorkingHoursPerBarberTest extends TestCase
             'email' => 'owner-working-hours@example.test',
             'password' => 'password',
             'role' => 'salon_owner',
+            'must_change_password' => false,
         ]);
 
         $salon = Salon::create([
