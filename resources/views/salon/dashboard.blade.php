@@ -58,6 +58,10 @@
     class="nd-dashboard"
     data-dashboard
     data-dashboard-endpoint="{{ route('salon.dashboard.data') }}"
+    data-bookings-url="{{ route('salon.bookings.index') }}"
+    data-pending-bookings-url="{{ route('salon.bookings.index', ['status' => 'pending']) }}"
+    data-booking-base-url="{{ url('/salon/bookings') }}"
+    data-manual-booking-url="{{ route('salon.bookings.create') }}"
     data-today="{{ $today->toDateString() }}"
     data-stale-label="آخرین اطلاعات دریافت‌شده از سرور"
 >
