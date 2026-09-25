@@ -25,6 +25,156 @@ class AvailabilityService
     private const SLOT_INTERVAL_MINUTES = 30;
 
     /**
+     * Resolve the effective working-hours contract for one barber on one date.
+     *
+     * Rules:
+     * - An explicit barber day overrides the salon day, including a closed day.
+     * - If the barber has no rows for that day, the salon-wide schedule is used.
+     * - Only valid work intervals are exposed.
+     * - Multiple identical legacy rows are de-duplicated.
+     * - Gaps between work intervals are explicit breaks.
+     */
+    public function daySchedule(
+        Salon $salon,
+        Barber $barber,
+        CarbonInterface $date
+    ): array {
+        if (
+            (int) $barber->salon_id !== (int) $salon->id ||
+            !$salon->is_active ||
+            !$barber->is_active
+        ) {
+            return [
+                'status' => 'unavailable',
+                'is_closed' => true,
+                'intervals' => [],
+                'breaks' => [],
+                'day_of_week' => null,
+                'day_name' => null,
+            ];
+        }
+
+        $date = $date->copy()->startOfDay();
+        $dayOfWeek = ($date->dayOfWeek + 1) % 7;
+
+        $dayNames = [
+            0 => 'شنبه',
+            1 => 'یکشنبه',
+            2 => 'دوشنبه',
+            3 => 'سه‌شنبه',
+            4 => 'چهارشنبه',
+            5 => 'پنجشنبه',
+            6 => 'جمعه',
+        ];
+
+        $dailyStatus = $salon
+            ->dailyStatuses()
+            ->whereDate('date', $date->toDateString())
+            ->first();
+
+        if ($dailyStatus?->is_closed) {
+            return [
+                'status' => 'closed',
+                'is_closed' => true,
+                'intervals' => [],
+                'breaks' => [],
+                'day_of_week' => $dayOfWeek,
+                'day_name' => $dayNames[$dayOfWeek],
+            ];
+        }
+
+        $barberRows = $barber
+            ->workingHours()
+            ->where('day_of_week', $dayOfWeek)
+            ->orderBy('sort_order')
+            ->orderBy('start_time')
+            ->get();
+
+        $dayRows = $barberRows->isNotEmpty()
+            ? $barberRows
+            : $salon
+                ->workingHours()
+                ->whereNull('barber_id')
+                ->where('day_of_week', $dayOfWeek)
+                ->orderBy('sort_order')
+                ->orderBy('start_time')
+                ->get();
+
+        if ($dayRows->contains(fn ($row) => (bool) $row->is_closed)) {
+            return [
+                'status' => 'closed',
+                'is_closed' => true,
+                'intervals' => [],
+                'breaks' => [],
+                'day_of_week' => $dayOfWeek,
+                'day_name' => $dayNames[$dayOfWeek],
+            ];
+        }
+
+        $intervals = $dayRows
+            ->filter(
+                fn ($row): bool =>
+                    !$row->is_closed &&
+                    filled($row->start_time) &&
+                    filled($row->end_time)
+            )
+            ->map(function ($row): ?array {
+                try {
+                    $start = substr($this->normalizeTime($row->start_time), 0, 5);
+                    $end = substr($this->normalizeTime($row->end_time), 0, 5);
+                } catch (Throwable) {
+                    return null;
+                }
+
+                return $start < $end
+                    ? ['start' => $start, 'end' => $end]
+                    : null;
+            })
+            ->filter()
+            ->unique(fn (array $interval): string => $interval['start'] . '|' . $interval['end'])
+            ->sortBy([
+                ['start', 'asc'],
+                ['end', 'asc'],
+            ])
+            ->values()
+            ->all();
+
+        if ($intervals === []) {
+            return [
+                'status' => 'not_configured',
+                'is_closed' => false,
+                'intervals' => [],
+                'breaks' => [],
+                'day_of_week' => $dayOfWeek,
+                'day_name' => $dayNames[$dayOfWeek],
+            ];
+        }
+
+        $breaks = [];
+
+        for ($index = 1, $count = count($intervals); $index < $count; $index++) {
+            $previous = $intervals[$index - 1];
+            $current = $intervals[$index];
+
+            if ($previous['end'] < $current['start']) {
+                $breaks[] = [
+                    'start' => $previous['end'],
+                    'end' => $current['start'],
+                ];
+            }
+        }
+
+        return [
+            'status' => 'open',
+            'is_closed' => false,
+            'intervals' => $intervals,
+            'breaks' => $breaks,
+            'day_of_week' => $dayOfWeek,
+            'day_name' => $dayNames[$dayOfWeek],
+        ];
+    }
+
+    /**
      * Return all possible booking start times for a barber,
      * service and date.
      */
@@ -70,111 +220,13 @@ class AvailabilityService
 
         $date = $date->copy()->startOfDay();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Daily status override
-        |--------------------------------------------------------------------------
-        |
-        | WorkingHours = normal weekly schedule.
-        |
-        | SalonDailyStatus = exception for a specific date.
-        |
-        | If that date is closed, the salon is unavailable completely.
-        |
-        */
+        $schedule = $this->daySchedule($salon, $barber, $date);
 
-        $dailyStatuses = $salon->relationLoaded('dailyStatuses')
-            ? collect($salon->getRelation('dailyStatuses'))
-            : $salon->dailyStatuses()
-                ->whereDate('date', $date->toDateString())
-                ->get();
-
-        $dailyStatus = $dailyStatuses->first(
-            fn ($status) => Carbon::parse((string) $status->date)->toDateString() === $date->toDateString()
-        );
-
-        if (
-            $dailyStatus &&
-            $dailyStatus->is_closed
-        ) {
+        if ($schedule['status'] !== 'open') {
             return [];
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Persian week mapping
-        |--------------------------------------------------------------------------
-        |
-        | Carbon:
-        | Sunday    = 0
-        | Monday    = 1
-        | Tuesday   = 2
-        | Wednesday = 3
-        | Thursday  = 4
-        | Friday    = 5
-        | Saturday  = 6
-        |
-        | Application:
-        | Saturday  = 0
-        | Sunday    = 1
-        | Monday    = 2
-        | Tuesday   = 3
-        | Wednesday = 4
-        | Thursday  = 5
-        | Friday    = 6
-        |
-        */
-
-        $dayOfWeek = ($date->dayOfWeek + 1) % 7;
-
-        /*
-        |--------------------------------------------------------------------------
-        | Get weekly working intervals
-        |--------------------------------------------------------------------------
-        */
-
-        /*
-        |--------------------------------------------------------------------------
-        | Barber-specific schedule with salon fallback
-        |--------------------------------------------------------------------------
-        |
-        | A barber may have an explicit schedule for a day, including a closed
-        | row. When no barber-specific rows exist, the salon-wide schedule is
-        | used as the default.
-        |
-        */
-        $barberSchedule = $barber
-            ->workingHours()
-            ->where('day_of_week', $dayOfWeek)
-            ->get();
-
-        $workingHours = $barberSchedule->isNotEmpty()
-            ? $barberSchedule
-                ->filter(
-                    fn ($workingHour): bool =>
-                        ! $workingHour->is_closed &&
-                        $workingHour->start_time &&
-                        $workingHour->end_time
-                )
-                ->sortBy([
-                    ['sort_order', 'asc'],
-                    ['start_time', 'asc'],
-                ])
-                ->values()
-            : $salon
-                ->workingHours()
-                ->whereNull('barber_id')
-                ->where('day_of_week', $dayOfWeek)
-                ->where('is_closed', false)
-                ->whereNotNull('start_time')
-                ->whereNotNull('end_time')
-                ->orderBy('sort_order')
-                ->orderBy('start_time')
-                ->get();
-
-        if ($workingHours->isEmpty()) {
-            return [];
-        }
+        $workingHours = $schedule['intervals'];
 
         /*
         |--------------------------------------------------------------------------
@@ -261,17 +313,13 @@ class AvailabilityService
             $workStart = $date
                 ->copy()
                 ->setTimeFromTimeString(
-                    $this->normalizeTime(
-                        $workingHour->start_time
-                    )
+                    $workingHour['start'] . ':00'
                 );
 
             $workEnd = $date
                 ->copy()
                 ->setTimeFromTimeString(
-                    $this->normalizeTime(
-                        $workingHour->end_time
-                    )
+                    $workingHour['end'] . ':00'
                 );
 
             /*
