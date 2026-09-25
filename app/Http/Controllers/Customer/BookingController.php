@@ -26,7 +26,9 @@ class BookingController extends Controller
     */
 
     public function create(
-        Salon $salon
+        Request $request,
+        Salon $salon,
+        BookingService $bookingService
     ): View {
         abort_unless(
             $salon->is_active,
@@ -46,12 +48,38 @@ class BookingController extends Controller
             ->orderBy('name')
             ->get();
 
+        $bookingCapacity = [
+            'visible' => false,
+            'limit' => BookingService::MAX_PENDING_BOOKINGS,
+            'used' => 0,
+            'remaining' => BookingService::MAX_PENDING_BOOKINGS,
+            'reached' => false,
+        ];
+
+        $customer = $request->user();
+
+        if ($customer && $customer->isCustomer()) {
+            $used = $bookingService->pendingBookingCount($customer);
+
+            $bookingCapacity = [
+                'visible' => true,
+                'limit' => BookingService::MAX_PENDING_BOOKINGS,
+                'used' => $used,
+                'remaining' => max(
+                    0,
+                    BookingService::MAX_PENDING_BOOKINGS - $used
+                ),
+                'reached' => $used >= BookingService::MAX_PENDING_BOOKINGS,
+            ];
+        }
+
         return view(
             'public.booking',
             [
                 'salon' => $salon,
                 'barbers' => $barbers,
                 'services' => $services,
+                'bookingCapacity' => $bookingCapacity,
             ]
         );
     }
@@ -253,6 +281,36 @@ class BookingController extends Controller
             ->whereKey($data['service_id'])
             ->where('is_active', true)
             ->firstOrFail();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Customer pending capacity
+        |--------------------------------------------------------------------------
+        |
+        | Prepare is an early server-side guard for a better UX. The final
+        | transactional check still lives inside BookingService::create().
+        */
+
+        if ($request->user() && $request->user()->isCustomer()) {
+            try {
+                $bookingService->assertCustomerCanCreatePendingBooking(
+                    $request->user()
+                );
+            } catch (IlluminateValidationValidationException $exception) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'ok' => false,
+                        'message' => $exception->errors()['pending_bookings'][0]
+                            ?? 'ظرفیت نوبت‌های در انتظار تکمیل شده است.',
+                        'errors' => $exception->errors(),
+                    ], 422);
+                }
+
+                return redirect()
+                    ->back()
+                    ->withErrors($exception->errors());
+            }
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -626,12 +684,17 @@ class BookingController extends Controller
                 $data
             );
         } catch (\Illuminate\Validation\ValidationException $exception) {
+            $errors = $exception->errors();
+
+            $message = $errors['pending_bookings'][0]
+                ?? 'این زمان در همین فاصله تغییر کرده است. لطفاً زمان دیگری را انتخاب کنید.';
+
             return redirect()
                 ->route('customer.bookings.confirm')
-                ->withErrors($exception->errors())
+                ->withErrors($errors)
                 ->with(
                     'error',
-                    'این زمان در همین فاصله تغییر کرده است. لطفاً زمان دیگری را انتخاب کنید.'
+                    $message
                 );
         }
 
