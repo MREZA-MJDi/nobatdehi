@@ -130,6 +130,42 @@
         )
         : [];
 
+    function setGalleryFallback(tile) {
+        const media = tile?.querySelector('.media');
+
+        if (!media || media.dataset.fallbackApplied === '1') {
+            return;
+        }
+
+        media.dataset.fallbackApplied = '1';
+        media.innerHTML = '';
+
+        const fallback = document.createElement('div');
+        fallback.className = 'media-empty';
+
+        const icon = document.createElement('span');
+        icon.textContent = '✦';
+        icon.setAttribute('aria-hidden', 'true');
+
+        fallback.appendChild(icon);
+        media.appendChild(fallback);
+
+        tile.dataset.src = '';
+        tile.dataset.poster = '';
+    }
+
+    galleryTiles.forEach((tile) => {
+        const media = tile.querySelector('img, video');
+
+        if (!media) {
+            return;
+        }
+
+        media.addEventListener('error', () => {
+            setGalleryFallback(tile);
+        }, { once: true });
+    });
+
     let currentGalleryFilter = 'all';
 
     function getVisibleGalleryTiles() {
@@ -505,18 +541,48 @@
             image.alt = title;
             image.decoding = 'async';
 
+            image.addEventListener('error', () => {
+                lightboxMedia.innerHTML = '';
+
+                const fallback = document.createElement('div');
+                fallback.className = 'lightbox-fallback';
+                fallback.textContent = 'تصویر این نمونه‌کار در دسترس نیست.';
+
+                lightboxMedia.appendChild(fallback);
+            }, { once: true });
+
             lightboxMedia.appendChild(image);
 
             return;
         }
 
-        lightboxMedia.appendChild(
-            buildCustomVideoPlayer(
-                src,
-                poster,
-                title
-            )
+        const player = buildCustomVideoPlayer(
+            src,
+            poster,
+            title
         );
+
+        const video = player.querySelector('video');
+
+        video?.addEventListener('error', () => {
+            lightboxMedia.innerHTML = '';
+
+            if (poster) {
+                const image = document.createElement('img');
+                image.src = poster;
+                image.alt = title;
+                image.decoding = 'async';
+                lightboxMedia.appendChild(image);
+                return;
+            }
+
+            const fallback = document.createElement('div');
+            fallback.className = 'lightbox-fallback';
+            fallback.textContent = 'ویدیوی این نمونه‌کار در دسترس نیست.';
+            lightboxMedia.appendChild(fallback);
+        }, { once: true });
+
+        lightboxMedia.appendChild(player);
     }
 
     function updateLightbox() {
