@@ -30,59 +30,50 @@ class BookingNotification extends Notification
         object $notifiable
     ): array {
         $booking = $this->booking;
+        $date = optional($booking->booking_date)->toDateString();
+        $startTime = substr((string) $booking->start_time, 0, 5);
+        $endTime = substr((string) $booking->end_time, 0, 5);
+        $customerName = $booking->customer?->name
+            ?? $booking->customer_name
+            ?? 'مشتری';
+        $serviceName = $booking->service?->name ?? 'خدمت';
+        $barberName = $booking->barber?->name ?? 'متخصص';
+        $salonName = $booking->salon?->name ?? 'سالن';
 
         if ($this->event === 'created') {
-            $isCustomer =
-                method_exists($notifiable, 'isCustomer') &&
-                $notifiable->isCustomer();
-
-            if (
-                $isCustomer &&
-                $booking->status === BookingStatus::CONFIRMED
-            ) {
-                return [
-                    'type' => 'booking_created',
-                    'title' => 'نوبت تأیید شد',
-                    'message' =>
-                        'نوبت شما برای «' .
-                        ($booking->service?->name ?? 'خدمت') .
-                        '» در «' .
-                        ($booking->salon?->name ?? 'سالن') .
-                        '» با موفقیت ثبت و تأیید شد.',
-                    'booking_id' => $booking->id,
-                    'status' => $booking->status->value,
-                    'salon_id' => $booking->salon_id,
-                ];
-            }
-
-            if ($isCustomer) {
-                return [
-                    'type' => 'booking_created',
-                    'title' => 'نوبت ثبت شد',
-                    'message' =>
-                        'نوبت شما برای «' .
-                        ($booking->service?->name ?? 'خدمت') .
-                        '» در «' .
-                        ($booking->salon?->name ?? 'سالن') .
-                        '» ثبت شد و در انتظار تأیید متخصص است.',
-                    'booking_id' => $booking->id,
-                    'status' => $booking->status->value,
-                    'salon_id' => $booking->salon_id,
-                ];
-            }
-
             return [
                 'type' => 'booking_created',
                 'title' => 'نوبت جدید — نیاز به رسیدگی',
-                'message' =>
-                    'یک نوبت جدید برای «' .
-                    ($booking->service?->name ?? 'خدمت') .
-                    '» ثبت شده است. کد نوبت: ' .
-                    $booking->id .
-                    '. برای تأیید یا لغو از پنل یا پیامک اقدام کنید.',
+                'message' => $customerName . ' برای «' . $serviceName .
+                    '» با ' . $barberName . ' در ساعت ' . $startTime .
+                    ' نوبت گرفته است.',
                 'booking_id' => $booking->id,
                 'status' => $booking->status->value,
                 'salon_id' => $booking->salon_id,
+                'booking_date' => $date,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'customer_name' => $customerName,
+                'service_name' => $serviceName,
+                'barber_name' => $barberName,
+            ];
+        }
+
+        if ($this->event === 'customer_cancelled') {
+            return [
+                'type' => 'booking_cancelled_by_customer',
+                'title' => 'لغو نوبت توسط مشتری',
+                'message' => $customerName . ' نوبت «' . $serviceName .
+                    '» در ساعت ' . $startTime . ' را لغو کرد.',
+                'booking_id' => $booking->id,
+                'status' => $booking->status->value,
+                'salon_id' => $booking->salon_id,
+                'booking_date' => $date,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'customer_name' => $customerName,
+                'service_name' => $serviceName,
+                'barber_name' => $barberName,
             ];
         }
 
@@ -96,19 +87,12 @@ class BookingNotification extends Notification
             },
             'message' => match ($booking->status) {
                 BookingStatus::CONFIRMED =>
-                    'نوبت شما در «' .
-                    ($booking->salon?->name ?? 'سالن') .
-                    '» برای ساعت ' .
-                    substr((string) $booking->start_time, 0, 5) .
-                    ' تأیید شد.',
+                    'نوبت شما در «' . $salonName .
+                    '» برای ساعت ' . $startTime . ' تأیید شد.',
                 BookingStatus::CANCELLED =>
-                    'نوبت شما در «' .
-                    ($booking->salon?->name ?? 'سالن') .
-                    '» لغو شد.',
+                    'نوبت شما در «' . $salonName . '» لغو شد.',
                 BookingStatus::COMPLETED =>
-                    'نوبت شما در «' .
-                    ($booking->salon?->name ?? 'سالن') .
-                    '» تکمیل شد.',
+                    'نوبت شما در «' . $salonName . '» تکمیل شد.',
                 default =>
                     'وضعیت نوبت شما به «' .
                     $booking->status->label() .
@@ -118,6 +102,12 @@ class BookingNotification extends Notification
             'status' => $booking->status->value,
             'salon_id' => $booking->salon_id,
             'previous_status' => $this->previousStatus?->value,
+            'booking_date' => $date,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'customer_name' => $customerName,
+            'service_name' => $serviceName,
+            'barber_name' => $barberName,
         ];
     }
 }
