@@ -1171,6 +1171,22 @@
 
                                 this.loadSlots();
 
+                                this.visibilityHandler = () => {
+                                    if (
+                                        document.visibilityState === 'visible' &&
+                                        this.barberId &&
+                                        this.serviceId &&
+                                        this.date
+                                    ) {
+                                        this.loadSlots(true);
+                                    }
+                                };
+
+                                document.addEventListener(
+                                    'visibilitychange',
+                                    this.visibilityHandler
+                                );
+
                             });
 
                         },
@@ -1539,10 +1555,13 @@
                         },
 
 
-                        async loadSlots() {
+                        async loadSlots(preserveSelection = false) {
 
                             const requestId =
                                 ++this.availabilityRequestId;
+
+                            const previousTime =
+                                this.time;
 
                             if (
                                 !this.barberId ||
@@ -1567,7 +1586,9 @@
 
                             this.availabilityError = false;
 
-                            this.time = '';
+                            if (!preserveSelection) {
+                                this.time = '';
+                            }
 
 
                             try {
@@ -1633,6 +1654,17 @@
                                     Array.isArray(data.slots)
                                         ? data.slots
                                         : [];
+
+                                this.time =
+                                    preserveSelection &&
+                                    previousTime &&
+                                    this.slots.some(
+                                        slot =>
+                                            slot.start === previousTime &&
+                                            slot.available
+                                    )
+                                        ? previousTime
+                                        : '';
 
 
                             } catch (error) {
