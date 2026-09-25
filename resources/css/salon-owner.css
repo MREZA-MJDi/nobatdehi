@@ -3626,3 +3626,122 @@ html[data-theme="dark"] .salon-owner {
         font-size: 11px;
     }
 }
+
+
+/* ==========================================================================
+   WORKING HOURS — EXPLANATION / PRIMARY ACTION
+   ========================================================================== */
+
+.salon-working-hours-default {
+    min-width: 260px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 13px;
+    border: 1px solid color-mix(in srgb, var(--owner-primary) 30%, var(--owner-border));
+    border-radius: 14px;
+    background: var(--owner-primary-soft);
+    color: var(--owner-text);
+    text-align: right;
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--owner-primary) 7%, transparent);
+    transition: border-color .18s ease, background-color .18s ease, transform .18s ease;
+}
+
+.salon-working-hours-default:hover {
+    border-color: color-mix(in srgb, var(--owner-primary) 45%, var(--owner-border));
+    background: color-mix(in srgb, var(--owner-primary) 10%, var(--owner-surface));
+    transform: translateY(-1px);
+}
+
+.salon-working-hours-default__icon {
+    width: 37px;
+    height: 37px;
+    flex: 0 0 37px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: var(--owner-surface);
+    color: var(--owner-primary);
+    font-size: 15px;
+}
+
+.salon-working-hours-default > span:last-child {
+    min-width: 0;
+}
+
+.salon-working-hours-default strong,
+.salon-working-hours-default small {
+    display: block;
+}
+
+.salon-working-hours-default strong {
+    font-size: 10px;
+    font-weight: 850;
+}
+
+.salon-working-hours-default small {
+    margin-top: 3px;
+    color: var(--owner-muted);
+    font-size: 8px;
+    font-weight: 650;
+    line-height: 1.7;
+}
+
+.salon-working-hours-help {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--owner-border);
+    border-radius: 13px;
+    background: var(--owner-surface-soft);
+}
+
+.salon-working-hours-help::before {
+    content: '↔';
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    border-radius: 8px;
+    background: var(--owner-surface);
+    color: var(--owner-primary);
+    font-size: 10px;
+    font-weight: 850;
+}
+
+.salon-working-hours-help strong,
+.salon-working-hours-help span {
+    display: block;
+}
+
+.salon-working-hours-help strong {
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.salon-working-hours-help span {
+    margin-top: 2px;
+    color: var(--owner-muted);
+    font-size: 8px;
+    line-height: 1.85;
+}
+
+@media (max-width: 759px) {
+    .salon-working-hours-default {
+        width: 100%;
+        min-width: 0;
+        padding: 10px 11px;
+    }
+
+    .salon-working-hours-default__icon {
+        width: 35px;
+        height: 35px;
+        flex-basis: 35px;
+    }
+
+    .salon-working-hours-help {
+        padding: 9px 10px;
+    }
+}

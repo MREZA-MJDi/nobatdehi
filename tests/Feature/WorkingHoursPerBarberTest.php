@@ -83,6 +83,36 @@ class WorkingHoursPerBarberTest extends TestCase
         $this->assertNotNull(collect($barberBSlots)->firstWhere('start', '18:00'));
     }
 
+    public function test_customer_availability_schedule_uses_barber_specific_hours(): void
+    {
+        [$owner, $salon, $barberA, $barberB, $service, $date] = $this->fixture(true);
+
+        $dayOfWeek = ($date->dayOfWeek + 1) % 7;
+
+        WorkingHour::create([
+            'salon_id' => $salon->id,
+            'barber_id' => $barberA->id,
+            'day_of_week' => $dayOfWeek,
+            'start_time' => '12:00',
+            'end_time' => '16:00',
+            'is_closed' => false,
+            'sort_order' => 0,
+        ]);
+
+        $response = $this
+            ->getJson(route('public.salons.booking.availability', [
+                'salon' => $salon,
+                'barber_id' => $barberA->id,
+                'service_id' => $service->id,
+                'booking_date' => $date->toDateString(),
+            ]));
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('schedule.intervals.0.start', '12:00')
+            ->assertJsonPath('schedule.intervals.0.end', '16:00');
+    }
+
     public function test_custom_closed_day_for_barber_does_not_fall_back_to_salon(): void
     {
         [$owner, $salon, $barberA, $barberB, $service, $date] = $this->fixture(true);

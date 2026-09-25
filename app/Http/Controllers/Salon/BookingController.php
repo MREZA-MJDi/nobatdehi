@@ -239,11 +239,20 @@ class BookingController extends Controller
             6 => 'جمعه',
         ];
 
-        $dayRows = $salon->workingHours()
+        $barberRows = $barber->workingHours()
             ->where('day_of_week', $dayOfWeek)
             ->orderBy('sort_order')
             ->orderBy('start_time')
             ->get();
+
+        $dayRows = $barberRows->isNotEmpty()
+            ? $barberRows
+            : $salon->workingHours()
+                ->whereNull('barber_id')
+                ->where('day_of_week', $dayOfWeek)
+                ->orderBy('sort_order')
+                ->orderBy('start_time')
+                ->get();
 
         $dailyStatus = $salon->dailyStatuses()
             ->whereDate('date', $date->toDateString())

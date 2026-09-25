@@ -283,12 +283,21 @@
             </div>
 
             <div class="salon-working-hours-actions">
-                <button type="button" class="salon-btn salon-btn--quiet" @click="applyDefault()">
-                    ⚡ برنامه پیشنهادی
+                <button type="button" class="salon-working-hours-default" @click="applyDefault()">
+                    <span class="salon-working-hours-default__icon" aria-hidden="true">⚡</span>
+                    <span>
+                        <strong>برنامه پیشنهادی ۰۹ تا ۲۲</strong>
+                        <small>شنبه تا پنجشنبه ۰۹:۰۰ تا ۲۲:۰۰ · جمعه تعطیل</small>
+                    </span>
                 </button>
             </div>
         </div>
     </section>
+
+    <div class="salon-working-hours-help">
+        <strong>بازه‌های جداگانه هم می‌توانی تعریف کنی</strong>
+        <span>مثلاً برای ناهار: «۰۹:۰۰ تا ۱۳:۰۰» و بعد با «＋ افزودن بازه» یک بازه «۱۴:۰۰ تا ۲۲:۰۰» اضافه کن.</span>
+    </div>
 
     <template x-if="formError">
         <div class="salon-owner__flash is-error" role="alert" x-text="formError"></div>
