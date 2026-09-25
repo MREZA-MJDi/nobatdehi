@@ -2677,117 +2677,289 @@ html[data-theme="dark"] .salon-owner {
 }
 
 
+
 /* ==========================================================================
-   Manual booking — compact mobile workspace
+   SALON OWNER — UNIFIED RESPONSIVE WORKSPACE
    ========================================================================== */
 
+.salon-owner__main {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    min-width: 0;
+    padding: 20px 16px 92px;
+}
+
+.salon-owner__main > * {
+    width: min(100%, 1280px);
+    max-width: 1280px;
+    margin-inline: auto;
+    min-width: 0;
+}
+
+.salon-page-wrap,
+.salon-manual-booking {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    min-width: 0;
+}
+
+.salon-page-header > div,
+.salon-manual-booking-header > div {
+    min-width: 0;
+}
+
+.salon-page-header h1,
+.salon-manual-booking-header h1 {
+    overflow-wrap: anywhere;
+}
+
+.salon-owner__main input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+.salon-owner__main select,
+.salon-owner__main textarea,
+.salon-owner__main button,
+.salon-owner__main a {
+    max-width: 100%;
+}
+
+.salon-owner__main img,
+.salon-owner__main svg,
+.salon-owner__main canvas {
+    max-width: 100%;
+}
+
+.salon-owner__main .salon-btn {
+    white-space: nowrap;
+}
+
+.salon-owner__main .salon-filter-bar {
+    grid-template-columns: minmax(0, 1.7fr) repeat(2, minmax(150px, 1fr)) auto auto;
+    align-items: end;
+}
+
+.salon-owner__main .salon-booking-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.salon-owner__main .salon-booking-summary__today {
+    grid-column: 1 / -1;
+}
+
+.salon-owner__main .salon-booking-item {
+    grid-template-columns: 82px minmax(180px, 1.3fr) minmax(160px, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+}
+
+.salon-owner__main .salon-booking-item__service,
+.salon-owner__main .salon-booking-item > .salon-status,
+.salon-owner__main .salon-booking-item__actions {
+    grid-column: auto;
+    margin-top: 0;
+}
+
+.salon-owner__main .salon-booking-item__actions {
+    justify-content: flex-end;
+}
+
+.salon-owner__main .salon-manual-booking > form > .grid {
+    align-items: start;
+}
+
+@media (min-width: 1060px) {
+    .salon-owner__shell {
+        display: grid;
+        grid-template-columns: 270px minmax(0, 1fr);
+    }
+
+    .salon-owner__main {
+        padding: 28px 30px 54px;
+    }
+
+    .salon-manual-booking > form > .grid {
+        grid-template-columns: minmax(0, 1fr) 370px;
+        gap: 20px;
+    }
+}
+
+@media (min-width: 760px) and (max-width: 1059px) {
+    .salon-owner__main {
+        padding: 22px 20px 92px;
+    }
+
+    .salon-page-header {
+        flex-wrap: wrap;
+    }
+
+    .salon-owner__main .salon-filter-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .salon-owner__main .salon-filter-field--search {
+        grid-column: 1 / -1;
+    }
+
+    .salon-owner__main .salon-booking-item {
+        grid-template-columns: 70px minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .salon-owner__main .salon-booking-item__service {
+        grid-column: 2 / 4;
+    }
+
+    .salon-owner__main .salon-booking-item > .salon-status {
+        grid-column: 2;
+    }
+
+    .salon-owner__main .salon-booking-item__actions {
+        grid-column: 3;
+    }
+}
+
 @media (max-width: 759px) {
+    .salon-owner__main {
+        width: 100%;
+        padding: 14px 12px calc(84px + env(safe-area-inset-bottom));
+        overflow-x: clip;
+    }
+
+    .salon-owner__main > * {
+        width: 100%;
+        max-width: none;
+    }
+
+    .salon-owner__topbar {
+        min-height: 56px;
+        padding-inline: 10px;
+    }
+
+    .salon-owner__topbar-title strong {
+        max-width: 52vw;
+    }
+
+    .salon-page-wrap,
     .salon-manual-booking {
-        width: 100%;
-        max-width: none;
-        margin: 0;
-        padding: 2px 0 92px;
-        overflow-x: hidden;
+        padding-inline: 0;
     }
 
-    .salon-manual-booking > form,
-    .salon-manual-booking > form > .grid,
-    .salon-manual-booking > form > .grid > main {
-        width: 100%;
-        min-width: 0;
-    }
-
-    .salon-manual-booking .salon-manual-booking-header {
-        margin-bottom: 14px;
-    }
-
-    .salon-manual-booking .salon-manual-booking-header > div {
+    .salon-page-header {
+        display: grid;
+        align-items: start;
         gap: 10px;
+        margin-bottom: 12px;
     }
 
-    .salon-manual-booking .salon-manual-booking-header h1 {
-        font-size: 1.25rem !important;
-        line-height: 1.5 !important;
+    .salon-page-header h1,
+    .salon-manual-booking-header h1 {
+        font-size: clamp(1.18rem, 5.6vw, 1.45rem) !important;
+        line-height: 1.55 !important;
     }
 
-    .salon-manual-booking .salon-manual-booking-header p {
+    .salon-page-header p,
+    .salon-manual-booking-header p {
         max-width: none;
-        font-size: .69rem !important;
+        font-size: .7rem !important;
         line-height: 1.9;
     }
 
-    .salon-manual-booking section {
-        overflow: visible;
+    .salon-page-header .salon-btn,
+    .salon-manual-booking-header .salon-btn {
+        width: 100%;
+    }
+
+    .salon-filter-bar {
+        grid-template-columns: 1fr !important;
+        gap: 8px;
+    }
+
+    .salon-filter-field--search {
+        grid-column: auto !important;
+    }
+
+    .salon-filter-field input,
+    .salon-filter-field select,
+    .salon-filter-bar .salon-btn {
+        min-height: 44px;
+        font-size: .75rem;
+    }
+
+    .salon-booking-summary {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 6px;
+    }
+
+    .salon-booking-summary > a,
+    .salon-booking-summary__today {
+        padding: 9px 7px;
+    }
+
+    .salon-booking-item {
+        grid-template-columns: 64px minmax(0, 1fr) !important;
+        gap: 8px !important;
+        padding: 11px !important;
+    }
+
+    .salon-booking-item__service {
+        grid-column: 2 !important;
+    }
+
+    .salon-booking-item > .salon-status {
+        grid-column: 2 !important;
+        justify-self: start;
+    }
+
+    .salon-booking-item__actions {
+        grid-column: 2 !important;
+        justify-content: flex-start;
+    }
+
+    .salon-owner__main .salon-card,
+    .salon-owner__main .salon-revenue-card,
+    .salon-owner__main .salon-manual-booking section {
         border-radius: 16px !important;
     }
 
-    .salon-manual-booking section > div {
-        min-width: 0;
-    }
-
-    .salon-manual-booking section .p-5 {
+    .salon-owner__main .salon-manual-booking section .p-5,
+    .salon-owner__main .salon-manual-booking section .border-b {
         padding: 13px !important;
     }
 
-    .salon-manual-booking section .border-b {
-        padding: 13px !important;
-    }
-
-    .salon-manual-booking section .grid.sm\:grid-cols-2 {
+    .salon-owner__main .salon-manual-booking section .grid.sm\\:grid-cols-2 {
         grid-template-columns: 1fr !important;
     }
 
-    .salon-manual-booking .salon-manual-slot-grid {
+    .salon-owner__main .salon-manual-booking .salon-manual-slot-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 7px !important;
     }
 
-    .salon-manual-booking .salon-manual-slot-grid button {
+    .salon-owner__main .salon-manual-booking .salon-manual-slot-grid button {
         min-width: 0;
         min-height: 50px;
         padding: 7px 5px;
     }
 
-    .salon-manual-booking .salon-manual-slot-grid button > div:first-child {
-        font-size: .78rem;
-    }
-
-    .salon-manual-booking .salon-manual-quick-dates {
+    .salon-owner__main .salon-manual-booking .salon-manual-quick-dates {
         max-width: 100%;
-        padding-bottom: 2px;
         scrollbar-width: none;
-        overscroll-behavior-inline: contain;
         scroll-snap-type: x proximity;
     }
 
-    .salon-manual-booking .salon-manual-quick-dates::-webkit-scrollbar {
+    .salon-owner__main .salon-manual-booking .salon-manual-quick-dates::-webkit-scrollbar {
         display: none;
     }
 
-    .salon-manual-booking .salon-manual-quick-dates > * {
+    .salon-owner__main .salon-manual-booking .salon-manual-quick-dates > * {
         flex: 0 0 76px;
         scroll-snap-align: start;
     }
 
-    .salon-manual-booking .relative > .absolute {
-        max-height: min(70vh, 430px);
-        overflow-y: auto;
-        overscroll-behavior: contain;
-    }
-
-    .salon-manual-booking .relative > .absolute .grid.grid-cols-7 {
-        gap: 2px;
-    }
-
-    .salon-manual-booking .relative > .absolute .grid.grid-cols-7 > * {
-        min-width: 0;
-    }
-
-    .salon-manual-booking > form > .grid > aside {
+    .salon-owner__main .salon-manual-booking > form > .grid > aside {
         display: none !important;
     }
 
-    .salon-manual-booking .salon-manual-mobile-action {
+    .salon-owner__main .salon-manual-booking .salon-manual-mobile-action {
         padding:
             9px
             max(9px, env(safe-area-inset-left))
@@ -2795,39 +2967,27 @@ html[data-theme="dark"] .salon-owner {
             max(9px, env(safe-area-inset-right));
     }
 
-    .salon-manual-booking .salon-manual-mobile-action > div {
-        width: 100%;
-        min-width: 0;
-    }
-
-    .salon-manual-booking .salon-manual-mobile-action button {
-        min-width: 132px;
+    .salon-owner__main .salon-manual-booking .salon-manual-mobile-action button {
         min-height: 46px;
-        padding-inline: 13px;
-        white-space: nowrap;
     }
 
-    .salon-manual-booking textarea {
-        max-width: 100%;
+    .salon-owner__main .salon-manual-booking .relative > .absolute {
+        max-height: min(70vh, 430px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
     }
 }
 
 @media (max-width: 380px) {
-    .salon-manual-booking .salon-manual-mobile-action {
-        gap: 8px;
+    .salon-owner__main {
+        padding-inline: 10px;
     }
 
-    .salon-manual-booking .salon-manual-mobile-action button {
-        min-width: 116px;
-        padding-inline: 11px;
-        font-size: .68rem;
-    }
-
-    .salon-manual-booking .salon-manual-slot-grid button {
+    .salon-owner__main .salon-manual-booking .salon-manual-slot-grid button {
         min-height: 48px;
     }
 
-    .salon-manual-booking .salon-manual-quick-dates > * {
+    .salon-owner__main .salon-manual-booking .salon-manual-quick-dates > * {
         flex-basis: 70px;
     }
 }
