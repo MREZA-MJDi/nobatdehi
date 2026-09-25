@@ -2424,3 +2424,31 @@ html[data-theme="dark"] .salon-owner {
 @media (max-width:640px){
     .settings-tab{padding-inline:10px;font-size:.71rem}
 }
+
+
+.salon-owner__notification-link{position:relative}
+.salon-owner__notification-badge,
+.salon-owner__nav-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:18px;
+    height:18px;
+    padding:0 5px;
+    border-radius:999px;
+    background:var(--owner-primary);
+    color:#fff;
+    font-size:10px;
+    font-style:normal;
+    font-weight:900;
+    line-height:1;
+}
+.salon-owner__notification-badge{
+    position:absolute;
+    top:-4px;
+    right:-4px;
+    min-width:17px;
+    height:17px;
+    padding:0 4px;
+}
+.salon-owner__nav-badge{margin-inline-start:auto}
