@@ -61,6 +61,9 @@
         5
     );
 
+    $customerPhone = $booking->customer?->phone
+        ?? $booking->customer_phone;
+
     /*
     |--------------------------------------------------------------------------
     | Completion availability
@@ -299,10 +302,10 @@
                                 </div>
 
 
-                                @if ($booking->customer?->phone ?? $booking->customer_phone)
+                                @if ($customerPhone)
 
                                     <a
-                                        href="tel:{{ $booking->customer->phone }}"
+                                        href="tel:{{ $customerPhone }}"
                                         class="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 px-4 text-sm font-black text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
                                     >
                                         تماس با مشتری
