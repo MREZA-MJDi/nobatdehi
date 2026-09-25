@@ -207,7 +207,7 @@
                     <div class="confirm-side-inner">
 
                         <span class="section-kicker">
-                            READY TO BOOK
+                            آماده ثبت
                         </span>
 
                         <div class="confirm-side-title-row">
