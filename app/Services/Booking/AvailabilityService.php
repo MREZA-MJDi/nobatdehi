@@ -183,7 +183,8 @@ class AvailabilityService
         Barber $barber,
         Service $service,
         CarbonInterface $date,
-        ?int $ignoreBookingId = null
+        ?int $ignoreBookingId = null,
+        ?int $customerId = null
     ): array {
         /*
         |--------------------------------------------------------------------------
@@ -299,6 +300,51 @@ class AvailabilityService
                 'start_time',
                 'end_time',
                 'status',
+            ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Pending priority notices
+        |--------------------------------------------------------------------------
+        |
+        | PENDING bookings do not block the booking grid. They only carry
+        | temporal priority: an existing pending request is earlier than a
+        | newly submitted request and should be disclosed to that customer.
+        |
+        */
+        $pendingBookings = $barber
+            ->bookings()
+            ->whereDate(
+                'booking_date',
+                $date->toDateString()
+            )
+            ->where('status', BookingStatus::PENDING->value)
+            ->when(
+                $ignoreBookingId !== null,
+                fn ($query) =>
+                $query->where(
+                    'id',
+                    '!=',
+                    $ignoreBookingId
+                )
+            )
+            ->when(
+                $customerId !== null,
+                fn ($query) =>
+                $query->where(function ($query) use ($customerId) {
+                    $query
+                        ->whereNull('customer_id')
+                        ->orWhere('customer_id', '!=', $customerId);
+                })
+            )
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get([
+                'id',
+                'customer_id',
+                'start_time',
+                'end_time',
+                'created_at',
             ]);
 
         $slots = [];
@@ -428,20 +474,37 @@ class AvailabilityService
                 |--------------------------------------------------------------------------
                 */
 
+                $hasEarlierPending = $pendingBookings->contains(
+                    function ($booking) use (
+                        $date,
+                        $slotStart,
+                        $slotEnd
+                    ): bool {
+                        $bookingStart = $date
+                            ->copy()
+                            ->setTimeFromTimeString(
+                                $this->normalizeTime($booking->start_time)
+                            );
+
+                        $bookingEnd = $date
+                            ->copy()
+                            ->setTimeFromTimeString(
+                                $this->normalizeTime($booking->end_time)
+                            );
+
+                        return
+                            $bookingStart < $slotEnd &&
+                            $bookingEnd > $slotStart;
+                    }
+                );
+
                 $slots[] = [
                     'start' => $slotStart->format('H:i'),
-
                     'end' => $slotEnd->format('H:i'),
-
                     'available' => !$overlap,
-
-                    'status' => $overlap
-                        ? 'booked'
-                        : 'available',
-
-                    'label' => $overlap
-                        ? 'رزرو شده'
-                        : 'آزاد',
+                    'status' => $overlap ? 'booked' : 'available',
+                    'label' => $overlap ? 'رزرو شده' : 'آزاد',
+                    'pending_priority_conflict' => !$overlap && $hasEarlierPending,
                 ];
             }
         }
