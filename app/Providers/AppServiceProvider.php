@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Contracts\SmsSender;
 use App\Events\BookingCreated;
 use App\Events\BookingStatusChanged;
+use App\Events\BookingUpdated;
 use App\Notifications\BookingNotification;
 use App\Services\Sms\LogSmsSender;
 use Illuminate\Support\Facades\Event;
@@ -48,6 +49,33 @@ class AppServiceProvider extends ServiceProvider
                     new BookingNotification(
                         $booking,
                         'created'
+                    )
+                );
+            }
+        );
+
+        Event::listen(
+            BookingUpdated::class,
+            function (BookingUpdated $event): void {
+                $booking = $event->booking->loadMissing([
+                    'salon.owner',
+                    'barber',
+                    'service',
+                    'customer',
+                ]);
+
+                if (
+                    $booking->is_manual
+                    || !$booking->salon?->owner
+                    || !$booking->customer
+                ) {
+                    return;
+                }
+
+                $booking->salon->owner->notify(
+                    new BookingNotification(
+                        $booking,
+                        'customer_updated'
                     )
                 );
             }
