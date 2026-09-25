@@ -14,7 +14,7 @@
 
 @section(
     'meta_description',
-    \Illuminate\Support\Str::limit(
+    Str::limit(
         $salon->description
             ?: 'پروفایل ' . $salon->name . '؛ خدمات، نمونه‌کارها، تیم و رزرو نوبت آنلاین.',
         155
@@ -140,166 +140,7 @@
         $bookingEnabled =
             $barbers->isNotEmpty() &&
             $services->isNotEmpty();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Search-friendly salon + service structured data
-        |--------------------------------------------------------------------------
-        | Use the most specific local-business type and describe services as
-        | services, not as products. This keeps the markup aligned with the
-        | visible content and avoids inventing shopping data for appointment
-        | services.
-        |--------------------------------------------------------------------------
-        */
-
-        $serviceSchemaItems = $services
-            ->map(function ($service) use ($salon) {
-                return [
-                    '@type' => 'Service',
-                    'name' => $service->name,
-                    'description' => $service->description ?: $service->name,
-                    'provider' => [
-                        '@type' => 'BeautySalon',
-                        'name' => $salon->name,
-                        'url' => url()->current(),
-                    ],
-                    'url' => url()->current() . '#services',
-                    'additionalProperty' => [
-                        [
-                            '@type' => 'PropertyValue',
-                            'name' => 'مدت',
-                            'value' => (int) $service->duration_minutes . ' دقیقه',
-                        ],
-                    ],
-                ];
-            })
-            ->values()
-            ->all();
-
-        $schemaDayNames = [
-            0 => 'Saturday',
-            1 => 'Sunday',
-            2 => 'Monday',
-            3 => 'Tuesday',
-            4 => 'Wednesday',
-            5 => 'Thursday',
-            6 => 'Friday',
-        ];
-
-        $openingHoursSpecification = $salon
-            ->workingHours
-            ->filter(
-                fn ($hour) =>
-                    ! $hour->is_closed &&
-                    filled($hour->start_time) &&
-                    filled($hour->end_time)
-            )
-            ->map(function ($hour) use ($schemaDayNames) {
-                $day = $schemaDayNames[(int) $hour->day_of_week] ?? null;
-
-                if (! $day) {
-                    return null;
-                }
-
-                return [
-                    '@type' => 'OpeningHoursSpecification',
-                    'dayOfWeek' => $day,
-                    'opens' => substr((string) $hour->start_time, 0, 5),
-                    'closes' => substr((string) $hour->end_time, 0, 5),
-                ];
-            })
-            ->filter()
-            ->values()
-            ->all();
-
-        $salonSchema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'BeautySalon',
-            '@id' => url()->current() . '#salon',
-            'name' => $salon->name,
-            'url' => url()->current(),
-            'description' => $salon->description ?: null,
-            'image' => array_values(array_filter([
-                $salon->cover_path ? $resolveMediaUrl($salon->cover_path) : null,
-                $salon->logo_path ? $resolveMediaUrl($salon->logo_path) : null,
-            ])),
-            'telephone' => $salon->phone ?: null,
-            'email' => $salon->email ?: null,
-            'address' => array_filter([
-                '@type' => 'PostalAddress',
-                'streetAddress' => $salon->address ?: null,
-                'addressLocality' => $salon->city ?: null,
-                'addressRegion' => $salon->province ?: null,
-                'addressCountry' => 'IR',
-            ]),
-            'geo' => $hasLocation ? [
-                '@type' => 'GeoCoordinates',
-                'latitude' => (float) $latitude,
-                'longitude' => (float) $longitude,
-            ] : null,
-            'hasOfferCatalog' => [
-                '@type' => 'OfferCatalog',
-                'name' => 'خدمات ' . $salon->name,
-                'itemListElement' => array_map(
-                    fn ($service) => [
-                        '@type' => 'Offer',
-                        'itemOffered' => $service,
-                    ],
-                    $serviceSchemaItems
-                ),
-            ],
-        ];
-
-        if ($rating !== null && $reviewsCount > 0) {
-            $salonSchema['aggregateRating'] = [
-                '@type' => 'AggregateRating',
-                'ratingValue' => round((float) $rating, 1),
-                'bestRating' => 5,
-                'worstRating' => 1,
-                'reviewCount' => (int) $reviewsCount,
-            ];
-        }
-
-        if ($openingHoursSpecification) {
-            $salonSchema['openingHoursSpecification'] =
-                $openingHoursSpecification;
-        }
-
-        $breadcrumbSchema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => [
-                [
-                    '@type' => 'ListItem',
-                    'position' => 1,
-                    'name' => 'خانه',
-                    'item' => url('/'),
-                ],
-                [
-                    '@type' => 'ListItem',
-                    'position' => 2,
-                    'name' => 'کشف سالن‌ها',
-                    'item' => route('salons.discover'),
-                ],
-                [
-                    '@type' => 'ListItem',
-                    'position' => 3,
-                    'name' => $salon->name,
-                    'item' => url()->current(),
-                ],
-            ],
-        ];
     @endphp
-
-    @push('head')
-        <script type="application/ld+json">
-            @json($salonSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-        </script>
-
-        <script type="application/ld+json">
-            @json($breadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-        </script>
-    @endpush
 
     <div
         class="salon-page"
@@ -506,7 +347,7 @@
 
                         <p class="tagline">
                             {{
-                                \Illuminate\Support\Str::limit(
+                                Str::limit(
                                     $salon->description
                                         ?: 'سالن تخصصی زیبایی، مو و استایل',
                                     130
@@ -739,11 +580,7 @@
                             @endphp
 
 
-                            <article
-                                class="service-card"
-                                itemscope
-                                itemtype="https://schema.org/Service"
-                            >
+                            <article class="service-card">
 
                                 <div class="service-media">
 
@@ -751,8 +588,7 @@
 
                                         <img
                                             src="{{ $serviceImage }}"
-                                            alt="{{ $service->name }} در {{ $salon->name }}"
-                                            itemprop="image"
+                                            alt="{{ $service->name }}"
                                             loading="lazy"
                                             decoding="async"
                                         >
@@ -776,15 +612,15 @@
 
                                 <div class="service-content">
 
-                                    <h3 class="service-title" itemprop="name">
+                                    <div class="service-title">
                                         {{ $service->name }}
-                                    </h3>
+                                    </div>
 
 
                                     @if($service->description)
 
-                                        <p class="service-description" itemprop="description">
-                                            {{ \Illuminate\Support\Str::limit($service->description, 105) }}
+                                        <p class="service-description">
+                                            {{ Str::limit($service->description, 105) }}
                                         </p>
 
                                     @endif
@@ -807,15 +643,11 @@
                                         </strong>
 
 
-                                        <time
-                                            class="service-duration"
-                                            itemprop="duration"
-                                            datetime="PT{{ (int) $service->duration_minutes }}M"
-                                        >
+                                        <span class="service-duration">
                                             ◷
                                             {{ $service->duration_minutes }}
                                             دقیقه
-                                        </time>
+                                        </span>
 
                                     </div>
 
@@ -856,6 +688,8 @@
                 GALLERY
             ======================================================== --}}
 
+            @if($posts->isNotEmpty())
+
                 <section
                     class="section reveal gallery-section"
                     id="gallery"
@@ -888,11 +722,9 @@
                     </div>
 
 
-                    @if($posts->isNotEmpty())
-
                     <div
                         class="tabs"
-                        role="group"
+                        role="tablist"
                         aria-label="فیلتر نمونه‌کارها"
                     >
 
@@ -900,7 +732,8 @@
                             type="button"
                             class="tab active"
                             data-filter="all"
-                            aria-pressed="true"
+                            role="tab"
+                            aria-selected="true"
                         >
                             همه
                             <span>{{ number_format($postsCount) }}</span>
@@ -912,7 +745,8 @@
                                 type="button"
                                 class="tab"
                                 data-filter="reel"
-                                aria-pressed="false"
+                                role="tab"
+                                aria-selected="false"
                             >
                                 ریلز
                                 <span>{{ number_format($postTypeCounts['reel']) }}</span>
@@ -924,7 +758,8 @@
                                 type="button"
                                 class="tab"
                                 data-filter="video"
-                                aria-pressed="false"
+                                role="tab"
+                                aria-selected="false"
                             >
                                 ویدیو
                                 <span>{{ number_format($postTypeCounts['video']) }}</span>
@@ -936,7 +771,8 @@
                                 type="button"
                                 class="tab"
                                 data-filter="image"
-                                aria-pressed="false"
+                                role="tab"
+                                aria-selected="false"
                             >
                                 عکس
                                 <span>{{ number_format($postTypeCounts['image']) }}</span>
@@ -948,7 +784,8 @@
                                 type="button"
                                 class="tab"
                                 data-filter="gif"
-                                aria-pressed="false"
+                                role="tab"
+                                aria-selected="false"
                             >
                                 GIF
                                 <span>{{ number_format($postTypeCounts['gif']) }}</span>
@@ -1093,7 +930,7 @@
                                     @if($post->caption)
 
                                         <span>
-                                            {{ \Illuminate\Support\Str::limit($post->caption, 65) }}
+                                            {{ Str::limit($post->caption, 65) }}
                                         </span>
 
                                     @endif
@@ -1107,25 +944,27 @@
                     </div>
 
 
-                    @else
-
-                        <div class="gallery-empty gallery-empty--always-visible">
-                            <div class="gallery-empty-icon">
-                                ✦
-                            </div>
-
-                            <strong>
-                                هنوز نمونه‌کاری برای نمایش ثبت نشده است
-                            </strong>
-
-                            <span>
-                                به‌محض اضافه‌شدن نمونه‌کار، اینجا نمایش داده می‌شود.
-                            </span>
+                    <div
+                        class="gallery-empty"
+                        id="galleryEmpty"
+                        hidden
+                    >
+                        <div class="gallery-empty-icon">
+                            ✦
                         </div>
 
-                    @endif
+                        <strong>
+                            محتوایی در این دسته وجود ندارد
+                        </strong>
+
+                        <span>
+                            یک دسته دیگر را امتحان کن.
+                        </span>
+                    </div>
 
                 </section>
+
+            @endif
 
 
             {{-- =======================================================
@@ -1416,7 +1255,7 @@
                                 @if($barber->bio)
 
                                     <p class="t-bio">
-                                        {{ \Illuminate\Support\Str::limit($barber->bio, 145) }}
+                                        {{ Str::limit($barber->bio, 145) }}
                                     </p>
 
                                 @endif
@@ -2061,8 +1900,6 @@
                                     <small
                                         id="slotSchedule"
                                         class="slot-schedule"
-                                        aria-live="polite"
-                                        aria-atomic="true"
                                     ></small>
 
                                 </div>
@@ -2071,9 +1908,6 @@
                                 <div
                                     class="slots"
                                     id="slots"
-                                    role="status"
-                                    aria-live="polite"
-                                    aria-atomic="true"
                                 >
                                     <div class="slots-msg">
                                         اول از تقویم یک روز انتخاب کن
