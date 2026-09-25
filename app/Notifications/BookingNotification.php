@@ -59,6 +59,24 @@ class BookingNotification extends Notification
             ];
         }
 
+        if ($this->event === 'customer_updated') {
+            return [
+                'type' => 'booking_updated',
+                'title' => 'تغییر در نوبت مشتری',
+                'message' => $customerName . ' نوبت «' . $serviceName .
+                    '» را برای ' . $startTime . ' جابه‌جا/ویرایش کرد.',
+                'booking_id' => $booking->id,
+                'status' => $booking->status->value,
+                'salon_id' => $booking->salon_id,
+                'booking_date' => $date,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'customer_name' => $customerName,
+                'service_name' => $serviceName,
+                'barber_name' => $barberName,
+            ];
+        }
+
         if ($this->event === 'customer_cancelled') {
             return [
                 'type' => 'booking_cancelled_by_customer',
