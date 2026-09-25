@@ -704,6 +704,14 @@ class SalonController extends Controller
                     'name' =>
                         $data['name'],
 
+                    'slug' =>
+                        $salon->name !== $data['name']
+                            ? $this->generateUniqueSlug(
+                                $data['name'],
+                                $salon->id
+                            )
+                            : $salon->slug,
+
                     'description' =>
                         $data['description']
                         ?? null,
@@ -813,9 +821,53 @@ class SalonController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Delete Old Logo
+            | Sync public URL + QR
             |--------------------------------------------------------------------------
             */
+
+            $salon = $salon->fresh();
+
+            $publicUrl = route(
+                'public.salons.show',
+                $salon
+            );
+
+            $newQrPath =
+                'salons/qr/' .
+                $salon->slug .
+                '.svg';
+
+            $qrContents = QrCode::format('svg')
+                ->size(800)
+                ->margin(2)
+                ->generate($publicUrl);
+
+            Storage::disk('public')->put(
+                $newQrPath,
+                $qrContents
+            );
+
+            $oldQrPath = $salon->getOriginal('qr_code_path');
+
+            if (
+                $oldQrPath &&
+                $oldQrPath !== $newQrPath
+            ) {
+                Storage::disk('public')->delete($oldQrPath);
+            }
+
+            if ($salon->qr_code_path !== $newQrPath) {
+                $salon->update([
+                    'qr_code_path' => $newQrPath,
+                ]);
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Old Logo
+            |--------------------------------------------------------------------------
+            |
 
             if (
                 (
@@ -956,7 +1008,8 @@ class SalonController extends Controller
     */
 
     private function generateUniqueSlug(
-        string $name
+        string $name,
+        ?int $ignoreSalonId = null
     ): string {
         $baseSlug =
             Str::slug($name);
@@ -973,9 +1026,14 @@ class SalonController extends Controller
 
         while (
         Salon::query()
-            ->where(
-                'slug',
-                $slug
+            ->where('slug', $slug)
+            ->when(
+                $ignoreSalonId !== null,
+                fn ($query) => $query->where(
+                    'id',
+                    '!=',
+                    $ignoreSalonId
+                )
             )
             ->exists()
         ) {
