@@ -166,7 +166,7 @@
 
             tab.classList.toggle('active', active);
             tab.setAttribute(
-                'aria-selected',
+                'aria-pressed',
                 active ? 'true' : 'false'
             );
         });
