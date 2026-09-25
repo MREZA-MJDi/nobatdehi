@@ -2089,53 +2089,6 @@
             </div>
 
 
-            {{-- MOBILE ACTION --}}
-            <div class="salon-manual-mobile-action fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 p-3 backdrop-blur-xl xl:hidden">
-
-                <div class="mx-auto flex max-w-3xl items-center gap-3">
-
-                    <div class="min-w-0 flex-1">
-
-                        <div
-                            class="truncate text-xs font-black text-content"
-                            x-text="selectedService?.name || 'ثبت نوبت دستی'"
-                        ></div>
-
-                        <div class="mt-1 text-[10px] text-content-faint">
-
-                        <span
-                            x-text="selectedTime ? formatTime(selectedTime) : 'ساعت انتخاب نشده'"
-                        ></span>
-
-                            ·
-
-                            <span
-                                x-text="selectedService ? formatPrice(selectedService.price) : 'مبلغ نامشخص'"
-                            ></span>
-
-                        </div>
-
-                    </div>
-
-                    <button
-                        type="submit"
-                        :disabled="submitting"
-                        class="h-12 shrink-0 rounded-xl px-5 text-xs font-black transition"
-                        :class="
-                        canSubmit && !submitting
-                            ? 'bg-accent-600 text-white shadow-lg shadow-accent-600/15'
-                            : 'border border-border bg-background-soft text-content-muted'
-                    "
-                    >
-                    <span
-                        x-text="submitting ? 'در حال ثبت...' : 'ثبت نوبت'"
-                    ></span>
-                    </button>
-
-                </div>
-
-            </div>
-
         </form>
 
     </div>
