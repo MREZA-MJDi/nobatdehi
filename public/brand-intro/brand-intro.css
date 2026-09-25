@@ -1403,3 +1403,34 @@ body {
         left: calc(100% + 14px);
     }
 }
+
+
+/* NOBAT INTRO — TRUE SYMMETRIC SIDE-LINE FRAME */
+.kinetic-frame {
+    left: 50%;
+    width: calc(100% + 278px);
+    transform: translate(-50%, -50%);
+}
+
+.line-left {
+    left: 0;
+    right: auto;
+    margin-right: 0;
+}
+
+.line-right {
+    right: 0;
+    left: auto;
+    margin-left: 0;
+}
+
+@media (max-width: 640px) {
+    .kinetic-frame {
+        width: calc(100% + 144px);
+    }
+
+    .line-left,
+    .line-right {
+        margin-inline: 0;
+    }
+}
