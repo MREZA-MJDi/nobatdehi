@@ -388,6 +388,57 @@
 
     </header>
 
+    @auth
+        @if(auth()->user()->isCustomer())
+            <nav class="customer-account-bar" aria-label="حساب مشتری">
+                <div class="customer-container customer-account-bar-inner">
+                    <a
+                        href="{{ route('customer.dashboard') }}"
+                        @class(['is-active' => request()->routeIs('customer.dashboard')])
+                    >
+                        <span>⌂</span>
+                        خانه
+                    </a>
+
+                    <a
+                        href="{{ route('customer.bookings.index') }}"
+                        @class(['is-active' => request()->routeIs('customer.bookings.*')])
+                    >
+                        <span>◷</span>
+                        نوبت‌های من
+                    </a>
+
+                    <a
+                        href="{{ route('customer.favorites.index') }}"
+                        @class(['is-active' => request()->routeIs('customer.favorites.*')])
+                    >
+                        <span>♥</span>
+                        علاقه‌مندی‌ها
+                    </a>
+
+                    <a
+                        href="{{ route('customer.notifications.index') }}"
+                        @class(['is-active' => request()->routeIs('customer.notifications.*')])
+                    >
+                        <span>◌</span>
+                        اعلان‌ها
+                        @if(auth()->user()->unreadNotifications()->count())
+                            <b>{{ auth()->user()->unreadNotifications()->count() }}</b>
+                        @endif
+                    </a>
+
+                    <a
+                        href="{{ route('customer.profile.edit') }}"
+                        @class(['is-active' => request()->routeIs('customer.profile.*')])
+                    >
+                        <span>◎</span>
+                        پروفایل
+                    </a>
+                </div>
+            </nav>
+        @endif
+    @endauth
+
     <main class="customer-main">
 
         {{-- =====================================================
