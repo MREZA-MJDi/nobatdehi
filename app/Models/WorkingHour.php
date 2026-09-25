@@ -12,6 +12,7 @@ class WorkingHour extends Model
 
     protected $fillable = [
         'salon_id',
+        'barber_id',
         'day_of_week',
         'start_time',
         'end_time',
@@ -26,6 +27,15 @@ class WorkingHour extends Model
             'is_closed' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+
+    public function barber(): BelongsTo
+    {
+        return $this->belongsTo(
+            Barber::class,
+            'barber_id'
+        );
     }
 
     public function salon(): BelongsTo
