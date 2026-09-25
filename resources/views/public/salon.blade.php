@@ -14,7 +14,7 @@
 
 @section(
     'meta_description',
-    Str::limit(
+    \Illuminate\Support\Str::limit(
         $salon->description
             ?: 'پروفایل ' . $salon->name . '؛ خدمات، نمونه‌کارها، تیم و رزرو نوبت آنلاین.',
         155
@@ -436,7 +436,7 @@
 
                         <p class="tagline">
                             {{
-                                Str::limit(
+                                \Illuminate\Support\Str::limit(
                                     $salon->description
                                         ?: 'سالن تخصصی زیبایی، مو و استایل',
                                     130
@@ -714,7 +714,7 @@
                                     @if($service->description)
 
                                         <p class="service-description" itemprop="description">
-                                            {{ Str::limit($service->description, 105) }}
+                                            {{ \Illuminate\Support\Str::limit($service->description, 105) }}
                                         </p>
 
                                     @endif
@@ -1023,7 +1023,7 @@
                                     @if($post->caption)
 
                                         <span>
-                                            {{ Str::limit($post->caption, 65) }}
+                                            {{ \Illuminate\Support\Str::limit($post->caption, 65) }}
                                         </span>
 
                                     @endif
@@ -1348,7 +1348,7 @@
                                 @if($barber->bio)
 
                                     <p class="t-bio">
-                                        {{ Str::limit($barber->bio, 145) }}
+                                        {{ \Illuminate\Support\Str::limit($barber->bio, 145) }}
                                     </p>
 
                                 @endif
