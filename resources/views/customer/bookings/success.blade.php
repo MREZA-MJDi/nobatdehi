@@ -53,7 +53,7 @@
                             <div class="mt-1 text-sm font-black text-content">
                                 {{ $booking->booking_date ? jalali_date($booking->booking_date) : '—' }}
                                 ·
-                                <span dir="ltr">{{ IlluminateSupportStr::substr($booking->start_time, 0, 5) }}</span>
+                                <span dir="ltr">{{ \\Illuminate\\Support\\Str::substr($booking->start_time, 0, 5) }}</span>
                             </div>
                         </div>
 
