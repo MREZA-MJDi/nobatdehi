@@ -55,6 +55,43 @@ class BookingCoreTest extends TestCase
         $this->assertSame('booked', $slot['status']);
     }
 
+    public function test_manual_confirmed_booking_blocks_customer_availability(): void
+    {
+        Event::fake();
+
+        [$owner, $customer, $salon, $barber, $service, $date] =
+            $this->fixture();
+
+        $booking = app(BookingService::class)->createManual(
+            $owner,
+            [
+                'salon_id' => $salon->id,
+                'barber_id' => $barber->id,
+                'service_id' => $service->id,
+                'booking_date' => $date->toDateString(),
+                'start_time' => '11:00',
+                'customer_name' => 'Manual Customer',
+                'customer_phone' => '09123334444',
+            ]
+        );
+
+        $this->assertSame(BookingStatus::CONFIRMED, $booking->status);
+        $this->assertTrue($booking->is_manual);
+
+        $slots = app(AvailabilityService::class)->slots(
+            $salon,
+            $barber,
+            $service,
+            $date
+        );
+
+        $slot = collect($slots)->firstWhere('start', '11:00');
+
+        $this->assertNotNull($slot);
+        $this->assertFalse($slot['available']);
+        $this->assertSame('booked', $slot['status']);
+    }
+
     public function test_customer_cannot_double_book_same_barber_and_time(): void
     {
         Event::fake();

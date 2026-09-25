@@ -200,24 +200,27 @@ class BookingController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        return response()->json([
-            'ok' => true,
-            'date' => $date->toDateString(),
-            'schedule' => [
-                'day_of_week' => $dayOfWeek,
-                'day_name' => $dayNames[$dayOfWeek],
-                'status' => $scheduleStatus,
-                'is_closed' => $isDailyClosed || $isWeeklyClosed,
-                'intervals' => $workingHours,
-            ],
-            'working_hours' => $workingHours,
-            'slots' => $availability->slots(
-                $salon,
-                $barber,
-                $service,
-                $date
-            ),
-        ]);
+        return response()
+            ->json([
+                'ok' => true,
+                'date' => $date->toDateString(),
+                'schedule' => [
+                    'day_of_week' => $dayOfWeek,
+                    'day_name' => $dayNames[$dayOfWeek],
+                    'status' => $scheduleStatus,
+                    'is_closed' => $isDailyClosed || $isWeeklyClosed,
+                    'intervals' => $workingHours,
+                ],
+                'working_hours' => $workingHours,
+                'slots' => $availability->slots(
+                    $salon,
+                    $barber,
+                    $service,
+                    $date
+                ),
+            ])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     /*
