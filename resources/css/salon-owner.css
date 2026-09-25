@@ -2541,3 +2541,106 @@ html[data-theme="dark"] .salon-owner {
     .salon-owner__main h2{font-size:clamp(1.05rem,5vw,1.3rem)}
     .salon-owner__main p{font-size:.72rem}
 }
+
+
+/* Global owner-page navigation and feedback */
+.salon-owner__page-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: 1rem;
+}
+
+.salon-owner__back-link,
+.salon-owner__home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    min-height: 2.5rem;
+    padding: .65rem .9rem;
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: .9rem;
+    background: var(--surface, #fff);
+    color: var(--content, #111827);
+    font-size: .75rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: .2s ease;
+}
+
+.salon-owner__back-link:hover,
+.salon-owner__home-link:hover {
+    border-color: var(--owner-primary);
+    color: var(--owner-primary);
+    transform: translateY(-1px);
+}
+
+.salon-owner__home-link {
+    background: var(--primary-50, #eef2ff);
+    border-color: transparent;
+}
+
+.salon-owner__flash {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+    margin-bottom: 1rem;
+    padding: .85rem 1rem;
+    border: 1px solid;
+    border-radius: 1rem;
+    font-size: .75rem;
+    font-weight: 800;
+    line-height: 1.8;
+}
+
+.salon-owner__flash > span:first-child {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: .6rem;
+    background: rgba(255,255,255,.75);
+}
+
+.salon-owner__flash-copy {
+    min-width: 0;
+}
+
+.salon-owner__flash-copy > div {
+    margin-top: .15rem;
+    font-size: .68rem;
+    font-weight: 700;
+}
+
+.salon-owner__flash.is-success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.salon-owner__flash.is-error {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.salon-owner__flash.is-info {
+    border-color: #c7d2fe;
+    background: #eef2ff;
+    color: #3730a3;
+}
+
+@media (max-width: 640px) {
+    .salon-owner__page-tools {
+        margin-bottom: .8rem;
+    }
+
+    .salon-owner__back-link,
+    .salon-owner__home-link {
+        flex: 1 1 0;
+        justify-content: center;
+    }
+}
