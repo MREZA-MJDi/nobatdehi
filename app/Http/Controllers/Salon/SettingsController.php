@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Salon;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Salon\UpdateSalonPhoneRequest;
+use App\Http\Requests\Salon\UpdateSalonPasswordRequest;
 use App\Http\Requests\Salon\UpdateSalonSettingsRequest;
+use App\Models\Salon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
@@ -135,6 +139,12 @@ class SettingsController extends Controller
                     $salonData = [
                         'name' =>
                             $data['name'],
+
+                        'slug' =>
+                            $this->resolvePublicSlug(
+                                $salon,
+                                (string) $data['name']
+                            ),
 
                         'description' =>
                             $data['description'] ?? null,
@@ -357,6 +367,98 @@ class SettingsController extends Controller
 
             throw $e;
         }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Update Owner Phone
+    |--------------------------------------------------------------------------
+    */
+
+    public function updatePhone(
+        UpdateSalonPhoneRequest $request
+    ): RedirectResponse {
+        $user = $request->user();
+
+        $user->update([
+            'phone' => $request->validated('phone'),
+            'phone_verified_at' => null,
+        ]);
+
+        return redirect()
+            ->route('salon.settings.edit')
+            ->with(
+                'success',
+                'شماره موبایل حساب کاربری با موفقیت تغییر کرد.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Update Owner Password
+    |--------------------------------------------------------------------------
+    */
+
+    public function updatePassword(
+        UpdateSalonPasswordRequest $request
+    ): RedirectResponse {
+        $user = $request->user();
+
+        $user->update([
+            'password' => $request->validated('password'),
+            'must_change_password' => false,
+        ]);
+
+        return redirect()
+            ->route('salon.settings.edit')
+            ->with(
+                'success',
+                'رمز عبور حساب کاربری با موفقیت تغییر کرد.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Resolve Public Slug
+    |--------------------------------------------------------------------------
+    */
+
+    private function resolvePublicSlug(
+        Salon $salon,
+        string $name
+    ): string {
+        $currentSlug = trim((string) $salon->slug);
+        $nameChanged = $name !== (string) $salon->name;
+
+        if (!$nameChanged && filled($currentSlug) && $currentSlug !== '/') {
+            return $currentSlug;
+        }
+
+        $baseSlug = Str::slug($name);
+
+        if ($baseSlug === '') {
+            return filled($currentSlug) && $currentSlug !== '/'
+                ? $currentSlug
+                : 'salon-' . $salon->id;
+        }
+
+        $slug = $baseSlug;
+        $suffix = 2;
+
+        while (
+            Salon::query()
+                ->where('slug', $slug)
+                ->where('id', '!=', $salon->id)
+                ->exists()
+        ) {
+            $slug = $baseSlug . '-' . $suffix;
+            $suffix++;
+        }
+
+        return $slug;
     }
 
 

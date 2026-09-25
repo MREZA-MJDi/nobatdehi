@@ -485,6 +485,16 @@ Route::middleware('auth')->group(function () {
                 '/settings',
                 [SettingsController::class, 'update']
             )->name('settings.update');
+
+            Route::patch(
+                '/settings/phone',
+                [SettingsController::class, 'updatePhone']
+            )->name('settings.phone.update');
+
+            Route::patch(
+                '/settings/password',
+                [SettingsController::class, 'updatePassword']
+            )->name('settings.password.update');
             });
 
         });

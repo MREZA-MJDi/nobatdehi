@@ -19,11 +19,12 @@ class SalonSeeder extends Seeder
     {
         $salons = [
             [
-                'name' => 'سالن زیبایی نوبان',
-                'code' => 'SALON-NOBAN',
-                'description' => 'سالن زیبایی مدرن با خدمات تخصصی مو، میکاپ و زیبایی.',
+                'name' => 'آرایشگاه مجید',
+                'code' => 'SALON-MAJID',
+                'slug' => 'arayeshgah-majid',
+                'description' => 'آرایشگاه مجید با خدمات تخصصی مو، میکاپ و زیبایی.',
                 'phone' => '09121112233',
-                'email' => 'noban@example.test',
+                'email' => 'majid@example.test',
                 'province' => 'تهران',
                 'city' => 'تهران',
                 'district' => 'سعادت‌آباد',
@@ -32,7 +33,7 @@ class SalonSeeder extends Seeder
                 'longitude' => 51.3754000,
                 'primary_color' => '#6757E8',
                 'secondary_color' => '#37B8C8',
-                'owner_name' => 'مدیر سالن نوبان',
+                'owner_name' => 'مدیر آرایشگاه مجید',
                 'owner_phone' => '09121112233',
                 'owner_password' => '12345678',
                 'services' => [
@@ -159,7 +160,7 @@ class SalonSeeder extends Seeder
 
 
         foreach ($salons as $data) {
-            $data['slug'] = Str::slug($data['name']);
+            $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
 
             /*
             |--------------------------------------------------------------------------

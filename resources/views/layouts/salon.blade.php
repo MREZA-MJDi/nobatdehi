@@ -42,6 +42,7 @@
 </head>
 
 <body class="salon-owner">
+@php($unreadSalonNotifications = auth()->user()->unreadNotifications()->count())
 <div class="salon-owner__shell">
 
     <aside class="salon-owner__sidebar">
@@ -125,7 +126,12 @@
             </div>
 
             <div class="salon-owner__topbar-actions">
-                <a href="{{ route('salon.notifications.index') }}" class="salon-owner__icon-button" aria-label="اعلان‌ها">◌</a>
+                <a href="{{ route('salon.notifications.index') }}" class="salon-owner__icon-button salon-owner__notification-link" aria-label="اعلان‌ها">
+                    ◌
+                    @if($unreadSalonNotifications > 0)
+                        <span class="salon-owner__notification-badge">{{ $unreadSalonNotifications > 99 ? '۹۹+' : $unreadSalonNotifications }}</span>
+                    @endif
+                </a>
                 <x-theme-toggle />
             </div>
         </header>

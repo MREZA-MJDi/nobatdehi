@@ -2394,3 +2394,61 @@ html[data-theme="dark"] .salon-owner {
         grid-template-columns: repeat(2, minmax(0,1fr)) !important;
     }
 }
+
+
+/* ==========================================================================
+   Owner settings section navigation
+   ========================================================================== */
+.settings-tab{
+    min-height:40px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 13px;
+    border-radius:12px;
+    color:var(--owner-muted,#64748b);
+    font-size:.76rem;
+    font-weight:800;
+    white-space:nowrap;
+    transition:background-color .18s ease,color .18s ease,box-shadow .18s ease;
+}
+.settings-tab:hover{
+    color:var(--owner-primary);
+    background:color-mix(in srgb,var(--owner-primary) 6%,transparent);
+}
+.settings-tab.is-active{
+    color:var(--owner-primary);
+    background:color-mix(in srgb,var(--owner-primary) 10%,var(--owner-surface,#fff));
+    box-shadow:0 4px 14px color-mix(in srgb,var(--owner-primary) 8%,transparent);
+}
+@media (max-width:640px){
+    .settings-tab{padding-inline:10px;font-size:.71rem}
+}
+
+
+.salon-owner__notification-link{position:relative}
+.salon-owner__notification-badge,
+.salon-owner__nav-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:18px;
+    height:18px;
+    padding:0 5px;
+    border-radius:999px;
+    background:var(--owner-primary);
+    color:#fff;
+    font-size:10px;
+    font-style:normal;
+    font-weight:900;
+    line-height:1;
+}
+.salon-owner__notification-badge{
+    position:absolute;
+    top:-4px;
+    right:-4px;
+    min-width:17px;
+    height:17px;
+    padding:0 4px;
+}
+.salon-owner__nav-badge{margin-inline-start:auto}
