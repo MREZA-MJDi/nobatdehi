@@ -18,14 +18,6 @@
 
                     <div class="min-w-0">
 
-                        <a
-                            href="{{ route('salon.dashboard') }}"
-                            class="mb-4 inline-flex items-center gap-2 text-xs font-bold text-content-muted transition hover:text-accent-600"
-                        >
-                            <span class="text-sm">←</span>
-                            داشبورد سالن
-                        </a>
-
 
                         <div class="flex items-center gap-2">
 

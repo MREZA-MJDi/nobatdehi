@@ -518,13 +518,6 @@
 
                 </div>
 
-                <a
-                    href="{{ route('salon.dashboard') }}"
-                    class="inline-flex items-center justify-center rounded-2xl border border-border bg-white px-4 py-3 text-xs font-black text-content transition hover:border-accent-200 hover:text-accent-600"
-                >
-                    ← داشبورد
-                </a>
-
             </div>
 
         </div>

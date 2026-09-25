@@ -208,46 +208,81 @@
 
     <main class="page-content pb-8">
 
+        <div class="app-container pt-4">
+            <div class="mb-4 flex items-center justify-between gap-3">
+                <a
+                    href="{{ route('admin.dashboard') }}"
+                    data-admin-back
+                    class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-xs font-black text-content shadow-sm transition hover:-translate-y-0.5 hover:border-accent-300 hover:text-accent-600"
+                >
+                    <span aria-hidden="true">←</span>
+                    <span>بازگشت</span>
+                </a>
 
-        {{-- Success --}}
+                @unless(request()->routeIs('admin.dashboard'))
+                    <a
+                        href="{{ route('admin.dashboard') }}"
+                        class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary-950 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-900"
+                    >
+                        داشبورد مدیریت
+                    </a>
+                @endunless
+            </div>
+        </div>
 
         @if(session('success'))
-
             <div class="app-container mb-4">
-
-                <div
-                    class="alert alert-success"
-                    role="status"
-                >
-                    {{ session('success') }}
+                <div class="alert alert-success" role="status" aria-live="polite">
+                    ✓ {{ session('success') }}
                 </div>
-
             </div>
-
         @endif
 
-
-        {{-- Error --}}
+        @if(session('status'))
+            <div class="app-container mb-4">
+                <div class="alert alert-info" role="status" aria-live="polite">
+                    {{ session('status') }}
+                </div>
+            </div>
+        @endif
 
         @if(session('error'))
-
             <div class="app-container mb-4">
-
-                <div
-                    class="alert alert-danger"
-                    role="alert"
-                >
-                    {{ session('error') }}
+                <div class="alert alert-danger" role="alert" aria-live="assertive">
+                    ! {{ session('error') }}
                 </div>
-
             </div>
-
         @endif
 
+        @if($errors->any())
+            <div class="app-container mb-4">
+                <div class="alert alert-danger" role="alert" aria-live="polite">
+                    <strong>اطلاعات نیاز به بررسی دارد.</strong>
+                    <div class="mt-1 text-xs">
+                        {{ $errors->count() > 1 ? $errors->first() . ' (و ' . ($errors->count() - 1) . ' مورد دیگر)' : $errors->first() }}
+                    </div>
+                </div>
+            </div>
+        @endif
 
         @yield('content')
 
     </main>
+
+    <script>
+        document.addEventListener('click', (event) => {
+            const link = event.target.closest('[data-admin-back]');
+
+            if (!link || event.defaultPrevented) {
+                return;
+            }
+
+            if (window.history.length > 1) {
+                event.preventDefault();
+                window.history.back();
+            }
+        });
+    </script>
 
 
     {{-- ============================================================

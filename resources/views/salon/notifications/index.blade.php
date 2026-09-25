@@ -96,7 +96,6 @@
             <div class="salon-empty-state__icon">◌</div>
             <h2>فعلاً اعلانی نیست.</h2>
             <p>وقتی نوبت جدیدی ثبت شود یا وضعیت نوبتی تغییر کند، پیامش همین‌جا نمایش داده می‌شود.</p>
-            <a href="{{ route('salon.dashboard') }}" class="salon-btn salon-btn--quiet">بازگشت به داشبورد</a>
         </section>
     @endif
 </div>

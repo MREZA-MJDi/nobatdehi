@@ -11,6 +11,10 @@ class WorkingHourSeeder extends Seeder
     public function run(): void
     {
         Salon::query()->each(function (Salon $salon): void {
+            if ($salon->workingHours()->exists()) {
+                return;
+            }
+
             $hours = [
                 0 => [
                     'start_time' => '09:00',
