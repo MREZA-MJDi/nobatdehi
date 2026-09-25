@@ -4546,3 +4546,45 @@ body.salon-lightbox-open {
         gap: 8px;
     }
 }
+
+/* ================================================================
+   PUBLIC SALON — ACCESSIBILITY & NAVIGATION POLISH
+   ================================================================ */
+
+.salon-page section[id] {
+    scroll-margin-top: 104px;
+}
+
+.salon-page :where(
+    button,
+    a,
+    select,
+    input[type="range"]
+):focus-visible {
+    outline: 2px solid color-mix(
+        in srgb,
+        var(--salon-brand-primary, #edf3f8) 72%,
+        #ffffff 28%
+    );
+    outline-offset: 3px;
+}
+
+.salon-page .tabs {
+    scrollbar-width: thin;
+}
+
+.salon-page .tab {
+    white-space: nowrap;
+}
+
+.salon-page .slot[disabled],
+.salon-page .day[disabled],
+.salon-page .btn-confirm[disabled] {
+    cursor: not-allowed;
+}
+
+@media (max-width: 680px) {
+    .salon-page section[id] {
+        scroll-margin-top: 116px;
+    }
+}
