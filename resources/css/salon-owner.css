@@ -27,7 +27,7 @@
         radial-gradient(660px 420px at 0 12%, color-mix(in srgb, var(--owner-secondary) 5%, transparent), transparent 72%),
         var(--owner-bg);
     color: var(--owner-text);
-    font-family: "Doran", Tahoma, Arial, sans-serif;
+    font-family: "Estedad", Tahoma, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
 }
 
