@@ -428,6 +428,11 @@ Route::middleware('auth')->group(function () {
             )->name('bookings.create');
 
             Route::get(
+                '/bookings/manual-data',
+                [SalonBookingController::class, 'manualData']
+            )->name('bookings.manual-data');
+
+            Route::get(
                 '/bookings/availability',
                 [SalonBookingController::class, 'availability']
             )->name('bookings.availability');
