@@ -70,14 +70,20 @@ class DashboardController extends Controller
             ->limit(3)
             ->get();
 
+        $upcomingActions = [
+            'can_edit' => $upcoming?->customerCanEdit() ?? false,
+            'can_cancel' => $upcoming?->customerCanCancel() ?? false,
+        ];
+
         return view(
             'customer.account.dashboard',
-            compact(
-                'upcoming',
-                'recentBookings',
-                'favoriteSalons',
-                'stats'
-            )
+            [
+                'upcoming' => $upcoming,
+                'upcomingActions' => $upcomingActions,
+                'recentBookings' => $recentBookings,
+                'favoriteSalons' => $favoriteSalons,
+                'stats' => $stats,
+            ]
         );
     }
 
@@ -138,6 +144,30 @@ class DashboardController extends Controller
             ->orderByDesc('start_time')
             ->paginate(10)
             ->withQueryString();
+
+        $bookings->getCollection()->each(
+            function ($booking): void {
+                $booking->setAttribute(
+                    '_customer_can_edit',
+                    $booking->customerCanEdit()
+                );
+
+                $booking->setAttribute(
+                    '_customer_can_cancel',
+                    $booking->customerCanCancel()
+                );
+
+                $booking->setAttribute(
+                    '_customer_can_review',
+                    $booking->customerCanReview()
+                );
+
+                $booking->setAttribute(
+                    '_customer_has_review',
+                    $booking->customerHasReview()
+                );
+            }
+        );
 
         return view(
             'customer.bookings.index',
