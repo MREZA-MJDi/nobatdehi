@@ -205,55 +205,32 @@ class AvailabilityService
         |
         */
 
-        $blockedBookings = $barber->relationLoaded('bookings')
-            ? collect($barber->getRelation('bookings'))
-                ->filter(function ($booking) use ($date, $blockingStatuses, $ignoreBookingId): bool {
-                    if (! in_array(
-                        $booking->status instanceof BookingStatus
-                            ? $booking->status->value
-                            : (string) $booking->status,
-                        $blockingStatuses,
-                        true
-                    )) {
-                        return false;
-                    }
-
-                    if (
-                        $ignoreBookingId !== null &&
-                        (int) $booking->id === $ignoreBookingId
-                    ) {
-                        return false;
-                    }
-
-                    return Carbon::parse((string) $booking->booking_date)->toDateString() === $date->toDateString();
-                })
-                ->values()
-            : $barber
-                ->bookings()
-                ->whereDate(
-                    'booking_date',
-                    $date->toDateString()
-                )
-                ->whereIn(
-                    'status',
-                    $blockingStatuses
-                )
-                ->when(
-                    $ignoreBookingId !== null,
-                    fn ($query) =>
-                    $query->where(
-                        'id',
-                        '!=',
-                        $ignoreBookingId
-                    )
-                )
-                ->get([
+        $blockedBookings = $barber
+            ->bookings()
+            ->whereDate(
+                'booking_date',
+                $date->toDateString()
+            )
+            ->whereIn(
+                'status',
+                $blockingStatuses
+            )
+            ->when(
+                $ignoreBookingId !== null,
+                fn ($query) =>
+                $query->where(
                     'id',
-                    'booking_date',
-                    'start_time',
-                    'end_time',
-                    'status',
-                ]);
+                    '!=',
+                    $ignoreBookingId
+                )
+            )
+            ->get([
+                'id',
+                'booking_date',
+                'start_time',
+                'end_time',
+                'status',
+            ]);
 
         $slots = [];
 
