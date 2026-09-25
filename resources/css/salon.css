@@ -5371,6 +5371,17 @@ body.salon-lightbox-open {
     }
 }
 
+:root{
+    --ui-font-family:"Estedad",Tahoma,Arial,sans-serif;
+    --ui-text-xs:.6875rem;
+    --ui-text-sm:.75rem;
+    --ui-text-md:.875rem;
+    --ui-text-lg:1rem;
+    --ui-title-lg:clamp(1.35rem,2.1vw,1.9rem);
+    --ui-title-xl:clamp(1.55rem,3vw,2.35rem);
+    --ui-line-body:1.85;
+}
+
 /* ==========================================================================
    PUBLIC SALON — STANDARD TYPE SCALE
    ========================================================================== */
