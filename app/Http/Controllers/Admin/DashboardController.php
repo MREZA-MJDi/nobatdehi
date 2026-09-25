@@ -55,6 +55,26 @@ class DashboardController extends Controller
                         UserRole::CUSTOMER->value
                     )
                     ->count(),
+
+                /*
+                |--------------------------------------------------------------------------
+                | Recent Salons
+                |--------------------------------------------------------------------------
+                */
+
+                'recentSalons' => Salon::query()
+                    ->with('owner')
+                    ->withCount([
+                        'services' => function ($query) {
+                            $query->where('is_active', true);
+                        },
+                        'barbers' => function ($query) {
+                            $query->where('is_active', true);
+                        },
+                    ])
+                    ->latest('id')
+                    ->limit(6)
+                    ->get(),
             ]
         );
     }
