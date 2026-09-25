@@ -1372,16 +1372,16 @@ body {
 
 .line-left {
     left: auto;
-    right: 100%;
+    right: calc(100% + 24px);
     width: min(115px, 12vw);
-    margin-right: 24px;
+    margin: 0;
 }
 
 .line-right {
-    left: 100%;
+    left: calc(100% + 24px);
     right: auto;
     width: min(115px, 12vw);
-    margin-left: 24px;
+    margin: 0;
 }
 
 @media (max-width: 640px) {
@@ -1396,10 +1396,10 @@ body {
     }
 
     .line-left {
-        margin-right: 14px;
+        right: calc(100% + 14px);
     }
 
     .line-right {
-        margin-left: 14px;
+        left: calc(100% + 14px);
     }
 }
