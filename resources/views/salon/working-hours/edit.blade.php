@@ -177,13 +177,6 @@
                 this.closeBreakEditor();
             },
 
-            applyDefault() {
-                this.currentSchedule.hours = JSON.parse(JSON.stringify(this.defaultSchedule()));
-                this.markCustomized();
-                this.formError = 'برنامه پیشنهادی ۰۹:۰۰ تا ۲۲:۰۰ برای شنبه تا پنجشنبه اعمال شد و جمعه تعطیل شد. حالا ذخیره کن.';
-                window.scrollTo({top:0,behavior:'smooth'});
-            },
-
             addInterval(day) {
                 const target = this.currentHours[day];
 
@@ -435,13 +428,18 @@
             </div>
 
             <div class="salon-working-hours-actions">
-                <button type="button" class="salon-working-hours-default" @click="applyDefault()">
-                    <span class="salon-working-hours-default__icon" aria-hidden="true">⚡</span>
-                    <span>
-                        <strong>برنامه پیشنهادی ۰۹ تا ۲۲</strong>
-                        <small>شنبه تا پنجشنبه ۰۹:۰۰ تا ۲۲:۰۰ · جمعه تعطیل</small>
-                    </span>
-                </button>
+                <form method="POST" action="{{ route('salon.working-hours.apply-default') }}">
+                    @csrf
+                    <input type="hidden" name="barber_id" :value="selectedScope === 'salon' ? '' : selectedScope">
+
+                    <button type="submit" class="salon-working-hours-default">
+                        <span class="salon-working-hours-default__icon" aria-hidden="true">⚡</span>
+                        <span>
+                            <strong>اعمال برنامه پیشنهادی ۰۹ تا ۲۲</strong>
+                            <small>شنبه تا پنجشنبه ۰۹:۰۰ تا ۲۲:۰۰ · جمعه تعطیل</small>
+                        </span>
+                    </button>
+                </form>
             </div>
         </div>
     </section>
