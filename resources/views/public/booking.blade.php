@@ -1547,6 +1547,7 @@
                                     await fetch(
                                         url,
                                         {
+                                            cache: 'no-store',
                                             headers: {
                                                 'Accept':
                                                     'application/json',
