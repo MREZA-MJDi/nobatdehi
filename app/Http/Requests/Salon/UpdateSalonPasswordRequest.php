@@ -15,7 +15,7 @@ class UpdateSalonPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'current_password' => [
+            'security_current_password' => [
                 'required',
                 'current_password:web',
             ],
@@ -30,8 +30,8 @@ class UpdateSalonPasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'current_password.required' => 'رمز عبور فعلی الزامی است.',
-            'current_password.current_password' => 'رمز عبور فعلی صحیح نیست.',
+            'security_current_password.required' => 'رمز عبور فعلی الزامی است.',
+            'security_current_password.current_password' => 'رمز عبور فعلی صحیح نیست.',
             'password.required' => 'رمز عبور جدید الزامی است.',
             'password.confirmed' => 'تکرار رمز عبور جدید با آن یکسان نیست.',
             'password.min' => 'رمز عبور جدید باید حداقل ۸ کاراکتر باشد.',
