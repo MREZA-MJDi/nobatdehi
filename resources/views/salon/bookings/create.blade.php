@@ -35,6 +35,9 @@
 
                 barbers: @js($barbersData),
                 services: @js($servicesData),
+                dataEndpoint: @js(route('salon.bookings.manual-data')),
+                loadingBootstrap: false,
+                bootstrapError: '',
 
                 customerName: @js(old('customer_name', '')),
                 customerPhone: @js(old('customer_phone', '')),
@@ -88,7 +91,7 @@
                     'اسفند',
                 ],
 
-                init() {
+                async init() {
                     if (
                         !this.selectedDate ||
                         this.selectedDate < this.todayIso
@@ -99,6 +102,8 @@
 
                     this.initCalendar();
 
+                    await this.loadBootstrapData();
+
                     this.$nextTick(() => {
                         if (
                             this.barberId &&
@@ -108,6 +113,53 @@
                             this.loadSlots(true);
                         }
                     });
+                },
+
+                async loadBootstrapData() {
+                    if (!this.dataEndpoint) return;
+
+                    this.loadingBootstrap = true;
+                    this.bootstrapError = '';
+
+                    try {
+                        const response = await fetch(
+                            this.dataEndpoint,
+                            {
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                },
+                                credentials: 'same-origin',
+                                cache: 'no-store',
+                            }
+                        );
+
+                        const payload = await response.json().catch(() => ({}));
+
+                        if (!response.ok || payload?.ok !== true) {
+                            throw new Error(
+                                payload?.message ||
+                                'دریافت اطلاعات نوبت دستی ناموفق بود.'
+                            );
+                        }
+
+                        const data = payload.data || {};
+
+                        this.barbers = Array.isArray(data.barbers)
+                            ? data.barbers
+                            : [];
+
+                        this.services = Array.isArray(data.services)
+                            ? data.services
+                            : [];
+                    } catch (error) {
+                        console.error(error);
+                        this.bootstrapError =
+                            error?.message ||
+                            'خطا در دریافت اطلاعات نوبت دستی.';
+                    } finally {
+                        this.loadingBootstrap = false;
+                    }
                 },
 
                 persianDigits(value) {
@@ -800,6 +852,7 @@
 
     <div
         x-data="salonManualBooking()"
+        data-manual-booking-endpoint="{{ route('salon.bookings.manual-data') }}"
         x-init="init()"
         dir="rtl"
         class="salon-manual-booking mx-auto w-full max-w-7xl px-4 py-6 pb-28 sm:px-6 lg:px-8 lg:py-8"
