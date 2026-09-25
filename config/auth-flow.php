@@ -12,7 +12,6 @@ return [
     |
     */
 
-    'registration_otp_required' =>
-        env('AUTH_REGISTRATION_OTP_REQUIRED', false),
+    'registration_otp_required' => false,
 
 ];
