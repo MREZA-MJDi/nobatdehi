@@ -290,8 +290,13 @@ class WorkingHourController extends Controller
                 ->values()
                 ->all();
 
+            /*
+             * No row means no configured availability for this day.
+             * Treat it as closed in the editor instead of showing a misleading
+             * "open" day with an impossible empty schedule.
+             */
             $schedule[(string) $day] = [
-                'closed' => false,
+                'closed' => $dayRows->isEmpty() || $intervals === [],
                 'intervals' => $intervals,
             ];
         }
