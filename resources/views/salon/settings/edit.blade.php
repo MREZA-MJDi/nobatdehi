@@ -20,7 +20,7 @@
             ->keyBy('day_of_week');
     @endphp
 
-    <div class="px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+    <div class="px-4 py-5 sm:px-6 sm:py-7 lg:px-8" data-settings-page>
         <div class="mx-auto w-full max-w-5xl">
 
             {{-- =========================================================
@@ -171,7 +171,7 @@
             {{-- =========================================================
                 ACCOUNT SETTINGS
             ========================================================== --}}
-            <section class="mb-8 grid gap-4 lg:grid-cols-2">
+            <section id="settings-account" class="mb-8 grid gap-4 lg:grid-cols-2 scroll-mt-24">
                 <article class="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-6">
                     <div class="mb-5 flex items-start gap-3">
                         <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent-50 text-accent-600" aria-hidden="true">
@@ -312,6 +312,21 @@
                 </article>
             </section>
 
+
+
+            <nav
+                class="mb-6 sticky top-3 z-20 overflow-x-auto rounded-2xl border border-border bg-surface/95 p-1.5 shadow-sm backdrop-blur"
+                data-settings-tabs
+                aria-label="بخش‌های تنظیمات"
+            >
+                <div class="flex min-w-max gap-1">
+                    <a href="#settings-account" data-settings-tab="settings-account" class="settings-tab is-active">حساب و امنیت</a>
+                    <a href="#settings-intro" data-settings-tab="settings-intro" class="settings-tab">معرفی سالن</a>
+                    <a href="#settings-branding" data-settings-tab="settings-branding" class="settings-tab">ظاهر و برند</a>
+                    <a href="#settings-location" data-settings-tab="settings-location" class="settings-tab">موقعیت</a>
+                    <a href="#settings-hours" data-settings-tab="settings-hours" class="settings-tab">ساعات کاری</a>
+                </div>
+            </nav>
 
             {{-- =========================================================
                 MAIN FORM / ALPINE APP
@@ -1248,7 +1263,7 @@
                 {{-- =====================================================
                     1. INTRO
                 ====================================================== --}}
-                <section class="mb-6 overflow-hidden rounded-[2rem] border border-border bg-surface shadow-sm">
+                <section id="settings-intro" class="mb-6 overflow-hidden rounded-[2rem] border border-border bg-surface shadow-sm scroll-mt-24">
 
                     <div class="border-b border-border px-5 py-5 sm:px-7">
 
@@ -1426,7 +1441,7 @@
                 {{-- =====================================================
                     2. BRANDING
                 ====================================================== --}}
-                <section class="mb-6 overflow-hidden rounded-[2rem] border border-border bg-surface shadow-sm">
+                <section id="settings-branding" class="mb-6 overflow-hidden rounded-[2rem] border border-border bg-surface shadow-sm">
 
                     <div class="border-b border-border px-5 py-5 sm:px-7">
 
@@ -1879,7 +1894,7 @@
                 {{-- =====================================================
                     3. LOCATION
                 ====================================================== --}}
-                <section class="mb-6 overflow-hidden rounded-[2rem] border border-border bg-surface shadow-sm">
+                <section id="settings-location" class="mb-6 overflow-hidden rounded-[2rem] border border-border bg-surface shadow-sm">
 
                     <div class="border-b border-border px-5 py-5 sm:px-7">
 
@@ -2117,7 +2132,7 @@
                 {{-- =====================================================
                     4. WORKING HOURS
                 ====================================================== --}}
-                <section class="mb-6 overflow-hidden rounded-[2rem] border border-border bg-surface shadow-sm">
+                <section id="settings-hours" class="mb-6 overflow-hidden rounded-[2rem] border border-border bg-surface shadow-sm">
 
                     <div class="border-b border-border px-5 py-5 sm:px-7">
 
@@ -2854,5 +2869,43 @@
 
         </div>
     </div>
+
+
+@push('scripts')
+<script>
+(() => {
+    const page = document.querySelector('[data-settings-page]');
+    if (!page) return;
+
+    const tabs = [...page.querySelectorAll('[data-settings-tab]')];
+    const sections = tabs
+        .map(tab => document.getElementById(tab.dataset.settingsTab))
+        .filter(Boolean);
+
+    const activate = id => {
+        tabs.forEach(tab => {
+            const active = tab.dataset.settingsTab === id;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-current', active ? 'location' : 'false');
+        });
+    };
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => activate(tab.dataset.settingsTab));
+    });
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(entries => {
+            const visible = entries
+                .filter(entry => entry.isIntersecting)
+                .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (visible) activate(visible.target.id);
+        }, { rootMargin: '-24% 0px -60% 0px', threshold: [0.05, 0.25, 0.6] });
+
+        sections.forEach(section => observer.observe(section));
+    }
+})();
+</script>
+@endpush
 
 @endsection
