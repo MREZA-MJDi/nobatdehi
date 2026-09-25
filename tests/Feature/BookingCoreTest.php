@@ -55,6 +55,56 @@ class BookingCoreTest extends TestCase
         $this->assertSame('booked', $slot['status']);
     }
 
+    public function test_availability_uses_half_hour_start_grid_and_preserves_service_duration(): void
+    {
+        [$owner, $customer, $salon, $barber, $service, $date] =
+            $this->fixture();
+
+        $service->update([
+            'duration_minutes' => 45,
+        ]);
+
+        $slots = app(AvailabilityService::class)->slots(
+            $salon,
+            $barber,
+            $service,
+            $date
+        );
+
+        $slot0900 = collect($slots)->firstWhere('start', '09:00');
+        $slot0930 = collect($slots)->firstWhere('start', '09:30');
+
+        $this->assertNotNull($slot0900);
+        $this->assertSame('09:45', $slot0900['end']);
+
+        $this->assertNotNull($slot0930);
+        $this->assertSame('10:15', $slot0930['end']);
+
+        $this->assertNull(collect($slots)->firstWhere('start', '09:15'));
+        $this->assertNull(collect($slots)->firstWhere('start', '09:45'));
+    }
+
+    public function test_booking_start_off_half_hour_grid_is_rejected_by_availability(): void
+    {
+        Event::fake();
+
+        [$owner, $customer, $salon, $barber, $service, $date] =
+            $this->fixture();
+
+        $this->expectException(ValidationException::class);
+
+        app(BookingService::class)->create(
+            $customer,
+            [
+                'salon_id' => $salon->id,
+                'barber_id' => $barber->id,
+                'service_id' => $service->id,
+                'booking_date' => $date->toDateString(),
+                'start_time' => '09:15',
+            ]
+        );
+    }
+
     public function test_manual_confirmed_booking_blocks_customer_availability(): void
     {
         Event::fake();
