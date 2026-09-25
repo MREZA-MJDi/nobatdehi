@@ -177,7 +177,7 @@ class ReviewController extends Controller
         ]);
 
         return redirect()
-            ->route('customer.dashboard')
+            ->route('customer.bookings.show', $booking)
             ->with(
                 'success',
                 'نظر شما با موفقیت ثبت شد.'
