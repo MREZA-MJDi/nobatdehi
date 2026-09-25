@@ -62,6 +62,43 @@ class BookingService
                 $data,
                 $status
             ) {
+                /*
+                |--------------------------------------------------------------------------
+                | Customer pending limit
+                |--------------------------------------------------------------------------
+                |
+                | This is intentionally enforced inside the transaction so the
+                | rule cannot be bypassed by manipulating the frontend or by
+                | submitting two booking requests at nearly the same time.
+                */
+
+                if ($status === BookingStatus::PENDING) {
+                    $lockedCustomer = User::query()
+                        ->lockForUpdate()
+                        ->find($customer->id);
+
+                    if (!$lockedCustomer || !$lockedCustomer->isCustomer()) {
+                        throw ValidationException::withMessages([
+                            'customer_id' =>
+                                'حساب مشتری معتبر نیست.',
+                        ]);
+                    }
+
+                    if (
+                        $lockedCustomer->bookings()
+                            ->where('status', BookingStatus::PENDING)
+                            ->count()
+                        >= self::MAX_PENDING_BOOKINGS
+                    ) {
+                        throw ValidationException::withMessages([
+                            'pending_bookings' =>
+                                'در حال حاضر حداکثر ۲ نوبت در انتظار تأیید می‌توانی داشته باشی. بعد از تأیید، تکمیل یا لغو یکی از نوبت‌ها، دوباره می‌توانی نوبت جدید بگیری.',
+                        ]);
+                    }
+
+                    $customer = $lockedCustomer;
+                }
+
                 return $this->createBooking(
                     $customer,
                     $data,
