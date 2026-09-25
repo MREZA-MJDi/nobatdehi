@@ -13,6 +13,11 @@ class SalonController extends Controller
     {
         abort_unless($salon->is_active, 404);
 
+        $canManageSalon =
+            auth()->check()
+            && auth()->user()->isSalonOwner()
+            && (int) $salon->owner_id === (int) auth()->id();
+
         $salon->load([
             'owner',
             'barbers' => function ($query) {
@@ -283,7 +288,8 @@ class SalonController extends Controller
                 'todayHoursText',
                 'dailyStatus',
                 'isDailyClosed',
-                'isFavorited'
+                'isFavorited',
+                'canManageSalon'
             )
         );
     }
