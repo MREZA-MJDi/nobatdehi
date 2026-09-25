@@ -2394,3 +2394,33 @@ html[data-theme="dark"] .salon-owner {
         grid-template-columns: repeat(2, minmax(0,1fr)) !important;
     }
 }
+
+
+/* ==========================================================================
+   Owner settings section navigation
+   ========================================================================== */
+.settings-tab{
+    min-height:40px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 13px;
+    border-radius:12px;
+    color:var(--owner-muted,#64748b);
+    font-size:.76rem;
+    font-weight:800;
+    white-space:nowrap;
+    transition:background-color .18s ease,color .18s ease,box-shadow .18s ease;
+}
+.settings-tab:hover{
+    color:var(--owner-primary);
+    background:color-mix(in srgb,var(--owner-primary) 6%,transparent);
+}
+.settings-tab.is-active{
+    color:var(--owner-primary);
+    background:color-mix(in srgb,var(--owner-primary) 10%,var(--owner-surface,#fff));
+    box-shadow:0 4px 14px color-mix(in srgb,var(--owner-primary) 8%,transparent);
+}
+@media (max-width:640px){
+    .settings-tab{padding-inline:10px;font-size:.71rem}
+}
