@@ -165,14 +165,27 @@
         <header class="topbar">
             <div class="topbar-in">
 
-                <a
-                    href="{{ route('salons.discover') }}"
-                    class="back-home"
-                    aria-label="بازگشت به کشف سالن‌ها"
-                >
-                    <span class="back-icon">←</span>
-                    <span class="back-label">کشف سالن‌ها</span>
-                </a>
+                <div class="topbar-left-actions">
+                    <a
+                        href="{{ route('salons.discover') }}"
+                        class="back-home"
+                        aria-label="بازگشت به کشف سالن‌ها"
+                    >
+                        <span class="back-icon">←</span>
+                        <span class="back-label">کشف سالن‌ها</span>
+                    </a>
+
+                    @if($canManageSalon)
+                        <a
+                            href="{{ route('salon.dashboard') }}"
+                            class="owner-dashboard-link"
+                            aria-label="بازگشت به داشبورد سالن"
+                        >
+                            <span aria-hidden="true">⌂</span>
+                            <span>داشبورد سالن</span>
+                        </a>
+                    @endif
+                </div>
 
 
                 <a
