@@ -201,11 +201,21 @@ class RegisterController extends Controller
             ->session()
             ->has('booking.pending');
 
+        $pendingBooking = $request
+            ->session()
+            ->get('booking.pending');
+
         Auth::login($user);
 
         $request
             ->session()
             ->regenerate();
+
+        if (is_array($pendingBooking)) {
+            $request
+                ->session()
+                ->put('booking.pending', $pendingBooking);
+        }
 
         $request
             ->session()
