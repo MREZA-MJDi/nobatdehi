@@ -4588,3 +4588,708 @@ body.salon-lightbox-open {
         scroll-margin-top: 116px;
     }
 }
+
+
+/* ================================================================
+   PUBLIC SALON — CLARITY / RESPONSIVE UX LAYER
+   Keep the existing visual language; improve hierarchy, density,
+   touch targets, media stability and mobile readability.
+   ================================================================ */
+
+.salon-page {
+    --salon-content-width: 1180px;
+    --salon-gutter: clamp(16px, 3vw, 32px);
+    --salon-section-space: clamp(56px, 7vw, 88px);
+    --salon-card-radius: 20px;
+    --salon-control-height: 44px;
+}
+
+.salon-page .wrap,
+.salon-page .topbar-in {
+    width: min(
+        calc(100% - (var(--salon-gutter) * 2)),
+        var(--salon-content-width)
+    );
+}
+
+.salon-page {
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.salon-page .topbar {
+    background: rgba(8, 9, 11, .94);
+    border-bottom-color: rgba(255,255,255,.09);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.salon-page .topbar-in {
+    min-height: 64px;
+}
+
+.salon-page .back-home,
+.salon-page .brand,
+.salon-page .topnav a,
+.salon-page .topnav button {
+    min-height: var(--salon-control-height);
+}
+
+.salon-page .hero {
+    margin-top: 20px;
+}
+
+.salon-page .cover {
+    min-height: clamp(320px, 42vw, 470px);
+    border-radius: 24px;
+    box-shadow: 0 18px 50px rgba(0,0,0,.20);
+}
+
+.salon-page .cover > img {
+    filter: saturate(.88) contrast(1.02) brightness(.72);
+}
+
+.salon-page .cover-shade {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(5,6,8,.04) 0%,
+            rgba(5,6,8,.10) 36%,
+            rgba(5,6,8,.72) 78%,
+            rgba(5,6,8,.94) 100%
+        );
+}
+
+.salon-page .profile-bar {
+    margin-top: -58px;
+    padding-inline: 24px;
+    gap: 18px;
+}
+
+.salon-page .avatar {
+    width: 118px;
+    height: 118px;
+    border-radius: 28px;
+}
+
+.salon-page .name-row {
+    gap: 10px;
+}
+
+.salon-page .name-row h1 {
+    font-size: clamp(1.45rem, 2.8vw, 2.15rem);
+    line-height: 1.35;
+}
+
+.salon-page .tagline,
+.salon-page .hero-bio {
+    color: var(--text-soft);
+}
+
+.salon-page .tagline {
+    margin-top: 7px;
+    max-width: 720px;
+    font-size: .82rem;
+}
+
+.salon-page .stats {
+    gap: clamp(14px, 2.3vw, 28px);
+    margin-top: 15px;
+}
+
+.salon-page .stat {
+    min-width: 58px;
+}
+
+.salon-page .stat b {
+    font-size: 1rem;
+}
+
+.salon-page .stat span {
+    font-size: .64rem;
+}
+
+.salon-page .profile-actions {
+    gap: 8px;
+}
+
+.salon-page .profile-actions .btn-diamond,
+.salon-page .profile-actions .btn-ghost,
+.salon-page .bk-side .btn-book {
+    min-height: 44px;
+}
+
+.salon-page .hero-bottom {
+    margin: 20px 24px 0;
+    gap: 24px;
+}
+
+.salon-page .hero-bio {
+    max-width: 760px;
+    font-size: .82rem;
+    line-height: 2;
+}
+
+.salon-page .hero-meta {
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.025);
+}
+
+.salon-page .chips {
+    margin: 14px 24px 0;
+    gap: 7px;
+}
+
+.salon-page .chip {
+    min-height: 34px;
+    padding-inline: 11px;
+    font-size: .64rem;
+}
+
+.salon-page .booking-cta {
+    margin-top: 32px;
+    padding: 26px 28px;
+    border-radius: 22px;
+    gap: 24px;
+}
+
+.salon-page .bk-text h2 {
+    font-size: clamp(1.1rem, 2.4vw, 1.45rem);
+    line-height: 1.55;
+}
+
+.salon-page .bk-text p {
+    max-width: 620px;
+    font-size: .78rem;
+    line-height: 1.95;
+}
+
+.salon-page .section {
+    margin-top: var(--salon-section-space);
+    scroll-margin-top: 104px;
+}
+
+.salon-page .section-topline {
+    margin-bottom: 20px;
+    gap: 16px;
+}
+
+.salon-page .section-kicker {
+    margin-bottom: 7px;
+    font-size: .60rem;
+    letter-spacing: .16em;
+}
+
+.salon-page .section-topline h2 {
+    font-size: clamp(1.1rem, 2.1vw, 1.45rem);
+    line-height: 1.5;
+}
+
+.salon-page .section-topline p {
+    max-width: 620px;
+    margin-top: 6px;
+    font-size: .74rem;
+    line-height: 1.8;
+}
+
+.salon-page .section-count {
+    min-height: 34px;
+    padding-inline: 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255,255,255,.025);
+    font-size: .62rem;
+}
+
+.salon-page .services-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.salon-page .service-card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--salon-card-radius);
+    background: var(--surface);
+    border-color: var(--line-strong);
+    box-shadow: 0 8px 28px rgba(0,0,0,.12);
+}
+
+.salon-page .service-media {
+    aspect-ratio: 16 / 9;
+}
+
+.salon-page .service-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.salon-page .service-content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0;
+    padding: 17px;
+}
+
+.salon-page .service-title {
+    font-size: .90rem;
+    line-height: 1.55;
+}
+
+.salon-page .service-description {
+    margin-top: 7px;
+    min-height: 2.9em;
+    color: var(--text-soft);
+    font-size: .70rem;
+    line-height: 1.8;
+}
+
+.salon-page .service-info {
+    margin-top: auto;
+    padding-top: 16px;
+}
+
+.salon-page .service-price {
+    font-size: .78rem;
+}
+
+.salon-page .service-duration {
+    min-height: 30px;
+    padding-inline: 9px;
+    font-size: .60rem;
+}
+
+.salon-page .service-book {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 14px;
+    border-radius: 13px;
+    font-size: .68rem;
+}
+
+.salon-page .tabs {
+    width: fit-content;
+    max-width: 100%;
+    margin-bottom: 14px;
+    border-radius: 14px;
+}
+
+.salon-page .tab {
+    min-height: 40px;
+    font-size: .68rem;
+}
+
+.salon-page .gallery {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-flow: dense;
+    grid-auto-rows: 210px;
+    gap: 10px;
+}
+
+.salon-page .tile {
+    min-height: 0;
+    height: 100%;
+    border-radius: 18px;
+}
+
+.salon-page .tile.tile-1 {
+    grid-column: span 2;
+    grid-row: span 2;
+    min-height: 0;
+}
+
+.salon-page .tile.tile-6 {
+    grid-column: span 2;
+}
+
+.salon-page .tile .media,
+.salon-page .tile .media img,
+.salon-page .tile .media video {
+    width: 100%;
+    height: 100%;
+}
+
+.salon-page .tile .media img,
+.salon-page .tile .media video {
+    object-fit: cover;
+}
+
+.salon-page .tile-bottom strong {
+    font-size: .72rem;
+}
+
+.salon-page .tile-bottom span {
+    font-size: .60rem;
+}
+
+.salon-page .gallery-empty {
+    min-height: 220px;
+    justify-content: center;
+    padding: 30px 22px;
+    border-radius: 18px;
+}
+
+.salon-page .gallery-empty strong {
+    font-size: .82rem;
+}
+
+.salon-page .gallery-empty span {
+    max-width: 420px;
+    font-size: .68rem;
+    line-height: 1.8;
+}
+
+.salon-page .comments {
+    gap: 14px;
+}
+
+.salon-page .comment {
+    border-radius: var(--salon-card-radius);
+}
+
+.salon-page .team-grid {
+    gap: 14px;
+}
+
+.salon-page .tcard {
+    border-radius: var(--salon-card-radius);
+}
+
+.salon-page .bottom-grid {
+    gap: 14px;
+}
+
+.salon-page .map-card,
+.salon-page .about-card {
+    border-radius: var(--salon-card-radius);
+}
+
+.salon-page .related-grid {
+    gap: 12px;
+}
+
+.salon-page .related-card {
+    border-radius: 18px;
+}
+
+.salon-page .float-book {
+    filter: drop-shadow(0 12px 28px rgba(0,0,0,.20));
+}
+
+@media (max-width: 1050px) {
+    .salon-page .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .salon-page .gallery {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-auto-rows: 200px;
+    }
+
+    .salon-page .tile.tile-1 {
+        grid-column: span 2;
+        grid-row: span 2;
+    }
+
+    .salon-page .tile.tile-6 {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 860px) {
+    .salon-page .profile-bar {
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: end;
+    }
+
+    .salon-page .profile-actions {
+        grid-column: 1 / -1;
+    }
+
+    .salon-page .hero-bottom {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 680px) {
+    .salon-page {
+        font-size: 14px;
+        padding-bottom: 76px;
+    }
+
+    .salon-page .wrap,
+    .salon-page .topbar-in {
+        width: min(calc(100% - 20px), var(--salon-content-width));
+    }
+
+    .salon-page .topbar-in {
+        min-height: 58px;
+    }
+
+    .salon-page .mobile-anchor-bar {
+        gap: 7px;
+        padding: 0 10px 9px;
+    }
+
+    .salon-page .mobile-anchor-bar a,
+    .salon-page .mobile-book-anchor {
+        min-height: 38px;
+        padding-inline: 11px;
+        font-size: .62rem;
+    }
+
+    .salon-page .hero {
+        margin-top: 10px;
+    }
+
+    .salon-page .cover {
+        min-height: 265px;
+        border-radius: 20px;
+    }
+
+    .salon-page .cover-fallback {
+        min-height: 265px;
+    }
+
+    .salon-page .profile-bar {
+        margin-top: -44px;
+        padding-inline: 12px;
+        gap: 11px;
+    }
+
+    .salon-page .avatar {
+        width: 88px;
+        height: 88px;
+        border-radius: 23px;
+    }
+
+    .salon-page .name-row h1 {
+        font-size: 1.18rem;
+    }
+
+    .salon-page .tagline {
+        margin-top: 5px;
+        font-size: .70rem;
+        line-height: 1.8;
+    }
+
+    .salon-page .stats {
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .salon-page .stat b {
+        font-size: .82rem;
+    }
+
+    .salon-page .stat span {
+        font-size: .56rem;
+    }
+
+    .salon-page .profile-actions {
+        gap: 8px;
+    }
+
+    .salon-page .profile-actions .btn-diamond,
+    .salon-page .profile-actions .btn-ghost {
+        min-height: 44px;
+        font-size: .68rem;
+    }
+
+    .salon-page .hero-bottom {
+        margin-inline: 12px;
+        margin-top: 16px;
+        gap: 10px;
+    }
+
+    .salon-page .hero-bio {
+        font-size: .74rem;
+        line-height: 1.95;
+    }
+
+    .salon-page .hero-meta {
+        padding: 11px 12px;
+        font-size: .62rem;
+    }
+
+    .salon-page .chips {
+        margin-inline: 12px;
+        gap: 6px;
+    }
+
+    .salon-page .chip {
+        min-height: 32px;
+        font-size: .60rem;
+    }
+
+    .salon-page .booking-cta {
+        margin-top: 28px;
+        padding: 20px 17px;
+        border-radius: 20px;
+    }
+
+    .salon-page .bk-text h2 {
+        font-size: 1.12rem;
+    }
+
+    .salon-page .bk-text p {
+        font-size: .70rem;
+        line-height: 1.9;
+    }
+
+    .salon-page .section {
+        margin-top: 58px;
+        scroll-margin-top: 112px;
+    }
+
+    .salon-page .section-topline {
+        align-items: flex-start;
+        margin-bottom: 17px;
+        gap: 10px;
+    }
+
+    .salon-page .section-kicker {
+        font-size: .56rem;
+    }
+
+    .salon-page .section-topline h2 {
+        font-size: 1.08rem;
+    }
+
+    .salon-page .section-topline p {
+        font-size: .64rem;
+        line-height: 1.75;
+    }
+
+    .salon-page .section-count {
+        min-height: 31px;
+        padding-inline: 9px;
+        font-size: .58rem;
+    }
+
+    .salon-page .services-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .salon-page .service-card {
+        border-radius: 18px;
+    }
+
+    .salon-page .service-media {
+        aspect-ratio: 16 / 8.7;
+    }
+
+    .salon-page .service-content {
+        padding: 15px;
+    }
+
+    .salon-page .service-title {
+        font-size: .84rem;
+    }
+
+    .salon-page .service-description {
+        min-height: 0;
+        font-size: .68rem;
+    }
+
+    .salon-page .service-info {
+        padding-top: 13px;
+    }
+
+    .salon-page .service-book {
+        min-height: 44px;
+        font-size: .67rem;
+    }
+
+    .salon-page .tabs {
+        width: 100%;
+        margin-bottom: 11px;
+        padding: 3px;
+    }
+
+    .salon-page .tab {
+        min-height: 40px;
+        padding-inline: 11px;
+        font-size: .64rem;
+    }
+
+    .salon-page .gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-rows: 150px;
+        gap: 8px;
+    }
+
+    .salon-page .tile {
+        min-height: 0;
+        border-radius: 15px;
+    }
+
+    .salon-page .tile.tile-1 {
+        grid-column: span 2;
+        grid-row: span 2;
+    }
+
+    .salon-page .tile.tile-6 {
+        grid-column: span 2;
+    }
+
+    .salon-page .tile-bottom strong {
+        font-size: .66rem;
+    }
+
+    .salon-page .tile-bottom span {
+        font-size: .56rem;
+    }
+
+    .salon-page .gallery-empty {
+        min-height: 190px;
+        padding: 24px 17px;
+    }
+
+    .salon-page .gallery-empty strong {
+        font-size: .76rem;
+    }
+
+    .salon-page .gallery-empty span {
+        font-size: .62rem;
+    }
+
+    .salon-page .comment {
+        min-height: auto;
+    }
+
+    .salon-page .related-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+    }
+
+    .salon-page .float-book {
+        bottom: calc(9px + env(safe-area-inset-bottom));
+        inset-inline: 10px;
+    }
+
+    .salon-page .float-book button {
+        min-height: 56px;
+        border-radius: 16px;
+        font-size: .72rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .salon-page *,
+    .salon-page *::before,
+    .salon-page *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
