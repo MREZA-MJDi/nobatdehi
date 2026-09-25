@@ -168,4 +168,14 @@ class Salon extends Model
             'salon_id'
         );
     }
+
+    public function favoritedByCustomers()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'salon_favorites',
+            'salon_id',
+            'customer_id'
+        )->withTimestamps();
+    }
 }
