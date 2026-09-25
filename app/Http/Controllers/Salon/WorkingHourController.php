@@ -77,6 +77,17 @@ class WorkingHourController extends Controller
             ? (string) $selectedBarberId
             : 'salon';
 
+        /*
+         * A stale/inactive barber id must never leave the editor without a
+         * valid schedule scope. Fall back to the salon-wide schedule.
+         */
+        if (
+            $selectedScope !== 'salon' &&
+            !isset($schedules[$selectedScope])
+        ) {
+            $selectedScope = 'salon';
+        }
+
         $oldHours = $request->old('hours');
 
         if (is_array($oldHours)) {
@@ -194,6 +205,7 @@ class WorkingHourController extends Controller
             Barber::query()
                 ->whereKey($barberId)
                 ->where('salon_id', $salon->id)
+                ->where('is_active', true)
                 ->firstOrFail();
         }
 
