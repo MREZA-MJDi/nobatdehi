@@ -16,11 +16,13 @@ class AvailabilityService
      *
      * Example:
      * 10:00
-     * 10:15
      * 10:30
-     * 10:45
+     * 11:00
+     * 11:30
+     *
+     * Service duration is independent from this start-time grid.
      */
-    private const SLOT_INTERVAL_MINUTES = 15;
+    private const SLOT_INTERVAL_MINUTES = 30;
 
     /**
      * Return all possible booking start times for a barber,
@@ -284,13 +286,32 @@ class AvailabilityService
 
             /*
             |--------------------------------------------------------------------------
-            | Generate 15-minute start grid
+            | Generate 30-minute booking start grid
             |--------------------------------------------------------------------------
             */
 
-            for (
-                $cursor = $workStart->copy();
+            /*
+            |--------------------------------------------------------------------------
+            | Align booking starts to the global half-hour grid.
+            |--------------------------------------------------------------------------
+            |
+            | Working hours and breaks may still be defined in 15-minute
+            | precision, but customer/manual booking starts are intentionally
+            | limited to :00 and :30.
+            |
+            */
+            $cursor = $workStart->copy();
 
+            $minuteOffset = $cursor->minute % self::SLOT_INTERVAL_MINUTES;
+
+            if ($minuteOffset !== 0) {
+                $cursor->addMinutes(
+                    self::SLOT_INTERVAL_MINUTES - $minuteOffset
+                );
+            }
+
+            for (
+                ;
                 $cursor
                     ->copy()
                     ->addMinutes($duration)
