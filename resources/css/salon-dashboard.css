@@ -268,3 +268,24 @@
     }
 }
 
+/* ==========================================================================
+   SALON DASHBOARD — STANDARD TYPE SCALE
+   ========================================================================== */
+.nd-dashboard{font-family:var(--ui-font-family,"Estedad",Tahoma,Arial,sans-serif)}
+.nd-dashboard h1{font-size:var(--ui-title-xl)!important;line-height:1.35!important}
+.nd-dashboard h2{font-size:var(--ui-title-lg)!important;line-height:1.45!important}
+.nd-dashboard h3{font-size:var(--ui-text-lg)!important;line-height:1.5!important}
+.nd-dashboard p{font-size:var(--ui-text-sm);line-height:var(--ui-line-body)}
+.nd-dashboard .nd-btn,
+.nd-dashboard .nd-alert-action,
+.nd-dashboard .nd-chart-controls button{font-size:var(--ui-text-sm);line-height:1.5}
+.nd-dashboard .nd-kpi-label,
+.nd-dashboard .nd-chart-summary span,
+.nd-dashboard .nd-chart-note,
+.nd-dashboard .nd-section-kicker{font-size:var(--ui-text-xs)}
+.nd-dashboard .nd-kpi strong{font-size:1.05rem}
+.nd-dashboard .nd-bar-label,.nd-dashboard .nd-bar-value{font-size:var(--ui-text-xs)}
+@media(max-width:699px){
+    .nd-dashboard h1{font-size:clamp(1.18rem,6vw,1.5rem)!important}
+    .nd-dashboard h2{font-size:clamp(1.02rem,5vw,1.25rem)!important}
+}
