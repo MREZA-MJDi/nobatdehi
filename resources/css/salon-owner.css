@@ -2675,3 +2675,159 @@ html[data-theme="dark"] .salon-owner {
         padding: 0;
     }
 }
+
+
+/* ==========================================================================
+   Manual booking — compact mobile workspace
+   ========================================================================== */
+
+@media (max-width: 759px) {
+    .salon-manual-booking {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 2px 0 92px;
+        overflow-x: hidden;
+    }
+
+    .salon-manual-booking > form,
+    .salon-manual-booking > form > .grid,
+    .salon-manual-booking > form > .grid > main {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .salon-manual-booking .salon-manual-booking-header {
+        margin-bottom: 14px;
+    }
+
+    .salon-manual-booking .salon-manual-booking-header > div {
+        gap: 10px;
+    }
+
+    .salon-manual-booking .salon-manual-booking-header h1 {
+        font-size: 1.25rem !important;
+        line-height: 1.5 !important;
+    }
+
+    .salon-manual-booking .salon-manual-booking-header p {
+        max-width: none;
+        font-size: .69rem !important;
+        line-height: 1.9;
+    }
+
+    .salon-manual-booking section {
+        overflow: visible;
+        border-radius: 16px !important;
+    }
+
+    .salon-manual-booking section > div {
+        min-width: 0;
+    }
+
+    .salon-manual-booking section .p-5 {
+        padding: 13px !important;
+    }
+
+    .salon-manual-booking section .border-b {
+        padding: 13px !important;
+    }
+
+    .salon-manual-booking section .grid.sm\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .salon-manual-booking .salon-manual-slot-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 7px !important;
+    }
+
+    .salon-manual-booking .salon-manual-slot-grid button {
+        min-width: 0;
+        min-height: 50px;
+        padding: 7px 5px;
+    }
+
+    .salon-manual-booking .salon-manual-slot-grid button > div:first-child {
+        font-size: .78rem;
+    }
+
+    .salon-manual-booking .salon-manual-quick-dates {
+        max-width: 100%;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+        overscroll-behavior-inline: contain;
+        scroll-snap-type: x proximity;
+    }
+
+    .salon-manual-booking .salon-manual-quick-dates::-webkit-scrollbar {
+        display: none;
+    }
+
+    .salon-manual-booking .salon-manual-quick-dates > * {
+        flex: 0 0 76px;
+        scroll-snap-align: start;
+    }
+
+    .salon-manual-booking .relative > .absolute {
+        max-height: min(70vh, 430px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .salon-manual-booking .relative > .absolute .grid.grid-cols-7 {
+        gap: 2px;
+    }
+
+    .salon-manual-booking .relative > .absolute .grid.grid-cols-7 > * {
+        min-width: 0;
+    }
+
+    .salon-manual-booking > form > .grid > aside {
+        display: none !important;
+    }
+
+    .salon-manual-booking .salon-manual-mobile-action {
+        padding:
+            9px
+            max(9px, env(safe-area-inset-left))
+            calc(9px + env(safe-area-inset-bottom))
+            max(9px, env(safe-area-inset-right));
+    }
+
+    .salon-manual-booking .salon-manual-mobile-action > div {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .salon-manual-booking .salon-manual-mobile-action button {
+        min-width: 132px;
+        min-height: 46px;
+        padding-inline: 13px;
+        white-space: nowrap;
+    }
+
+    .salon-manual-booking textarea {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 380px) {
+    .salon-manual-booking .salon-manual-mobile-action {
+        gap: 8px;
+    }
+
+    .salon-manual-booking .salon-manual-mobile-action button {
+        min-width: 116px;
+        padding-inline: 11px;
+        font-size: .68rem;
+    }
+
+    .salon-manual-booking .salon-manual-slot-grid button {
+        min-height: 48px;
+    }
+
+    .salon-manual-booking .salon-manual-quick-dates > * {
+        flex-basis: 70px;
+    }
+}
