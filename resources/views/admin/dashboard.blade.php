@@ -175,8 +175,184 @@
         </div>
 
 
+        {{-- Recent Salons --}}
+        <section class="mt-6">
+
+            <div class="mb-3 flex items-end justify-between gap-3">
+
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-accent-600">
+                        Recent Salons
+                    </div>
+
+                    <h2 class="mt-1 text-lg font-black text-content">
+                        سالن‌های اخیر
+                    </h2>
+
+                    <p class="mt-1 text-xs text-content-muted">
+                        مدیریت سریع صفحه عمومی، QR و اطلاعات هر سالن
+                    </p>
+                </div>
+
+                <a
+                    href="{{ route('admin.salons.index') }}"
+                    class="btn btn-secondary btn-sm"
+                >
+                    همه سالن‌ها
+                </a>
+
+            </div>
+
+
+            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+
+                @forelse($recentSalons as $salon)
+
+                    @php
+                        $publicUrl = route('public.salons.show', $salon);
+                    @endphp
+
+                    <article class="card overflow-hidden">
+
+                        <div class="relative h-28 bg-primary-950">
+
+                            @if($salon->cover_path)
+
+                                <img
+                                    src="{{ IlluminateSupportFacadesStorage::url($salon->cover_path) }}"
+                                    alt="{{ $salon->name }}"
+                                    class="h-full w-full object-cover"
+                                    loading="lazy"
+                                >
+
+                                <div class="absolute inset-0 bg-gradient-to-t from-primary-950/80 to-transparent"></div>
+
+                            @endif
+
+                            <div class="absolute inset-x-3 bottom-3 flex items-end justify-between gap-3">
+
+                                <div class="min-w-0">
+
+                                    <h3 class="truncate text-sm font-black text-white">
+                                        {{ $salon->name }}
+                                    </h3>
+
+                                    <div
+                                        class="mt-0.5 truncate font-mono text-[9px] text-white/65"
+                                        dir="ltr"
+                                    >
+                                        /salons/{{ $salon->slug }}
+                                    </div>
+
+                                </div>
+
+                                @if($salon->is_active)
+                                    <span class="badge shrink-0 bg-green-100 text-green-700">
+                                        فعال
+                                    </span>
+                                @else
+                                    <span class="badge shrink-0 bg-red-100 text-red-700">
+                                        غیرفعال
+                                    </span>
+                                @endif
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="p-4">
+
+                            <div class="grid grid-cols-3 gap-2">
+
+                                <div class="rounded-xl bg-primary-50 p-2.5 text-center">
+                                    <div class="text-sm font-black">
+                                        {{ number_format($salon->services_count) }}
+                                    </div>
+                                    <div class="mt-0.5 text-[9px] text-content-muted">
+                                        خدمات
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl bg-primary-50 p-2.5 text-center">
+                                    <div class="text-sm font-black">
+                                        {{ number_format($salon->barbers_count) }}
+                                    </div>
+                                    <div class="mt-0.5 text-[9px] text-content-muted">
+                                        متخصص
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl bg-primary-50 p-2.5 text-center">
+                                    <div class="text-sm font-black">
+                                        {{ $salon->qr_code_path ? '✓' : '—' }}
+                                    </div>
+                                    <div class="mt-0.5 text-[9px] text-content-muted">
+                                        QR
+                                    </div>
+                                </div>
+
+                            </div>
+
+
+                            <div class="mt-3 grid grid-cols-2 gap-2">
+
+                                <a
+                                    href="{{ route('admin.salons.show', $salon) }}"
+                                    class="btn btn-secondary btn-sm"
+                                >
+                                    مدیریت
+                                </a>
+
+                                <a
+                                    href="{{ $publicUrl }}"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="btn btn-primary btn-sm"
+                                >
+                                    صفحه عمومی
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+
+                @empty
+
+                    <div class="card p-7 text-center md:col-span-2 xl:col-span-3">
+
+                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-400">
+                            +
+                        </div>
+
+                        <h3 class="mt-3 text-sm font-black">
+                            هنوز سالنی ساخته نشده
+                        </h3>
+
+                        <p class="mt-1 text-xs text-content-muted">
+                            اولین سالن را از اینجا ایجاد کن.
+                        </p>
+
+                        <a
+                            href="{{ route('admin.salons.create') }}"
+                            class="btn btn-accent btn-sm mt-4"
+                        >
+                            ایجاد اولین سالن
+                        </a>
+
+                    </div>
+
+                @endforelse
+
+            </div>
+
+        </section>
+
+
         {{-- Main Actions --}}
-        <div class="mt-5 grid gap-4 lg:grid-cols-2">
+        <div class="mt-6 grid gap-4 lg:grid-cols-2">
 
             {{-- Manage Salons --}}
             <a
