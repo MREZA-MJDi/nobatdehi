@@ -217,14 +217,14 @@
                             <input
                                 id="salon-owner-phone-password"
                                 type="password"
-                                name="current_password"
+                                name="phone_current_password"
                                 autocomplete="current-password"
                                 dir="ltr"
                                 class="w-full rounded-2xl border border-border bg-surface-soft px-4 py-3 text-sm font-semibold text-content outline-none transition focus:border-accent-400 focus:ring-4 focus:ring-accent-500/10"
                                 placeholder="برای تأیید تغییر شماره"
                                 required
                             >
-                            @error('current_password')
+                            @error('phone_current_password')
                                 <p class="mt-2 text-xs font-semibold text-danger-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -261,13 +261,13 @@
                             <input
                                 id="salon-current-password"
                                 type="password"
-                                name="current_password"
+                                name="security_current_password"
                                 autocomplete="current-password"
                                 dir="ltr"
                                 class="w-full rounded-2xl border border-border bg-surface-soft px-4 py-3 text-sm font-semibold text-content outline-none transition focus:border-accent-400 focus:ring-4 focus:ring-accent-500/10"
                                 required
                             >
-                            @error('current_password')
+                            @error('security_current_password')
                                 <p class="mt-2 text-xs font-semibold text-danger-600">{{ $message }}</p>
                             @enderror
                         </div>
