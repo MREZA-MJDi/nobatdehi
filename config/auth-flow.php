@@ -7,15 +7,12 @@ return [
     | Registration OTP
     |--------------------------------------------------------------------------
     |
-    | OTP remains enabled by default in production. Local development can
-    | bypass the SMS verification step until the real SMS provider is ready.
+    | OTP is intentionally disabled for now in every environment.
+    | It can be enabled later by setting AUTH_REGISTRATION_OTP_REQUIRED=true.
     |
     */
 
     'registration_otp_required' =>
-        env(
-            'AUTH_REGISTRATION_OTP_REQUIRED',
-            app()->environment('production')
-        ),
+        env('AUTH_REGISTRATION_OTP_REQUIRED', false),
 
 ];
