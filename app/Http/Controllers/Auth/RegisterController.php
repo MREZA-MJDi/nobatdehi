@@ -410,6 +410,10 @@ class RegisterController extends Controller
             ->session()
             ->has('booking.pending');
 
+        $pendingBooking = $request
+            ->session()
+            ->get('booking.pending');
+
         /*
         |--------------------------------------------------------------------------
         | Authenticate
@@ -427,6 +431,12 @@ class RegisterController extends Controller
         $request
             ->session()
             ->regenerate();
+
+        if (is_array($pendingBooking)) {
+            $request
+                ->session()
+                ->put('booking.pending', $pendingBooking);
+        }
 
         /*
         |--------------------------------------------------------------------------
