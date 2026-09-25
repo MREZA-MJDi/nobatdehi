@@ -49,16 +49,6 @@ class UpdateSalonRequest extends FormRequest
                 'max:120',
             ],
 
-            'slug' => [
-                'required',
-                'string',
-                'min:2',
-                'max:120',
-                'alpha_dash',
-                Rule::unique('salons', 'slug')
-                    ->ignore($salon?->id),
-            ],
-
             'description' => [
                 'nullable',
                 'string',
@@ -167,120 +157,6 @@ class UpdateSalonRequest extends FormRequest
                 'nullable',
                 'boolean',
             ],
-
-            'services' => [
-                'nullable',
-                'array',
-            ],
-            'services.*.id' => [
-                'nullable',
-                'integer',
-            ],
-            'services.*.name' => [
-                'required_without:services.*.delete',
-                'nullable',
-                'string',
-                'max:160',
-            ],
-            'services.*.description' => [
-                'nullable',
-                'string',
-                'max:1000',
-            ],
-            'services.*.duration_minutes' => [
-                'required_without:services.*.delete',
-                'nullable',
-                'integer',
-                'min:5',
-                'max:1440',
-            ],
-            'services.*.price' => [
-                'nullable',
-                'integer',
-                'min:0',
-            ],
-            'services.*.is_active' => [
-                'nullable',
-                'boolean',
-            ],
-            'services.*.sort_order' => [
-                'nullable',
-                'integer',
-                'min:0',
-            ],
-            'services.*.delete' => [
-                'nullable',
-                'boolean',
-            ],
-
-            'barbers' => [
-                'nullable',
-                'array',
-            ],
-            'barbers.*.id' => [
-                'nullable',
-                'integer',
-            ],
-            'barbers.*.name' => [
-                'required_without:barbers.*.delete',
-                'nullable',
-                'string',
-                'max:160',
-            ],
-            'barbers.*.specialty' => [
-                'nullable',
-                'string',
-                'max:160',
-            ],
-            'barbers.*.phone' => [
-                'nullable',
-                'string',
-                'max:30',
-            ],
-            'barbers.*.bio' => [
-                'nullable',
-                'string',
-                'max:2000',
-            ],
-            'barbers.*.is_active' => [
-                'nullable',
-                'boolean',
-            ],
-            'barbers.*.delete' => [
-                'nullable',
-                'boolean',
-            ],
-
-            'working_hours' => [
-                'nullable',
-                'array',
-            ],
-            'working_hours.*.id' => [
-                'nullable',
-                'integer',
-            ],
-            'working_hours.*.day_of_week' => [
-                'required',
-                'integer',
-                'between:0,6',
-            ],
-            'working_hours.*.start_time' => [
-                'nullable',
-                'date_format:H:i',
-            ],
-            'working_hours.*.end_time' => [
-                'nullable',
-                'date_format:H:i',
-            ],
-            'working_hours.*.is_closed' => [
-                'nullable',
-                'boolean',
-            ],
-            'working_hours.*.sort_order' => [
-                'nullable',
-                'integer',
-                'min:0',
-            ],
         ];
     }
 
@@ -295,15 +171,6 @@ class UpdateSalonRequest extends FormRequest
 
             'name.max' =>
                 'نام سالن نباید بیشتر از ۱۲۰ کاراکتر باشد.',
-
-            'slug.required' =>
-                'Slug سالن الزامی است.',
-
-            'slug.alpha_dash' =>
-                'Slug فقط باید شامل حروف انگلیسی، عدد، خط تیره و زیرخط باشد.',
-
-            'slug.unique' =>
-                'این Slug قبلاً برای سالن دیگری ثبت شده است.',
 
             'description.max' =>
                 'توضیحات سالن نباید بیشتر از ۵۰۰۰ کاراکتر باشد.',
