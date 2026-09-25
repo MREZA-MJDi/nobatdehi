@@ -13,14 +13,6 @@
 
             {{-- Header --}}
             <div class="mb-7">
-                <a
-                    href="{{ route('salon.dashboard') }}"
-                    class="mb-4 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-slate-900"
-                >
-                    <span class="text-lg">→</span>
-                    داشبورد سالن
-                </a>
-
                 <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                     <div class="min-w-0">
                         <div class="flex items-center gap-3">
