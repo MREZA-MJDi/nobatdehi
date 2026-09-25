@@ -190,32 +190,6 @@
         @yield('content')
     </main>
 
-@elseif ($customerShell === 'standalone')
-
-    <main>
-        <div class="customer-container py-4">
-            <div class="mb-4 flex items-center justify-between gap-3">
-                <a
-                    href="{{ route('brand.intro') }}"
-                    data-customer-back
-                    class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-xs font-black text-content shadow-sm transition hover:-translate-y-0.5 hover:border-accent-300 hover:text-accent-600"
-                >
-                    <span aria-hidden="true">←</span>
-                    <span>بازگشت</span>
-                </a>
-
-                <a
-                    href="{{ route('salons.discover') }}"
-                    class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary-950 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-900"
-                >
-                    کشف سالن‌ها
-                </a>
-            </div>
-        </div>
-
-        @yield('content')
-    </main>
-
 @else
 
     <div class="customer-app">
@@ -429,9 +403,11 @@
                                     customer-btn
                                     customer-btn-ghost
                                     customer-btn-sm
+                                    customer-logout-button
                                 "
                             >
-                                خروج
+                                <span aria-hidden="true">↪</span>
+                                <span class="customer-logout-label">خروج</span>
                             </button>
 
                         </form>
@@ -621,6 +597,48 @@
             window.history.back();
         }
     });
+
+    @auth
+        @if(auth()->user()->isCustomer())
+            (() => {
+                const timeoutMs = {{ max(1, (int) env('CUSTOMER_INACTIVITY_MINUTES', 30)) }} * 60 * 1000;
+                let timer = null;
+
+                const logout = () => {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = @json(route('logout'));
+
+                    const token = document.createElement('input');
+                    token.type = 'hidden';
+                    token.name = '_token';
+                    token.value = @json(csrf_token());
+
+                    form.appendChild(token);
+                    document.body.appendChild(form);
+                    form.submit();
+                };
+
+                const resetTimer = () => {
+                    window.clearTimeout(timer);
+                    timer = window.setTimeout(logout, timeoutMs);
+                };
+
+                [
+                    'pointerdown',
+                    'keydown',
+                    'touchstart',
+                    'scroll',
+                ].forEach((eventName) => {
+                    window.addEventListener(eventName, resetTimer, {
+                        passive: true,
+                    });
+                });
+
+                resetTimer();
+            })();
+        @endif
+    @endauth
 </script>
 
 @stack('scripts')
