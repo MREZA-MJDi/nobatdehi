@@ -14,7 +14,16 @@ export default defineConfig({
                 'resources/js/discover.js',
 
                 'resources/css/discovery.css',
+                'resources/js/discover.js',
+
                 'resources/css/salon.css',
+                'resources/js/salon.js',
+
+                'resources/css/salon-owner.css',
+                'resources/js/salon-dashboard.js',
+
+                'resources/css/salon-dashboard.css',
+                'resources/js/salon-posts.js',
             ],
 
             refresh: true,
