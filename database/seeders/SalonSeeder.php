@@ -294,7 +294,7 @@ class SalonSeeder extends Seeder
             |--------------------------------------------------------------------------
             */
 
-            $salon->workingHours()->delete();
+            if (! $salon->workingHours()->exists()) {
 
             for ($day = 0; $day <= 6; $day++) {
 
@@ -321,6 +321,9 @@ class SalonSeeder extends Seeder
                     'sort_order' =>
                         0,
                 ]);
+            }
+
+
             }
 
 
