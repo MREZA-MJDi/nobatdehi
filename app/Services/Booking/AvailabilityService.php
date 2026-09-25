@@ -122,7 +122,7 @@ class AvailabilityService
                 try {
                     $start = substr($this->normalizeTime($row->start_time), 0, 5);
                     $end = substr($this->normalizeTime($row->end_time), 0, 5);
-                } catch (Throwable) {
+                } catch (\Throwable) {
                     return null;
                 }
 
