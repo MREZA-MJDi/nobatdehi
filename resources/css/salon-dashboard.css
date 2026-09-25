@@ -149,3 +149,58 @@
         font-size: .68rem;
     }
 }
+
+
+/* ==========================================================================
+   Revenue chart layout fix
+   ========================================================================== */
+
+/* The dashboard renders 7 daily, 12 monthly and 5 yearly points.
+   Keep each period on a single horizontal chart instead of falling into
+   implicit one-column CSS grid rows. */
+.nd-bars-daily{
+    grid-template-columns:repeat(7,minmax(0,1fr));
+}
+.nd-bars-monthly{
+    grid-template-columns:repeat(12,minmax(0,1fr));
+}
+.nd-bars-yearly{
+    grid-template-columns:repeat(5,minmax(0,1fr));
+}
+
+.nd-chart-panel{
+    overflow-x:auto;
+}
+.nd-bars{
+    min-width:560px;
+}
+.nd-bars-yearly{
+    min-width:420px;
+}
+.nd-bar-column{
+    min-width:0;
+}
+.nd-bar-track{
+    min-height:120px;
+    box-shadow:inset 0 1px 0 color-mix(in srgb,var(--nd-border) 45%,transparent);
+}
+.nd-bar-fill{
+    border-radius:9px 9px 7px 7px;
+    transition:height .35s ease,opacity .2s ease,transform .2s ease;
+}
+.nd-bar-column:hover .nd-bar-fill{
+    opacity:.88;
+    transform:scaleY(1.015);
+    transform-origin:bottom;
+}
+@media (max-width:699px){
+    .nd-bars{
+        min-width:520px;
+    }
+    .nd-bars-monthly{
+        min-width:760px;
+    }
+    .nd-bars-yearly{
+        min-width:420px;
+    }
+}
