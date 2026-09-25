@@ -39,6 +39,18 @@
         Arial,
         sans-serif;
 
+    /* ----------------------------------------------------------------------
+       TYPOGRAPHY WEIGHTS
+       Keep the UI expressive without making Persian text visually heavy.
+       ---------------------------------------------------------------------- */
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 750;
+    --font-weight-black: 800;
+
 
     /* ----------------------------------------------------------------------
        PRIMARY
@@ -412,7 +424,9 @@
 
         font-weight: 400;
 
-        line-height: 1.8;
+        line-height: 1.75;
+
+        letter-spacing: 0;
 
         font-synthesis: none;
 
