@@ -1330,3 +1330,24 @@
         font-size: clamp(1.20rem, 6vw, 1.55rem);
     }
 }
+
+/* ==========================================================================
+   NOBAT — TYPOGRAPHY / SCALE CONTRACT
+   ========================================================================== */
+:root{
+    --ui-font-family:"Estedad",Tahoma,Arial,sans-serif;
+    --ui-text-xs:.6875rem;
+    --ui-text-sm:.75rem;
+    --ui-text-md:.875rem;
+    --ui-text-lg:1rem;
+    --ui-text-xl:1.25rem;
+    --ui-title-lg:clamp(1.35rem,2.1vw,1.9rem);
+    --ui-title-xl:clamp(1.55rem,3vw,2.35rem);
+    --ui-line-tight:1.35;
+    --ui-line-body:1.85;
+    --ui-line-meta:1.75;
+}
+html{font-size:100%}
+body{font-family:var(--ui-font-family)}
+button,input,select,textarea{font-family:inherit}
+h1,h2,h3,h4,h5,h6{line-height:var(--ui-line-tight)}
