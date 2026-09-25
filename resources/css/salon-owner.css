@@ -2545,11 +2545,7 @@ html[data-theme="dark"] .salon-owner {
 
 /* Global owner-page navigation and feedback */
 .salon-owner__page-tools {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: .75rem;
-    margin-bottom: 1rem;
+    display: none;
 }
 
 .salon-owner__back-link,
@@ -2642,5 +2638,40 @@ html[data-theme="dark"] .salon-owner {
     .salon-owner__home-link {
         flex: 1 1 0;
         justify-content: center;
+    }
+}
+
+
+.salon-owner__back-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--owner-border);
+    border-radius: 11px;
+    background: var(--owner-surface);
+    color: var(--owner-muted);
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: color .18s ease, border-color .18s ease, background-color .18s ease;
+}
+
+.salon-owner__back-button:hover {
+    color: var(--owner-primary);
+    border-color: color-mix(in srgb, var(--owner-primary) 22%, var(--owner-border));
+    background: var(--owner-primary-soft);
+}
+
+@media (max-width: 520px) {
+    .salon-owner__back-button span:last-child {
+        display: none;
+    }
+
+    .salon-owner__back-button {
+        width: 36px;
+        padding: 0;
     }
 }

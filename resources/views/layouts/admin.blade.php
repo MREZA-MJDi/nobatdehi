@@ -171,6 +171,18 @@
 
             <div class="ml-auto flex items-center gap-2">
 
+                @unless(request()->routeIs('admin.dashboard'))
+                    <a
+                        href="{{ route('admin.dashboard') }}"
+                        data-admin-back
+                        class="btn btn-ghost btn-sm"
+                        aria-label="بازگشت به صفحه قبل"
+                    >
+                        <span aria-hidden="true">←</span>
+                        بازگشت
+                    </a>
+                @endunless
+
                 <x-theme-toggle />
 
 
@@ -207,28 +219,6 @@
     ============================================================= --}}
 
     <main class="page-content pb-8">
-
-        <div class="app-container pt-4">
-            <div class="mb-4 flex items-center justify-between gap-3">
-                <a
-                    href="{{ route('admin.dashboard') }}"
-                    data-admin-back
-                    class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-xs font-black text-content shadow-sm transition hover:-translate-y-0.5 hover:border-accent-300 hover:text-accent-600"
-                >
-                    <span aria-hidden="true">←</span>
-                    <span>بازگشت</span>
-                </a>
-
-                @unless(request()->routeIs('admin.dashboard'))
-                    <a
-                        href="{{ route('admin.dashboard') }}"
-                        class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary-950 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-900"
-                    >
-                        داشبورد مدیریت
-                    </a>
-                @endunless
-            </div>
-        </div>
 
         @if(session('success'))
             <div class="app-container mb-4">

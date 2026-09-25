@@ -126,6 +126,18 @@
             </div>
 
             <div class="salon-owner__topbar-actions">
+                @unless(request()->routeIs('salon.dashboard'))
+                    <a
+                        href="{{ route('salon.dashboard') }}"
+                        data-owner-back
+                        class="salon-owner__back-button"
+                        aria-label="بازگشت به صفحه قبل"
+                    >
+                        <span aria-hidden="true">←</span>
+                        <span>بازگشت</span>
+                    </a>
+                @endunless
+
                 <a href="{{ route('salon.notifications.index') }}" class="salon-owner__icon-button salon-owner__notification-link" aria-label="اعلان‌ها">
                     ◌
                     @if($unreadSalonNotifications > 0)
@@ -137,26 +149,6 @@
         </header>
 
         <main class="salon-owner__main">
-            <div class="salon-owner__page-tools">
-                <a
-                    href="{{ route('salon.dashboard') }}"
-                    data-owner-back
-                    class="salon-owner__back-link"
-                    aria-label="بازگشت به صفحه قبل"
-                >
-                    <span aria-hidden="true">←</span>
-                    <span>بازگشت</span>
-                </a>
-
-                @unless(request()->routeIs('salon.dashboard'))
-                    <a
-                        href="{{ route('salon.dashboard') }}"
-                        class="salon-owner__home-link"
-                    >
-                        داشبورد
-                    </a>
-                @endunless
-            </div>
 
             @if(session('success'))
                 <div class="salon-owner__flash is-success" role="status" aria-live="polite">

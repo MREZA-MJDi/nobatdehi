@@ -330,6 +330,18 @@
 
                 <div class="customer-header-actions">
 
+                    @if(!request()->routeIs('brand.intro') && !request()->routeIs('salons.discover'))
+                        <a
+                            href="{{ auth()->check() && auth()->user()->isCustomer() ? route('customer.dashboard') : route('salons.discover') }}"
+                            data-customer-back
+                            class="customer-header-back"
+                            aria-label="بازگشت به صفحه قبل"
+                        >
+                            <span aria-hidden="true">←</span>
+                            <span>بازگشت</span>
+                        </a>
+                    @endif
+
                     <x-theme-toggle />
 
 
@@ -428,43 +440,6 @@
     </header>
 
     <main class="customer-main">
-
-        @php
-            $customerIsAuthenticated = auth()->check() && auth()->user()->isCustomer();
-        @endphp
-
-        <div class="customer-container pt-4">
-            <div class="flex items-center justify-between gap-3">
-                <a
-                    href="{{ $customerIsAuthenticated ? route('customer.dashboard') : route('brand.intro') }}"
-                    data-customer-back
-                    class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-white/90 px-3 py-2 text-xs font-black text-content shadow-sm transition hover:-translate-y-0.5 hover:border-accent-300 hover:text-accent-600"
-                >
-                    <span aria-hidden="true">←</span>
-                    <span>بازگشت</span>
-                </a>
-
-                <div class="flex items-center gap-2">
-                    @if($customerIsAuthenticated && !request()->routeIs('customer.dashboard'))
-                        <a
-                            href="{{ route('customer.dashboard') }}"
-                            class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary-950 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-900"
-                        >
-                            داشبورد من
-                        </a>
-                    @endif
-
-                    @unless(request()->routeIs('brand.intro'))
-                        <a
-                            href="{{ route('brand.intro') }}"
-                            class="hidden min-h-10 items-center gap-2 rounded-xl border border-border bg-white/90 px-3 py-2 text-xs font-black text-content sm:inline-flex"
-                        >
-                            خانه سایت
-                        </a>
-                    @endunless
-                </div>
-            </div>
-        </div>
 
         {{-- =====================================================
             FLASH: SUCCESS
