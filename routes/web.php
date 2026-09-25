@@ -246,6 +246,21 @@ Route::middleware('auth')->group(function () {
 
 
             /*
+            | Salon rating
+            */
+
+            Route::get(
+                '/salons/{salon}/review',
+                [CustomerReviewController::class, 'createSalon']
+            )->name('salons.review.create');
+
+            Route::post(
+                '/salons/{salon}/review',
+                [CustomerReviewController::class, 'storeSalon']
+            )->name('salons.review.store');
+
+
+            /*
             | Booking
             */
 
@@ -258,6 +273,11 @@ Route::middleware('auth')->group(function () {
                 '/bookings',
                 [CustomerBookingController::class, 'store']
             )->name('bookings.store');
+            Route::get(
+                '/bookings/{booking}/success',
+                [CustomerBookingController::class, 'success']
+            )->name('bookings.success');
+
             Route::get(
                 '/bookings/{booking}/edit',
                 [CustomerBookingController::class, 'edit']
