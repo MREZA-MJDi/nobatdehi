@@ -149,3 +149,68 @@
         font-size: .68rem;
     }
 }
+
+
+/* ==========================================================================
+   SALON DASHBOARD — FINAL UI SCALE
+   ========================================================================== */
+
+.nd-dashboard {
+    width: min(100%, 1280px);
+}
+
+.nd-dashboard-hero h1 {
+    font-size: clamp(1.35rem, 2vw, 1.95rem) !important;
+    line-height: 1.4 !important;
+    letter-spacing: -.03em;
+}
+
+.nd-dashboard-hero p {
+    max-width: 62ch;
+    font-size: .72rem;
+    line-height: 1.85;
+}
+
+.nd-kpi {
+    min-height: 116px;
+    padding: 12px;
+}
+
+.nd-btn,
+.nd-alert-action {
+    min-height: 40px;
+    font-size: .68rem;
+}
+
+@media (min-width: 1060px) {
+    .nd-dashboard {
+        padding-inline: 8px;
+    }
+
+    .nd-kpi {
+        min-height: 128px;
+    }
+}
+
+@media (max-width: 699px) {
+    .nd-dashboard {
+        width: 100%;
+        padding-inline: 0;
+    }
+
+    .nd-dashboard-hero h1 {
+        font-size: 1.30rem !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .nd-dashboard-hero h1 {
+        font-size: 1.15rem !important;
+    }
+
+    .nd-kpi {
+        min-height: 108px;
+        padding: 10px;
+    }
+}
+
