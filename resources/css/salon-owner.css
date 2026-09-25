@@ -3984,3 +3984,43 @@ html[data-theme="dark"] .salon-owner {
         margin-top: 13px;
     }
 }
+
+/* ==========================================================================
+   Manual booking — dashboard responsive breakpoint
+   Keep the booking workspace comfortable inside the owner dashboard at
+   tablet / compact desktop widths. Scoped to this page only.
+   ========================================================================== */
+
+@media (min-width: 760px) and (max-width: 1059px) {
+    .salon-owner__main .salon-manual-booking > form > .grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 16px !important;
+    }
+
+    .salon-owner__main .salon-manual-booking > form > .grid > main,
+    .salon-owner__main .salon-manual-booking > form > .grid > aside {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .salon-owner__main .salon-manual-booking > form > .grid > aside {
+        margin-top: 0;
+    }
+
+    .salon-owner__main .salon-manual-booking .salon-manual-slot-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 759px) {
+    .salon-owner__main .salon-manual-booking > form > .grid > aside {
+        margin-top: 12px;
+    }
+}
+
+@media (min-width: 1060px) {
+    .salon-owner__main .salon-manual-booking > form > .grid {
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 370px) !important;
+        gap: 20px !important;
+    }
+}
