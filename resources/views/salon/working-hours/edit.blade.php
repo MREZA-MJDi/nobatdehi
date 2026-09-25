@@ -86,11 +86,48 @@
             },
 
             persianTime(value) {
-                return this.persianDigits(value || '');
+                return String(value || '').replace(/[0-9]/g, digit => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)]);
+            },
+
+            async persistDay(day) {
+                const target = this.currentHours[day];
+
+                if (!target) {
+                    throw new Error('برنامه این روز پیدا نشد.');
+                }
+
+                const response = await window.axios.put(
+                    @json(route('salon.working-hours.day-update')),
+                    {
+                        barber_id: this.selectedScope === 'salon' ? null : Number(this.selectedScope),
+                        day_of_week: Number(day),
+                        is_closed: Boolean(target.closed),
+                        intervals: target.closed
+                            ? []
+                            : (target.intervals || []).map(interval => ({
+                                start_time: interval.start,
+                                end_time: interval.end,
+                            })),
+                    },
+                    {
+                        headers: {
+                            Accept: 'application/json',
+                        },
+                    }
+                );
+
+                if (!response.data?.ok) {
+                    throw new Error(
+                        response.data?.message || 'ذخیره برنامه این روز انجام نشد.'
+                    );
+                }
+
+                return response.data;
             },
 
             breakEditor: {
                 open: false,
+                saving: false,
                 day: null,
                 intervalIndex: null,
                 start: '',
@@ -116,6 +153,7 @@
             closeBreakEditor() {
                 this.breakEditor = {
                     open: false,
+                    saving: false,
                     day: null,
                     intervalIndex: null,
                     start: '',
@@ -124,7 +162,7 @@
                 };
             },
 
-            applyBreak() {
+            async applyBreak() {
                 const editor = this.breakEditor;
 
                 if (
@@ -167,14 +205,32 @@
                     },
                 ];
 
+                const originalIntervals = JSON.parse(
+                    JSON.stringify(this.currentHours[editor.day].intervals)
+                );
+
                 this.currentHours[editor.day].intervals.splice(
                     editor.intervalIndex,
                     1,
                     ...next
                 );
 
+                this.breakEditor.saving = true;
                 this.markCustomized();
-                this.closeBreakEditor();
+
+                try {
+                    await this.persistDay(editor.day);
+                    this.closeBreakEditor();
+                    this.formError =
+                        'استراحت ذخیره شد و همان لحظه از زمان‌های قابل رزرو مشتری حذف شد.';
+                } catch (error) {
+                    this.currentHours[editor.day].intervals = originalIntervals;
+                    this.breakEditor.saving = false;
+                    this.breakEditor.error =
+                        error?.response?.data?.message
+                        || error?.message
+                        || 'ذخیره استراحت انجام نشد.';
+                }
             },
 
             addInterval(day) {
@@ -643,7 +699,13 @@
 
             <footer>
                 <button type="button" class="salon-btn" @click="closeBreakEditor()">انصراف</button>
-                <button type="button" class="salon-btn salon-btn--primary" @click="applyBreak()">اعمال استراحت</button>
+                <button
+                    type="button"
+                    class="salon-btn salon-btn--primary"
+                    @click="applyBreak()"
+                    :disabled="breakEditor.saving"
+                    x-text="breakEditor.saving ? 'در حال ذخیره…' : 'اعمال و ذخیره استراحت'">
+                </button>
             </footer>
         </div>
     </div>
