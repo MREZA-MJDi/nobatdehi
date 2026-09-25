@@ -4159,3 +4159,52 @@ html[data-theme="dark"] .salon-owner {
         max-width: 100%;
     }
 }
+
+
+/* ==========================================================================
+   Booking details — compact service facts on mobile
+   ========================================================================== */
+
+@media (max-width: 759px) {
+    .booking-detail-service-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 0 !important;
+        padding: 12px !important;
+    }
+
+    .booking-detail-service-grid .booking-detail-kv {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        padding: 10px 8px !important;
+        border-radius: 0 !important;
+        border-bottom: 1px solid #e5e7eb;
+        background: transparent !important;
+    }
+
+    .booking-detail-service-grid .booking-detail-kv:last-child {
+        border-bottom: 0;
+    }
+
+    .booking-detail-service-grid .booking-detail-kv > div {
+        min-width: 0;
+        margin-top: 0 !important;
+        overflow-wrap: anywhere;
+    }
+
+    .booking-detail-service-grid .booking-detail-kv > div:first-child {
+        white-space: nowrap;
+        font-size: 10px;
+        font-weight: 800;
+        color: #94a3b8;
+    }
+
+    .booking-detail-service-grid .booking-detail-kv > div:nth-child(2) {
+        text-align: right;
+        font-size: .78rem;
+        line-height: 1.6;
+        color: #0f172a;
+    }
+}

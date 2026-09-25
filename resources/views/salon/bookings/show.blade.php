@@ -348,10 +348,10 @@
                         </div>
 
 
-                        <div class="grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
+                        <div class="booking-detail-service-grid grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
 
                             {{-- Service --}}
-                            <div class="rounded-2xl bg-slate-50 p-4">
+                            <div class="booking-detail-kv rounded-2xl bg-slate-50 p-4">
 
                                 <div class="text-[10px] font-black text-slate-400">
                                     خدمت
@@ -365,7 +365,7 @@
 
 
                             {{-- Barber --}}
-                            <div class="rounded-2xl bg-slate-50 p-4">
+                            <div class="booking-detail-kv rounded-2xl bg-slate-50 p-4">
 
                                 <div class="text-[10px] font-black text-slate-400">
                                     آرایشگر
@@ -379,7 +379,7 @@
 
 
                             {{-- Price --}}
-                            <div class="rounded-2xl bg-slate-50 p-4">
+                            <div class="booking-detail-kv rounded-2xl bg-slate-50 p-4">
 
                                 <div class="text-[10px] font-black text-slate-400">
                                     مبلغ
@@ -394,7 +394,7 @@
 
 
                             {{-- Date --}}
-                            <div class="rounded-2xl bg-slate-50 p-4">
+                            <div class="booking-detail-kv rounded-2xl bg-slate-50 p-4">
 
                                 <div class="text-[10px] font-black text-slate-400">
                                     تاریخ

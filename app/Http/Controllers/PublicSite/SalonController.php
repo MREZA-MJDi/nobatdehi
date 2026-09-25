@@ -187,6 +187,11 @@ class SalonController extends Controller
                 filled($row->start_time) &&
                 filled($row->end_time)
             )
+            ->unique(fn ($row) =>
+                substr((string) $row->start_time, 0, 5)
+                . '|'
+                . substr((string) $row->end_time, 0, 5)
+            )
             ->values();
 
         $dailyStatus = $salon->dailyStatuses()
