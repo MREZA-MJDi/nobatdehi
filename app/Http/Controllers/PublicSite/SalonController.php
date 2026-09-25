@@ -194,6 +194,53 @@ class SalonController extends Controller
             )
             ->values();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Canonical public schedule
+        |--------------------------------------------------------------------------
+        |
+        | A break is represented as multiple working intervals. Older/partially
+        | migrated data can still contain the former full-day interval alongside
+        | the two real segments (e.g. 09-22 + 09-13 + 15-22). The full interval
+        | is a stale container in that case and must not leak into the public
+        | schedule or "open now" calculation.
+        |--------------------------------------------------------------------------
+        */
+
+        $todayHours = $todayHours
+            ->filter(function ($candidate) use ($todayHours) {
+                $candidateStart = substr((string) $candidate->start_time, 0, 5);
+                $candidateEnd = substr((string) $candidate->end_time, 0, 5);
+
+                $nestedIntervals = $todayHours->filter(function ($other) use (
+                    $candidate,
+                    $candidateStart,
+                    $candidateEnd
+                ) {
+                    if ($other === $candidate) {
+                        return false;
+                    }
+
+                    $otherStart = substr((string) $other->start_time, 0, 5);
+                    $otherEnd = substr((string) $other->end_time, 0, 5);
+
+                    return
+                        $otherStart >= $candidateStart
+                        && $otherEnd <= $candidateEnd
+                        && (
+                            $otherStart > $candidateStart
+                            || $otherEnd < $candidateEnd
+                        );
+                });
+
+                return $nestedIntervals->count() < 2;
+            })
+            ->sortBy([
+                ['start_time', 'asc'],
+                ['end_time', 'asc'],
+            ])
+            ->values();
+
         $dailyStatus = $salon->dailyStatuses()
             ->whereDate('date', $today->toDateString())
             ->first();
