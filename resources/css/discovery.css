@@ -4327,9 +4327,9 @@ body.discover-filters-open {
 
     .discover-page .discover-hero-inner {
         min-height: 420px;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 56px;
-        direction: rtl;
+        grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+        gap: 48px;
+        direction: ltr;
         align-items: center;
     }
 
