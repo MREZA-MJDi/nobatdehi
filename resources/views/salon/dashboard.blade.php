@@ -143,12 +143,12 @@
 
             @elseif($nextBooking)
                 <h2>
-                    نوبت بعدی ساعت
-                    {{ substr((string) $nextBooking->start_time, 0, 5) }}
+                    نوبت بعدی ·
+                    {{ $nextBooking->customer?->name ?? $nextBooking->customer_name ?? 'مشتری' }}
                 </h2>
 
                 <p>
-                    {{ $nextBooking->customer?->name ?? $nextBooking->customer_name ?? 'مشتری' }}
+                    ساعت {{ substr((string) $nextBooking->start_time, 0, 5) }}
                     ·
                     {{ $nextBooking->service?->name ?? 'خدمت' }}
                     ·
