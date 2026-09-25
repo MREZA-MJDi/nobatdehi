@@ -52,6 +52,14 @@
         && $hasWorkingHours
         && $activeBarbers > 0
         && $activeServices > 0;
+
+    $nextBookingDateLabel = $nextBooking
+        ? jalali_date($nextBooking->booking_date)
+        : null;
+
+    $nextBookingIsToday = $nextBooking
+        ? $nextBooking->booking_date->toDateString() === $today->toDateString()
+        : false;
 @endphp
 
 <div
@@ -144,11 +152,15 @@
             @elseif($nextBooking)
                 <h2>
                     نوبت بعدی ·
-                    {{ $nextBooking->customer?->name ?? $nextBooking->customer_name ?? 'مشتری' }}
+                    {{ $fa(substr((string) $nextBooking->start_time, 0, 5)) }}
                 </h2>
 
                 <p>
-                    ساعت {{ substr((string) $nextBooking->start_time, 0, 5) }}
+                    {{ $nextBookingIsToday ? 'امروز' : 'تاریخ نوبت' }}
+                    ·
+                    {{ $fa($nextBookingDateLabel) }}
+                    ·
+                    {{ $nextBooking->customer?->name ?? $nextBooking->customer_name ?? 'مشتری' }}
                     ·
                     {{ $nextBooking->service?->name ?? 'خدمت' }}
                     ·
