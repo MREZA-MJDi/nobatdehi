@@ -381,6 +381,9 @@
 
     html {
 
+        /* Stable design baseline: keep rem-based UI at 15px/root (93.75%). */
+        font-size: 93.75%;
+
         direction: rtl;
 
         min-height: 100%;
