@@ -728,7 +728,15 @@ class BookingController extends Controller
 
         return view(
             'customer.bookings.show',
-            compact('booking')
+            [
+                'booking' => $booking,
+                'customerActions' => [
+                    'can_edit' => $booking->customerCanEdit(),
+                    'can_cancel' => $booking->customerCanCancel(),
+                    'can_review' => $booking->customerCanReview(),
+                    'has_review' => $booking->customerHasReview(),
+                ],
+            ]
         );
     }
 
