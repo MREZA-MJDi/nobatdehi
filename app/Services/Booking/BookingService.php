@@ -533,7 +533,7 @@ class BookingService
             ->where('barber_id', $booking->barber_id)
             ->whereDate('booking_date', $booking->booking_date)
             ->where('status', BookingStatus::CONFIRMED->value)
-            ->whereKeyNot($booking->id)
+            ->where('id', '!=', $booking->id)
             ->where(function ($query) use ($bookingStart, $bookingEnd) {
                 $query
                     ->where('start_time', '<', $bookingEnd)
