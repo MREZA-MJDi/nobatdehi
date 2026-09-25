@@ -108,7 +108,7 @@ html[data-theme="dark"] .salon-owner {
     overflow: hidden;
     max-width: 68vw;
     font-size: 10px;
-    font-weight: 900;
+    font-weight: 650;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -159,8 +159,8 @@ html[data-theme="dark"] .salon-owner {
     border-radius: 14px;
     background: var(--owner-surface);
     color: var(--owner-text);
-    font-size: 9px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
     box-shadow: var(--owner-shadow);
 }
 
@@ -186,8 +186,8 @@ html[data-theme="dark"] .salon-owner {
     display: inline-flex;
     align-items: center;
     color: var(--owner-muted);
-    font-size: 7px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
     letter-spacing: .15em;
 }
 
@@ -205,7 +205,7 @@ html[data-theme="dark"] .salon-owner {
     margin: 5px 0 0;
     font-size: 1.38rem;
     line-height: 1.3;
-    font-weight: 950;
+    font-weight: 700;
     letter-spacing: -.035em;
 }
 
@@ -213,7 +213,7 @@ html[data-theme="dark"] .salon-owner {
     max-width: 700px;
     margin: 7px 0 0;
     color: var(--owner-muted);
-    font-size: 8.5px;
+    font-size: 10px;
     line-height: 2;
 }
 
@@ -234,8 +234,8 @@ html[data-theme="dark"] .salon-owner {
     border-radius: 12px;
     background: var(--owner-surface);
     color: var(--owner-text);
-    font-size: 8px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
     transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
@@ -293,14 +293,14 @@ html[data-theme="dark"] .salon-owner {
     margin: 8px 0 0;
     font-size: 1.05rem;
     line-height: 1.55;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .salon-priority-copy p {
     max-width: 650px;
     margin: 6px 0 13px;
     color: rgba(255,255,255,.68);
-    font-size: 8px;
+    font-size: 10px;
     line-height: 1.95;
 }
 
@@ -321,7 +321,7 @@ html[data-theme="dark"] .salon-owner {
 .salon-priority-meta span {
     display: block;
     color: rgba(255,255,255,.48);
-    font-size: 6.5px;
+    font-size: 10px;
     font-weight: 700;
 }
 
@@ -329,8 +329,8 @@ html[data-theme="dark"] .salon-owner {
     display: block;
     overflow: hidden;
     margin-top: 3px;
-    font-size: 7.5px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
     line-height: 1.7;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -375,8 +375,8 @@ html[data-theme="dark"] .salon-owner {
 
 .salon-stat-card > span {
     color: var(--owner-muted);
-    font-size: 7px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .salon-stat-card > strong {
@@ -384,12 +384,12 @@ html[data-theme="dark"] .salon-owner {
     color: var(--owner-text);
     font-size: 21px;
     line-height: 1;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .salon-stat-card > small {
     color: var(--owner-faint);
-    font-size: 6.5px;
+    font-size: 10px;
     font-weight: 700;
 }
 
@@ -420,13 +420,13 @@ html[data-theme="dark"] .salon-owner {
     margin: 4px 0 0;
     font-size: 11px;
     line-height: 1.45;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .salon-card-head > a {
     color: var(--owner-primary);
-    font-size: 7px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .salon-booking-list {
@@ -452,14 +452,14 @@ html[data-theme="dark"] .salon-owner {
 .salon-booking-time strong {
     display: block;
     font-size: 11px;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .salon-booking-time span {
     display: block;
     margin-top: 2px;
     color: var(--owner-faint);
-    font-size: 6.5px;
+    font-size: 10px;
 }
 
 .salon-booking-main {
@@ -475,8 +475,8 @@ html[data-theme="dark"] .salon-owner {
 }
 
 .salon-booking-main strong {
-    font-size: 8px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .salon-booking-main span {
@@ -497,8 +497,8 @@ html[data-theme="dark"] .salon-owner {
     border-radius: 999px;
     background: var(--owner-surface-soft);
     color: var(--owner-muted);
-    font-size: 6.5px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .salon-status--pending {
@@ -555,8 +555,8 @@ html[data-theme="dark"] .salon-owner {
 }
 
 .salon-action-list strong {
-    font-size: 8px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .salon-action-list small {
@@ -600,8 +600,8 @@ html[data-theme="dark"] .salon-owner {
 
 .salon-recent-item strong {
     overflow: hidden;
-    font-size: 8px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -618,7 +618,7 @@ html[data-theme="dark"] .salon-owner {
 .salon-recent-item small {
     margin-bottom: 5px;
     color: var(--owner-faint);
-    font-size: 6px;
+    font-size: 10px;
     white-space: nowrap;
 }
 
@@ -656,8 +656,8 @@ html[data-theme="dark"] .salon-owner {
     gap: 3px;
     border-radius: 14px;
     color: var(--owner-faint);
-    font-size: 6.5px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .salon-mobile-nav__item.is-active {
@@ -801,7 +801,7 @@ html[data-theme="dark"] .salon-owner {
         background: linear-gradient(145deg, var(--owner-primary), var(--owner-secondary));
         color: #fff;
         font-size: 16px;
-        font-weight: 900;
+        font-weight: 650;
     }
 
     .salon-owner__brand-mark img {
@@ -820,14 +820,14 @@ html[data-theme="dark"] .salon-owner {
     .salon-owner__brand-copy strong {
         overflow: hidden;
         font-size: 12px;
-        font-weight: 900;
+        font-weight: 650;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
     .salon-owner__brand-copy small {
         color: var(--owner-muted);
-        font-size: 8px;
+        font-size: 10px;
         font-weight: 700;
     }
 
@@ -862,8 +862,8 @@ html[data-theme="dark"] .salon-owner {
 
     .salon-owner__status strong {
         overflow: hidden;
-        font-size: 8px;
-        font-weight: 900;
+        font-size: 10px;
+        font-weight: 650;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -871,7 +871,7 @@ html[data-theme="dark"] .salon-owner {
     .salon-owner__status span {
         overflow: hidden;
         color: var(--owner-muted);
-        font-size: 7px;
+        font-size: 10px;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -897,8 +897,8 @@ html[data-theme="dark"] .salon-owner {
     .salon-owner__nav-label {
         margin: 14px 9px 6px;
         color: var(--owner-faint);
-        font-size: 7px;
-        font-weight: 900;
+        font-size: 10px;
+        font-weight: 650;
         letter-spacing: .12em;
     }
 
@@ -926,8 +926,8 @@ html[data-theme="dark"] .salon-owner {
     }
 
     .salon-owner__nav > a > strong {
-        font-size: 9px;
-        font-weight: 800;
+        font-size: 10px;
+        font-weight: 700;
     }
 
     .salon-owner__nav > a > em {
@@ -968,8 +968,8 @@ html[data-theme="dark"] .salon-owner {
         border-radius: 11px;
         background: var(--owner-surface);
         color: var(--owner-muted);
-        font-size: 8px;
-        font-weight: 800;
+        font-size: 10px;
+        font-weight: 700;
     }
 
     .salon-mobile-nav {
@@ -984,8 +984,8 @@ html[data-theme="dark"] .salon-owner {
     .salon-owner__topbar-title span {
         display: inline;
         color: var(--owner-faint);
-        font-size: 8px;
-        font-weight: 800;
+        font-size: 10px;
+        font-weight: 700;
     }
 
     .salon-owner__topbar-title strong {
@@ -1048,14 +1048,14 @@ html[data-theme="dark"] .salon-owner {
     margin: 7px 0 0;
     font-size: 1.04rem;
     line-height: 1.58;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .salon-command-main p {
     max-width: 650px;
     margin: 5px 0 12px;
     color: rgba(255,255,255,.68);
-    font-size: 8px;
+    font-size: 10px;
     line-height: 1.95;
 }
 
@@ -1080,15 +1080,15 @@ html[data-theme="dark"] .salon-owner {
 
 .salon-command-status span {
     color: rgba(255,255,255,.48);
-    font-size: 6.5px;
+    font-size: 10px;
 }
 
 .salon-command-status strong {
     overflow: hidden;
     margin-top: 3px;
     color: #fff;
-    font-size: 7.5px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
     line-height: 1.7;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1149,16 +1149,16 @@ html[data-theme="dark"] .salon-owner {
 
 .salon-workspace-card span {
     color: var(--owner-muted);
-    font-size: 6.5px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .salon-workspace-card strong {
     overflow: hidden;
     margin-top: 2px;
     color: var(--owner-text);
-    font-size: 8.5px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -1167,7 +1167,7 @@ html[data-theme="dark"] .salon-owner {
     overflow: hidden;
     margin-top: 2px;
     color: var(--owner-faint);
-    font-size: 6.5px;
+    font-size: 10px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -1202,7 +1202,7 @@ html[data-theme="dark"] .salon-owner {
 
 .salon-overview-strip span {
     color: var(--owner-muted);
-    font-size: 6.5px;
+    font-size: 10px;
 }
 
 .salon-overview-strip strong {
@@ -1210,7 +1210,7 @@ html[data-theme="dark"] .salon-owner {
     margin-top: 4px;
     color: var(--owner-text);
     font-size: 13px;
-    font-weight: 950;
+    font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -1220,7 +1220,7 @@ html[data-theme="dark"] .salon-owner {
     display: block;
     margin-top: 4px;
     color: var(--owner-faint);
-    font-size: 6px;
+    font-size: 10px;
     font-weight: 700;
 }
 
@@ -1263,14 +1263,14 @@ html[data-theme="dark"] .salon-owner {
 }
 
 .salon-secondary-tools strong {
-    font-size: 7.5px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .salon-secondary-tools small {
     margin-top: 2px;
     color: var(--owner-faint);
-    font-size: 6px;
+    font-size: 10px;
 }
 
 @media (min-width: 760px) {
@@ -1314,14 +1314,14 @@ html[data-theme="dark"] .salon-owner {
     color: var(--owner-text);
     font-size: 1.35rem;
     line-height: 1.3;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .salon-page-header p {
     max-width: 650px;
     margin: 6px 0 0;
     color: var(--owner-muted);
-    font-size: 8px;
+    font-size: 10px;
     line-height: 1.9;
 }
 
@@ -1344,8 +1344,8 @@ html[data-theme="dark"] .salon-owner {
 
 .salon-filter-field > span {
     color: var(--owner-faint);
-    font-size: 6.5px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .salon-filter-field input,
@@ -1358,7 +1358,7 @@ html[data-theme="dark"] .salon-owner {
     color: var(--owner-text);
     outline: 0;
     padding: 0 10px;
-    font-size: 8px;
+    font-size: 10px;
 }
 
 .salon-filter-field input:focus,
@@ -1396,13 +1396,13 @@ html[data-theme="dark"] .salon-owner {
 .salon-booking-summary > a strong {
     color: var(--owner-text);
     font-size: 14px;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .salon-booking-summary > a span,
 .salon-booking-summary__today {
     color: var(--owner-muted);
-    font-size: 6.5px;
+    font-size: 10px;
 }
 
 .salon-booking-summary__today {
@@ -1440,7 +1440,7 @@ html[data-theme="dark"] .salon-owner {
 .salon-booking-item__date strong {
     color: var(--owner-text);
     font-size: 10px;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .salon-booking-item__date span,
@@ -1448,14 +1448,14 @@ html[data-theme="dark"] .salon-owner {
 .salon-booking-item__service span {
     margin-top: 2px;
     color: var(--owner-faint);
-    font-size: 6.5px;
+    font-size: 10px;
 }
 
 .salon-booking-item__customer strong,
 .salon-booking-item__service strong {
     color: var(--owner-text);
-    font-size: 8px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .salon-booking-item__service {
@@ -1489,8 +1489,8 @@ html[data-theme="dark"] .salon-owner {
     border-radius: 9px;
     background: var(--owner-surface);
     color: var(--owner-muted);
-    font-size: 6.5px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
 }
 
 .salon-mini-action--success {
@@ -1547,8 +1547,8 @@ html[data-theme="dark"] .salon-owner {
     min-width: 0;
     overflow: hidden;
     color: var(--owner-text);
-    font-size: 8px;
-    font-weight: 900;
+    font-size: 10px;
+    font-weight: 650;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -1556,13 +1556,13 @@ html[data-theme="dark"] .salon-owner {
 .salon-notification__top time {
     flex: 0 0 auto;
     color: var(--owner-faint);
-    font-size: 6px;
+    font-size: 10px;
 }
 
 .salon-notification__body p {
     margin: 4px 0 0;
     color: var(--owner-muted);
-    font-size: 7px;
+    font-size: 10px;
     line-height: 1.9;
 }
 
@@ -1586,8 +1586,8 @@ html[data-theme="dark"] .salon-owner {
     border-radius: 999px;
     color: var(--owner-faint);
     background: var(--owner-surface);
-    font-size: 6px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .salon-notification__meta > span.is-new {
@@ -1624,14 +1624,14 @@ html[data-theme="dark"] .salon-owner {
     margin: 0;
     color: var(--owner-text);
     font-size: 11px;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .salon-empty-state p {
     max-width: 410px;
     margin: 6px auto 13px;
     color: var(--owner-muted);
-    font-size: 7px;
+    font-size: 10px;
     line-height: 1.9;
 }
 
@@ -1792,12 +1792,12 @@ html[data-theme="dark"] .salon-owner {
 .salon-owner__main h1 {
     font-size: clamp(1.55rem, 2.4vw, 2rem) !important;
     line-height: 1.35 !important;
-    font-weight: 900 !important;
+    font-weight: 650 !important;
 }
 
 .salon-owner__main h2 {
     line-height: 1.45 !important;
-    font-weight: 900 !important;
+    font-weight: 650 !important;
 }
 
 .salon-owner__main p {
@@ -1989,7 +1989,7 @@ html[data-theme="dark"] .salon-owner {
 .salon-revenue-head h2 {
     margin: 5px 0 0;
     font-size: 1.15rem;
-    font-weight: 950;
+    font-weight: 700;
     color: var(--owner-text);
 }
 
@@ -2015,14 +2015,14 @@ html[data-theme="dark"] .salon-owner {
 
 .salon-revenue-highlight span {
     color: var(--owner-muted);
-    font-size: .64rem;
+    font-size: .68rem;
 }
 
 .salon-revenue-highlight strong {
     margin-top: 3px;
     color: var(--owner-primary);
     font-size: .82rem;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .salon-revenue-grid {
@@ -2062,7 +2062,7 @@ html[data-theme="dark"] .salon-owner {
     margin-top: 3px;
     color: var(--owner-text);
     font-size: .92rem;
-    font-weight: 950;
+    font-weight: 700;
 }
 
 .salon-chart-badge {
@@ -2074,8 +2074,8 @@ html[data-theme="dark"] .salon-owner {
     border-radius: 999px;
     color: var(--owner-primary);
     background: var(--owner-primary-soft);
-    font-size: .62rem;
-    font-weight: 900;
+    font-size: .68rem;
+    font-weight: 650;
 }
 
 .salon-chart-bars {
@@ -2107,7 +2107,7 @@ html[data-theme="dark"] .salon-owner {
 .salon-chart-value {
     overflow: hidden;
     color: var(--owner-muted);
-    font-size: .58rem;
+    font-size: .68rem;
     line-height: 1.3;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2135,7 +2135,7 @@ html[data-theme="dark"] .salon-owner {
 .salon-chart-column > span {
     overflow: hidden;
     color: var(--owner-muted);
-    font-size: .62rem;
+    font-size: .68rem;
     line-height: 1.45;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2343,7 +2343,7 @@ html[data-theme="dark"] .salon-owner {
     }
 
     .salon-chart-column > span {
-        font-size: .58rem;
+        font-size: .68rem;
     }
 
     .salon-manual-booking {
