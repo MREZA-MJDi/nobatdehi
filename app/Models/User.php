@@ -123,4 +123,14 @@ class User extends Authenticatable
             'customer_id'
         );
     }
+
+    public function favoriteSalons()
+    {
+        return $this->belongsToMany(
+            Salon::class,
+            'salon_favorites',
+            'customer_id',
+            'salon_id'
+        )->withTimestamps();
+    }
 }
