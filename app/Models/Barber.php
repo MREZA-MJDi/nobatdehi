@@ -52,6 +52,16 @@ class Barber extends Model
     |--------------------------------------------------------------------------
     */
 
+
+    public function workingHours(): HasMany
+    {
+        return $this->hasMany(
+            WorkingHour::class,
+            'barber_id'
+        )->orderBy('day_of_week')
+            ->orderBy('sort_order');
+    }
+
     public function bookings(): HasMany
     {
         return $this->hasMany(
