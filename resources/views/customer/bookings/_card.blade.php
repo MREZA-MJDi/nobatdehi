@@ -72,7 +72,7 @@
                 مشاهده سالن
             </a>
 
-            @if($status === AppEnumsBookingStatus::PENDING)
+            @if($status->value === 'pending')
                 <a
                     href="{{ route('customer.bookings.edit', $booking) }}"
                     class="customer-btn customer-btn-secondary"
@@ -96,7 +96,7 @@
                         لغو نوبت
                     </button>
                 </form>
-            @elseif($status === AppEnumsBookingStatus::COMPLETED && !$booking->review)
+            @elseif($status->value === 'completed' && !$booking->review)
                 <a
                     href="{{ route('customer.bookings.review.create', $booking) }}"
                     class="customer-btn customer-btn-primary"
@@ -104,7 +104,7 @@
                     امتیاز و نظر
                     <span aria-hidden="true">★</span>
                 </a>
-            @elseif($status === AppEnumsBookingStatus::COMPLETED)
+            @elseif($status->value === 'completed')
                 <span class="customer-booking-reviewed">
                     ✓ نظر ثبت شده
                 </span>
