@@ -7601,4 +7601,128 @@
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* ==========================================================================
+   BOOKING CAPACITY NOTICE
+   ========================================================================== */
+
+.np-booking-capacity {
+    display: grid;
+    grid-template-columns: 2.35rem minmax(0, 1fr) auto;
+    gap: .7rem;
+    align-items: center;
+    margin-top: 1rem;
+    padding: .85rem .9rem;
+    border: 1px solid var(--color-info-200);
+    border-radius: 1rem;
+    background: color-mix(
+        in srgb,
+        var(--color-info-50) 78%,
+        var(--color-surface)
+    );
+}
+
+.np-booking-capacity.is-full {
+    border-color: var(--color-warning-200);
+    background: color-mix(
+        in srgb,
+        var(--color-warning-50) 78%,
+        var(--color-surface)
+    );
+}
+
+.np-booking-capacity-icon {
+    display: grid;
+    width: 2.35rem;
+    height: 2.35rem;
+    place-items: center;
+    border-radius: .75rem;
+    background: var(--color-surface);
+    color: var(--color-info-700);
+    font-size: .72rem;
+    font-weight: 950;
+}
+
+.np-booking-capacity.is-full .np-booking-capacity-icon {
+    color: var(--color-warning-700);
+}
+
+.np-booking-capacity-copy {
+    min-width: 0;
+}
+
+.np-booking-capacity-copy strong {
+    display: block;
+    color: var(--color-content);
+    font-size: .62rem;
+    font-weight: 950;
+}
+
+.np-booking-capacity-copy p {
+    margin-top: .2rem;
+    color: var(--color-content-muted);
+    font-size: .55rem;
+    line-height: 1.9;
+}
+
+.np-booking-capacity-count {
+    display: flex;
+    min-width: 3.6rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-accent-700);
+    font-size: .72rem;
+    font-weight: 950;
+}
+
+.np-booking-capacity-count span {
+    margin-top: .1rem;
+    color: var(--color-content-faint);
+    font-size: .46rem;
+    font-weight: 800;
+}
+
+.np-booking-capacity-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .25rem;
+    min-height: 2rem;
+    padding-inline: .65rem;
+    border-radius: .7rem;
+    background: var(--color-surface);
+    color: var(--color-content);
+    font-size: .52rem;
+    font-weight: 900;
+    white-space: nowrap;
+    transition: color .18s ease, background-color .18s ease, transform .18s ease;
+}
+
+.np-booking-capacity-link:hover {
+    color: var(--color-accent-700);
+    background: var(--color-accent-50);
+    transform: translateX(1px);
+}
+
+@media (max-width: 640px) {
+    .np-booking-capacity {
+        grid-template-columns: 2.1rem minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .np-booking-capacity-icon {
+        width: 2.1rem;
+        height: 2.1rem;
+    }
+
+    .np-booking-capacity-count {
+        display: none;
+    }
+
+    .np-booking-capacity-link {
+        grid-column: 2;
+        justify-self: start;
+        margin-top: .2rem;
+    }
+}
 
