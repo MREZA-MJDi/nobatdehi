@@ -620,10 +620,20 @@ class BookingController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $booking = $bookingService->create(
-            $request->user(),
-            $data
-        );
+        try {
+            $booking = $bookingService->create(
+                $request->user(),
+                $data
+            );
+        } catch (\Illuminate\Validation\ValidationException $exception) {
+            return redirect()
+                ->route('customer.bookings.confirm')
+                ->withErrors($exception->errors())
+                ->with(
+                    'error',
+                    'این زمان در همین فاصله تغییر کرده است. لطفاً زمان دیگری را انتخاب کنید.'
+                );
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -645,13 +655,46 @@ class BookingController extends Controller
 
         return redirect()
             ->route(
-                'customer.dashboard'
-            )
-            ->with(
-                'success',
-                'نوبت شما با موفقیت ثبت شد.'
+                'customer.bookings.success',
+                $booking
             );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BOOKING SUCCESS
+    |--------------------------------------------------------------------------
+    */
+
+    public function success(
+        Request $request,
+        Booking $booking
+    ): View|RedirectResponse {
+        $booking = $request
+            ->user()
+            ->bookings()
+            ->with([
+                'salon',
+                'barber',
+                'service',
+            ])
+            ->find($booking->id);
+
+        if (!$booking) {
+            return redirect()
+                ->route('customer.dashboard')
+                ->with(
+                    'error',
+                    'نوبت موردنظر پیدا نشد.'
+                );
+        }
+
+        return view(
+            'customer.bookings.success',
+            compact('booking')
+        );
+    }
+
 
     /*
     |--------------------------------------------------------------------------
