@@ -15,7 +15,14 @@
    FONT
    ========================================================================== */
 
-@import "../doran/Webfonts/fontiran.css";
+
+@font-face {
+    font-family: "Estedad";
+    src: url("../estead/Estedad[wght,kshd].woff2") format("woff2");
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+}
 /* ==========================================================================
    TAILWIND THEME
    ========================================================================== */
@@ -27,7 +34,7 @@
        ---------------------------------------------------------------------- */
 
     --font-sans:
-        "Doran",
+        "Estedad",
         Tahoma,
         Arial,
         sans-serif;
