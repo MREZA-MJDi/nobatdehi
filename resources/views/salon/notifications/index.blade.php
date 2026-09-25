@@ -44,10 +44,23 @@
                         'completed' => 'انجام شده',
                         default => null,
                     };
+                    $typeLabel = match ($type) {
+                        'booking_created' => 'نوبت جدید',
+                        'booking_cancelled_by_customer' => 'لغو توسط مشتری',
+                        'booking_status_changed' => 'تغییر وضعیت',
+                        default => 'اعلان',
+                    };
+                    $dateLabel = !empty($notification->data['booking_date'])
+                        ? jalali_date($notification->data['booking_date'])
+                        : null;
+                    $startTime = $notification->data['start_time'] ?? null;
+                    $endTime = $notification->data['end_time'] ?? null;
                 @endphp
 
                 <article class="salon-notification {{ $isUnread ? 'is-unread' : '' }}">
-                    <div class="salon-notification__icon">{{ $type === 'booking_created' ? '◷' : '✓' }}</div>
+                    <div class="salon-notification__icon">
+                        {{ $type === 'booking_created' ? '◷' : ($type === 'booking_cancelled_by_customer' ? '×' : '✓') }}
+                    </div>
 
                     <div class="salon-notification__body">
                         <div class="salon-notification__top">
@@ -60,8 +73,23 @@
                         @endif
 
                         <div class="salon-notification__meta">
+                            <span>{{ $typeLabel }}</span>
                             @if($bookingId)
                                 <span>نوبت #{{ $fa($bookingId) }}</span>
+                            @endif
+                            @if($notification->data['customer_name'] ?? null)
+                                <span>{{ $notification->data['customer_name'] }}</span>
+                            @endif
+                            @if($dateLabel)
+                                <span>{{ $dateLabel }}</span>
+                            @endif
+                            @if($startTime)
+                                <span dir="ltr">
+                                    {{ $fa(substr((string) $startTime, 0, 5)) }}
+                                    @if($endTime)
+                                        تا {{ $fa(substr((string) $endTime, 0, 5)) }}
+                                    @endif
+                                </span>
                             @endif
                             @if($statusLabel)
                                 <span>{{ $statusLabel }}</span>
