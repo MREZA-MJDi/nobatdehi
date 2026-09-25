@@ -131,11 +131,25 @@ class AvailabilityService
         |--------------------------------------------------------------------------
         */
 
-        $workingHours = $salon->relationLoaded('workingHours')
-            ? collect($salon->getRelation('workingHours'))
+        /*
+        |--------------------------------------------------------------------------
+        | Barber-specific schedule with salon fallback
+        |--------------------------------------------------------------------------
+        |
+        | A barber may have an explicit schedule for a day, including a closed
+        | row. When no barber-specific rows exist, the salon-wide schedule is
+        | used as the default.
+        |
+        */
+        $barberSchedule = $barber
+            ->workingHours()
+            ->where('day_of_week', $dayOfWeek)
+            ->get();
+
+        $workingHours = $barberSchedule->isNotEmpty()
+            ? $barberSchedule
                 ->filter(
                     fn ($workingHour): bool =>
-                        (int) $workingHour->day_of_week === $dayOfWeek &&
                         ! $workingHour->is_closed &&
                         $workingHour->start_time &&
                         $workingHour->end_time
@@ -147,6 +161,7 @@ class AvailabilityService
                 ->values()
             : $salon
                 ->workingHours()
+                ->whereNull('barber_id')
                 ->where('day_of_week', $dayOfWeek)
                 ->where('is_closed', false)
                 ->whereNotNull('start_time')
