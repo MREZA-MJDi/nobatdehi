@@ -4548,3 +4548,609 @@ body.salon-lightbox-open {
         gap: 8px;
     }
 }
+
+
+
+/* ================================================================
+   PUBLIC SALON — FINAL RESPONSIVE / UI UX PASS
+   Keep the existing section structure and cover animation.
+   ================================================================ */
+
+.salon-page .wrap,
+.salon-page .topbar-in,
+.salon-page .profile-bar,
+.salon-page .hero-bottom,
+.salon-page .section-topline,
+.salon-page .profile-info,
+.salon-page .hero-bio,
+.salon-page .hero-meta,
+.salon-page .service-card,
+.salon-page .service-content,
+.salon-page .service-info,
+.salon-page .tile,
+.salon-page .tile-bottom,
+.salon-page .comment,
+.salon-page .tcard,
+.salon-page .about-card {
+    min-width: 0;
+}
+
+.salon-page .cover-topline {
+    display: none;
+}
+
+.salon-page .brand-copy {
+    min-width: 0;
+}
+
+.salon-page .brand-copy small {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-page .name-row {
+    min-width: 0;
+}
+
+.salon-page .name-row h1 {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+}
+
+.salon-page .tagline {
+    margin-top: 4px;
+    color: var(--salon-brand-secondary, var(--diamond-2));
+    font-size: .62rem;
+    font-weight: 650;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.salon-page .hero-bio {
+    max-width: 62ch;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+.salon-page .section-topline {
+    align-items: flex-start;
+}
+
+.salon-page .section-topline > div:first-child {
+    min-width: 0;
+}
+
+.salon-page .section-topline h2,
+.salon-page .section-topline p {
+    overflow-wrap: anywhere;
+}
+
+.salon-page .section-topline p {
+    max-width: 60ch;
+    line-height: 1.8;
+}
+
+.salon-page .salon-closure-alert {
+    margin-top: 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 15px;
+    border: 1px solid color-mix(
+        in srgb,
+        var(--salon-brand-secondary, var(--diamond-2)) 20%,
+        var(--line)
+    );
+    border-radius: 16px;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,.045),
+            rgba(255,255,255,.018)
+        );
+}
+
+.salon-page .salon-closure-icon {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    display: grid;
+    place-items: center;
+    border: 1px solid color-mix(
+        in srgb,
+        var(--salon-brand-secondary, var(--diamond-2)) 26%,
+        transparent
+    );
+    border-radius: 9px;
+    color: var(--salon-brand-secondary, var(--diamond-2));
+    background: color-mix(
+        in srgb,
+        var(--salon-brand-secondary, var(--diamond-2)) 7%,
+        transparent
+    );
+    font-family: Arial, sans-serif;
+    font-size: .70rem;
+    font-weight: 900;
+}
+
+.salon-page .salon-closure-copy {
+    min-width: 0;
+}
+
+.salon-page .salon-closure-copy strong {
+    display: block;
+    color: var(--text);
+    font-size: .72rem;
+    font-weight: 850;
+    line-height: 1.6;
+}
+
+.salon-page .salon-closure-copy p {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: .61rem;
+    line-height: 1.85;
+    overflow-wrap: anywhere;
+}
+
+.salon-page .services-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px;
+}
+
+.salon-page .service-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 17px;
+}
+
+.salon-page .service-media {
+    flex: 0 0 auto;
+    aspect-ratio: 16 / 8 !important;
+}
+
+.salon-page .service-content {
+    padding: 11px 12px 12px;
+}
+
+.salon-page .service-title {
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+    line-height: 1.55;
+}
+
+.salon-page .service-description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    min-height: 0 !important;
+    overflow: hidden;
+    line-height: 1.75;
+}
+
+.salon-page .service-info {
+    align-items: center;
+    gap: 7px;
+}
+
+.salon-page .service-price {
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.salon-page .service-duration {
+    max-width: 100%;
+    white-space: nowrap;
+}
+
+.salon-page .service-book {
+    width: 100%;
+    min-width: 0;
+}
+
+.salon-page .gallery {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 11px;
+}
+
+.salon-page .tile {
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+}
+
+.salon-page .tile .media img,
+.salon-page .tile .media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.salon-page .tile-bottom strong,
+.salon-page .tile-bottom span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.salon-page .tabs {
+    max-width: 100%;
+}
+
+.salon-page .float-book {
+    max-width: 760px;
+    margin-inline: auto;
+}
+
+@media (max-width: 1050px) {
+    .salon-page .gallery {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .salon-page .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .salon-page .profile-bar {
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: end;
+    }
+
+    .salon-page .profile-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+        padding-bottom: 0;
+    }
+
+    .salon-page .hero-bottom {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 680px) {
+    .salon-page .wrap,
+    .salon-page .topbar-in {
+        width: min(calc(100% - 20px), 1220px);
+    }
+
+    .salon-page .mobile-anchor-bar {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .salon-page .mobile-anchor-bar a,
+    .salon-page .mobile-book-anchor {
+        flex: 0 0 auto;
+    }
+
+    .salon-page .cover {
+        min-height: 285px;
+        border-radius: 24px;
+    }
+
+    .salon-page .cover-fallback {
+        min-height: 285px;
+    }
+
+    .salon-page .profile-bar {
+        grid-template-columns: 82px minmax(0, 1fr);
+        margin-top: -47px;
+        padding-inline: 10px;
+        gap: 10px;
+    }
+
+    .salon-page .avatar {
+        width: 82px;
+        height: 82px;
+        border-width: 3px;
+        border-radius: 23px;
+    }
+
+    .salon-page .profile-info {
+        padding-bottom: 0;
+    }
+
+    .salon-page .name-row {
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .salon-page .name-row h1 {
+        font-size: clamp(1.02rem, 5vw, 1.18rem);
+        line-height: 1.45;
+    }
+
+    .salon-page .verified-live {
+        display: none;
+    }
+
+    .salon-page .tagline {
+        font-size: .56rem;
+    }
+
+    .salon-page .stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 7px;
+        margin-top: 9px;
+    }
+
+    .salon-page .stat {
+        min-width: 0;
+    }
+
+    .salon-page .stat b {
+        font-size: .67rem;
+        line-height: 1.4;
+    }
+
+    .salon-page .stat span {
+        font-size: .46rem;
+        line-height: 1.5;
+        white-space: nowrap;
+    }
+
+    .salon-page .profile-actions {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .salon-page .profile-actions .btn-diamond,
+    .salon-page .profile-actions .btn-ghost {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .salon-page .hero-bottom,
+    .salon-page .chips {
+        margin-inline: 10px;
+    }
+
+    .salon-page .hero-bottom {
+        margin-top: 14px;
+        gap: 9px;
+    }
+
+    .salon-page .hero-bio {
+        max-width: none;
+        -webkit-line-clamp: 2;
+        font-size: .62rem;
+        line-height: 1.9;
+    }
+
+    .salon-page .hero-meta {
+        padding: 9px 10px;
+        gap: 7px;
+        border-radius: 13px;
+    }
+
+    .salon-page .hero-meta span {
+        min-width: 0;
+    }
+
+    .salon-page .hero-meta span {
+        overflow-wrap: anywhere;
+    }
+
+    .salon-page .hero-meta {
+        font-size: .53rem;
+    }
+
+    .salon-page .chips {
+        margin-top: 10px;
+    }
+
+    .salon-page .booking-cta {
+        margin-top: 25px;
+        padding: 18px 15px;
+    }
+
+    .salon-page .bk-text h2 {
+        font-size: 1.14rem;
+    }
+
+    .salon-page .section {
+        margin-top: 58px;
+        scroll-margin-top: 112px;
+    }
+
+    .salon-page .section-topline {
+        gap: 10px;
+        margin-bottom: 17px;
+    }
+
+    .salon-page .section-topline h2 {
+        font-size: 1.02rem;
+    }
+
+    .salon-page .section-topline p {
+        font-size: .57rem;
+    }
+
+    .salon-page .section-count {
+        flex: 0 0 auto;
+        max-width: 92px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .salon-page .tabs {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .salon-page .gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 7px;
+    }
+
+    .salon-page .tile {
+        border-radius: 14px;
+    }
+
+    .salon-page .tile.tile-1 {
+        grid-column: span 2;
+        grid-row: span 1;
+    }
+
+    .salon-page .tile-bottom {
+        inset-inline: 9px;
+        bottom: 9px;
+    }
+
+    .salon-page .tile-bottom span {
+        display: none;
+    }
+
+    .salon-page .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px;
+    }
+
+    .salon-page .service-card {
+        border-radius: 14px;
+    }
+
+    .salon-page .service-media {
+        aspect-ratio: 16 / 8.5 !important;
+    }
+
+    .salon-page .service-content {
+        padding: 8px 9px 9px;
+    }
+
+    .salon-page .service-title {
+        min-height: 2.9em;
+        font-size: .67rem;
+    }
+
+    .salon-page .service-description {
+        font-size: .49rem;
+        line-height: 1.7;
+    }
+
+    .salon-page .service-info {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        margin-top: 8px;
+    }
+
+    .salon-page .service-price {
+        font-size: .58rem;
+    }
+
+    .salon-page .service-price small {
+        font-size: .45rem;
+    }
+
+    .salon-page .service-duration {
+        min-height: 22px;
+        padding-inline: 5px;
+        font-size: .45rem;
+    }
+
+    .salon-page .service-book {
+        min-height: 34px;
+        margin-top: 8px;
+        padding-inline: 6px;
+        font-size: .49rem;
+    }
+
+    .salon-page .salon-closure-alert {
+        margin-top: 12px;
+        padding: 11px 12px;
+        border-radius: 14px;
+    }
+
+    .salon-page .salon-closure-icon {
+        width: 25px;
+        height: 25px;
+        flex-basis: 25px;
+        border-radius: 8px;
+    }
+
+    .salon-page .salon-closure-copy strong {
+        font-size: .65rem;
+    }
+
+    .salon-page .salon-closure-copy p {
+        font-size: .54rem;
+        line-height: 1.8;
+    }
+
+    .salon-page .comments {
+        grid-template-columns: 1fr;
+    }
+
+    .salon-page .team-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .salon-page .bottom-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .salon-page .about-card,
+    .salon-page .map-card {
+        min-height: 330px;
+    }
+
+    .salon-page .related-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .salon-page .float-book {
+        inset-inline: 10px;
+        width: auto;
+    }
+}
+
+@media (max-width: 390px) {
+    .salon-page .profile-bar {
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .salon-page .avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 20px;
+    }
+
+    .salon-page .stats {
+        gap: 5px;
+    }
+
+    .salon-page .stat b {
+        font-size: .61rem;
+    }
+
+    .salon-page .stat span {
+        font-size: .42rem;
+    }
+
+    .salon-page .service-title {
+        font-size: .62rem;
+    }
+
+    .salon-page .service-description {
+        font-size: .46rem;
+    }
+
+    .salon-page .service-price {
+        font-size: .55rem;
+    }
+
+    .salon-page .service-book {
+        font-size: .46rem;
+    }
+}

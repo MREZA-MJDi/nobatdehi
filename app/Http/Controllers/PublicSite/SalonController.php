@@ -281,6 +281,8 @@ class SalonController extends Controller
                 'isOpenNow',
                 'statusText',
                 'todayHoursText',
+                'dailyStatus',
+                'isDailyClosed',
                 'isFavorited'
             )
         );
