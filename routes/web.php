@@ -413,6 +413,11 @@ Route::middleware('auth')->group(function () {
                 [SalonWorkingHourController::class, 'update']
             )->name('working-hours.update');
 
+            Route::put(
+                '/working-hours/day',
+                [SalonWorkingHourController::class, 'updateDay']
+            )->name('working-hours.day-update');
+
             Route::post(
                 '/working-hours/apply-default',
                 [SalonWorkingHourController::class, 'applyDefault']
