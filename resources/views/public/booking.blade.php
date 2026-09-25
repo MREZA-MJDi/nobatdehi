@@ -798,6 +798,27 @@
                                 برای این روز زمان آزادی باقی نمانده است.
                             </div>
 
+                            <div
+                                x-show="selectedSlot && selectedSlot.pending_priority_conflict"
+                                x-cloak
+                                class="np-pending-priority"
+                                role="alert"
+                            >
+                                <strong>این ساعت یک درخواست نوبت زودتر دارد.</strong>
+                                <span>
+                                    آن نوبت هنوز تأیید نشده و فقط اولویت زمانی دارد؛ این ساعت برای تو هم قابل درخواست است.
+                                    می‌توانی ادامه بدهی یا یک ساعت دیگر انتخاب کنی.
+                                </span>
+                                <div class="np-pending-priority__actions">
+                                    <button type="button" @click="pendingPriorityAccepted = true">
+                                        ادامه می‌دهم
+                                    </button>
+                                    <button type="button" @click="time = ''; pendingPriorityAccepted = false">
+                                        تغییر ساعت
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
 
                     </section>
@@ -1137,6 +1158,8 @@
 
                         time: '',
 
+                        pendingPriorityAccepted: false,
+
                         slots: [],
 
                         schedule: {
@@ -1223,14 +1246,29 @@
                         },
 
 
+                        get selectedSlot() {
+
+                            return this.slots.find(
+                                slot => slot.start === this.time
+                            );
+
+                        },
+
+
                         get canSubmit() {
 
-                            return Boolean(
+                            const hasRequiredSelection = Boolean(
                                 this.barberId &&
                                 this.serviceId &&
                                 this.date &&
                                 this.time
                             );
+
+                            const priorityAcknowledged =
+                                !this.selectedSlot?.pending_priority_conflict ||
+                                this.pendingPriorityAccepted;
+
+                            return hasRequiredSelection && priorityAcknowledged;
 
                         },
 
@@ -1470,6 +1508,7 @@
                         selectTime(time) {
 
                             this.time = time;
+                            this.pendingPriorityAccepted = false;
 
                             this.$nextTick(() => {
 
@@ -1585,6 +1624,7 @@
                             this.loading = true;
 
                             this.availabilityError = false;
+                            this.pendingPriorityAccepted = false;
 
                             if (!preserveSelection) {
                                 this.time = '';
@@ -1711,6 +1751,23 @@
                             if (!this.canSubmit) {
 
                                 event.preventDefault();
+
+                                if (
+                                    this.time &&
+                                    this.selectedSlot?.pending_priority_conflict &&
+                                    !this.pendingPriorityAccepted
+                                ) {
+                                    const warning = document.querySelector('.np-pending-priority');
+
+                                    if (warning) {
+                                        warning.scrollIntoView({
+                                            behavior: 'smooth',
+                                            block: 'center'
+                                        });
+                                    }
+
+                                    return;
+                                }
 
                                 if (!this.barberId) {
                                     this.scrollToSection(1);
