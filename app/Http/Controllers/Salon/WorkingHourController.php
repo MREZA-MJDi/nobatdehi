@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Salon;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Salon\WorkingHourRequest;
+use App\Http\Requests\Salon\WorkingHourDayRequest;
 use App\Models\Barber;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -188,6 +190,59 @@ class WorkingHourController extends Controller
                 ? 'ساعات کاری کلی سالن با موفقیت ذخیره شد.'
                 : 'ساعات کاری این آرایشگر با موفقیت ذخیره شد.'
         );
+    }
+
+    public function updateDay(WorkingHourDayRequest $request): JsonResponse
+    {
+        $salon = $request
+            ->user()
+            ->managedSalons()
+            ->firstOrFail();
+
+        $data = $request->validated();
+
+        $barberId = ($data['barber_id'] ?? null) !== null
+            ? (int) $data['barber_id']
+            : null;
+
+        DB::transaction(function () use ($salon, $data, $barberId): void {
+            $salon
+                ->workingHours()
+                ->where('barber_id', $barberId)
+                ->where('day_of_week', (int) $data['day_of_week'])
+                ->delete();
+
+            if ($data['is_closed']) {
+                $salon->workingHours()->create([
+                    'barber_id' => $barberId,
+                    'day_of_week' => (int) $data['day_of_week'],
+                    'start_time' => null,
+                    'end_time' => null,
+                    'is_closed' => true,
+                    'sort_order' => 0,
+                ]);
+
+                return;
+            }
+
+            foreach (array_values($data['intervals']) as $sortOrder => $interval) {
+                $salon->workingHours()->create([
+                    'barber_id' => $barberId,
+                    'day_of_week' => (int) $data['day_of_week'],
+                    'start_time' => $interval['start_time'],
+                    'end_time' => $interval['end_time'],
+                    'is_closed' => false,
+                    'sort_order' => $sortOrder,
+                ]);
+            }
+        });
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'برنامه این روز ذخیره شد.',
+            'day_of_week' => (int) $data['day_of_week'],
+            'barber_id' => $barberId,
+        ]);
     }
 
     public function applyDefault(Request $request): RedirectResponse
