@@ -11,6 +11,7 @@ use App\Models\WorkingHour;
 use F9WebLtd\QrCode\Facades\QrCode;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SalonSeeder extends Seeder
 {
@@ -161,6 +162,7 @@ class SalonSeeder extends Seeder
 
 
         foreach ($salons as $data) {
+            $data['slug'] = Str::slug($data['name']);
 
             /*
             |--------------------------------------------------------------------------
