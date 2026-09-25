@@ -22,12 +22,20 @@ class BookingCoreTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_availability_blocks_overlapping_pending_and_confirmed_bookings(): void
+    public function test_pending_booking_does_not_block_availability_but_can_mark_priority(): void
     {
         Event::fake();
 
         [$owner, $customer, $salon, $barber, $service, $date] =
             $this->fixture();
+
+        $otherCustomer = User::create([
+            'name' => 'Second Customer',
+            'phone' => '09120000004',
+            'email' => 'customer-second@example.test',
+            'password' => 'password',
+            'role' => 'customer',
+        ]);
 
         Booking::create([
             'salon_id' => $salon->id,
@@ -41,18 +49,74 @@ class BookingCoreTest extends TestCase
             'status' => BookingStatus::PENDING,
         ]);
 
-        $slots = app(AvailabilityService::class)->slots(
+        $availability = app(AvailabilityService::class);
+
+        $ownerView = collect($availability->slots(
             $salon,
             $barber,
             $service,
-            $date
-        );
+            $date,
+            null,
+            $customer->id
+        ))->firstWhere('start', '10:00');
 
-        $slot = collect($slots)->firstWhere('start', '10:00');
+        $secondCustomerView = collect($availability->slots(
+            $salon,
+            $barber,
+            $service,
+            $date,
+            null,
+            $otherCustomer->id
+        ))->firstWhere('start', '10:00');
 
-        $this->assertNotNull($slot);
-        $this->assertFalse($slot['available']);
-        $this->assertSame('booked', $slot['status']);
+        $this->assertNotNull($ownerView);
+        $this->assertNotNull($secondCustomerView);
+        $this->assertTrue($ownerView['available']);
+        $this->assertFalse($ownerView['pending_priority_conflict']);
+        $this->assertTrue($secondCustomerView['available']);
+        $this->assertTrue($secondCustomerView['pending_priority_conflict']);
+    }
+
+    public function test_two_pending_bookings_can_share_time_but_only_one_can_be_confirmed(): void
+    {
+        Event::fake();
+
+        [$owner, $customer, $salon, $barber, $service, $date] =
+            $this->fixture();
+
+        $otherCustomer = User::create([
+            'name' => 'Second Customer',
+            'phone' => '09120000004',
+            'email' => 'customer-second-confirm@example.test',
+            'password' => 'password',
+            'role' => 'customer',
+        ]);
+
+        $bookingService = app(BookingService::class);
+
+        $first = $bookingService->create($customer, [
+            'salon_id' => $salon->id,
+            'barber_id' => $barber->id,
+            'service_id' => $service->id,
+            'booking_date' => $date->toDateString(),
+            'start_time' => '10:00',
+        ]);
+
+        $second = $bookingService->create($otherCustomer, [
+            'salon_id' => $salon->id,
+            'barber_id' => $barber->id,
+            'service_id' => $service->id,
+            'booking_date' => $date->toDateString(),
+            'start_time' => '10:00',
+        ]);
+
+        $this->assertSame(BookingStatus::PENDING, $first->status);
+        $this->assertSame(BookingStatus::PENDING, $second->status);
+
+        $bookingService->changeStatus($first, BookingStatus::CONFIRMED);
+
+        $this->expectException(ValidationException::class);
+        $bookingService->changeStatus($second, BookingStatus::CONFIRMED);
     }
 
     public function test_availability_uses_half_hour_start_grid_and_preserves_service_duration(): void
@@ -142,29 +206,27 @@ class BookingCoreTest extends TestCase
         $this->assertSame('booked', $slot['status']);
     }
 
-    public function test_customer_cannot_double_book_same_barber_and_time(): void
+    public function test_customer_pending_capacity_remains_two_requests(): void
     {
         Event::fake();
 
         [$owner, $customer, $salon, $barber, $service, $date] =
             $this->fixture();
 
-        $service->update([
-            'duration_minutes' => 60,
-        ]);
-
         $bookingService = app(BookingService::class);
 
-        $bookingService->create(
-            $customer,
-            [
-                'salon_id' => $salon->id,
-                'barber_id' => $barber->id,
-                'service_id' => $service->id,
-                'booking_date' => $date->toDateString(),
-                'start_time' => '10:00',
-            ]
-        );
+        foreach (['10:00', '11:00'] as $startTime) {
+            $bookingService->create(
+                $customer,
+                [
+                    'salon_id' => $salon->id,
+                    'barber_id' => $barber->id,
+                    'service_id' => $service->id,
+                    'booking_date' => $date->toDateString(),
+                    'start_time' => $startTime,
+                ]
+            );
+        }
 
         $this->expectException(ValidationException::class);
 
@@ -175,7 +237,7 @@ class BookingCoreTest extends TestCase
                 'barber_id' => $barber->id,
                 'service_id' => $service->id,
                 'booking_date' => $date->toDateString(),
-                'start_time' => '10:00',
+                'start_time' => '12:00',
             ]
         );
     }
