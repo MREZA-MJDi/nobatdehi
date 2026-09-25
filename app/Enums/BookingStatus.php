@@ -26,7 +26,7 @@ enum BookingStatus: string
     public function blocksAvailability(): bool
     {
         return match ($this) {
-            self::PENDING,
+            self::PENDING => false,
             self::CONFIRMED => true,
 
             self::COMPLETED,
