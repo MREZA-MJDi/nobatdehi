@@ -2991,3 +2991,638 @@ html[data-theme="dark"] .salon-owner {
         flex-basis: 70px;
     }
 }
+
+
+/* ==========================================================================
+   WORKING HOURS — SHARED SALON OWNER WORKSPACE
+   ========================================================================== */
+
+.salon-working-hours-page {
+    display: grid;
+    gap: 13px;
+    width: 100%;
+    max-width: 1280px;
+    min-width: 0;
+    margin-inline: auto;
+}
+
+.salon-working-hours-page .salon-page-header {
+    margin-bottom: 0;
+}
+
+.salon-working-hours-scope__body,
+.salon-working-hours-context,
+.salon-working-day__body,
+.salon-working-day__closed,
+.salon-working-hours-save {
+    min-width: 0;
+}
+
+.salon-working-hours-scopes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 7px;
+}
+
+.salon-working-hours-scope-button {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px;
+    border: 1px solid var(--owner-border);
+    border-radius: 13px;
+    background: var(--owner-surface-soft);
+    color: var(--owner-text);
+    text-align: right;
+    transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
+}
+
+.salon-working-hours-scope-button:hover {
+    border-color: color-mix(in srgb, var(--owner-primary) 24%, var(--owner-border));
+}
+
+.salon-working-hours-scope-button.is-active {
+    border-color: color-mix(in srgb, var(--owner-primary) 42%, var(--owner-border));
+    background: var(--owner-primary-soft);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--owner-primary) 8%, transparent);
+}
+
+.salon-working-hours-scope-button > span:last-child {
+    min-width: 0;
+}
+
+.salon-working-hours-scope-button strong,
+.salon-working-hours-scope-button small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-working-hours-scope-button strong {
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.salon-working-hours-scope-button small {
+    margin-top: 2px;
+    color: var(--owner-muted);
+    font-size: 9px;
+    font-weight: 650;
+}
+
+.salon-working-hours-scope-button__icon,
+.salon-working-hours-scope-button__avatar {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--owner-surface);
+    color: var(--owner-primary);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.salon-working-hours-scope-button__avatar {
+    background: color-mix(in srgb, var(--owner-primary) 12%, var(--owner-surface));
+}
+
+.salon-working-hours-context {
+    overflow: hidden;
+}
+
+.salon-working-hours-context__main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px;
+}
+
+.salon-working-hours-context__main > div:first-child {
+    min-width: 0;
+}
+
+.salon-working-hours-context h2 {
+    margin: 4px 0 0;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.salon-working-hours-context p {
+    max-width: 720px;
+    margin: 5px 0 0;
+    color: var(--owner-muted);
+    font-size: 9px;
+    line-height: 1.9;
+}
+
+.salon-working-hours-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.salon-working-hours-form {
+    display: grid;
+    gap: 9px;
+    min-width: 0;
+}
+
+.salon-working-hours-days {
+    display: grid;
+    gap: 9px;
+}
+
+.salon-working-day {
+    overflow: hidden;
+    min-width: 0;
+}
+
+.salon-working-day__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--owner-border);
+}
+
+.salon-working-day__identity {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.salon-working-day__index {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: var(--owner-surface-soft);
+    color: var(--owner-muted);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.salon-working-day__identity strong,
+.salon-working-day__identity small {
+    display: block;
+}
+
+.salon-working-day__identity strong {
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.salon-working-day__identity small {
+    margin-top: 2px;
+    color: var(--owner-muted);
+    font-size: 9px;
+}
+
+.salon-working-day__identity small.is-open {
+    color: var(--owner-primary);
+}
+
+.salon-working-day__identity small.is-closed {
+    color: var(--owner-faint);
+}
+
+.salon-working-day__tools {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.salon-working-day__toggle,
+.salon-working-day__copy,
+.salon-working-interval-remove {
+    min-height: 31px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--owner-border);
+    border-radius: 9px;
+    background: var(--owner-surface);
+    color: var(--owner-muted);
+    padding: 0 9px;
+    font-size: 9px;
+    font-weight: 750;
+}
+
+.salon-working-day__toggle:hover,
+.salon-working-day__copy:hover,
+.salon-working-interval-remove:hover {
+    border-color: color-mix(in srgb, var(--owner-primary) 24%, var(--owner-border));
+    color: var(--owner-primary);
+}
+
+.salon-working-day__body {
+    padding: 12px 14px 13px;
+    background: color-mix(in srgb, var(--owner-primary) 2%, var(--owner-surface));
+}
+
+.salon-working-intervals {
+    display: grid;
+    gap: 7px;
+}
+
+.salon-working-interval {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 7px;
+    min-width: 0;
+    padding: 9px;
+    border: 1px solid var(--owner-border);
+    border-radius: 13px;
+    background: var(--owner-surface);
+}
+
+.salon-working-time-field {
+    min-width: 0;
+}
+
+.salon-working-time-field label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--owner-muted);
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.salon-working-time-field input {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--owner-border);
+    border-radius: 11px;
+    background: var(--owner-surface-soft);
+    color: var(--owner-text);
+    padding: 0 9px;
+    font-size: 12px;
+    font-weight: 700;
+    outline: 0;
+}
+
+.salon-working-time-field input:focus {
+    border-color: color-mix(in srgb, var(--owner-primary) 35%, var(--owner-border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--owner-primary) 8%, transparent);
+}
+
+.salon-working-interval-separator {
+    align-self: center;
+    padding-top: 16px;
+    color: var(--owner-faint);
+    font-size: 10px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.salon-working-interval-remove {
+    min-height: 42px;
+    border-color: color-mix(in srgb, #ef4444 18%, var(--owner-border));
+    color: #b91c1c;
+    background: color-mix(in srgb, #ef4444 4%, var(--owner-surface));
+}
+
+.salon-working-day__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 9px;
+    margin-top: 7px;
+}
+
+.salon-working-add {
+    min-height: 39px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 11px;
+    border: 1px dashed color-mix(in srgb, var(--owner-primary) 30%, var(--owner-border));
+    border-radius: 11px;
+    background: var(--owner-surface);
+    color: var(--owner-primary);
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.salon-working-day__error {
+    min-width: 0;
+    color: #b91c1c;
+    font-size: 9px;
+    font-weight: 750;
+    line-height: 1.7;
+}
+
+.salon-working-day__closed {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    background: color-mix(in srgb, var(--owner-surface-soft) 85%, transparent);
+}
+
+.salon-working-day__closed strong,
+.salon-working-day__closed span {
+    display: block;
+}
+
+.salon-working-day__closed strong {
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.salon-working-day__closed span {
+    margin-top: 2px;
+    color: var(--owner-muted);
+    font-size: 9px;
+}
+
+.salon-working-hours-save {
+    position: sticky;
+    bottom: 14px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--owner-border);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--owner-surface) 94%, transparent);
+    box-shadow: 0 12px 32px rgba(0,0,0,.10);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.salon-working-hours-save > div {
+    min-width: 0;
+}
+
+.salon-working-hours-save strong,
+.salon-working-hours-save span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.salon-working-hours-save strong {
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.salon-working-hours-save span {
+    margin-top: 2px;
+    color: var(--owner-muted);
+    font-size: 9px;
+}
+
+.salon-working-hours-save__button {
+    min-width: 180px;
+}
+
+.salon-working-hours-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: rgba(15, 23, 42, .45);
+}
+
+.salon-working-hours-modal__dialog {
+    width: min(100%, 460px);
+    max-height: min(90vh, 660px);
+    overflow: auto;
+    border: 1px solid var(--owner-border);
+    border-radius: 20px;
+    background: var(--owner-surface);
+    box-shadow: var(--owner-shadow-lg);
+}
+
+.salon-working-hours-modal__dialog > header,
+.salon-working-hours-modal__dialog > footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px;
+}
+
+.salon-working-hours-modal__dialog > header {
+    border-bottom: 1px solid var(--owner-border);
+}
+
+.salon-working-hours-modal__dialog > header h2 {
+    margin: 4px 0 0;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.salon-working-hours-modal__dialog > header > button {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--owner-border);
+    border-radius: 10px;
+    background: var(--owner-surface-soft);
+    color: var(--owner-muted);
+    font-size: 18px;
+}
+
+.salon-working-hours-modal__source {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 12px 14px;
+    padding: 10px 11px;
+    border-radius: 12px;
+    background: var(--owner-primary-soft);
+}
+
+.salon-working-hours-modal__source span {
+    color: var(--owner-muted);
+    font-size: 9px;
+}
+
+.salon-working-hours-modal__source strong {
+    font-size: 10px;
+}
+
+.salon-working-hours-modal__select-all {
+    width: calc(100% - 28px);
+    margin: 0 14px 10px;
+    min-height: 37px;
+    border: 1px solid var(--owner-border);
+    border-radius: 10px;
+    background: var(--owner-surface-soft);
+    color: var(--owner-text);
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.salon-working-hours-modal__days {
+    display: grid;
+    gap: 6px;
+    padding: 0 14px 10px;
+}
+
+.salon-working-hours-modal__days label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 42px;
+    padding: 0 11px;
+    border: 1px solid var(--owner-border);
+    border-radius: 11px;
+    background: var(--owner-surface-soft);
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.salon-working-hours-modal__days input {
+    width: 18px;
+    height: 18px;
+}
+
+@media (max-width: 759px) {
+    .salon-working-hours-page {
+        gap: 10px;
+    }
+
+    .salon-working-hours-scopes {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .salon-working-hours-scope-button {
+        padding: 9px;
+    }
+
+    .salon-working-hours-scope-button__icon,
+    .salon-working-hours-scope-button__avatar {
+        width: 34px;
+        height: 34px;
+        flex-basis: 34px;
+    }
+
+    .salon-working-hours-context__main {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 13px;
+    }
+
+    .salon-working-hours-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .salon-working-hours-actions .salon-btn {
+        flex: 1 1 auto;
+    }
+
+    .salon-working-day__head {
+        align-items: flex-start;
+        padding: 11px;
+    }
+
+    .salon-working-day__tools {
+        justify-content: flex-end;
+    }
+
+    .salon-working-interval {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .salon-working-interval-separator {
+        display: none;
+    }
+
+    .salon-working-interval-remove {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .salon-working-day__footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .salon-working-add {
+        width: 100%;
+    }
+
+    .salon-working-day__error {
+        width: 100%;
+    }
+
+    .salon-working-day__closed {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 11px;
+    }
+
+    .salon-working-hours-save {
+        bottom: calc(76px + env(safe-area-inset-bottom));
+        align-items: stretch;
+        flex-direction: column;
+        gap: 8px;
+        padding: 9px;
+    }
+
+    .salon-working-hours-save__button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .salon-working-hours-modal {
+        align-items: flex-end;
+        padding: 8px;
+    }
+
+    .salon-working-hours-modal__dialog {
+        width: 100%;
+        max-height: 88vh;
+        border-radius: 18px;
+    }
+}
+
+@media (max-width: 380px) {
+    .salon-working-hours-scopes {
+        grid-template-columns: 1fr;
+    }
+
+    .salon-working-hours-scope-button {
+        min-height: 52px;
+    }
+
+    .salon-working-day__head {
+        gap: 7px;
+    }
+
+    .salon-working-day__toggle,
+    .salon-working-day__copy {
+        padding-inline: 7px;
+        font-size: 8px;
+    }
+
+    .salon-working-time-field input {
+        min-height: 44px;
+        font-size: 11px;
+    }
+}
