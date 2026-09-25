@@ -3745,3 +3745,242 @@ html[data-theme="dark"] .salon-owner {
         padding: 9px 10px;
     }
 }
+
+
+/* ==========================================================================
+   SALON OWNER — INITIAL PASSWORD SETUP
+   ========================================================================== */
+
+.salon-owner__password-page {
+    width: 100%;
+    max-width: 760px;
+    min-width: 0;
+    margin: clamp(18px, 5vw, 54px) auto;
+}
+
+.salon-owner__password-card {
+    overflow: hidden;
+    border: 1px solid var(--owner-border);
+    border-radius: 24px;
+    background: var(--owner-surface);
+    color: var(--owner-text);
+    box-shadow: var(--owner-shadow-lg);
+}
+
+.salon-owner__password-hero {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 18px;
+    padding: 24px;
+    background:
+        radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--owner-primary) 10%, transparent), transparent 34%),
+        var(--owner-surface);
+}
+
+.salon-owner__password-icon {
+    width: 64px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 64px;
+    border-radius: 18px;
+    background: var(--owner-primary-soft);
+    color: var(--owner-primary);
+    font-size: 28px;
+    font-weight: 900;
+}
+
+.salon-owner__password-copy {
+    min-width: 0;
+}
+
+.salon-owner__password-copy h1 {
+    margin: 5px 0 0;
+    font-size: clamp(1.35rem, 3vw, 1.85rem);
+    line-height: 1.4;
+    font-weight: 850;
+}
+
+.salon-owner__password-copy p {
+    max-width: 62ch;
+    margin: 8px 0 0;
+    color: var(--owner-muted);
+    font-size: .72rem;
+    line-height: 1.95;
+}
+
+.salon-owner__eyebrow {
+    display: inline-block;
+    color: var(--owner-primary);
+    font-size: .62rem;
+    font-weight: 850;
+    letter-spacing: .08em;
+}
+
+.salon-owner__password-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 24px 20px;
+    padding: 13px 14px;
+    border: 1px solid color-mix(in srgb, var(--owner-primary) 16%, var(--owner-border));
+    border-radius: 15px;
+    background: var(--owner-primary-soft);
+}
+
+.salon-owner__password-note > span {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 28px;
+    border-radius: 9px;
+    background: var(--owner-surface);
+    color: var(--owner-primary);
+    font-weight: 900;
+}
+
+.salon-owner__password-note strong,
+.salon-owner__password-note span {
+    display: block;
+}
+
+.salon-owner__password-note strong {
+    font-size: .66rem;
+    font-weight: 800;
+}
+
+.salon-owner__password-note div > span {
+    margin-top: 2px;
+    color: var(--owner-muted);
+    font-size: .6rem;
+    line-height: 1.7;
+}
+
+.salon-owner__password-card > .salon-owner__flash {
+    margin-inline: 24px;
+}
+
+.salon-owner__password-form {
+    padding: 0 24px 24px;
+}
+
+.salon-owner__password-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.salon-owner__password-field {
+    display: block;
+    min-width: 0;
+}
+
+.salon-owner__password-field > span {
+    display: block;
+    margin-bottom: 6px;
+    font-size: .66rem;
+    font-weight: 800;
+}
+
+.salon-owner__password-field input {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 13px;
+    border: 1px solid var(--owner-border);
+    border-radius: 13px;
+    background: var(--owner-surface-soft);
+    color: var(--owner-text);
+    font-size: .8rem;
+    font-weight: 750;
+    outline: 0;
+    text-align: left;
+    transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+.salon-owner__password-field input:focus {
+    border-color: color-mix(in srgb, var(--owner-primary) 45%, var(--owner-border));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--owner-primary) 9%, transparent);
+    background: var(--owner-surface);
+}
+
+.salon-owner__password-field small {
+    display: block;
+    margin-top: 6px;
+    color: var(--owner-muted);
+    font-size: .58rem;
+    line-height: 1.75;
+}
+
+.salon-owner__password-submit {
+    width: 100%;
+    min-height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 16px;
+    border-radius: 14px;
+    background: var(--owner-primary);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 850;
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--owner-primary) 18%, transparent);
+    transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+}
+
+.salon-owner__password-submit:hover {
+    transform: translateY(-1px);
+    filter: brightness(.97);
+    box-shadow: 0 16px 34px color-mix(in srgb, var(--owner-primary) 22%, transparent);
+}
+
+@media (max-width: 759px) {
+    .salon-owner__password-page {
+        margin: 14px auto 88px;
+    }
+
+    .salon-owner__password-card {
+        border-radius: 20px;
+    }
+
+    .salon-owner__password-hero {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 18px;
+    }
+
+    .salon-owner__password-icon {
+        width: 50px;
+        height: 50px;
+        flex-basis: 50px;
+        border-radius: 15px;
+        font-size: 22px;
+    }
+
+    .salon-owner__password-note {
+        margin: 0 18px 15px;
+    }
+
+    .salon-owner__password-card > .salon-owner__flash {
+        margin-inline: 18px;
+    }
+
+    .salon-owner__password-form {
+        padding: 0 18px 18px;
+    }
+
+    .salon-owner__password-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .salon-owner__password-field input {
+        min-height: 50px;
+    }
+
+    .salon-owner__password-submit {
+        min-height: 54px;
+        margin-top: 13px;
+    }
+}
