@@ -786,8 +786,6 @@
                 GALLERY
             ======================================================== --}}
 
-            @if($posts->isNotEmpty())
-
                 <section
                     class="section reveal gallery-section"
                     id="gallery"
@@ -819,6 +817,8 @@
 
                     </div>
 
+
+                    @if($posts->isNotEmpty())
 
                     <div
                         class="tabs"
@@ -1037,27 +1037,24 @@
                     </div>
 
 
-                    <div
-                        class="gallery-empty"
-                        id="galleryEmpty"
-                        hidden
-                    >
-                        <div class="gallery-empty-icon">
-                            ✦
+                    @else
+
+                        <div class="gallery-empty gallery-empty--always-visible">
+                            <div class="gallery-empty-icon">
+                                ✦
+                            </div>
+
+                            <strong>
+                                هنوز نمونه‌کاری برای نمایش ثبت نشده است
+                            </strong>
+
+                            <span>
+                                به‌محض اضافه‌شدن نمونه‌کار، اینجا نمایش داده می‌شود.
+                            </span>
                         </div>
 
-                        <strong>
-                            محتوایی در این دسته وجود ندارد
-                        </strong>
+                    @endif
 
-                        <span>
-                            یک دسته دیگر را امتحان کن.
-                        </span>
-                    </div>
-
-                </section>
-
-            @endif
 
 
             {{-- =======================================================
