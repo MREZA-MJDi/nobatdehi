@@ -169,6 +169,151 @@
 
 
             {{-- =========================================================
+                ACCOUNT SETTINGS
+            ========================================================== --}}
+            <section class="mb-8 grid gap-4 lg:grid-cols-2">
+                <article class="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+                    <div class="mb-5 flex items-start gap-3">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent-50 text-accent-600" aria-hidden="true">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 6h16M4 12h16M4 18h16"/>
+                                <path d="M8 4v4M16 10v4M10 16v4"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-[10px] font-black uppercase tracking-[0.18em] text-accent-600">ACCOUNT</div>
+                            <h2 class="mt-1 text-base font-black text-content">شماره موبایل حساب</h2>
+                            <p class="mt-1 text-xs leading-6 text-content-muted">
+                                این شماره برای ورود به پنل سالن استفاده می‌شود؛ مستقل از شماره عمومی سالن است.
+                            </p>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('salon.settings.phone.update') }}" method="POST" class="space-y-4">
+                        @csrf
+                        @method('PATCH')
+
+                        <div>
+                            <label for="salon-owner-phone" class="mb-2 block text-xs font-black text-content">شماره موبایل کاربری</label>
+                            <input
+                                id="salon-owner-phone"
+                                type="tel"
+                                name="phone"
+                                value="{{ old('phone', auth()->user()->phone) }}"
+                                inputmode="numeric"
+                                autocomplete="tel"
+                                dir="ltr"
+                                class="w-full rounded-2xl border border-border bg-surface-soft px-4 py-3 text-sm font-semibold text-content outline-none transition focus:border-accent-400 focus:ring-4 focus:ring-accent-500/10"
+                                placeholder="0912..."
+                                required
+                            >
+                            @error('phone')
+                                <p class="mt-2 text-xs font-semibold text-danger-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="salon-owner-phone-password" class="mb-2 block text-xs font-black text-content">رمز عبور فعلی</label>
+                            <input
+                                id="salon-owner-phone-password"
+                                type="password"
+                                name="current_password"
+                                autocomplete="current-password"
+                                dir="ltr"
+                                class="w-full rounded-2xl border border-border bg-surface-soft px-4 py-3 text-sm font-semibold text-content outline-none transition focus:border-accent-400 focus:ring-4 focus:ring-accent-500/10"
+                                placeholder="برای تأیید تغییر شماره"
+                                required
+                            >
+                            @error('current_password')
+                                <p class="mt-2 text-xs font-semibold text-danger-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <button type="submit" class="w-full rounded-2xl bg-accent-600 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-accent-700 focus:outline-none focus:ring-4 focus:ring-accent-500/20">
+                            تغییر شماره موبایل
+                        </button>
+                    </form>
+                </article>
+
+                <article class="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+                    <div class="mb-5 flex items-start gap-3">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-warning-50 text-warning-700" aria-hidden="true">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="4" y="10" width="16" height="10" rx="2"/>
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-[10px] font-black uppercase tracking-[0.18em] text-warning-700">SECURITY</div>
+                            <h2 class="mt-1 text-base font-black text-content">تغییر رمز عبور</h2>
+                            <p class="mt-1 text-xs leading-6 text-content-muted">
+                                یک رمز حداقل ۸ کاراکتری انتخاب کنید. تغییر رمز از همین صفحه انجام می‌شود.
+                            </p>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('salon.settings.password.update') }}" method="POST" class="space-y-4">
+                        @csrf
+                        @method('PATCH')
+
+                        <div>
+                            <label for="salon-current-password" class="mb-2 block text-xs font-black text-content">رمز عبور فعلی</label>
+                            <input
+                                id="salon-current-password"
+                                type="password"
+                                name="current_password"
+                                autocomplete="current-password"
+                                dir="ltr"
+                                class="w-full rounded-2xl border border-border bg-surface-soft px-4 py-3 text-sm font-semibold text-content outline-none transition focus:border-accent-400 focus:ring-4 focus:ring-accent-500/10"
+                                required
+                            >
+                            @error('current_password')
+                                <p class="mt-2 text-xs font-semibold text-danger-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="salon-new-password" class="mb-2 block text-xs font-black text-content">رمز عبور جدید</label>
+                                <input
+                                    id="salon-new-password"
+                                    type="password"
+                                    name="password"
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                    dir="ltr"
+                                    class="w-full rounded-2xl border border-border bg-surface-soft px-4 py-3 text-sm font-semibold text-content outline-none transition focus:border-accent-400 focus:ring-4 focus:ring-accent-500/10"
+                                    required
+                                >
+                                @error('password')
+                                    <p class="mt-2 text-xs font-semibold text-danger-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="salon-password-confirmation" class="mb-2 block text-xs font-black text-content">تکرار رمز جدید</label>
+                                <input
+                                    id="salon-password-confirmation"
+                                    type="password"
+                                    name="password_confirmation"
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                    dir="ltr"
+                                    class="w-full rounded-2xl border border-border bg-surface-soft px-4 py-3 text-sm font-semibold text-content outline-none transition focus:border-accent-400 focus:ring-4 focus:ring-accent-500/10"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full rounded-2xl border border-border bg-surface-soft px-4 py-3 text-sm font-black text-content transition hover:bg-surface focus:outline-none focus:ring-4 focus:ring-accent-500/20">
+                            ذخیره رمز عبور جدید
+                        </button>
+                    </form>
+                </article>
+            </section>
+
+
+            {{-- =========================================================
                 MAIN FORM / ALPINE APP
             ========================================================== --}}
             <form
