@@ -184,12 +184,17 @@ class WorkingHourController extends Controller
             }
         });
 
-        return back()->with(
-            'success',
-            $barberId === null
-                ? 'ساعات کاری کلی سالن با موفقیت ذخیره شد.'
-                : 'ساعات کاری این آرایشگر با موفقیت ذخیره شد.'
-        );
+        return redirect()
+            ->route(
+                'salon.working-hours.edit',
+                $barberId === null ? [] : ['barber_id' => $barberId]
+            )
+            ->with(
+                'success',
+                $barberId === null
+                    ? 'ساعات کاری کلی سالن با موفقیت ذخیره شد.'
+                    : 'ساعات کاری این آرایشگر با موفقیت ذخیره شد.'
+            );
     }
 
     public function updateDay(WorkingHourDayRequest $request): JsonResponse
@@ -307,12 +312,17 @@ class WorkingHourController extends Controller
             }
         });
 
-        return back()->with(
-            'success',
-            $barberId === null
-                ? 'برنامه پیش‌فرض سالن با موفقیت اعمال شد.'
-                : 'برنامه پیش‌فرض برای این آرایشگر با موفقیت اعمال شد.'
-        );
+        return redirect()
+            ->route(
+                'salon.working-hours.edit',
+                $barberId === null ? [] : ['barber_id' => $barberId]
+            )
+            ->with(
+                'success',
+                $barberId === null
+                    ? 'برنامه پیش‌فرض سالن با موفقیت اعمال شد.'
+                    : 'برنامه پیش‌فرض برای این آرایشگر با موفقیت اعمال شد.'
+            );
     }
 
     private function scheduleFromRows($rows): array
