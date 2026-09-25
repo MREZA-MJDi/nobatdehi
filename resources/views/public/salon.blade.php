@@ -176,6 +176,42 @@
             ->values()
             ->all();
 
+        $schemaDayNames = [
+            0 => 'Saturday',
+            1 => 'Sunday',
+            2 => 'Monday',
+            3 => 'Tuesday',
+            4 => 'Wednesday',
+            5 => 'Thursday',
+            6 => 'Friday',
+        ];
+
+        $openingHoursSpecification = $salon
+            ->workingHours
+            ->filter(
+                fn ($hour) =>
+                    ! $hour->is_closed &&
+                    filled($hour->start_time) &&
+                    filled($hour->end_time)
+            )
+            ->map(function ($hour) use ($schemaDayNames) {
+                $day = $schemaDayNames[(int) $hour->day_of_week] ?? null;
+
+                if (! $day) {
+                    return null;
+                }
+
+                return [
+                    '@type' => 'OpeningHoursSpecification',
+                    'dayOfWeek' => $day,
+                    'opens' => substr((string) $hour->start_time, 0, 5),
+                    'closes' => substr((string) $hour->end_time, 0, 5),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
         $salonSchema = [
             '@context' => 'https://schema.org',
             '@type' => 'BeautySalon',
@@ -223,11 +259,45 @@
                 'reviewCount' => (int) $reviewsCount,
             ];
         }
+
+        if ($openingHoursSpecification) {
+            $salonSchema['openingHoursSpecification'] =
+                $openingHoursSpecification;
+        }
+
+        $breadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'خانه',
+                    'item' => url('/'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'کشف سالن‌ها',
+                    'item' => route('salons.discover'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $salon->name,
+                    'item' => url()->current(),
+                ],
+            ],
+        ];
     @endphp
 
     @push('head')
         <script type="application/ld+json">
             @json($salonSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+        </script>
+
+        <script type="application/ld+json">
+            @json($breadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
         </script>
     @endpush
 
