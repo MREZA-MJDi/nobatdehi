@@ -139,6 +139,45 @@ class BookingController extends Controller
             compact('salon', 'barbers', 'services', 'unreadNotifications')        );
     }
 
+    public function manualData(Request $request): JsonResponse
+    {
+        $salon = $request->user()->managedSalons()->firstOrFail();
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'salon' => [
+                    'id' => $salon->id,
+                    'name' => $salon->name,
+                    'isActive' => (bool) $salon->is_active,
+                ],
+                'barbers' => $salon->barbers()
+                    ->where('is_active', true)
+                    ->orderBy('name')
+                    ->get(['id', 'name'])
+                    ->map(fn ($barber) => [
+                        'id' => (int) $barber->id,
+                        'name' => $barber->name,
+                    ])
+                    ->values()
+                    ->all(),
+                'services' => $salon->services()
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'price', 'duration_minutes'])
+                    ->map(fn ($service) => [
+                        'id' => (int) $service->id,
+                        'name' => $service->name,
+                        'price' => (int) $service->price,
+                        'duration' => (int) $service->duration_minutes,
+                    ])
+                    ->values()
+                    ->all(),
+            ],
+        ]);
+    }
+
     public function availability(
         BookingAvailabilityRequest $request,
         AvailabilityService $availability
