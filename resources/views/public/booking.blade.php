@@ -1146,6 +1146,8 @@
                             breaks: [],
                         },
 
+                        availabilityRequestId: 0,
+
                         loading: false,
 
                         availabilityError: false,
@@ -1539,6 +1541,9 @@
 
                         async loadSlots() {
 
+                            const requestId =
+                                ++this.availabilityRequestId;
+
                             if (
                                 !this.barberId ||
                                 !this.serviceId ||
@@ -1609,6 +1614,13 @@
                                 const data =
                                     await response.json();
 
+                                if (
+                                    requestId !==
+                                    this.availabilityRequestId
+                                ) {
+                                    return;
+                                }
+
 
                                 this.schedule = data.schedule || {
                                     status: 'not_configured',
@@ -1625,6 +1637,20 @@
 
                             } catch (error) {
 
+                                if (
+                                    requestId !==
+                                    this.availabilityRequestId
+                                ) {
+                                    return;
+                                }
+
+                                this.schedule = {
+                                    status: 'not_configured',
+                                    is_closed: false,
+                                    intervals: [],
+                                    breaks: [],
+                                };
+
                                 console.error(
                                     'Booking availability error:',
                                     error
@@ -1636,7 +1662,12 @@
 
                             } finally {
 
-                                this.loading = false;
+                                if (
+                                    requestId ===
+                                    this.availabilityRequestId
+                                ) {
+                                    this.loading = false;
+                                }
 
                             }
 
