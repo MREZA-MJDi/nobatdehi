@@ -62,6 +62,7 @@
                 slots: [],
                 loadingSlots: false,
                 slotError: '',
+                submitError: '',
                 submitting: false,
 
                 abortController: null,
@@ -556,15 +557,51 @@
 
                     return (
                         nameReady &&
-                        /^09\\d{9}$/.test(phone)
+                        /^09\d{9}$/.test(phone)
                     );
+                },
+
+                get submitBlockReason() {
+                    if (!this.manualConfirmed) {
+                        return 'تأیید ثبت نوبت دستی را فعال کنید.';
+                    }
+
+                    if (String(this.customerName || '').trim().length < 2) {
+                        return 'نام و نام خانوادگی مشتری را وارد کنید.';
+                    }
+
+                    if (!this.customerReady) {
+                        return 'شماره موبایل مشتری را کامل و معتبر وارد کنید.';
+                    }
+
+                    if (!this.barberId) {
+                        return 'یک آرایشگر انتخاب کنید.';
+                    }
+
+                    if (!this.serviceId) {
+                        return 'یک خدمت انتخاب کنید.';
+                    }
+
+                    if (!this.selectedDate) {
+                        return 'تاریخ نوبت را انتخاب کنید.';
+                    }
+
+                    if (!this.selectedTime) {
+                        return 'یک ساعت آزاد انتخاب کنید.';
+                    }
+
+                    if (!this.selectedSlot || !this.slotAvailable(this.selectedSlot)) {
+                        return 'این ساعت دیگر در دسترس نیست؛ یک ساعت آزاد دیگر انتخاب کنید.';
+                    }
+
+                    return '';
                 },
 
                 normalizePhone(value) {
                     return String(value || '')
                         .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
                         .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
-                        .replace(/[\\s\\-\\(\\)]/g, '');
+                        .replace(/[\s\-\(\)]/g, '');
                 },
 
                 get selectedBarber() {
@@ -840,9 +877,11 @@
                 submitForm(event) {
                     if (!this.canSubmit) {
                         event.preventDefault();
+                        this.submitError = this.submitBlockReason || 'اطلاعات نوبت را کامل کنید.';
                         return;
                     }
 
+                    this.submitError = '';
                     this.submitting = true;
                 },
             };
@@ -2011,17 +2050,25 @@
 
                                 </div>
 
+                                <div
+                                    x-show="submitError"
+                                    x-cloak
+                                    x-text="submitError"
+                                    class="mt-3 rounded-xl border border-danger-200 bg-danger-50 px-3 py-2 text-[10px] font-bold leading-5 text-danger-700"
+                                    role="alert"
+                                ></div>
+
                             </div>
 
 
                             <button
                                 type="submit"
-                                :disabled="!canSubmit || submitting"
+                                :disabled="submitting"
                                 class="flex h-14 w-full items-center justify-center rounded-2xl text-sm font-black transition"
                                 :class="
                                 canSubmit && !submitting
                                     ? 'bg-accent-600 text-white shadow-lg shadow-accent-600/20 hover:-translate-y-0.5 hover:bg-accent-700'
-                                    : 'cursor-not-allowed bg-background-soft text-content-faint'
+                                    : 'border border-border bg-background-soft text-content-muted hover:border-accent-300 hover:text-content'
                             "
                             >
                             <span
@@ -2072,12 +2119,12 @@
 
                     <button
                         type="submit"
-                        :disabled="!canSubmit || submitting"
+                        :disabled="submitting"
                         class="h-12 shrink-0 rounded-xl px-5 text-xs font-black transition"
                         :class="
                         canSubmit && !submitting
-                            ? 'bg-accent-600 text-white'
-                            : 'cursor-not-allowed bg-background-soft text-content-faint'
+                            ? 'bg-accent-600 text-white shadow-lg shadow-accent-600/15'
+                            : 'border border-border bg-background-soft text-content-muted'
                     "
                     >
                     <span
