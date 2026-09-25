@@ -137,12 +137,57 @@
         </header>
 
         <main class="salon-owner__main">
+            <div class="salon-owner__page-tools">
+                <a
+                    href="{{ url()->previous() !== url()->current() ? url()->previous() : route('salon.dashboard') }}"
+                    class="salon-owner__back-link"
+                    aria-label="بازگشت به صفحه قبل"
+                >
+                    <span aria-hidden="true">←</span>
+                    <span>بازگشت</span>
+                </a>
+
+                @unless(request()->routeIs('salon.dashboard'))
+                    <a
+                        href="{{ route('salon.dashboard') }}"
+                        class="salon-owner__home-link"
+                    >
+                        داشبورد
+                    </a>
+                @endunless
+            </div>
+
             @if(session('success'))
-                <div class="salon-owner__flash is-success" role="status">{{ session('success') }}</div>
+                <div class="salon-owner__flash is-success" role="status" aria-live="polite">
+                    <span aria-hidden="true">✓</span>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+
+            @if(session('status'))
+                <div class="salon-owner__flash is-info" role="status" aria-live="polite">
+                    <span aria-hidden="true">i</span>
+                    <span>{{ session('status') }}</span>
+                </div>
             @endif
 
             @if(session('error'))
-                <div class="salon-owner__flash is-error" role="alert">{{ session('error') }}</div>
+                <div class="salon-owner__flash is-error" role="alert" aria-live="assertive">
+                    <span aria-hidden="true">!</span>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="salon-owner__flash is-error" role="alert" aria-live="polite">
+                    <span aria-hidden="true">!</span>
+                    <div class="salon-owner__flash-copy">
+                        <strong>اطلاعات نیاز به بررسی دارد</strong>
+                        <div>
+                            {{ $errors->count() > 1 ? $errors->first() . ' (و ' . ($errors->count() - 1) . ' مورد دیگر)' : $errors->first() }}
+                        </div>
+                    </div>
+                </div>
             @endif
 
             @yield('content')
