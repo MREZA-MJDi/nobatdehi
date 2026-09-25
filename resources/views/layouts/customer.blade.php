@@ -185,6 +185,13 @@
 
 @elseif ($customerShell === 'standalone')
 
+    {{-- Standalone pages render their own navigation shell. --}}
+    <main>
+        @yield('content')
+    </main>
+
+@elseif ($customerShell === 'standalone')
+
     <main>
         <div class="customer-container py-4">
             <div class="mb-4 flex items-center justify-between gap-3">
