@@ -1209,8 +1209,7 @@
     color:
         var(--color-content-muted);
 
-    font-size:
-        .66rem;
+    font-size: .68rem;
 }
 
 
@@ -2364,7 +2363,7 @@
     padding-inline: .7rem;
     border-radius: .75rem;
     color: var(--color-content-muted);
-    font-size: .65rem;
+    font-size: .68rem;
     font-weight: 700;
     transition: color .18s ease, background-color .18s ease, transform .18s ease;
 }
@@ -2753,7 +2752,7 @@
     }
 
     .confirm-title-block p {
-        font-size: .65rem;
+        font-size: .68rem;
         line-height: 1.9;
     }
 
@@ -4638,7 +4637,7 @@
     .discover-hero-popular > span {
         color: var(--color-content-muted);
 
-        font-size: .66rem;
+        font-size: .68rem;
     }
 
     .discover-hero-popular a {
@@ -4832,7 +4831,7 @@
     .discover-results-summary {
         color: var(--color-content-muted);
 
-        font-size: .66rem;
+        font-size: .68rem;
         font-weight: 650;
     }
 
@@ -5220,7 +5219,7 @@
 
         color: var(--color-content-muted);
 
-        font-size: .65rem;
+        font-size: .68rem;
     }
 
     .discover-result-distance {
@@ -5478,7 +5477,7 @@
 
         color: #fff;
 
-        font-size: .65rem;
+        font-size: .68rem;
         font-weight: 700;
     }
 
@@ -5560,7 +5559,7 @@
 
         color: var(--color-accent-600);
 
-        font-size: .65rem;
+        font-size: .68rem;
         font-weight: 700;
     }
 
@@ -6504,7 +6503,7 @@
     max-width: 28rem;
     margin: .45rem auto 0;
     color: var(--color-content-muted);
-    font-size: .66rem;
+    font-size: .68rem;
     line-height: 1.9;
 }
 
@@ -6730,7 +6729,7 @@
 .customer-next-booking-top p {
     margin-top: .35rem;
     color: var(--color-content-muted);
-    font-size: .65rem;
+    font-size: .68rem;
 }
 
 .customer-next-booking-details {
