@@ -177,16 +177,53 @@
             },
 
             applyDefault() {
-                if (!confirm('برنامه پیشنهادی روی برنامه فعلی اعمال شود؟')) return;
                 this.currentSchedule.hours = JSON.parse(JSON.stringify(this.defaultSchedule()));
                 this.markCustomized();
+                this.formError = 'برنامه پیشنهادی ۰۹:۰۰ تا ۲۲:۰۰ برای شنبه تا پنجشنبه اعمال شد و جمعه تعطیل شد. حالا ذخیره کن.';
+                window.scrollTo({top:0,behavior:'smooth'});
             },
 
             addInterval(day) {
                 const target = this.currentHours[day];
+
+                if (!target) return;
+
                 target.closed = false;
-                if (!Array.isArray(target.intervals)) target.intervals = [];
-                target.intervals.push({start:'',end:''});
+
+                if (!Array.isArray(target.intervals)) {
+                    target.intervals = [];
+                }
+
+                /*
+                 * یک بازه قابل ویرایش بساز تا کاربر بعد از کلیک
+                 * فوراً ساعت شروع و پایان را ببیند.
+                 */
+                let start = '';
+                let end = '';
+
+                if (target.intervals.length === 0) {
+                    start = '09:00';
+                    end = '10:00';
+                } else {
+                    const last = [...target.intervals]
+                        .filter(interval => interval?.end)
+                        .sort((a, b) => a.end.localeCompare(b.end))
+                        .at(-1);
+
+                    if (last?.end && last.end < '22:00') {
+                        start = last.end;
+                        const [hour, minute] = last.end.split(':').map(Number);
+                        const nextHour = Math.min(hour + 1, 22);
+                        end = String(nextHour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+
+                        if (end <= start) {
+                            start = '';
+                            end = '';
+                        }
+                    }
+                }
+
+                target.intervals.push({start, end});
                 this.markCustomized();
             },
 
@@ -468,6 +505,7 @@
                                             x-model="interval.start"
                                             @change="markCustomized()"
                                             aria-label="ساعت شروع">
+                                            <option value="">انتخاب کن</option>
                                             <template x-for="option in timeOptions()" :key="'start-' + option.value">
                                                 <option :value="option.value" x-text="option.label"></option>
                                             </template>
@@ -483,6 +521,7 @@
                                             x-model="interval.end"
                                             @change="markCustomized()"
                                             aria-label="ساعت پایان">
+                                            <option value="">انتخاب کن</option>
                                             <template x-for="option in timeOptions()" :key="'end-' + option.value">
                                                 <option :value="option.value" x-text="option.label"></option>
                                             </template>
