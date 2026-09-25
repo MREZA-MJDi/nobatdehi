@@ -4413,3 +4413,50 @@ html[data-theme="dark"] .salon-owner {
         width: 100%;
     }
 }
+
+
+/* Working hours — mobile interval fields: keep start/end visible and equal width. */
+@media (max-width: 759px) {
+    .salon-working-day__body {
+        overflow: hidden;
+    }
+
+    .salon-working-interval {
+        grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        align-items: end;
+        column-gap: 7px;
+        row-gap: 9px;
+    }
+
+    .salon-working-time-field,
+    .salon-working-time-field select {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .salon-working-time-field select {
+        display: block;
+        min-height: 46px;
+        padding-inline: 9px;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .salon-working-interval-separator {
+        padding-top: 20px;
+        align-self: center;
+    }
+
+    .salon-working-interval-actions {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .salon-working-break,
+    .salon-working-interval-actions .salon-working-interval-remove {
+        width: 100%;
+        min-width: 0;
+    }
+}
