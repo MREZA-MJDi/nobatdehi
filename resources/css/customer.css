@@ -197,6 +197,40 @@
     gap: .4rem;
 }
 
+.customer-header-back {
+    display: inline-flex;
+    min-height: 2.45rem;
+    align-items: center;
+    justify-content: center;
+    gap: .3rem;
+    padding: .45rem .65rem;
+    border: 1px solid var(--color-border);
+    border-radius: .75rem;
+    background: var(--color-surface);
+    color: var(--color-content-muted);
+    font-size: .68rem;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: color .18s ease, border-color .18s ease, background-color .18s ease;
+}
+
+.customer-header-back:hover {
+    color: var(--color-accent-700);
+    border-color: var(--color-accent-300);
+    background: var(--color-accent-50);
+}
+
+@media (max-width: 900px) {
+    .customer-header-back span:last-child {
+        display: none;
+    }
+
+    .customer-header-back {
+        width: 2.45rem;
+        padding-inline: 0;
+    }
+}
+
 .customer-salon-entry {
     display: inline-flex;
 
