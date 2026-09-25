@@ -1632,18 +1632,21 @@
                     } else if (schedule?.status === 'not_configured') {
                         slotScheduleEl.textContent = 'ساعات کاری این روز تنظیم نشده';
                     } else if (Array.isArray(schedule?.intervals) && schedule.intervals.length) {
-                        const workingHoursText = schedule.intervals
-                            .map((range) => fa(range.start) + ' تا ' + fa(range.end))
-                            .join('  •  ');
+                        const firstInterval = schedule.intervals[0];
+                        const lastInterval = schedule.intervals[schedule.intervals.length - 1];
+                        const workingHoursText =
+                            fa(firstInterval.start) +
+                            ' تا ' +
+                            fa(lastInterval.end);
 
                         const breaks = Array.isArray(schedule?.breaks)
                             ? schedule.breaks
                             : [];
 
                         const breakText = breaks.length
-                            ? 'استراحت سالن: ' + breaks
+                            ? 'استراحت: ' + breaks
                                 .map((range) => fa(range.start) + ' تا ' + fa(range.end))
-                                .join('  •  ')
+                                .join(' و ')
                             : '';
 
                         slotScheduleEl.textContent = breakText
