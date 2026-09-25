@@ -58,7 +58,7 @@
                     </section>
 
                     <section class="customer-detail-side">
-                        @if($booking->status === AppEnumsBookingStatus::PENDING)
+                        @if($customerActions['can_edit'])
                             <span class="customer-card-kicker">ACTION</span>
                             <h2>هنوز قابل مدیریت است</h2>
                             <p>تا وقتی سالن تأییدش نکرده، می‌توانی زمان نوبت را عوض کنی یا لغوش کنی.</p>
@@ -70,12 +70,12 @@
                                 @method('DELETE')
                                 <button type="submit" class="customer-btn customer-btn-danger w-full">لغو نوبت</button>
                             </form>
-                        @elseif($booking->status === AppEnumsBookingStatus::COMPLETED && !$booking->review)
+                        @elseif($customerActions['can_review'])
                             <span class="customer-card-kicker">YOUR EXPERIENCE</span>
                             <h2>تجربه‌ات را ثبت کن</h2>
                             <p>امتیاز بده و در صورت تمایل چند کلمه درباره تجربه‌ات بنویس.</p>
                             <a href="{{ route('customer.bookings.review.create', $booking) }}" class="customer-btn customer-btn-primary w-full">ثبت امتیاز و نظر</a>
-                        @elseif($booking->status === AppEnumsBookingStatus::COMPLETED)
+                        @elseif($customerActions['has_review'])
                             <span class="customer-card-kicker">REVIEW</span>
                             <h2>نظر ثبت شده ✓</h2>
                             <p>امتیاز و نظر این نوبت قبلاً ثبت شده است.</p>
