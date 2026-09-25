@@ -76,14 +76,6 @@
 
         <div class="mb-7">
 
-            <a
-                href="{{ route('salon.dashboard') }}"
-                class="mb-4 inline-flex items-center gap-2 text-xs font-bold text-content-muted transition hover:text-accent-600"
-            >
-                ← بازگشت به داشبورد
-            </a>
-
-
             <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
 
                 <div>
