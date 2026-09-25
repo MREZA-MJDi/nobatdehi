@@ -2956,19 +2956,19 @@ html[data-theme="dark"] .salon-owner {
     }
 
     .salon-owner__main .salon-manual-booking > form > .grid > aside {
-        display: none !important;
+        display: block !important;
+        margin-top: 12px;
+        min-width: 0;
+    }
+
+    .salon-owner__main .salon-manual-booking > form > .grid > aside > section {
+        position: static !important;
+        width: 100%;
+        max-width: none;
     }
 
     .salon-owner__main .salon-manual-booking .salon-manual-mobile-action {
-        padding:
-            9px
-            max(9px, env(safe-area-inset-left))
-            calc(9px + env(safe-area-inset-bottom))
-            max(9px, env(safe-area-inset-right));
-    }
-
-    .salon-owner__main .salon-manual-booking .salon-manual-mobile-action button {
-        min-height: 46px;
+        display: none !important;
     }
 
     .salon-owner__main .salon-manual-booking .relative > .absolute {
