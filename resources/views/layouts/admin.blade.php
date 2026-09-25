@@ -277,7 +277,11 @@
                 return;
             }
 
-            if (window.history.length > 1) {
+            const previousIsSameOrigin =
+                document.referrer !== ''
+                && new URL(document.referrer, window.location.href).origin === window.location.origin;
+
+            if (window.history.length > 1 && previousIsSameOrigin) {
                 event.preventDefault();
                 window.history.back();
             }
