@@ -10,6 +10,9 @@
 html,
 body {
     width: 100%;
+
+    /* Keep the standalone intro on the same rem scale as the main UI. */
+    font-size: 93.75%;
     min-width: 320px;
     height: 100%;
     margin: 0;
