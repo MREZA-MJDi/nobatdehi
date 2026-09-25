@@ -6,6 +6,64 @@
 
 @section('content')
 
+    <style>
+        .np-pending-priority {
+            display: grid;
+            gap: 8px;
+            margin-top: 14px;
+            padding: 14px;
+            border: 1px solid rgba(245, 158, 11, .28);
+            border-radius: 16px;
+            background: rgba(245, 158, 11, .08);
+            color: #78350f;
+        }
+
+        .np-pending-priority strong {
+            font-size: 12px;
+            font-weight: 850;
+        }
+
+        .np-pending-priority > span {
+            font-size: 11px;
+            line-height: 1.9;
+        }
+
+        .np-pending-priority__actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+
+        .np-pending-priority__actions button {
+            min-height: 40px;
+            padding: 0 13px;
+            border: 1px solid rgba(120, 53, 15, .16);
+            border-radius: 11px;
+            background: rgba(255, 255, 255, .72);
+            color: #78350f;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .np-pending-priority__actions button:first-child {
+            border-color: transparent;
+            background: #78350f;
+            color: #fff;
+        }
+
+        @media (max-width: 640px) {
+            .np-pending-priority__actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .np-pending-priority__actions button {
+                width: 100%;
+            }
+        }
+    </style>
+
     @php
         $barberPayload = $barbers
             ->map(fn ($barber) => [
