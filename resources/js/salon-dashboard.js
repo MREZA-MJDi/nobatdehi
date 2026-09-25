@@ -5,6 +5,11 @@
     if (!root) return;
 
     const endpoint = root.dataset.dashboardEndpoint;
+    const bookingsUrl = root.dataset.bookingsUrl || '/salon/bookings';
+    const pendingBookingsUrl = root.dataset.pendingBookingsUrl || (bookingsUrl + '?status=pending');
+    const bookingBaseUrl = root.dataset.bookingBaseUrl || bookingsUrl;
+    const manualBookingUrl = root.dataset.manualBookingUrl || (bookingsUrl + '/create');
+
     if (!endpoint) return;
 
     const faDigits = (value) => String(value ?? '').replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
@@ -240,20 +245,20 @@
         if (pending > 0) {
             if (heading) heading.textContent = faDigits(pending) + ' نوبت منتظر رسیدگی است.';
             if (desc) desc.textContent = 'درخواست‌های معطل را بررسی کن تا برنامه سالن مرتب بماند.';
-            if (action) { action.href = '/salon/bookings?status=pending'; action.innerHTML = 'بررسی نوبت‌های منتظر <span>←</span>'; }
+            if (action) { action.href = pendingBookingsUrl; action.innerHTML = 'بررسی نوبت‌های منتظر <span>←</span>'; }
             return;
         }
 
         if (next) {
             if (heading) heading.textContent = 'نوبت بعدی ساعت ' + (next.startTime || '—');
             if (desc) desc.textContent = (next.customer || 'مشتری') + ' · ' + (next.service || 'خدمت') + ' · ' + (next.barber || 'متخصص');
-            if (action) { action.href = '/salon/bookings/' + encodeURIComponent(next.id); action.innerHTML = 'باز کردن نوبت <span>←</span>'; }
+            if (action) { action.href = bookingBaseUrl.replace(/\/$/, '') + '/' + encodeURIComponent(next.id); action.innerHTML = 'باز کردن نوبت <span>←</span>'; }
             return;
         }
 
         if (heading) heading.textContent = 'امروز نوبت بعدی ثبت نشده.';
         if (desc) desc.textContent = 'برای مشتری حضوری یا رزرو از قبل، می‌توانی نوبت دستی ثبت کنی.';
-        if (action) { action.href = '/salon/bookings/create'; action.innerHTML = 'ثبت نوبت دستی <span>←</span>'; }
+        if (action) { action.href = manualBookingUrl; action.innerHTML = 'ثبت نوبت دستی <span>←</span>'; }
     };
 
     const refresh = async () => {
