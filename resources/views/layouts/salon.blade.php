@@ -139,7 +139,8 @@
         <main class="salon-owner__main">
             <div class="salon-owner__page-tools">
                 <a
-                    href="{{ url()->previous() !== url()->current() ? url()->previous() : route('salon.dashboard') }}"
+                    href="{{ route('salon.dashboard') }}"
+                    data-owner-back
                     class="salon-owner__back-link"
                     aria-label="بازگشت به صفحه قبل"
                 >
@@ -196,6 +197,22 @@
 </div>
 
 <x-salon.mobile-bottom-nav />
+
+<script>
+    document.addEventListener('click', (event) => {
+        const link = event.target.closest('[data-owner-back]');
+
+        if (!link || event.defaultPrevented) {
+            return;
+        }
+
+        if (window.history.length > 1) {
+            event.preventDefault();
+            window.history.back();
+        }
+    });
+</script>
+
 @stack('scripts')
 </body>
 </html>
