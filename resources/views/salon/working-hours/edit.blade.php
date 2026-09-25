@@ -164,8 +164,8 @@
                 if (!interval) return;
 
                 const suggestedBreak =
-                    interval.start <= '13:00' &&
-                    interval.end >= '15:00'
+                    interval.start < '13:00' &&
+                    interval.end > '15:00'
                         ? { start: '13:00', end: '15:00' }
                         : { start: '', end: '' };
 
