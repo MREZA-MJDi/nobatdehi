@@ -296,15 +296,11 @@ class SalonController extends Controller
         $todayHoursText =
             ($isDailyClosed || $isWeeklyClosed)
                 ? 'امروز تعطیل'
-                : $todayHours->map(function ($hour) {
-                    return substr((string) $hour->start_time, 0, 5)
+                : ($todayHours->isNotEmpty()
+                    ? substr((string) $todayHours->first()->start_time, 0, 5)
                         . ' تا '
-                        . substr((string) $hour->end_time, 0, 5);
-                })->join('  •  ');
-
-        if ($todayHoursText === '') {
-            $todayHoursText = 'امروز ساعات کاری ثبت نشده';
-        }
+                        . substr((string) $todayHours->last()->end_time, 0, 5)
+                    : 'امروز ساعات کاری ثبت نشده');
 
         /*
         |--------------------------------------------------------------------------
@@ -341,6 +337,12 @@ class SalonController extends Controller
                     ];
                 }
             }
+        }
+
+        if ($todayBreaks !== [] && $todayHours->isNotEmpty() && ! $isDailyClosed && ! $isWeeklyClosed) {
+            $todayHoursText .= '؛ استراحت ' . collect($todayBreaks)
+                ->map(fn (array $break) => $break['start'] . ' تا ' . $break['end'])
+                ->join(' و ');
         }
 
         // public.salon derives its displayed "today" status from the loaded
