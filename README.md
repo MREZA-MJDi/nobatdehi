@@ -1,59 +1,89 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# NOBAT — Salon Appointment Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**NOBAT** is a Laravel-based salon appointment platform for discovering salons, viewing services and specialists, checking available time slots, and managing bookings from dedicated dashboards.
 
-## About Laravel
+**Project URL:** http://171.22.26.184:8081/
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## What NOBAT does
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+NOBAT separates the experience into three main roles:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Customer:** discover salons, open a public salon page, choose a service/barber, view availability, book appointments, manage bookings and favorites.
+- **Salon Owner:** manage salon information, services, barbers, working hours, availability, bookings, manual walk-in bookings, dashboard metrics, and public salon presentation.
+- **Super Admin:** create and edit salons, manage owner accounts, activate/deactivate salons, inspect salon details, and oversee platform-level salon data.
 
-## Learning Laravel
+## Main product areas
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Discover
+The Discover experience is the public entry point for customers. It provides salon discovery, search, popular salon presentation, and a responsive hero with the salon visual on the left and the Persian search/content area on the right on desktop.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Public Salon
+Each salon has a public page with branding, cover and logo, services and pricing, specialist/barber information, gallery and media lightbox, working-hours/status presentation, online booking flow, and responsive mobile presentation.
 
-## Laravel Sponsors
+Uploaded gallery media is constrained to the browser viewport when opened in the lightbox, so large source images do not force the page beyond the screen.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Booking
+Customer bookings and salon-owner manual bookings use the same availability logic so confirmed bookings block the corresponding time slot.
 
-### Premium Partners
+Manual booking supports walk-in customers without creating a NOBAT customer account and includes customer name, phone, barber, service, date, time, confirmation and notes.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Working Hours
+Working hours can be defined at salon level and, where configured, per barber. Barber-specific schedules override the salon-wide fallback for that barber, including custom closed days.
 
-## Contributing
+### Authentication & Session UX
+Customers have an accessible logout action and a customer-specific inactivity timeout. The current default is **30 minutes of inactivity**.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Salon-owner and Super Admin authentication remain role-scoped.
 
-## Code of Conduct
+## Responsive UX
+The project uses responsive layouts across customer, public salon, salon-owner and Super Admin surfaces.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Recent UX hardening includes mobile-friendly salon-owner workspace, responsive manual booking, compact booking detail metadata on mobile, viewport-safe public salon media viewing, responsive Super Admin dashboard, consistent navigation and feedback states, safer back navigation, and role-aware entry points.
 
-## Security Vulnerabilities
+## Technical stack
+- Laravel / PHP
+- Blade
+- Alpine.js
+- Tailwind-style utility classes plus project CSS systems
+- Vite
+- relational database with Laravel migrations and seeders
+- storage-backed salon/media assets
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Local development
+```bash
+git clone https://github.com/MREZA-MJDi/nobatdehi.git
+cd nobatdehi
 
-## License
+composer install
+npm install
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+cp .env.example .env
+php artisan key:generate
+
+php artisan migrate
+
+npm run dev
+php artisan serve
+```
+
+## Production / server deployment
+The current test server is:
+`http://171.22.26.184:8081/`
+
+Typical update flow:
+```bash
+cd /var/www/nobatdehi-test
+git checkout main
+git pull --ff-only origin main
+npm run build
+php artisan migrate --force
+php artisan optimize:clear
+```
+
+## Notes
+The repository intentionally keeps feature fixes scoped where possible. UI changes should avoid unrelated role or page regressions.
+
+Do not use destructive seed/reset commands against a production database unless the intended dataset and environment have been explicitly verified.
+
+## Repository
+GitHub: https://github.com/MREZA-MJDi/nobatdehi
