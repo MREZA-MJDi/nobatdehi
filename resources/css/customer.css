@@ -7823,3 +7823,83 @@
         flex: 0 0 auto;
     }
 }
+
+
+/* ==========================================================================
+   Public booking — working-hours break notice
+   Scoped to the booking flow only.
+   ========================================================================== */
+
+.nobat-booking .np-booking-break-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 12px 0 14px;
+    padding: 11px 13px;
+    border: 1px solid color-mix(in srgb, #f59e0b 18%, var(--customer-border, #e5e7eb));
+    border-radius: 14px;
+    background: color-mix(in srgb, #f59e0b 6%, #fff);
+    color: #475569;
+}
+
+.nobat-booking .np-booking-break-notice__icon {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: color-mix(in srgb, #f59e0b 12%, #fff);
+    color: #b45309;
+    font-size: 13px;
+}
+
+.nobat-booking .np-booking-break-notice__icon + div {
+    min-width: 0;
+}
+
+.nobat-booking .np-booking-break-notice strong,
+.nobat-booking .np-booking-break-notice span {
+    display: block;
+}
+
+.nobat-booking .np-booking-break-notice strong {
+    margin-bottom: 3px;
+    color: inherit;
+    font-size: .67rem;
+    font-weight: 850;
+}
+
+.nobat-booking .np-booking-break-notice > div > span {
+    font-size: .61rem;
+    line-height: 1.8;
+}
+
+.nobat-booking .np-booking-break-notice__range {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    margin-inline-end: 5px;
+    color: #7c2d12;
+    font-weight: 800;
+    direction: ltr;
+    white-space: nowrap;
+}
+
+.nobat-booking .np-booking-break-notice__range b {
+    display: inline;
+}
+
+@media (max-width: 640px) {
+    .nobat-booking .np-booking-break-notice {
+        margin-top: 10px;
+        padding: 10px 11px;
+        border-radius: 12px;
+    }
+
+    .nobat-booking .np-booking-break-notice__icon {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+    }
+}
