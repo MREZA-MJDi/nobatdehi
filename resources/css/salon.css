@@ -5482,3 +5482,70 @@ html:has(.salon-page){font-size:100%}
         z-index: 6;
     }
 }
+
+/* ==========================================================================
+   Public salon gallery — viewport-safe lightbox
+   Uploaded media may have any intrinsic dimensions, but the viewer must
+   never become larger than the current browser viewport.
+   ========================================================================== */
+
+.salon-page .media-lightbox {
+    padding: 12px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.salon-page .lightbox-dialog {
+    width: min(1180px, calc(100vw - 24px));
+    height: min(920px, calc(100dvh - 24px));
+    max-height: none;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: hidden;
+}
+
+.salon-page .lightbox-media {
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    overflow: hidden;
+    padding: 50px 70px 18px;
+}
+
+.salon-page .lightbox-media img,
+.salon-page .lightbox-media video {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.salon-page .lightbox-info {
+    min-width: 0;
+    max-height: 30vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 680px) {
+    .salon-page .media-lightbox {
+        padding: 8px;
+    }
+
+    .salon-page .lightbox-dialog {
+        width: calc(100vw - 16px);
+        height: calc(100dvh - 16px);
+        border-radius: 20px;
+    }
+
+    .salon-page .lightbox-media {
+        padding: 48px 22px 14px;
+    }
+
+    .salon-page .lightbox-info {
+        max-height: 28vh;
+        padding: 14px 15px 16px;
+    }
+}
