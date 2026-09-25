@@ -724,7 +724,7 @@
 
                     <div
                         class="tabs"
-                        role="tablist"
+                        role="group"
                         aria-label="فیلتر نمونه‌کارها"
                     >
 
@@ -732,8 +732,7 @@
                             type="button"
                             class="tab active"
                             data-filter="all"
-                            role="tab"
-                            aria-selected="true"
+                            aria-pressed="true"
                         >
                             همه
                             <span>{{ number_format($postsCount) }}</span>
@@ -745,8 +744,7 @@
                                 type="button"
                                 class="tab"
                                 data-filter="reel"
-                                role="tab"
-                                aria-selected="false"
+                                aria-pressed="false"
                             >
                                 ریلز
                                 <span>{{ number_format($postTypeCounts['reel']) }}</span>
@@ -1900,6 +1898,8 @@
                                     <small
                                         id="slotSchedule"
                                         class="slot-schedule"
+                                        aria-live="polite"
+                                        aria-atomic="true"
                                     ></small>
 
                                 </div>
@@ -1908,6 +1908,9 @@
                                 <div
                                     class="slots"
                                     id="slots"
+                                    role="status"
+                                    aria-live="polite"
+                                    aria-atomic="true"
                                 >
                                     <div class="slots-msg">
                                         اول از تقویم یک روز انتخاب کن
