@@ -4208,3 +4208,208 @@ html[data-theme="dark"] .salon-owner {
         color: #0f172a;
     }
 }
+
+
+/* ==========================================================================
+   Working hours — Persian time picker + break workflow
+   ========================================================================== */
+
+.salon-working-time-field select {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--owner-border);
+    border-radius: 11px;
+    background: var(--owner-surface-soft);
+    color: var(--owner-text);
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 750;
+    outline: 0;
+    direction: rtl;
+    text-align: right;
+}
+
+.salon-working-time-field select:focus {
+    border-color: color-mix(in srgb, var(--owner-primary) 35%, var(--owner-border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--owner-primary) 8%, transparent);
+}
+
+.salon-working-interval-actions {
+    display: flex;
+    align-items: stretch;
+    gap: 5px;
+}
+
+.salon-working-break,
+.salon-working-interval-actions .salon-working-interval-remove {
+    min-width: 74px;
+}
+
+.salon-working-break {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 9px;
+    border: 1px solid color-mix(in srgb, var(--owner-primary) 28%, var(--owner-border));
+    border-radius: 11px;
+    background: var(--owner-primary-soft);
+    color: var(--owner-primary);
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.salon-working-break:hover {
+    border-color: color-mix(in srgb, var(--owner-primary) 45%, var(--owner-border));
+    background: color-mix(in srgb, var(--owner-primary) 10%, var(--owner-surface));
+}
+
+.salon-working-day__footer {
+    flex-wrap: wrap;
+}
+
+.salon-working-day__flow-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    color: var(--owner-muted);
+    font-size: 8px;
+    line-height: 1.8;
+}
+
+.salon-working-day__flow-hint span:first-child {
+    color: var(--owner-text);
+    font-weight: 800;
+}
+
+.salon-working-day__flow-hint span:last-child::before {
+    content: '•';
+    margin-inline-end: 6px;
+    color: var(--owner-primary);
+}
+
+.salon-working-hours-modal--break .salon-working-hours-modal__dialog {
+    max-width: 520px;
+}
+
+.salon-working-hours-modal--break .salon-working-hours-modal__dialog > header {
+    align-items: flex-start;
+}
+
+.salon-working-hours-modal--break .salon-working-hours-modal__dialog > header p {
+    margin: 6px 0 0;
+    color: var(--owner-muted);
+    font-size: 9px;
+    line-height: 1.9;
+}
+
+.salon-working-break-form {
+    display: grid;
+    gap: 10px;
+    padding: 12px 14px 14px;
+}
+
+.salon-working-break-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--owner-primary-soft);
+    color: var(--owner-text);
+}
+
+.salon-working-break-preview span {
+    color: var(--owner-muted);
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.salon-working-break-preview strong {
+    font-size: 11px;
+    font-weight: 850;
+    direction: ltr;
+}
+
+.salon-working-break-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.salon-working-break-fields .salon-working-time-field > span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--owner-muted);
+    font-size: 9px;
+    font-weight: 750;
+}
+
+.salon-working-break-error {
+    padding: 9px 11px;
+    border: 1px solid color-mix(in srgb, #ef4444 18%, var(--owner-border));
+    border-radius: 11px;
+    background: color-mix(in srgb, #ef4444 5%, var(--owner-surface));
+    color: #b91c1c;
+    font-size: 9px;
+    font-weight: 750;
+    line-height: 1.8;
+}
+
+.salon-working-break-example {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 9px 11px;
+    border: 1px dashed var(--owner-border);
+    border-radius: 11px;
+    background: var(--owner-surface-soft);
+    color: var(--owner-muted);
+    font-size: 8px;
+    line-height: 1.8;
+}
+
+.salon-working-break-example strong {
+    color: var(--owner-text);
+    flex: 0 0 auto;
+}
+
+@media (max-width: 759px) {
+    .salon-working-interval {
+        grid-template-columns: minmax(0, 1fr) 14px minmax(0, 1fr);
+        align-items: end;
+    }
+
+    .salon-working-interval-actions {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .salon-working-interval-actions button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .salon-working-day__flow-hint {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        margin-bottom: 5px;
+    }
+
+    .salon-working-day__flow-hint span:last-child::before {
+        display: none;
+    }
+
+    .salon-working-break-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .salon-working-hours-modal--break .salon-working-hours-modal__dialog {
+        width: 100%;
+    }
+}
