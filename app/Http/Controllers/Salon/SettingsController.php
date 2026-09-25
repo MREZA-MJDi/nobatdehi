@@ -451,7 +451,7 @@ class SettingsController extends Controller
         while (
             Salon::query()
                 ->where('slug', $slug)
-                ->whereKeyNot($salon->id)
+                ->where('id', '!=', $salon->id)
                 ->exists()
         ) {
             $slug = $baseSlug . '-' . $suffix;
