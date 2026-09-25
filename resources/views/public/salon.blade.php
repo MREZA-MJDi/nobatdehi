@@ -140,7 +140,96 @@
         $bookingEnabled =
             $barbers->isNotEmpty() &&
             $services->isNotEmpty();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Search-friendly salon + service structured data
+        |--------------------------------------------------------------------------
+        | Use the most specific local-business type and describe services as
+        | services, not as products. This keeps the markup aligned with the
+        | visible content and avoids inventing shopping data for appointment
+        | services.
+        |--------------------------------------------------------------------------
+        */
+
+        $serviceSchemaItems = $services
+            ->map(function ($service) use ($salon) {
+                return [
+                    '@type' => 'Service',
+                    'name' => $service->name,
+                    'description' => $service->description ?: $service->name,
+                    'provider' => [
+                        '@type' => 'BeautySalon',
+                        'name' => $salon->name,
+                        'url' => url()->current(),
+                    ],
+                    'url' => url()->current() . '#services',
+                    'additionalProperty' => [
+                        [
+                            '@type' => 'PropertyValue',
+                            'name' => 'مدت',
+                            'value' => (int) $service->duration_minutes . ' دقیقه',
+                        ],
+                    ],
+                ];
+            })
+            ->values()
+            ->all();
+
+        $salonSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BeautySalon',
+            '@id' => url()->current() . '#salon',
+            'name' => $salon->name,
+            'url' => url()->current(),
+            'description' => $salon->description ?: null,
+            'image' => array_values(array_filter([
+                $salon->cover_path ? $resolveMediaUrl($salon->cover_path) : null,
+                $salon->logo_path ? $resolveMediaUrl($salon->logo_path) : null,
+            ])),
+            'telephone' => $salon->phone ?: null,
+            'email' => $salon->email ?: null,
+            'address' => array_filter([
+                '@type' => 'PostalAddress',
+                'streetAddress' => $salon->address ?: null,
+                'addressLocality' => $salon->city ?: null,
+                'addressRegion' => $salon->province ?: null,
+                'addressCountry' => 'IR',
+            ]),
+            'geo' => $hasLocation ? [
+                '@type' => 'GeoCoordinates',
+                'latitude' => (float) $latitude,
+                'longitude' => (float) $longitude,
+            ] : null,
+            'hasOfferCatalog' => [
+                '@type' => 'OfferCatalog',
+                'name' => 'خدمات ' . $salon->name,
+                'itemListElement' => array_map(
+                    fn ($service) => [
+                        '@type' => 'Offer',
+                        'itemOffered' => $service,
+                    ],
+                    $serviceSchemaItems
+                ),
+            ],
+        ];
+
+        if ($rating !== null && $reviewsCount > 0) {
+            $salonSchema['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => round((float) $rating, 1),
+                'bestRating' => 5,
+                'worstRating' => 1,
+                'reviewCount' => (int) $reviewsCount,
+            ];
+        }
     @endphp
+
+    @push('head')
+        <script type="application/ld+json">
+            @json($salonSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+        </script>
+    @endpush
 
     <div
         class="salon-page"
@@ -580,7 +669,11 @@
                             @endphp
 
 
-                            <article class="service-card">
+                            <article
+                                class="service-card"
+                                itemscope
+                                itemtype="https://schema.org/Service"
+                            >
 
                                 <div class="service-media">
 
@@ -588,7 +681,8 @@
 
                                         <img
                                             src="{{ $serviceImage }}"
-                                            alt="{{ $service->name }}"
+                                            alt="{{ $service->name }} در {{ $salon->name }}"
+                                            itemprop="image"
                                             loading="lazy"
                                             decoding="async"
                                         >
@@ -612,14 +706,14 @@
 
                                 <div class="service-content">
 
-                                    <div class="service-title">
+                                    <h3 class="service-title" itemprop="name">
                                         {{ $service->name }}
-                                    </div>
+                                    </h3>
 
 
                                     @if($service->description)
 
-                                        <p class="service-description">
+                                        <p class="service-description" itemprop="description">
                                             {{ Str::limit($service->description, 105) }}
                                         </p>
 
@@ -643,11 +737,15 @@
                                         </strong>
 
 
-                                        <span class="service-duration">
+                                        <time
+                                            class="service-duration"
+                                            itemprop="duration"
+                                            datetime="PT{{ (int) $service->duration_minutes }}M"
+                                        >
                                             ◷
                                             {{ $service->duration_minutes }}
                                             دقیقه
-                                        </span>
+                                        </time>
 
                                     </div>
 
@@ -756,8 +854,7 @@
                                 type="button"
                                 class="tab"
                                 data-filter="video"
-                                role="tab"
-                                aria-selected="false"
+                                aria-pressed="false"
                             >
                                 ویدیو
                                 <span>{{ number_format($postTypeCounts['video']) }}</span>
@@ -769,8 +866,7 @@
                                 type="button"
                                 class="tab"
                                 data-filter="image"
-                                role="tab"
-                                aria-selected="false"
+                                aria-pressed="false"
                             >
                                 عکس
                                 <span>{{ number_format($postTypeCounts['image']) }}</span>
@@ -782,8 +878,7 @@
                                 type="button"
                                 class="tab"
                                 data-filter="gif"
-                                role="tab"
-                                aria-selected="false"
+                                aria-pressed="false"
                             >
                                 GIF
                                 <span>{{ number_format($postTypeCounts['gif']) }}</span>
