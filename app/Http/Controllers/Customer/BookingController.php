@@ -698,6 +698,42 @@ class BookingController extends Controller
 
     /*
     |--------------------------------------------------------------------------
+    | SHOW CUSTOMER BOOKING
+    |--------------------------------------------------------------------------
+    */
+
+    public function show(
+        Request $request,
+        Booking $booking
+    ): View|RedirectResponse {
+        $booking = $request
+            ->user()
+            ->bookings()
+            ->with([
+                'salon',
+                'barber',
+                'service',
+                'review',
+            ])
+            ->find($booking->id);
+
+        if (!$booking) {
+            return redirect()
+                ->route('customer.bookings.index')
+                ->with(
+                    'error',
+                    'این نوبت متعلق به حساب شما نیست یا دیگر در دسترس نیست.'
+                );
+        }
+
+        return view(
+            'customer.bookings.show',
+            compact('booking')
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | EDIT CUSTOMER BOOKING
     |--------------------------------------------------------------------------
     */
