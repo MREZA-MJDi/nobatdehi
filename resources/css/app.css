@@ -381,6 +381,9 @@
 
     html {
 
+        /* Keep the global rem scale aligned with the previous production UI. */
+        font-size: 93.75%;
+
         direction: rtl;
 
         min-height: 100%;
