@@ -289,3 +289,177 @@
     .nd-dashboard h1{font-size:clamp(1.18rem,6vw,1.5rem)!important}
     .nd-dashboard h2{font-size:clamp(1.02rem,5vw,1.25rem)!important}
 }
+
+
+/* ==========================================================================
+   SALON DASHBOARD — REVENUE CHART UX
+   ========================================================================== */
+
+.nd-chart-panel{
+    position:relative;
+}
+
+.nd-chart-panel .nd-bars{
+    position:relative;
+    isolation:isolate;
+    overflow:visible;
+    padding:16px 6px 10px;
+    border-top:1px solid color-mix(in srgb,var(--nd-border) 82%,transparent);
+    border-bottom:1px solid color-mix(in srgb,var(--nd-border) 82%,transparent);
+    background:
+        repeating-linear-gradient(
+            to top,
+            transparent 0,
+            transparent calc(25% - 1px),
+            color-mix(in srgb,var(--nd-border) 52%,transparent) calc(25% - 1px),
+            color-mix(in srgb,var(--nd-border) 52%,transparent) 25%
+        ),
+        linear-gradient(
+            to top,
+            color-mix(in srgb,var(--nd-surface-2) 82%,transparent),
+            color-mix(in srgb,var(--nd-surface) 92%,transparent)
+        );
+    border-radius:16px;
+}
+
+.nd-chart-panel .nd-bars::after{
+    content:"";
+    position:absolute;
+    inset-inline:6px;
+    bottom:38px;
+    height:1px;
+    background:color-mix(in srgb,var(--nd-border-strong,var(--nd-border)) 88%,transparent);
+    z-index:0;
+}
+
+.nd-bar-column{
+    position:relative;
+    min-height:220px;
+    grid-template-rows:24px minmax(130px,1fr) 28px;
+    z-index:1;
+}
+
+.nd-bar-track{
+    min-height:130px;
+    border:1px solid color-mix(in srgb,var(--nd-border) 88%,transparent);
+    background:color-mix(in srgb,var(--nd-background,var(--nd-surface-2)) 72%,var(--nd-border) 28%);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb,#ffffff 42%,transparent),
+        0 8px 18px rgb(15 23 42 / 4%);
+}
+
+.nd-bar-fill{
+    position:relative;
+    min-height:3px;
+    opacity:.96;
+    transform-origin:bottom center;
+}
+
+.nd-bar-column:hover .nd-bar-fill{
+    opacity:1;
+    filter:saturate(1.05);
+    transform:scaleY(1.025);
+}
+
+.nd-bar-tooltip{
+    position:absolute;
+    left:50%;
+    bottom:61px;
+    z-index:5;
+    min-width:max-content;
+    max-width:180px;
+    padding:7px 9px;
+    border:1px solid color-mix(in srgb,var(--nd-border) 88%,transparent);
+    border-radius:10px;
+    background:var(--nd-text);
+    color:var(--nd-surface);
+    font-size:var(--ui-text-xs,.6875rem);
+    font-weight:700;
+    line-height:1.5;
+    box-shadow:0 12px 24px rgb(15 23 42 / 16%);
+    opacity:0;
+    pointer-events:none;
+    transform:translate(-50%,6px);
+    transition:opacity .16s ease,transform .16s ease;
+}
+
+.nd-bar-column:hover .nd-bar-tooltip{
+    opacity:1;
+    transform:translate(-50%,0);
+}
+
+.nd-chart-empty{
+    position:absolute;
+    inset:52px 16px 48px;
+    z-index:3;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:14px 18px;
+    border:1px dashed color-mix(in srgb,var(--nd-primary) 26%,var(--nd-border));
+    border-radius:14px;
+    background:color-mix(in srgb,var(--nd-surface) 90%,transparent);
+    backdrop-filter:blur(6px);
+    text-align:center;
+    pointer-events:none;
+}
+
+.nd-chart-empty strong{
+    color:var(--nd-text);
+    font-size:var(--ui-text-sm,.75rem);
+    font-weight:750;
+}
+
+.nd-chart-empty span{
+    max-width:48ch;
+    color:var(--nd-muted);
+    font-size:var(--ui-text-xs,.6875rem);
+    line-height:1.8;
+}
+
+.nd-chart-panel .nd-bars.is-empty .nd-bar-track{
+    background:
+        repeating-linear-gradient(
+            to top,
+            transparent 0,
+            transparent calc(25% - 1px),
+            color-mix(in srgb,var(--nd-border) 44%,transparent) calc(25% - 1px),
+            color-mix(in srgb,var(--nd-border) 44%,transparent) 25%
+        );
+}
+
+@media (max-width:699px){
+    .nd-chart-panel .nd-bars{
+        padding-inline:4px;
+        border-radius:14px;
+    }
+
+    .nd-bar-column{
+        min-height:188px;
+        grid-template-rows:18px minmax(112px,1fr) 25px;
+    }
+
+    .nd-bar-track{
+        min-height:112px;
+    }
+
+    .nd-bar-tooltip{
+        font-size:.64rem;
+        bottom:55px;
+    }
+
+    .nd-chart-empty{
+        inset-inline:10px;
+        inset-block-start:42px;
+        inset-block-end:42px;
+    }
+}
+
+@media (prefers-reduced-motion:reduce){
+    .nd-bar-fill,
+    .nd-bar-tooltip{
+        transition:none!important;
+    }
+}

@@ -136,11 +136,16 @@
         if (!bars) return;
 
         const items = Array.isArray(points) ? points : [];
-        const max = Math.max(1, ...items.map(item => Number(item.value || 0)));
+        const values = items.map(item => Number(item.value || 0));
+        const max = Math.max(1, ...values);
+        const total = values.reduce((sum, value) => sum + value, 0);
+        const previousEmpty = bars.querySelector('.nd-chart-empty');
         bars.innerHTML = '';
+        bars.classList.toggle('is-empty', total <= 0);
 
         items.forEach(item => {
             const value = Number(item.value || 0);
+            const label = item.label || jalaliDate(item.date);
             const column = document.createElement('div');
             column.className = 'nd-bar-column';
 
@@ -154,18 +159,34 @@
             const fill = document.createElement('div');
             fill.className = 'nd-bar-fill';
             fill.style.height = Math.max(4, Math.round(value / max * 100)) + '%';
-            fill.title = money(value);
+            fill.setAttribute('role', 'img');
+            fill.setAttribute('aria-label', label + '؛ ' + money(value));
 
-            const label = document.createElement('span');
-            label.className = 'nd-bar-label';
-            label.textContent = item.label || jalaliDate(item.date);
+            const tooltip = document.createElement('span');
+            tooltip.className = 'nd-bar-tooltip';
+            tooltip.textContent = label + ' · ' + money(value);
+
+            const labelNode = document.createElement('span');
+            labelNode.className = 'nd-bar-label';
+            labelNode.textContent = label;
+            labelNode.title = label;
 
             track.appendChild(fill);
             column.appendChild(valueNode);
             column.appendChild(track);
-            column.appendChild(label);
+            column.appendChild(labelNode);
+            column.appendChild(tooltip);
             bars.appendChild(column);
         });
+
+        if (total <= 0) {
+            const empty = document.createElement('div');
+            empty.className = 'nd-chart-empty';
+            empty.innerHTML =
+                '<strong>هنوز درآمدی در این بازه ثبت نشده</strong>' +
+                '<span>با تکمیل نوبت‌ها، نمودار درآمد اینجا به‌صورت خودکار به‌روزرسانی می‌شود.</span>';
+            bars.appendChild(empty);
+        }
     };
 
     const renderRecent = bookings => {
