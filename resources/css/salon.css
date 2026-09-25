@@ -77,6 +77,11 @@
     text-rendering: optimizeLegibility;
 }
 
+html:has(.salon-page) {
+    /* Public salon is a standalone Vite entry, so it needs the same root rem scale. */
+    font-size: 93.75%;
+}
+
 html:has(.salon-page),
 body:has(.salon-page) {
     background: var(--bg) !important;
