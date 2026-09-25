@@ -180,6 +180,56 @@ class BookingCoreTest extends TestCase
         );
     }
 
+    public function test_break_between_working_intervals_is_removed_from_availability(): void
+    {
+        [$owner, $customer, $salon, $barber, $service, $date] =
+            $this->fixture();
+
+        $service->update([
+            'duration_minutes' => 30,
+        ]);
+
+        $dayOfWeek = ($date->dayOfWeek + 1) % 7;
+
+        WorkingHour::query()
+            ->where('salon_id', $salon->id)
+            ->whereNull('barber_id')
+            ->where('day_of_week', $dayOfWeek)
+            ->delete();
+
+        WorkingHour::create([
+            'salon_id' => $salon->id,
+            'barber_id' => null,
+            'day_of_week' => $dayOfWeek,
+            'start_time' => '09:00',
+            'end_time' => '13:00',
+            'is_closed' => false,
+            'sort_order' => 0,
+        ]);
+
+        WorkingHour::create([
+            'salon_id' => $salon->id,
+            'barber_id' => null,
+            'day_of_week' => $dayOfWeek,
+            'start_time' => '15:00',
+            'end_time' => '22:00',
+            'is_closed' => false,
+            'sort_order' => 1,
+        ]);
+
+        $slots = app(AvailabilityService::class)->slots(
+            $salon,
+            $barber,
+            $service,
+            $date
+        );
+
+        $this->assertNotNull(collect($slots)->firstWhere('start', '12:30'));
+        $this->assertNull(collect($slots)->firstWhere('start', '13:00'));
+        $this->assertNull(collect($slots)->firstWhere('start', '14:30'));
+        $this->assertNotNull(collect($slots)->firstWhere('start', '15:00'));
+    }
+
     public function test_cancelled_booking_does_not_block_availability(): void
     {
         Event::fake();
