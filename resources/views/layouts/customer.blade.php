@@ -126,6 +126,25 @@
         <div class="relative flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
             <div class="w-full max-w-md">
 
+                <div class="mb-4 flex items-center justify-between">
+                    <a
+                        href="{{ route('brand.intro') }}"
+                        class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/80 bg-white/80 px-3 py-2 text-xs font-black text-content-muted shadow-sm transition hover:-translate-y-0.5 hover:text-content"
+                    >
+                        <span aria-hidden="true">→</span>
+                        بازگشت به سایت
+                    </a>
+
+                    @if (($entry ?? 'customer') === 'salon')
+                        <a
+                            href="{{ route('salons.discover') }}"
+                            class="text-[10px] font-bold text-content-faint transition hover:text-accent-600"
+                        >
+                            کشف سالن‌ها
+                        </a>
+                    @endif
+                </div>
+
                 <div class="mb-7 text-center">
                     <a href="{{ route('brand.intro') }}" class="group inline-flex items-center gap-3">
                         <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-950 text-base font-black text-white shadow-lg transition duration-200 group-hover:-translate-y-1 group-hover:shadow-xl">ن</span>
@@ -167,6 +186,26 @@
 @elseif ($customerShell === 'standalone')
 
     <main>
+        <div class="customer-container py-4">
+            <div class="mb-4 flex items-center justify-between gap-3">
+                <a
+                    href="{{ route('brand.intro') }}"
+                    data-customer-back
+                    class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-xs font-black text-content shadow-sm transition hover:-translate-y-0.5 hover:border-accent-300 hover:text-accent-600"
+                >
+                    <span aria-hidden="true">←</span>
+                    <span>بازگشت</span>
+                </a>
+
+                <a
+                    href="{{ route('salons.discover') }}"
+                    class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary-950 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-900"
+                >
+                    کشف سالن‌ها
+                </a>
+            </div>
+        </div>
+
         @yield('content')
     </main>
 
@@ -390,6 +429,43 @@
 
     <main class="customer-main">
 
+        @php
+            $customerIsAuthenticated = auth()->check() && auth()->user()->isCustomer();
+        @endphp
+
+        <div class="customer-container pt-4">
+            <div class="flex items-center justify-between gap-3">
+                <a
+                    href="{{ $customerIsAuthenticated ? route('customer.dashboard') : route('brand.intro') }}"
+                    data-customer-back
+                    class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-white/90 px-3 py-2 text-xs font-black text-content shadow-sm transition hover:-translate-y-0.5 hover:border-accent-300 hover:text-accent-600"
+                >
+                    <span aria-hidden="true">←</span>
+                    <span>بازگشت</span>
+                </a>
+
+                <div class="flex items-center gap-2">
+                    @if($customerIsAuthenticated && !request()->routeIs('customer.dashboard'))
+                        <a
+                            href="{{ route('customer.dashboard') }}"
+                            class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary-950 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-900"
+                        >
+                            داشبورد من
+                        </a>
+                    @endif
+
+                    @unless(request()->routeIs('brand.intro'))
+                        <a
+                            href="{{ route('brand.intro') }}"
+                            class="hidden min-h-10 items-center gap-2 rounded-xl border border-border bg-white/90 px-3 py-2 text-xs font-black text-content sm:inline-flex"
+                        >
+                            خانه سایت
+                        </a>
+                    @endunless
+                </div>
+            </div>
+        </div>
+
         {{-- =====================================================
             FLASH: SUCCESS
         ====================================================== --}}
@@ -545,6 +621,25 @@
     </div>
 
 @endif
+
+<script>
+    document.addEventListener('click', (event) => {
+        const link = event.target.closest('[data-customer-back]');
+
+        if (!link || event.defaultPrevented) {
+            return;
+        }
+
+        const previousIsSameOrigin =
+            document.referrer !== ''
+            && new URL(document.referrer, window.location.href).origin === window.location.origin;
+
+        if (window.history.length > 1 && previousIsSameOrigin) {
+            event.preventDefault();
+            window.history.back();
+        }
+    });
+</script>
 
 @stack('scripts')
 
