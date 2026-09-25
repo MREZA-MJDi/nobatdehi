@@ -20,7 +20,6 @@ class SalonSeeder extends Seeder
         $salons = [
             [
                 'name' => 'سالن زیبایی نوبان',
-                'slug' => 'salon-noban',
                 'code' => 'SALON-NOBAN',
                 'description' => 'سالن زیبایی مدرن با خدمات تخصصی مو، میکاپ و زیبایی.',
                 'phone' => '09121112233',
@@ -67,7 +66,6 @@ class SalonSeeder extends Seeder
 
             [
                 'name' => 'خانه زیبایی آناهیتا',
-                'slug' => 'anahita-beauty',
                 'code' => 'SALON-ANAHI',
                 'description' => 'خدمات تخصصی زیبایی با رزرو آنلاین و زمان‌بندی دقیق.',
                 'phone' => '09123334455',
@@ -114,7 +112,6 @@ class SalonSeeder extends Seeder
 
             [
                 'name' => 'آرایشگاه ماه‌رخ',
-                'slug' => 'maahrokh',
                 'code' => 'SALON-MHRKH',
                 'description' => 'محیطی آرام برای خدمات حرفه‌ای مو و زیبایی بانوان.',
                 'phone' => '09125556677',
