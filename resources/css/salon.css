@@ -5461,3 +5461,24 @@ html:has(.salon-page){font-size:100%}
         display: none;
     }
 }
+
+
+/* ==========================================================================
+   PUBLIC SALON — SINGLE NAV + STATUS PLACEMENT
+   ========================================================================== */
+
+.salon-page .cover-status {
+    top: 18px;
+    bottom: auto;
+    inset-inline-start: 18px;
+    z-index: 6;
+}
+
+@media (max-width: 700px) {
+    .salon-page .cover-status {
+        top: 16px;
+        bottom: auto;
+        inset-inline-start: 16px;
+        z-index: 6;
+    }
+}
