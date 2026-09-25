@@ -205,10 +205,12 @@
                     start = '09:00';
                     end = '10:00';
                 } else {
-                    const last = [...target.intervals]
+                    const orderedIntervals = [...target.intervals]
                         .filter(interval => interval?.end)
-                        .sort((a, b) => a.end.localeCompare(b.end))
-                        .at(-1);
+                        .sort((a, b) => a.end.localeCompare(b.end));
+                    const last = orderedIntervals.length
+                        ? orderedIntervals[orderedIntervals.length - 1]
+                        : null;
 
                     if (last?.end && last.end < '22:00') {
                         start = last.end;
