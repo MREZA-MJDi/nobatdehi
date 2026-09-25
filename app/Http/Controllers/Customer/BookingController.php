@@ -147,61 +147,11 @@ class BookingController extends Controller
             ], 422);
         }
 
-        $dayOfWeek = ($date->dayOfWeek + 1) % 7;
-
-        $dayNames = [
-            0 => 'شنبه',
-            1 => 'یکشنبه',
-            2 => 'دوشنبه',
-            3 => 'سه‌شنبه',
-            4 => 'چهارشنبه',
-            5 => 'پنجشنبه',
-            6 => 'جمعه',
-        ];
-
-        $barberRows = $barber->workingHours()
-            ->where('day_of_week', $dayOfWeek)
-            ->orderBy('sort_order')
-            ->orderBy('start_time')
-            ->get();
-
-        $dayRows = $barberRows->isNotEmpty()
-            ? $barberRows
-            : $salon->workingHours()
-                ->whereNull('barber_id')
-                ->where('day_of_week', $dayOfWeek)
-                ->orderBy('sort_order')
-                ->orderBy('start_time')
-                ->get();
-
-        $dailyStatus = $salon->dailyStatuses()
-            ->whereDate('date', $date->toDateString())
-            ->first();
-
-        $isDailyClosed = (bool) ($dailyStatus?->is_closed);
-
-        $workingHours = $dayRows
-            ->filter(fn ($row) =>
-                ! $row->is_closed &&
-                filled($row->start_time) &&
-                filled($row->end_time)
-            )
-            ->map(fn ($row) => [
-                'start' => substr((string) $row->start_time, 0, 5),
-                'end' => substr((string) $row->end_time, 0, 5),
-            ])
-            ->values()
-            ->all();
-
-        $isWeeklyClosed =
-            $workingHours === [] &&
-            $dayRows->isNotEmpty() &&
-            $dayRows->every(fn ($row) => (bool) $row->is_closed);
-
-        $scheduleStatus =
-            $isDailyClosed || $isWeeklyClosed
-                ? 'closed'
-                : ($workingHours === [] ? 'not_configured' : 'open');
+        $schedule = $availability->daySchedule(
+            $salon,
+            $barber,
+            $date
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -213,14 +163,9 @@ class BookingController extends Controller
             ->json([
                 'ok' => true,
                 'date' => $date->toDateString(),
-                'schedule' => [
-                    'day_of_week' => $dayOfWeek,
-                    'day_name' => $dayNames[$dayOfWeek],
-                    'status' => $scheduleStatus,
-                    'is_closed' => $isDailyClosed || $isWeeklyClosed,
-                    'intervals' => $workingHours,
-                ],
-                'working_hours' => $workingHours,
+                'schedule' => $schedule,
+                'working_hours' => $schedule['intervals'],
+                'breaks' => $schedule['breaks'],
                 'slots' => $availability->slots(
                     $salon,
                     $barber,
