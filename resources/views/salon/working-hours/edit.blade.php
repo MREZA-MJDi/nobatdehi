@@ -64,6 +64,118 @@
                 this.formError = '';
             },
 
+            timeOptions() {
+                const options = [];
+
+                for (let hour = 0; hour < 24; hour++) {
+                    for (const minute of [0, 15, 30, 45]) {
+                        const value =
+                            String(hour).padStart(2, '0') +
+                            ':' +
+                            String(minute).padStart(2, '0');
+
+                        options.push({
+                            value,
+                            label: this.persianDigits(value),
+                        });
+                    }
+                }
+
+                return options;
+            },
+
+            persianTime(value) {
+                return this.persianDigits(value || '');
+            },
+
+            breakEditor: {
+                open: false,
+                day: null,
+                intervalIndex: null,
+                start: '',
+                end: '',
+                error: '',
+            },
+
+            openBreakEditor(day, intervalIndex) {
+                const interval = this.currentHours[day]?.intervals?.[intervalIndex];
+
+                if (!interval) return;
+
+                this.breakEditor = {
+                    open: true,
+                    day: Number(day),
+                    intervalIndex: Number(intervalIndex),
+                    start: '',
+                    end: '',
+                    error: '',
+                };
+            },
+
+            closeBreakEditor() {
+                this.breakEditor = {
+                    open: false,
+                    day: null,
+                    intervalIndex: null,
+                    start: '',
+                    end: '',
+                    error: '',
+                };
+            },
+
+            applyBreak() {
+                const editor = this.breakEditor;
+
+                if (
+                    editor.day === null ||
+                    editor.intervalIndex === null
+                ) {
+                    return;
+                }
+
+                const interval =
+                    this.currentHours[editor.day]?.intervals?.[editor.intervalIndex];
+
+                if (!interval) {
+                    return;
+                }
+
+                if (!editor.start || !editor.end) {
+                    this.breakEditor.error = 'شروع و پایان استراحت را انتخاب کنید.';
+                    return;
+                }
+
+                if (
+                    editor.start <= interval.start ||
+                    editor.end >= interval.end ||
+                    editor.start >= editor.end
+                ) {
+                    this.breakEditor.error =
+                        'استراحت باید کاملاً داخل بازه کاری انتخاب‌شده باشد.';
+                    return;
+                }
+
+                const next = [
+                    {
+                        start: interval.start,
+                        end: editor.start,
+                    },
+                    {
+                        start: editor.end,
+                        end: interval.end,
+                    },
+                ];
+
+                this.currentHours[editor.day].intervals.splice(
+                    editor.intervalIndex,
+                    1,
+                    ...next
+                );
+
+                this.markCustomized();
+                this.closeBreakEditor();
+            },
+
             applyDefault() {
                 if (!confirm('برنامه پیشنهادی روی برنامه فعلی اعمال شود؟')) return;
                 this.currentSchedule.hours = JSON.parse(JSON.stringify(this.defaultSchedule()));
@@ -350,39 +462,57 @@
                             <template x-for="(interval, intervalIndex) in currentHours[{{ $dayNumber }}].intervals" :key="intervalIndex">
                                 <div class="salon-working-interval">
                                     <div class="salon-working-time-field">
-                                        <label :for="'working-start-{{ $dayNumber }}-' + intervalIndex">شروع</label>
-                                        <input
-                                            type="time"
-                                            step="900"
-                                            :id="'working-start-{{ $dayNumber }}-' + intervalIndex"
+                                        <label>شروع</label>
+                                        <select
                                             :name="'hours[{{ $dayNumber }}][intervals][' + intervalIndex + '][start_time]'"
                                             x-model="interval.start"
-                                            @change="markCustomized()">
+                                            @change="markCustomized()"
+                                            aria-label="ساعت شروع">
+                                            <template x-for="option in timeOptions()" :key="'start-' + option.value">
+                                                <option :value="option.value" x-text="option.label"></option>
+                                            </template>
+                                        </select>
                                     </div>
 
                                     <span class="salon-working-interval-separator">تا</span>
 
                                     <div class="salon-working-time-field">
-                                        <label :for="'working-end-{{ $dayNumber }}-' + intervalIndex">پایان</label>
-                                        <input
-                                            type="time"
-                                            step="900"
-                                            :id="'working-end-{{ $dayNumber }}-' + intervalIndex"
+                                        <label>پایان</label>
+                                        <select
                                             :name="'hours[{{ $dayNumber }}][intervals][' + intervalIndex + '][end_time]'"
                                             x-model="interval.end"
-                                            @change="markCustomized()">
+                                            @change="markCustomized()"
+                                            aria-label="ساعت پایان">
+                                            <template x-for="option in timeOptions()" :key="'end-' + option.value">
+                                                <option :value="option.value" x-text="option.label"></option>
+                                            </template>
+                                        </select>
                                     </div>
 
-                                    <button type="button"
-                                        class="salon-working-interval-remove"
-                                        @click="removeInterval({{ $dayNumber }}, intervalIndex)">
-                                        حذف
-                                    </button>
+                                    <div class="salon-working-interval-actions">
+                                        <button
+                                            type="button"
+                                            class="salon-working-break"
+                                            @click="openBreakEditor({{ $dayNumber }}, intervalIndex)">
+                                            استراحت
+                                        </button>
+
+                                        <button type="button"
+                                            class="salon-working-interval-remove"
+                                            @click="removeInterval({{ $dayNumber }}, intervalIndex)">
+                                            حذف
+                                        </button>
+                                    </div>
                                 </div>
                             </template>
                         </div>
 
                         <div class="salon-working-day__footer">
+                            <div class="salon-working-day__flow-hint">
+                                <span>بازه کاری را مشخص کن</span>
+                                <span>برای ناهار یا استراحت، «استراحت» را بزن</span>
+                            </div>
+
                             <button type="button" class="salon-working-add" @click="addInterval({{ $dayNumber }})">
                                 ＋ افزودن بازه
                             </button>
@@ -421,6 +551,62 @@
             </button>
         </div>
     </form>
+
+    <div x-show="breakEditor.open" x-cloak x-transition.opacity class="salon-working-hours-modal salon-working-hours-modal--break">
+        <div class="salon-working-hours-modal__dialog" @click.outside="closeBreakEditor()">
+            <header>
+                <div>
+                    <span class="salon-overline">استراحت بین کار</span>
+                    <h2>بازه استراحت را مشخص کن</h2>
+                    <p>این بازه از ساعات کاری حذف می‌شود و زمان‌های رزرو در آن نمایش داده نمی‌شوند.</p>
+                </div>
+                <button type="button" @click="closeBreakEditor()" aria-label="بستن">×</button>
+            </header>
+
+            <div class="salon-working-break-form">
+                <div class="salon-working-break-preview">
+                    <span>بازه فعلی</span>
+                    <strong x-text="breakEditor.day !== null && breakEditor.intervalIndex !== null
+                        ? persianTime(currentHours[breakEditor.day]?.intervals?.[breakEditor.intervalIndex]?.start) + ' تا ' + persianTime(currentHours[breakEditor.day]?.intervals?.[breakEditor.intervalIndex]?.end)
+                        : ''"></strong>
+                </div>
+
+                <div class="salon-working-break-fields">
+                    <label class="salon-working-time-field">
+                        <span>شروع استراحت</span>
+                        <select x-model="breakEditor.start" aria-label="شروع استراحت">
+                            <option value="">انتخاب کن</option>
+                            <template x-for="option in timeOptions()" :key="'break-start-' + option.value">
+                                <option :value="option.value" x-text="option.label"></option>
+                            </template>
+                        </select>
+                    </label>
+
+                    <label class="salon-working-time-field">
+                        <span>پایان استراحت</span>
+                        <select x-model="breakEditor.end" aria-label="پایان استراحت">
+                            <option value="">انتخاب کن</option>
+                            <template x-for="option in timeOptions()" :key="'break-end-' + option.value">
+                                <option :value="option.value" x-text="option.label"></option>
+                            </template>
+                        </select>
+                    </label>
+                </div>
+
+                <div x-show="breakEditor.error" x-cloak class="salon-working-break-error" x-text="breakEditor.error"></div>
+
+                <div class="salon-working-break-example">
+                    <strong>مثال</strong>
+                    <span>۰۹:۰۰ تا ۲۲:۰۰ ← استراحت ۱۳:۰۰ تا ۱۵:۰۰ → تبدیل می‌شود به ۰۹:۰۰ تا ۱۳:۰۰ و ۱۵:۰۰ تا ۲۲:۰۰</span>
+                </div>
+            </div>
+
+            <footer>
+                <button type="button" class="salon-btn" @click="closeBreakEditor()">انصراف</button>
+                <button type="button" class="salon-btn salon-btn--primary" @click="applyBreak()">اعمال استراحت</button>
+            </footer>
+        </div>
+    </div>
 
     <div x-show="copyModalOpen" x-cloak x-transition.opacity class="salon-working-hours-modal">
         <div class="salon-working-hours-modal__dialog" @click.outside="closeCopyModal()">
