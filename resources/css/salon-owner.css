@@ -482,7 +482,7 @@ html[data-theme="dark"] .salon-owner {
 .salon-booking-main span {
     margin-top: 3px;
     color: var(--owner-muted);
-    font-size: 6.8px;
+    font-size: 10px;
 }
 
 .salon-status {
@@ -562,7 +562,7 @@ html[data-theme="dark"] .salon-owner {
 .salon-action-list small {
     margin-top: 2px;
     color: var(--owner-faint);
-    font-size: 6.7px;
+    font-size: 10px;
 }
 
 .salon-recent-grid {
@@ -610,7 +610,7 @@ html[data-theme="dark"] .salon-owner {
     overflow: hidden;
     margin-top: 2px;
     color: var(--owner-muted);
-    font-size: 6.8px;
+    font-size: 10px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -1856,7 +1856,7 @@ html[data-theme="dark"] .salon-owner {
 }
 
 .salon-owner .salon-notification__meta > span {
-    font-size: .67rem;
+    font-size: .68rem;
 }
 
 .salon-owner .salon-empty-state h2 {
@@ -1961,7 +1961,7 @@ html[data-theme="dark"] .salon-owner {
 
 .salon-owner .salon-overview-strip a,
 .salon-owner .salon-overview-strip small {
-    font-size: .67rem;
+    font-size: .68rem;
 }
 
 
@@ -2176,7 +2176,7 @@ html[data-theme="dark"] .salon-owner {
 }
 
 .salon-manual-booking section [class~="text-[9px]"] {
-    font-size: .67rem !important;
+    font-size: .68rem !important;
 }
 
 .salon-manual-booking section [class~="text-xs"] {
