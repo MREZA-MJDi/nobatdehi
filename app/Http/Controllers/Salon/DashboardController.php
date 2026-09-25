@@ -313,10 +313,7 @@ class DashboardController extends Controller
             );
 
         $todayHours = $salon->workingHours
-            ->where(
-                'day_of_week',
-                $dayOfWeek
-            )
+            ->where('day_of_week', $dayOfWeek)
             ->sortBy([
                 [
                     'is_closed',
@@ -349,6 +346,7 @@ class DashboardController extends Controller
                         ),
                 ]
             )
+            ->unique(fn ($hour) => $hour['start'] . '|' . $hour['end'])
             ->values();
 
         $todayIsClosed =
@@ -705,7 +703,7 @@ class DashboardController extends Controller
                             'id' => $booking->id,
                             'date' => $booking->booking_date,
                             'startTime' => substr((string) $booking->start_time, 0, 5),
-                            'customer' => $booking->customer?->name ?? 'مشتری',
+                            'customer' => $booking->customer?->name ?? $booking->customer_name ?? 'مشتری',
                             'service' => $booking->service?->name ?? 'خدمت',
                             'barber' => $booking->barber?->name ?? 'متخصص',
                             'status' => $booking->status instanceof BookingStatus
