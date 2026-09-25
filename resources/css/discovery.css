@@ -4312,3 +4312,46 @@ body.discover-filters-open {
     .discover-page h1{font-size:clamp(1.2rem,6vw,1.55rem)}
     .discover-page h2{font-size:clamp(1.05rem,5vw,1.3rem)}
 }
+
+
+/* ==========================================================================
+   DISCOVER — DESKTOP BALANCE FIX
+   ========================================================================== */
+
+/* Keep the desktop Discover hero compact instead of viewport-sized. */
+@media (min-width: 760px) {
+    .discover-page .discover-hero-immersive {
+        min-height: auto;
+        padding-block: 44px 38px;
+    }
+
+    .discover-page .discover-hero-inner {
+        min-height: 420px;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 56px;
+        direction: rtl;
+        align-items: center;
+    }
+
+    .discover-page .discover-hero-content {
+        padding-inline-start: 8px;
+    }
+
+    .discover-page .discover-hero-title {
+        max-width: 520px;
+        font-size: clamp(2rem, 3.2vw, 3rem);
+        line-height: 1.25;
+    }
+
+    .discover-page .discover-hero-media {
+        min-height: 420px;
+    }
+
+    .discover-page .discover-hero-media img {
+        min-height: 420px;
+    }
+
+    .discover-page .discover-search-box {
+        grid-template-columns: minmax(0, 1.35fr) minmax(150px, .85fr) 112px 100px;
+    }
+}
