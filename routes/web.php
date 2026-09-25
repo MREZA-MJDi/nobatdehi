@@ -14,6 +14,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Customer\BookingController as CustomerBookingController;
 use App\Http\Controllers\Customer\NotificationController as CustomerNotificationController;
 use App\Http\Controllers\Customer\ProfileController as CustomerProfileController;
+use App\Http\Controllers\Customer\FavoriteController as CustomerFavoriteController;
 use App\Http\Controllers\Customer\ReviewController as CustomerReviewController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
 
@@ -311,6 +312,16 @@ Route::middleware('auth')->group(function () {
                 '/bookings/{booking}/review',
                 [CustomerReviewController::class, 'store']
             )->name('bookings.review.store');
+
+            Route::get(
+                '/salons/{salon}/review',
+                [CustomerReviewController::class, 'createSalon']
+            )->name('salons.review.create');
+
+            Route::post(
+                '/salons/{salon}/review',
+                [CustomerReviewController::class, 'storeSalon']
+            )->name('salons.review.store');
         });
 
 
