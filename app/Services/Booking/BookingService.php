@@ -484,6 +484,10 @@ class BookingService
                 ]);
             }
 
+            if ($status === BookingStatus::CONFIRMED) {
+                $this->assertConfirmedTimeIsAvailable($lockedBooking);
+            }
+
             $from = $lockedBooking->status;
 
             $lockedBooking->update([
@@ -507,6 +511,42 @@ class BookingService
 
             return $lockedBooking;
         });
+    }
+
+    /**
+     * Confirmed bookings are the only final time owners.
+     *
+     * Multiple pending requests may coexist on the same time. Once one of
+     * them is confirmed, a later confirmation must not create an overlap.
+     */
+    private function assertConfirmedTimeIsAvailable(Booking $booking): void
+    {
+        $bookingStart = Carbon::parse(
+            $booking->start_time
+        )->format('H:i:s');
+
+        $bookingEnd = Carbon::parse(
+            $booking->end_time
+        )->format('H:i:s');
+
+        $conflict = Booking::query()
+            ->where('barber_id', $booking->barber_id)
+            ->whereDate('booking_date', $booking->booking_date)
+            ->where('status', BookingStatus::CONFIRMED->value)
+            ->whereKeyNot($booking->id)
+            ->where(function ($query) use ($bookingStart, $bookingEnd) {
+                $query
+                    ->where('start_time', '<', $bookingEnd)
+                    ->where('end_time', '>', $bookingStart);
+            })
+            ->exists();
+
+        if ($conflict) {
+            throw ValidationException::withMessages([
+                'status' =>
+                    'این نوبت با یک نوبت تأییدشده تداخل دارد. اولویت با نوبتی است که زودتر توسط سالن تأیید شده است.',
+            ]);
+        }
     }
 
     /**
