@@ -4341,7 +4341,7 @@ body.discover-filters-open {
 
     .discover-page .discover-hero-inner {
         min-width: 0;
-        min-height: 420px;
+        min-height: 460px;
         grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
         grid-template-areas: "media content";
         gap: 48px;
@@ -4411,5 +4411,49 @@ body.discover-filters-open {
     .discover-page .discover-search-submit,
     .discover-page .discover-search-nearby {
         padding-inline: 10px;
+    }
+}
+
+
+/* ==========================================================================
+   DISCOVER — LARGER HERO MEDIA UX
+   ========================================================================== */
+
+@media (min-width: 760px) {
+    .discover-page .discover-hero-media {
+        min-height: 460px;
+        border-radius: 26px;
+    }
+
+    .discover-page .discover-hero-media img {
+        min-height: 460px;
+    }
+}
+
+@media (min-width: 760px) and (max-width: 1199px) {
+    .discover-page .discover-hero-inner {
+        min-height: 400px;
+    }
+
+    .discover-page .discover-hero-media,
+    .discover-page .discover-hero-media img {
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 759px) {
+    .discover-page .discover-hero-inner {
+        align-items: start;
+    }
+
+    .discover-page .discover-hero-media {
+        width: 100%;
+        min-width: 0;
+        min-height: 330px;
+        border-radius: 22px;
+    }
+
+    .discover-page .discover-hero-media img {
+        min-height: 330px;
     }
 }
