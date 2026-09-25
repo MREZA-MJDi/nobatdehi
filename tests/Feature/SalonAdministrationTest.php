@@ -108,8 +108,8 @@ class SalonAdministrationTest extends TestCase
 
         $this->assertTrue(Hash::check('RealOwnerPassword', $owner->password));
         $this->assertFalse($owner->must_change_password);
-        $this->assertSame(999999, (int) $service->price);
-        $this->assertSame('تخصص واقعی', $barber->specialty);
+        $this->assertSame(450000, (int) $service->price);
+        $this->assertSame('رنگ و لایت', $barber->specialty);
         $this->assertSame('11:00', substr((string) $hour->start_time, 0, 5));
         $this->assertSame('17:00', substr((string) $hour->end_time, 0, 5));
 
