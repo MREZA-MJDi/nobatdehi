@@ -170,7 +170,11 @@ class BookingController extends Controller
                     $salon,
                     $barber,
                     $service,
-                    $date
+                    $date,
+                    null,
+                    $request->user()?->isCustomer()
+                        ? $request->user()->id
+                        : null
                 ),
             ])
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
