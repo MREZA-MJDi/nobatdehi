@@ -91,6 +91,55 @@
 
                 </div>
 
+                @if($bookingCapacity['visible'] ?? false)
+                    <aside
+                        class="np-booking-capacity {{ ($bookingCapacity['reached'] ?? false) ? 'is-full' : '' }}"
+                        role="note"
+                    >
+                        <span class="np-booking-capacity-icon" aria-hidden="true">
+                            {{ ($bookingCapacity['reached'] ?? false) ? '!' : '✓' }}
+                        </span>
+
+                        <div class="np-booking-capacity-copy">
+                            <strong>
+                                {{ ($bookingCapacity['reached'] ?? false)
+                                    ? 'ظرفیت نوبت‌های در انتظار تکمیل شده'
+                                    : 'قانون نوبت‌های در انتظار'
+                                }}
+                            </strong>
+
+                            <p>
+                                @if(($bookingCapacity['reached'] ?? false))
+                                    الان ۲ نوبت در وضعیت «در انتظار تأیید» داری.
+                                    بعد از تأیید، لغو یا خارج شدن یکی از آن‌ها از این وضعیت،
+                                    دوباره می‌توانی نوبت جدید بگیری.
+                                @elseif(($bookingCapacity['used'] ?? 0) === 0)
+                                    هر مشتری می‌تواند هم‌زمان حداکثر ۲ نوبت در وضعیت «در انتظار تأیید» داشته باشد.
+                                    این محدودیت برای همه سالن‌ها در مجموع حساب می‌شود.
+                                @else
+                                    الان {{ $bookingCapacity['used'] }} نوبت در انتظار داری و
+                                    {{ $bookingCapacity['remaining'] }} ظرفیت دیگر برای نوبت جدید باقی مانده است.
+                                @endif
+                            </p>
+                        </div>
+
+                        <div class="np-booking-capacity-count">
+                            {{ $bookingCapacity['used'] }}
+                            <span>از {{ $bookingCapacity['limit'] }}</span>
+                        </div>
+
+                        @if($bookingCapacity['reached'] ?? false)
+                            <a
+                                href="{{ route('customer.bookings.index') }}"
+                                class="np-booking-capacity-link"
+                            >
+                                مشاهده نوبت‌ها
+                                <span aria-hidden="true">←</span>
+                            </a>
+                        @endif
+                    </aside>
+                @endif
+
             </header>
 
 
