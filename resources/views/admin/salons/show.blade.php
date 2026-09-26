@@ -78,6 +78,23 @@
                     ویرایش
                 </a>
 
+                <form
+                    method="POST"
+                    action="{{ route('admin.salons.destroy', $salon) }}"
+                    onsubmit="return confirm('آیا از حذف سالن «{{ $salon->name }}» مطمئن هستید؟ سالن به‌صورت نرم حذف می‌شود و از فهرست سالن‌ها خارج خواهد شد.');"
+                    class="inline"
+                >
+                    @csrf
+                    @method('DELETE')
+
+                    <button
+                        type="submit"
+                        class="btn btn-sm border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+                    >
+                        حذف سالن
+                    </button>
+                </form>
+
             </div>
 
         </div>
