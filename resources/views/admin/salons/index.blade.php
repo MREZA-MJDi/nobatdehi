@@ -245,6 +245,23 @@
                                     ویرایش
                                 </a>
 
+                                <form
+                                    method="POST"
+                                    action="{{ route('admin.salons.destroy', $salon) }}"
+                                    onsubmit="return confirm('آیا از حذف سالن «{{ $salon->name }}» مطمئن هستید؟ این عملیات سالن را غیرفعال و از فهرست فعال حذف می‌کند.');"
+                                    class="inline"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+                                    >
+                                        حذف
+                                    </button>
+                                </form>
+
                             </div>
 
                         </td>
@@ -392,7 +409,7 @@
                     </div>
 
 
-                    <div class="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-3">
+                    <div class="mt-4 grid grid-cols-3 gap-2 border-t border-border pt-3">
 
                         <a
                             href="{{ route('admin.salons.show', $salon) }}"
@@ -407,6 +424,23 @@
                         >
                             ویرایش
                         </a>
+
+                        <form
+                            method="POST"
+                            action="{{ route('admin.salons.destroy', $salon) }}"
+                            onsubmit="return confirm('آیا از حذف سالن «{{ $salon->name }}» مطمئن هستید؟ این عملیات سالن را غیرفعال و از فهرست فعال حذف می‌کند.');"
+                            class="contents"
+                        >
+                            @csrf
+                            @method('DELETE')
+
+                            <button
+                                type="submit"
+                                class="btn btn-sm w-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+                            >
+                                حذف
+                            </button>
+                        </form>
 
                     </div>
 
