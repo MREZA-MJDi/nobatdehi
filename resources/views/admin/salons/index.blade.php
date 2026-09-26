@@ -248,7 +248,7 @@
                                 <form
                                     method="POST"
                                     action="{{ route('admin.salons.destroy', $salon) }}"
-                                    onsubmit="return confirm('آیا از حذف سالن «{{ $salon->name }}» مطمئن هستید؟ این عملیات سالن را غیرفعال و از فهرست فعال حذف می‌کند.');"
+                                    onsubmit="return confirm('آیا از حذف سالن «{{ $salon->name }}» مطمئن هستید؟ سالن به‌صورت نرم حذف می‌شود و از فهرست سالن‌ها خارج خواهد شد.');"
                                     class="inline"
                                 >
                                     @csrf
