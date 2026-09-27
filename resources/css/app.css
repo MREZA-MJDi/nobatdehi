@@ -373,6 +373,68 @@
 }
 
 
+/* ========================================================================
+   DARK THEME TOKENS
+   Keep the shared UI contract in one place so page-specific bundles do not
+   invent their own light/dark palettes.
+   ======================================================================== */
+
+:root[data-theme="dark"] {
+
+    color-scheme: dark;
+
+    --app-background: #0b0f14;
+    --app-surface: #11161d;
+    --app-surface-soft: #171d25;
+    --app-surface-raised: #1a2028;
+
+    --app-content: #f5f7fa;
+    --app-content-soft: #d6dbe3;
+    --app-content-muted: #a3abb7;
+    --app-content-faint: #737d8c;
+
+    --app-border: rgba(255, 255, 255, .09);
+    --app-border-strong: rgba(255, 255, 255, .16);
+
+    --app-primary: #818cf8;
+    --app-primary-hover: #a5b4fc;
+    --app-on-primary: #0b1020;
+
+    --app-accent: #a78bfa;
+    --app-accent-hover: #c4b5fd;
+    --app-on-accent: #0b1020;
+
+    --app-success: #4ade80;
+    --app-warning: #fbbf24;
+    --app-danger: #f87171;
+    --app-info: #60a5fa;
+
+    --app-control-bg: #11161d;
+    --app-control-border: rgba(255, 255, 255, .12);
+    --app-control-border-hover: rgba(255, 255, 255, .20);
+    --app-control-border-focus: #818cf8;
+    --app-control-placeholder: #737d8c;
+
+    --app-ring: rgb(129 140 248 / 30%);
+
+    --app-brand-from: #818cf8;
+    --app-brand-via: #a78bfa;
+    --app-brand-to: #22d3ee;
+
+    --app-overlay: rgb(11 15 20 / 82%);
+    --app-selection-bg: rgb(129 140 248 / 20%);
+
+    --app-shadow-sm: 0 1px 2px rgb(0 0 0 / 18%);
+    --app-shadow-md: 0 8px 24px rgb(0 0 0 / 24%);
+    --app-shadow-lg: 0 16px 40px rgb(0 0 0 / 30%);
+    --app-shadow-float: 0 24px 60px rgb(0 0 0 / 38%);
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+}
+
+
 /* ==========================================================================
    BASE
    ========================================================================== */
@@ -1311,7 +1373,6 @@
     --ui-line-body:1.85;
     --ui-line-meta:1.75;
 }
-html{font-size:100%}
 body{font-family:var(--ui-font-family)}
 button,input,select,textarea{font-family:inherit}
 h1,h2,h3,h4,h5,h6{line-height:var(--ui-line-tight)}

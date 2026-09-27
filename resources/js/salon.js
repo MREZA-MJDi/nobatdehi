@@ -302,6 +302,7 @@
 
     let lightboxItems = [];
     let lightboxIndex = 0;
+    let lightboxHistoryPushed = false;
 
     function formatMediaTime(seconds) {
         if (!Number.isFinite(seconds) || seconds < 0) {
@@ -645,6 +646,26 @@
             return;
         }
 
+        if (!lightboxHistoryPushed) {
+            const currentState =
+                window.history.state &&
+                typeof window.history.state === 'object'
+                    ? window.history.state
+                    : {};
+
+            window.history.pushState(
+                {
+                    ...currentState,
+                    __nobatSalonLightbox: true,
+                    lightboxIndex,
+                },
+                '',
+                window.location.href
+            );
+
+            lightboxHistoryPushed = true;
+        }
+
         updateLightbox();
 
         lightbox.hidden = false;
@@ -663,10 +684,17 @@
         );
     }
 
-    function closeLightbox() {
+    function closeLightbox({ fromHistory = false } = {}) {
         if (!lightbox) {
             return;
         }
+
+        if (lightboxHistoryPushed && !fromHistory) {
+            window.history.back();
+            return;
+        }
+
+        lightboxHistoryPushed = false;
 
         const mediaVideo =
             lightboxMedia?.querySelector('video');
@@ -694,6 +722,14 @@
             }
         }, 220);
     }
+
+    window.addEventListener('popstate', () => {
+        if (!lightboxHistoryPushed) {
+            return;
+        }
+
+        closeLightbox({ fromHistory: true });
+    });
 
     function moveLightbox(direction) {
         if (lightboxItems.length < 2) {

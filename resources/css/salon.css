@@ -11,6 +11,9 @@
 }
 
 .salon-page {
+    /* The public salon is intentionally dark/editorial. Make native controls
+       follow that contract instead of falling back to browser light chrome. */
+    color-scheme: dark;
     --bg: #08090b;
     --bg-soft: #0e1013;
     --surface: #111317;
