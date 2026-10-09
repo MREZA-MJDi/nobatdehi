@@ -1,74 +1,45 @@
 # NOBAT — Salon Appointment Platform
 
-**NOBAT** is a Laravel-based salon appointment platform for discovering salons, viewing services and specialists, checking available time slots, and managing bookings from dedicated dashboards.
+NOBAT is a Laravel platform for salon discovery and appointment management. It separates customer booking, salon-owner operations, and platform administration. Public salon pages can present services, prices, specialists, working hours, branding, and gallery media. Owner workflows include schedule and booking management; availability and booking behavior should be validated against the current tests before production use.
 
-**Project URL:** http://171.22.26.184:8081/
+## Technology
+- PHP `^8.2`, Laravel `^12.0`
+- Blade, Alpine.js, Vite and project CSS
+- Laravel database migrations and Eloquent
+- QR-code support through `f9webltd/simple-qrcode`
+- Jalali date helper in `app/Helpers/Jalali.php`
 
-## What NOBAT does
+## Requirements
+PHP 8.2+, Composer, Node.js/npm, and a Laravel-supported database. PHP extensions required by Laravel and Composer dependencies must be enabled.
 
-NOBAT separates the experience into three main roles:
-
-- **Customer:** discover salons, open a public salon page, choose a service/barber, view availability, book appointments, manage bookings and favorites.
-- **Salon Owner:** manage salon information, services, barbers, working hours, availability, bookings, manual walk-in bookings, dashboard metrics, and public salon presentation.
-- **Super Admin:** create and edit salons, manage owner accounts, activate/deactivate salons, inspect salon details, and oversee platform-level salon data.
-
-## Main product areas
-
-### Discover
-The Discover experience is the public entry point for customers. It provides salon discovery, search, popular salon presentation, and a responsive hero with the salon visual on the left and the Persian search/content area on the right on desktop.
-
-### Public Salon
-Each salon has a public page with branding, cover and logo, services and pricing, specialist/barber information, gallery and media lightbox, working-hours/status presentation, online booking flow, and responsive mobile presentation.
-
-Uploaded gallery media is constrained to the browser viewport when opened in the lightbox, so large source images do not force the page beyond the screen.
-
-### Booking
-Customer bookings and salon-owner manual bookings use the same availability logic so confirmed bookings block the corresponding time slot.
-
-Manual booking supports walk-in customers without creating a NOBAT customer account and includes customer name, phone, barber, service, date, time, confirmation and notes.
-
-### Working Hours
-Working hours can be defined at salon level and, where configured, per barber. Barber-specific schedules override the salon-wide fallback for that barber, including custom closed days.
-
-### Authentication & Session UX
-Customers have an accessible logout action and a customer-specific inactivity timeout. The current default is **30 minutes of inactivity**.
-
-Salon-owner and Super Admin authentication remain role-scoped.
-
-## Responsive UX
-The project uses responsive layouts across customer, public salon, salon-owner and Super Admin surfaces.
-
-Recent UX hardening includes mobile-friendly salon-owner workspace, responsive manual booking, compact booking detail metadata on mobile, viewport-safe public salon media viewing, responsive Super Admin dashboard, consistent navigation and feedback states, safer back navigation, and role-aware entry points.
-
-## Technical stack
-- Laravel / PHP
-- Blade
-- Alpine.js
-- Tailwind-style utility classes plus project CSS systems
-- Vite
-- relational database with Laravel migrations and seeders
-- storage-backed salon/media assets
-
-## Local development
+## Local installation
 ```bash
 git clone https://github.com/MREZA-MJDi/nobatdehi.git
 cd nobatdehi
-
 composer install
-npm install
+```
 
-cp .env.example .env
+Copy `.env.example` to `.env` (`copy .env.example .env` in Windows CMD; `cp .env.example .env` on macOS/Linux), create a local database, and configure `DB_*` values. Review other environment variables for mail, storage, and deployment-specific services.
+
+```bash
 php artisan key:generate
-
 php artisan migrate
-
-npm run dev
+npm install
+npm run build
+php artisan storage:link
 php artisan serve
+```
 
-## Notes
-The repository intentionally keeps feature fixes scoped where possible. UI changes should avoid unrelated role or page regressions.
+Open `http://127.0.0.1:8000`. For frontend hot reload, run `npm run dev` in a second terminal.
 
-Do not use destructive seed/reset commands against a production database unless the intended dataset and environment have been explicitly verified.
+## Tests
+```bash
+php artisan test
+```
 
-## Repository
-GitHub: https://github.com/MREZA-MJDi/nobatdehi
+## Booking and production safety
+Verify working-hours rules, slot availability, cancellation/status transitions, and concurrent booking behavior in tests before production release. Use a disposable local database for any reset operation. Do not commit `.env`, credentials, or customer information.
+
+## Links
+- Repository: https://github.com/MREZA-MJDi/nobatdehi
+- Laravel documentation: https://laravel.com/docs/12.x
