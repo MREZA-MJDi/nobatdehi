@@ -2,6 +2,9 @@
 
 NOBAT is a Laravel platform for salon discovery and appointment management. It separates customer booking, salon-owner operations, and platform administration. Public salon pages can present services, prices, specialists, working hours, branding, and gallery media. Owner workflows include schedule and booking management; availability and booking behavior should be validated against the current tests before production use.
 
+## Dedicated dashboards
+NOBAT has dedicated dashboards for its distinct roles—customers, salon owners, and platform administration—so each role can access the workflows relevant to it. Availability, permissions, and booking state transitions should still be validated against the current tests before production use.
+
 ## Technology
 - PHP `^8.2`, Laravel `^12.0`
 - Blade, Alpine.js, Vite and project CSS
